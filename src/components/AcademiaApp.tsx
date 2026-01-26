@@ -7,6 +7,69 @@ import { BentoTile } from './BentoTile';
 import Timetable from './Timetable'; 
 import { BottomNav } from './BottomNav'; 
 import SettingsPage from './SettingsPage';
+import MobileAttendance from './MobileAttendance';
+
+const attendanceData = {
+  attendance: [
+    {
+      title: 'Artificial Intelligence',
+      code: 'CS301',
+      percent: '82',
+      conducted: 46,
+      absent: 8,
+    },
+    {
+      title: 'System Design',
+      code: 'CS302',
+      percent: '68',
+      conducted: 42,
+      absent: 13,
+    },
+    {
+      title: 'Operating Systems',
+      code: 'CS303',
+      percent: '91',
+      conducted: 55,
+      absent: 5,
+    },
+    {
+      title: 'Computer Networks',
+      code: 'CS304',
+      percent: '74',
+      conducted: 39,
+      absent: 10,
+    },
+    {
+      title: 'Database Management Systems',
+      code: 'CS305',
+      percent: '88',
+      conducted: 48,
+      absent: 6,
+    },
+    {
+      title: 'Design and Analysis of Algorithms',
+      code: 'CS306',
+      percent: '63',
+      conducted: 41,
+      absent: 15,
+    },
+    {
+      title: 'Machine Learning',
+      code: 'CS401',
+      percent: '79',
+      conducted: 34,
+      absent: 7,
+    },
+    {
+      title: 'Software Engineering',
+      code: 'CS402',
+      percent: '85',
+      conducted: 40,
+      absent: 6,
+    }
+  ]
+};
+
 
 const PlaceholderPage = ({ title, color }: { title: string, color: string }) => (
   <div className={`h-full w-full flex items-center justify-center ${color} text-black`}>
@@ -186,7 +249,8 @@ export default function AcademiaApp() {
       case 'marks':
         return <PlaceholderPage title="Marks" color="bg-indigo-200" />;
       case 'attendance':
-        return <PlaceholderPage title="Attendance" color="bg-purple-200" />;
+        return <MobileAttendance data={attendanceData} />;
+
       case 'calendar':
         return <PlaceholderPage title="Calendar" color="bg-blue-200" />;
       default:
