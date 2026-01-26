@@ -14,7 +14,8 @@ import {
 
 interface SettingsPageProps {
   onBack: () => void;
-  onLogout: () => void; // <--- Added prop definition
+  onLogout: () => void; 
+  profile?: any;
 }
 
 const backdropVariants = {
@@ -53,7 +54,7 @@ const itemVariants = {
   visible: { opacity: 1, x: 0, transition: { duration: 0.3 } }
 };
 
-const SettingsPage: React.FC<SettingsPageProps> = ({ onBack, onLogout }) => {
+const SettingsPage: React.FC<SettingsPageProps> = ({ onBack, onLogout, profile }) => {
   return (
     <>
       <motion.div
@@ -99,9 +100,12 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ onBack, onLogout }) => {
                   />
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold">Prethiv</h3>
+                  {/* DYNAMIC DATA INJECTION HERE */}
+                  <h3 className="text-xl font-semibold capitalize">
+                    {profile?.name ? profile.name.toLowerCase() : 'Student'}
+                  </h3>
                   <p className="text-xs uppercase tracking-widest text-white/50">
-                    Student Account
+                    {profile?.regNo || 'Student Account'}
                   </p>
                 </div>
               </div>
@@ -152,7 +156,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ onBack, onLogout }) => {
         >
 
           <button 
-            onClick={onLogout} // <--- Wired up here
+            onClick={onLogout} 
             className="w-full py-4 rounded-[26px] bg-white text-black font-bold text-base hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
           >
             <LogOut className="w-5 h-5" />

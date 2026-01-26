@@ -11,43 +11,53 @@ import { BottomNav } from './BottomNav';
 import SettingsPage from './SettingsPage';
 import MobileAttendance from './MobileAttendance';
 
+const parseTimeValues = (timeStr) => {
+  let [h, m] = timeStr.split(':').map(Number);
+  if (h < 7) h += 12; 
+  if (h === 12) h = 12; 
+  return h * 60 + m;
+};
 
-const getScheduleStatus = (schedule) => {
-  const now = new Date();
-  const dayIndex = now.getDay(); 
-  const dayKey = `Day ${dayIndex}`; 
+const getScheduleStatus = (schedule, activeDayOrder) => {
+  const targetDay = activeDayOrder && activeDayOrder !== '-' ? activeDayOrder : '1';
   
-  if (dayIndex === 0 || dayIndex === 6 || !schedule || !schedule[dayKey]) {
+  const dayKey = `Day ${targetDay}`;
+  const todaySchedule = schedule[dayKey];
+
+  if (!todaySchedule) {
     return { status: 'free', nextClass: null, currentClass: null };
   }
 
-  const todaySchedule = schedule[dayKey];
-  const timeSlots = Object.keys(todaySchedule).sort(); 
-  
-  let currentClass = null;
-  let nextClass = null;
-  
+  const now = new Date();
   const currentTimeVal = now.getHours() * 60 + now.getMinutes();
 
-  for (const slot of timeSlots) {
-    const [start, end] = slot.split(' - ');
-    const [startH, startM] = start.split(':').map(Number);
-    const [endH, endM] = end.split(':').map(Number);
-    
-    const startVal = startH * 60 + startM;
-    const endVal = endH * 60 + endM;
+  const sortedSlots = Object.entries(todaySchedule)
+    .map(([timeRange, details]) => {
+      const [startStr, endStr] = timeRange.split(' - ');
+      return {
+        ...details,
+        time: timeRange,
+        startMinutes: parseTimeValues(startStr),
+        endMinutes: parseTimeValues(endStr)
+      };
+    })
+    .sort((a, b) => a.startMinutes - b.startMinutes);
 
-    if (currentTimeVal >= startVal && currentTimeVal < endVal) {
-      currentClass = { ...todaySchedule[slot], time: slot };
-    } else if (currentTimeVal < startVal && !nextClass) {
-      nextClass = { ...todaySchedule[slot], time: slot };
+  let currentClass = null;
+  let nextClass = null;
+
+  for (const slot of sortedSlots) {
+    if (currentTimeVal >= slot.startMinutes && currentTimeVal < slot.endMinutes) {
+      currentClass = slot;
+    } else if (currentTimeVal < slot.startMinutes && !nextClass) {
+      nextClass = slot;
     }
   }
 
   return { status: currentClass ? 'busy' : 'free', nextClass, currentClass };
 };
 
-const HomeDashboard = ({ onProfileClick, profile, schedule, attendance }) => {
+const HomeDashboard = ({ onProfileClick, profile, schedule, attendance, dayOrder }) => {
   const [isAlertExpanded, setIsAlertExpanded] = useState(false);
   const containerRef = useRef(null);
   const [timeStatus, setTimeStatus] = useState({ nextClass: null, currentClass: null });
@@ -64,9 +74,9 @@ const HomeDashboard = ({ onProfileClick, profile, schedule, attendance }) => {
 
   useEffect(() => {
     if (schedule) {
-      setTimeStatus(getScheduleStatus(schedule));
+      setTimeStatus(getScheduleStatus(schedule, dayOrder));
     }
-  }, [schedule]);
+  }, [schedule, dayOrder]);
 
   const overallPercent = useMemo(() => {
     if (!attendance || attendance.length === 0) return 0;
@@ -252,7 +262,7 @@ export default function AcademiaApp({ data, onLogout }) {
   const [[activeTab, direction], setTabState] = useState(['home', 0]);
   const [showSettings, setShowSettings] = useState(false);
   
-  const { profile, attendance, schedule, calendar } = data || {};
+  const { profile, attendance, schedule, calendar, dayOrder } = data || {};
 
   const setPage = (newTab) => {
     const newIndex = tabs.indexOf(newTab);
@@ -263,8 +273,15 @@ export default function AcademiaApp({ data, onLogout }) {
 
   const renderContent = () => {
     switch (activeTab) {
-      case 'home': return <HomeDashboard profile={profile} schedule={schedule} attendance={attendance} onProfileClick={() => setShowSettings(true)} />;
-      case 'timetable': return <Timetable schedule={schedule} />;
+      case 'home': 
+        return <HomeDashboard 
+                  profile={profile} 
+                  schedule={schedule} 
+                  attendance={attendance} 
+                  dayOrder={dayOrder} 
+                  onProfileClick={() => setShowSettings(true)} 
+               />;
+      case 'timetable': return <Timetable schedule={schedule} dayOrder={dayOrder} />;
       case 'attendance': return <MobileAttendance data={{ attendance }} />;
       default: return <div className="h-full w-full bg-[#050505]" />;
     }
@@ -318,6 +335,7 @@ export default function AcademiaApp({ data, onLogout }) {
           <SettingsPage 
             onBack={() => setShowSettings(false)} 
             onLogout={onLogout} 
+            profile={profile}
           />
         )}
       </AnimatePresence>
