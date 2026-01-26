@@ -14,6 +14,7 @@ import {
 
 interface SettingsPageProps {
   onBack: () => void;
+  onLogout: () => void; // <--- Added prop definition
 }
 
 const backdropVariants = {
@@ -52,10 +53,9 @@ const itemVariants = {
   visible: { opacity: 1, x: 0, transition: { duration: 0.3 } }
 };
 
-const SettingsPage: React.FC<SettingsPageProps> = ({ onBack }) => {
+const SettingsPage: React.FC<SettingsPageProps> = ({ onBack, onLogout }) => {
   return (
     <>
- 
       <motion.div
         variants={backdropVariants}
         initial="hidden"
@@ -65,7 +65,6 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ onBack }) => {
         onClick={onBack}
       />
 
- 
       <motion.div
         variants={panelVariants}
         initial="hidden"
@@ -73,7 +72,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ onBack }) => {
         exit="exit"
         className="fixed inset-0 z-50 bg-black text-white flex flex-col overflow-hidden"
       >
- 
+
         <motion.div
           variants={itemVariants}
           className="pt-12 pb-4 px-6 flex items-center gap-4"
@@ -87,11 +86,9 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ onBack }) => {
           <h1 className="text-[26px] font-semibold tracking-tight">Settings</h1>
         </motion.div>
 
- 
         <div className="flex-1 overflow-y-auto">
           <div className="px-6 py-8 space-y-12">
             
- 
             <motion.div variants={itemVariants} className="space-y-6">
               <div className="flex items-center gap-4">
                 <div className="w-16 h-16 rounded-full overflow-hidden bg-white/5">
@@ -108,7 +105,6 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ onBack }) => {
                   </p>
                 </div>
               </div>
-
     
               <div className="flex gap-3">
                 <button className="flex-1 flex items-center justify-center gap-2 py-3 rounded-[22px] bg-white/5 hover:bg-white/10 transition-colors text-sm font-semibold">
@@ -122,7 +118,6 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ onBack }) => {
               </div>
             </motion.div>
 
- 
             <motion.div variants={itemVariants} className="space-y-4">
               <p className="text-[11px] uppercase tracking-widest text-white/40">
                 Preferences
@@ -151,18 +146,19 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ onBack }) => {
           </div>
         </div>
 
- 
         <motion.div 
           variants={itemVariants} 
           className="p-6 pt-4 border-t border-white/5 bg-black z-10 space-y-6"
         >
- 
-          <button className="w-full py-4 rounded-[26px] bg-white text-black font-bold text-base hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2">
+
+          <button 
+            onClick={onLogout} // <--- Wired up here
+            className="w-full py-4 rounded-[26px] bg-white text-black font-bold text-base hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
+          >
             <LogOut className="w-5 h-5" />
             Log Out
           </button>
 
- 
           <p className="text-xs text-center text-white/40">
             made by <span className="text-white/60">Akshith Rajesh</span> and{' '}
             <span className="text-white/60">Prethiv Sriman D</span>
