@@ -167,12 +167,11 @@ const HomeDashboard = ({ onProfileClick }: { onProfileClick: () => void }) => {
   );
 };
 
-
 const slideVariants = {
   enter: (direction: number) => ({
     x: direction > 0 ? '100%' : '-100%',
-    zIndex: 1, 
-    position: 'absolute' as const 
+    zIndex: 1,
+    position: 'absolute' as const
   }),
   center: {
     x: 0,
@@ -181,7 +180,7 @@ const slideVariants = {
   },
   exit: (direction: number) => ({
     x: direction < 0 ? '100%' : '-100%',
-    zIndex: 0, 
+    zIndex: 0,
     position: 'absolute' as const
   })
 };
@@ -213,12 +212,10 @@ export default function AcademiaApp() {
     const currentIndex = tabs.indexOf(activeTab);
     const threshold = 50;
     
-
     if (info.offset.x < -threshold && currentIndex < tabs.length - 1) {
       setPage(tabs[currentIndex + 1]);
     }
     
-
     if (info.offset.x > threshold && currentIndex > 0) {
       setPage(tabs[currentIndex - 1]);
     }
@@ -227,12 +224,13 @@ export default function AcademiaApp() {
   return (
     <div className="h-[100dvh] w-full bg-black relative overflow-hidden">
       <motion.div
-        className="h-full w-full relative" 
+        className="h-full w-full relative"
+        drag={showSettings ? false : 'x'}
         dragConstraints={{ left: 0, right: 0 }}
         dragElastic={0.2}
         onDragEnd={handleDragEnd}
+        style={{ touchAction: "pan-y" }} 
       >
-
         <AnimatePresence initial={false} custom={direction}>
           <motion.div
             key={activeTab}
@@ -246,7 +244,7 @@ export default function AcademiaApp() {
               opacity: { duration: 0.2 }
             }}
 
-            className="absolute top-0 left-0 w-full h-full bg-[#050505]"
+            className="absolute top-0 left-0 w-full h-full bg-[#050505] transform-gpu"
           >
             {renderContent()}
           </motion.div>

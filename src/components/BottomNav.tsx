@@ -1,15 +1,14 @@
 "use client";
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, memo } from 'react';
 import { motion, useSpring, useTransform } from 'framer-motion';
 import { LayoutGrid, CheckCircle, Home, Calendar, GraduationCap } from 'lucide-react';
-
 
 interface BottomNavProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
 }
 
-export const BottomNav = ({ activeTab, setActiveTab }: BottomNavProps) => {
+export const BottomNav = memo(({ activeTab, setActiveTab }: BottomNavProps) => {
   const [width, setWidth] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -34,7 +33,7 @@ export const BottomNav = ({ activeTab, setActiveTab }: BottomNavProps) => {
     return () => resizeObserver.disconnect();
   }, []);
 
-  const x = useSpring(0, { stiffness: 300, damping: 32 });
+  const x = useSpring(0, { stiffness: 250, damping: 25 });
 
   useEffect(() => {
     if (width > 0) {
@@ -73,18 +72,28 @@ export const BottomNav = ({ activeTab, setActiveTab }: BottomNavProps) => {
       ref={containerRef}
       className="fixed bottom-0 left-0 w-full z-[100] h-[85px] pb-safe"
     >
-      <svg className="absolute top-0 left-0 w-full h-full pointer-events-none drop-shadow-2xl">
+
+      <svg 
+        className="absolute top-0 left-0 w-full h-full pointer-events-none"
+
+        style={{ filter: "drop-shadow(0 -5px 10px rgba(0,0,0,0.2))" }}
+      >
         <motion.path 
           d={path} 
           fill="#050505" 
           stroke="rgba(255,255,255,0.05)"
           strokeWidth="1"
+          style={{ willChange: "d" }} 
         />
       </svg>
 
+
       <motion.div
         className="absolute top-0 left-0 z-50"
-        style={{ x: useTransform(x, (val) => val - 28) }} 
+        style={{ 
+          x: useTransform(x, (val) => val - 28),
+          willChange: "transform" 
+        }} 
       >
         <motion.button
           onClick={() => {}} 
@@ -97,6 +106,7 @@ export const BottomNav = ({ activeTab, setActiveTab }: BottomNavProps) => {
            {React.createElement(tabs[activeIndex].icon, { size: 26, strokeWidth: 2.5 })}
         </motion.button>
       </motion.div>
+
 
       <div className="relative w-full h-full flex items-center justify-around z-20">
         {tabs.map((tab) => {
@@ -127,4 +137,4 @@ export const BottomNav = ({ activeTab, setActiveTab }: BottomNavProps) => {
       </div>
     </div>
   );
-};
+});
