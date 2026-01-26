@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, Loader2, AlertCircle } from 'lucide-react';
 
-const API_URL = `${process.env.NEXT_PUBLIC_API_URL}/api/login`;
+const API_URL = `https://ratio-d.onrender.com/login`;
 
 const LoginPage = ({ onLogin }) => {
   const [username, setUsername] = useState('');
