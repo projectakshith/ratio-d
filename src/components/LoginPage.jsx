@@ -17,7 +17,6 @@ const LoginPage = ({ onLogin }) => {
     setLoading(true);
     setError('');
 
-    // 1. SECURITY FIX: Clear old session immediately
     localStorage.removeItem("ratiod_user");
 
     try {
@@ -34,7 +33,7 @@ const LoginPage = ({ onLogin }) => {
       }
 
       if (data.success) {
-        // 2. SESSION FIX: Save user data to localStorage
+
         localStorage.setItem("ratiod_user", JSON.stringify(data));
         
         setTimeout(() => { 
@@ -45,7 +44,7 @@ const LoginPage = ({ onLogin }) => {
       }
 
     } catch (err) {
-      // 3. FAIL SAFE: Ensure no ghost session remains
+
       localStorage.removeItem("ratiod_user");
       setError(err.message);
     } finally {
@@ -56,7 +55,7 @@ const LoginPage = ({ onLogin }) => {
   return (
     <div className="h-screen w-full flex flex-col justify-between p-8 md:p-16 relative bg-[#0c30ff]">
       
-      {/* 1. BRANDING - Stays at top */}
+
       <header className="relative z-10">
          <h1 className="text-5xl md:text-8xl lowercase leading-none tracking-tighter"
              style={{ fontFamily: 'Urbanosta', color: '#ceff1c' }}>
@@ -64,11 +63,10 @@ const LoginPage = ({ onLogin }) => {
          </h1>
       </header>
 
-      {/* 2. FORM - Pushed to the very bottom */}
       <main className="relative z-10 w-full max-w-2xl mt-auto pb-12">
         <form onSubmit={handleSubmit} className="flex flex-col gap-10">
             
-            {/* Identification */}
+
             <div className="group relative">
                <label className="text-[10px] font-mono uppercase tracking-[0.3em] text-white/60">
                   Identification (NetID)
@@ -83,7 +81,6 @@ const LoginPage = ({ onLogin }) => {
                />
             </div>
 
-            {/* Passkey */}
             <div className="group relative">
                <label className="text-[10px] font-mono uppercase tracking-[0.3em] text-white/60">
                   Passkey
@@ -98,7 +95,6 @@ const LoginPage = ({ onLogin }) => {
                />
             </div>
 
-            {/* Error Display */}
             <AnimatePresence>
               {error && (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-red-400 font-mono text-xs uppercase flex items-center gap-2">
@@ -107,7 +103,6 @@ const LoginPage = ({ onLogin }) => {
               )}
             </AnimatePresence>
 
-            {/* Action Button */}
             <button 
               type="submit" 
               disabled={loading}
