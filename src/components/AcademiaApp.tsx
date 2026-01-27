@@ -91,7 +91,6 @@ const HomeDashboard = ({ onProfileClick, profile, schedule, attendance, dayOrder
     />
   );
 
-
   const studentName = displayName || (profile?.name ? profile.name.split(' ')[0] : 'Student');
   
   const nextSubject = timeStatus.nextClass?.course || "No more classes";
@@ -242,6 +241,9 @@ export default function AcademiaApp({ data, onLogout, customDisplayName, onUpdat
   const [[activeTab, direction], setTabState] = useState(['home', 0]);
   const [showSettings, setShowSettings] = useState(false);
   
+  const touchStart = useRef(null);
+  const touchEnd = useRef(null);
+  
   const { profile, attendance, schedule, dayOrder } = data || {};
 
   const setPage = (newTab) => {
@@ -268,48 +270,59 @@ export default function AcademiaApp({ data, onLogout, customDisplayName, onUpdat
     }
   };
 
-  const handleDragEnd = (_, info) => {
-    if (showSettings) return;
-    const currentIndex = tabs.indexOf(activeTab);
-    const threshold = 50;
+  const onTouchStart = (e) => {
+    touchEnd.current = null; 
+    touchStart.current = {
+        x: e.targetTouches[0].clientX,
+        y: e.targetTouches[0].clientY
+    };
+  };
+
+  const onTouchMove = (e) => {
+    touchEnd.current = {
+        x: e.targetTouches[0].clientX,
+        y: e.targetTouches[0].clientY
+    };
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart.current || !touchEnd.current) return;
     
-    if (info.offset.x < -threshold && currentIndex < tabs.length - 1) {
-      setPage(tabs[currentIndex + 1]);
-    }
+    const xDist = touchStart.current.x - touchEnd.current.x;
+    const yDist = touchStart.current.y - touchEnd.current.y;
     
-    if (info.offset.x > threshold && currentIndex > 0) {
-      setPage(tabs[currentIndex - 1]);
+    if (Math.abs(yDist) < Math.abs(xDist) && Math.abs(xDist) > 50) {
+        const currentIndex = tabs.indexOf(activeTab);
+        if (xDist > 0 && currentIndex < tabs.length - 1) {
+            setPage(tabs[currentIndex + 1]); 
+        }
+        if (xDist < 0 && currentIndex > 0) {
+            setPage(tabs[currentIndex - 1]); 
+        }
     }
   };
 
   return (
-    <div className="h-[100dvh] w-full bg-black relative overflow-hidden">
-      <motion.div
-        className="h-full w-full relative"
-        drag={showSettings ? false : 'x'}
-        dragConstraints={{ left: 0, right: 0 }}
-        dragElastic={0.2}
-        onDragEnd={handleDragEnd}
-        style={{ touchAction: "pan-y" }} 
-      >
-        <AnimatePresence initial={false} custom={direction}>
-          <motion.div
+    <div 
+        className="h-[100dvh] w-full bg-black relative overflow-hidden"
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+    >
+      <AnimatePresence initial={false} custom={direction} mode="popLayout">
+        <motion.div
             key={activeTab}
             custom={direction}
             variants={slideVariants}
             initial="enter"
             animate="center"
             exit="exit"
-            transition={{
-              x: { type: "spring", stiffness: 300, damping: 30 },
-              opacity: { duration: 0.2 }
-            }}
-            className="absolute top-0 left-0 w-full h-full bg-[#050505] transform-gpu"
-          >
+            transition={{ duration: 0.3, ease: "easeOut" }} 
+            className="absolute top-0 left-0 w-full h-full bg-[#050505]"
+        >
             {renderContent()}
-          </motion.div>
-        </AnimatePresence>
-      </motion.div>
+        </motion.div>
+      </AnimatePresence>
 
       <AnimatePresence>
         {showSettings && (
@@ -337,16 +350,13 @@ const slideVariants = {
   enter: (direction) => ({
     x: direction > 0 ? '100%' : '-100%',
     zIndex: 1,
-    position: 'absolute'
   }),
   center: {
     x: 0,
     zIndex: 1,
-    position: 'absolute'
   },
   exit: (direction) => ({
     x: direction < 0 ? '100%' : '-100%',
     zIndex: 0,
-    position: 'absolute'
   })
 };
