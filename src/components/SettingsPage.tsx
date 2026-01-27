@@ -1,5 +1,5 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ChevronLeft, 
   Pencil, 
@@ -9,13 +9,15 @@ import {
   Lock, 
   Cloud, 
   ChevronRight,
-  LogOut 
+  LogOut,
+  Check
 } from 'lucide-react';
 
 interface SettingsPageProps {
   onBack: () => void;
   onLogout: () => void; 
   profile?: any;
+  onUpdateName: (name: string) => void;
 }
 
 const backdropVariants = {
@@ -54,7 +56,18 @@ const itemVariants = {
   visible: { opacity: 1, x: 0, transition: { duration: 0.3 } }
 };
 
-const SettingsPage: React.FC<SettingsPageProps> = ({ onBack, onLogout, profile }) => {
+const SettingsPage: React.FC<SettingsPageProps> = ({ onBack, onLogout, profile, onUpdateName }) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [tempName, setTempName] = useState("");
+
+  const handleSave = () => {
+    if (tempName.trim()) {
+      onUpdateName(tempName.trim());
+      setIsEditing(false);
+      setTempName("");
+    }
+  };
+
   return (
     <>
       <motion.div
@@ -73,7 +86,6 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ onBack, onLogout, profile }
         exit="exit"
         className="fixed inset-0 z-50 bg-black text-white flex flex-col overflow-hidden"
       >
-
         <motion.div
           variants={itemVariants}
           className="pt-12 pb-4 px-6 flex items-center gap-4"
@@ -100,7 +112,6 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ onBack, onLogout, profile }
                   />
                 </div>
                 <div>
-                  {/* DYNAMIC DATA INJECTION HERE */}
                   <h3 className="text-xl font-semibold capitalize">
                     {profile?.name ? profile.name.toLowerCase() : 'Student'}
                   </h3>
@@ -110,15 +121,63 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ onBack, onLogout, profile }
                 </div>
               </div>
     
-              <div className="flex gap-3">
-                <button className="flex-1 flex items-center justify-center gap-2 py-3 rounded-[22px] bg-white/5 hover:bg-white/10 transition-colors text-sm font-semibold">
-                  <Pencil className="w-4 h-4" />
-                  Edit Profile
-                </button>
-                <button className="flex-1 flex items-center justify-center gap-2 py-3 rounded-[22px] bg-white/5 hover:bg-white/10 transition-colors text-sm font-semibold">
-                  <Share2 className="w-4 h-4" />
-                  Share Profile
-                </button>
+              <div className="relative min-h-[52px]">
+                <AnimatePresence mode="wait">
+                  {!isEditing ? (
+                    <motion.div 
+                      key="buttons"
+                      initial={{ opacity: 0, y: 5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -5 }}
+                      className="flex gap-3"
+                    >
+                      <button 
+                        onClick={() => setIsEditing(true)}
+                        className="flex-1 flex items-center justify-center gap-2 py-3 rounded-[22px] bg-white/5 hover:bg-white/10 transition-colors text-sm font-semibold"
+                      >
+                        <Pencil className="w-4 h-4" />
+                        Edit Profile
+                      </button>
+                      <button className="flex-1 flex items-center justify-center gap-2 py-3 rounded-[22px] bg-white/5 hover:bg-white/10 transition-colors text-sm font-semibold">
+                        <Share2 className="w-4 h-4" />
+                        Share Profile
+                      </button>
+                    </motion.div>
+                  ) : (
+                    <motion.div 
+                      key="input-stack"
+                      initial={{ opacity: 0, y: 5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -5 }}
+                      className="flex flex-col gap-3"
+                    >
+                      <input 
+                        autoFocus
+                        type="text"
+                        placeholder="New display name..."
+                        className="w-full bg-white/10 border border-white/10 rounded-[22px] px-5 py-3 text-sm focus:outline-none focus:border-white/30 text-white"
+                        value={tempName}
+                        onChange={(e) => setTempName(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleSave()}
+                      />
+                      <div className="flex gap-2">
+                        <button 
+                          onClick={handleSave}
+                          className="flex-1 py-3 rounded-[22px] bg-white text-black font-bold text-sm flex items-center justify-center gap-2 active:scale-95 transition-transform"
+                        >
+                          <Check className="w-4 h-4" />
+                          Save
+                        </button>
+                        <button 
+                          onClick={() => { setIsEditing(false); setTempName(""); }}
+                          className="px-6 py-3 rounded-[22px] bg-white/5 text-white/60 text-sm font-semibold active:scale-95 transition-transform"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             </motion.div>
 
@@ -128,33 +187,16 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ onBack, onLogout, profile }
               </p>
 
               <div className="space-y-1">
-                <SettingItem 
-                  icon={<Bell className="w-5 h-5 opacity-80" />} 
-                  label="Notifications" 
-                />
-                <SettingItem 
-                  icon={<Moon className="w-5 h-5 opacity-80" />} 
-                  label="Dark Mode" 
-                  toggle 
-                />
-                <SettingItem 
-                  icon={<Lock className="w-5 h-5 opacity-80" />} 
-                  label="Privacy" 
-                />
-                <SettingItem 
-                  icon={<Cloud className="w-5 h-5 opacity-80" />} 
-                  label="Sync Data" 
-                />
+                <SettingItem icon={<Bell className="w-5 h-5 opacity-80" />} label="Notifications" />
+                <SettingItem icon={<Moon className="w-5 h-5 opacity-80" />} label="Dark Mode" toggle />
+                <SettingItem icon={<Lock className="w-5 h-5 opacity-80" />} label="Privacy" />
+                <SettingItem icon={<Cloud className="w-5 h-5 opacity-80" />} label="Sync Data" />
               </div>
             </motion.div>
           </div>
         </div>
 
-        <motion.div 
-          variants={itemVariants} 
-          className="p-6 pt-4 border-t border-white/5 bg-black z-10 space-y-6"
-        >
-
+        <motion.div variants={itemVariants} className="p-6 pt-4 border-t border-white/5 bg-black z-10 space-y-6">
           <button 
             onClick={onLogout} 
             className="w-full py-4 rounded-[26px] bg-white text-black font-bold text-base hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
@@ -162,33 +204,22 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ onBack, onLogout, profile }
             <LogOut className="w-5 h-5" />
             Log Out
           </button>
-
           <p className="text-xs text-center text-white/40">
             made by <span className="text-white/60">Akshith Rajesh</span> and{' '}
             <span className="text-white/60">Prethiv Sriman D</span>
           </p>
         </motion.div>
-
       </motion.div>
     </>
   );
 };
 
-const SettingItem = ({
-  icon,
-  label,
-  toggle = false
-}: {
-  icon: React.ReactNode;
-  label: string;
-  toggle?: boolean;
-}) => (
+const SettingItem = ({ icon, label, toggle = false }: { icon: React.ReactNode; label: string; toggle?: boolean; }) => (
   <div className="flex items-center justify-between px-2 py-4 rounded-xl active:bg-white/5 transition-colors">
     <div className="flex items-center gap-4">
       <span className="text-lg">{icon}</span>
       <span className="text-[15px] font-medium text-white/90">{label}</span>
     </div>
-
     {toggle ? (
       <div className="w-12 h-7 bg-white/10 rounded-full relative">
         <div className="absolute right-1 top-1 w-5 h-5 bg-white rounded-full" />

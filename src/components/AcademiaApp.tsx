@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { motion, AnimatePresence, PanInfo } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { Zap, ArrowUpRight, Bell, ChevronRight } from 'lucide-react';
@@ -20,7 +20,6 @@ const parseTimeValues = (timeStr) => {
 
 const getScheduleStatus = (schedule, activeDayOrder) => {
   const targetDay = activeDayOrder && activeDayOrder !== '-' ? activeDayOrder : '1';
-  
   const dayKey = `Day ${targetDay}`;
   const todaySchedule = schedule[dayKey];
 
@@ -57,7 +56,7 @@ const getScheduleStatus = (schedule, activeDayOrder) => {
   return { status: currentClass ? 'busy' : 'free', nextClass, currentClass };
 };
 
-const HomeDashboard = ({ onProfileClick, profile, schedule, attendance, dayOrder }) => {
+const HomeDashboard = ({ onProfileClick, profile, schedule, attendance, dayOrder, displayName }) => {
   const [isAlertExpanded, setIsAlertExpanded] = useState(false);
   const containerRef = useRef(null);
   const [timeStatus, setTimeStatus] = useState({ nextClass: null, currentClass: null });
@@ -92,7 +91,9 @@ const HomeDashboard = ({ onProfileClick, profile, schedule, attendance, dayOrder
     />
   );
 
-  const studentName = profile?.name ? profile.name.split(' ')[0] : 'Student';
+
+  const studentName = displayName || (profile?.name ? profile.name.split(' ')[0] : 'Student');
+  
   const nextSubject = timeStatus.nextClass?.course || "No more classes";
   const nextSubjectSplit = nextSubject.split(' ');
   const displayNext = nextSubjectSplit.length > 1 
@@ -100,10 +101,7 @@ const HomeDashboard = ({ onProfileClick, profile, schedule, attendance, dayOrder
     : { top: nextSubject, bottom: '' };
 
   return (
-    <div
-      ref={containerRef}
-      className="h-full w-full bg-[#050505] flex flex-col overflow-hidden relative"
-    >
+    <div ref={containerRef} className="h-full w-full bg-[#050505] flex flex-col overflow-hidden relative">
       <BentoTile
         className={`bg-[#fdfdfd] flex flex-col rounded-t-none rounded-b-[48px] !p-8 md:!p-10 relative overflow-hidden transition-all duration-700 ease-[0.23,1,0.32,1] ${
           isAlertExpanded ? 'flex-[2]' : 'flex-[7]'
@@ -239,30 +237,12 @@ const HomeDashboard = ({ onProfileClick, profile, schedule, attendance, dayOrder
   );
 };
 
-const slideVariants = {
-  enter: (direction) => ({
-    x: direction > 0 ? '100%' : '-100%',
-    zIndex: 1,
-    position: 'absolute'
-  }),
-  center: {
-    x: 0,
-    zIndex: 1,
-    position: 'absolute'
-  },
-  exit: (direction) => ({
-    x: direction < 0 ? '100%' : '-100%',
-    zIndex: 0,
-    position: 'absolute'
-  })
-};
-
-export default function AcademiaApp({ data, onLogout }) {
+export default function AcademiaApp({ data, onLogout, customDisplayName, onUpdateName }) {
   const tabs = ['marks', 'attendance', 'home', 'timetable', 'calendar'];
   const [[activeTab, direction], setTabState] = useState(['home', 0]);
   const [showSettings, setShowSettings] = useState(false);
   
-  const { profile, attendance, schedule, calendar, dayOrder } = data || {};
+  const { profile, attendance, schedule, dayOrder } = data || {};
 
   const setPage = (newTab) => {
     const newIndex = tabs.indexOf(newTab);
@@ -280,6 +260,7 @@ export default function AcademiaApp({ data, onLogout }) {
                   attendance={attendance} 
                   dayOrder={dayOrder} 
                   onProfileClick={() => setShowSettings(true)} 
+                  displayName={customDisplayName}
                />;
       case 'timetable': return <Timetable schedule={schedule} dayOrder={dayOrder} />;
       case 'attendance': return <MobileAttendance data={{ attendance }} />;
@@ -336,6 +317,7 @@ export default function AcademiaApp({ data, onLogout }) {
             onBack={() => setShowSettings(false)} 
             onLogout={onLogout} 
             profile={profile}
+            onUpdateName={onUpdateName}
           />
         )}
       </AnimatePresence>
@@ -350,3 +332,21 @@ export default function AcademiaApp({ data, onLogout }) {
     </div>
   );
 }
+
+const slideVariants = {
+  enter: (direction) => ({
+    x: direction > 0 ? '100%' : '-100%',
+    zIndex: 1,
+    position: 'absolute'
+  }),
+  center: {
+    x: 0,
+    zIndex: 1,
+    position: 'absolute'
+  },
+  exit: (direction) => ({
+    x: direction < 0 ? '100%' : '-100%',
+    zIndex: 0,
+    position: 'absolute'
+  })
+};

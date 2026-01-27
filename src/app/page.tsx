@@ -6,12 +6,16 @@ import AcademiaApp from '@/components/AcademiaApp';
 export default function Home() {
   const [view, setView] = useState('loading');
   const [userData, setUserData] = useState(null);
+  const [customDisplayName, setCustomDisplayName] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
     const checkSession = async () => {
       const cachedData = localStorage.getItem("ratiod_data");
       const cachedCreds = localStorage.getItem("ratiod_creds");
+      const cachedName = localStorage.getItem("ratiod_custom_name");
+
+      if (cachedName) setCustomDisplayName(cachedName);
 
       if (cachedData) {
         setUserData(JSON.parse(cachedData));
@@ -27,6 +31,11 @@ export default function Home() {
 
     checkSession();
   }, []);
+
+  const handleUpdateName = (newName: string) => {
+    setCustomDisplayName(newName);
+    localStorage.setItem("ratiod_custom_name", newName);
+  };
 
   const performLogin = async (username, password) => {
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/login`, {
@@ -59,7 +68,9 @@ export default function Home() {
   const handleLogout = () => {
     localStorage.removeItem("ratiod_data");
     localStorage.removeItem("ratiod_creds");
+    localStorage.removeItem("ratiod_custom_name");
     setUserData(null);
+    setCustomDisplayName("");
     setView('login');
   };
 
@@ -80,6 +91,8 @@ export default function Home() {
         <AcademiaApp 
           data={userData} 
           onLogout={handleLogout}
+          customDisplayName={customDisplayName}
+          onUpdateName={handleUpdateName}
         />
       )}
     </main>
