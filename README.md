@@ -29,4 +29,4 @@ It simplifies academic management by providing a clean, centralized interface fo
 ## Status
 
 - **Version:** 2.0  
-- **Current State:** In Development.
+- **Current State:** In Development
