@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { motion, AnimatePresence, animate } from 'framer-motion';
+import { motion, AnimatePresence, animate, LayoutGroup } from 'framer-motion';
 import { AlertCircle, Zap, Calendar, X } from 'lucide-react';
 import { flavorText } from '../utils/flavortext';
 
@@ -11,8 +11,8 @@ const Counter = ({ value, color }) => {
     const node = nodeRef.current;
     if (!node) return;
     const controls = animate(prevValue.current, value, {
-      duration: 0.6,
-      ease: "easeOut",
+      duration: 0.8,
+      ease: [0.34, 1.56, 0.64, 1],
       onUpdate: v => { node.textContent = Math.floor(v) + '%' }
     });
     prevValue.current = value;
@@ -30,8 +30,8 @@ const MarginCounter = ({ value, color }) => {
     const node = nodeRef.current;
     if (!node) return;
     const controls = animate(prevValue.current, value, {
-      duration: 0.6,
-      ease: "easeOut",
+      duration: 0.8,
+      ease: [0.34, 1.56, 0.64, 1],
       onUpdate: v => { node.textContent = Math.floor(v) }
     });
     prevValue.current = value;
@@ -86,7 +86,7 @@ const MobileAttendance = ({ data }) => {
   }, [sortedAttendance]);
 
   useEffect(() => {
-    const timer = setTimeout(() => setIntroMode(false), 1200);
+    const timer = setTimeout(() => setIntroMode(false), 800);
     return () => clearTimeout(timer);
   }, []);
 
@@ -134,6 +134,36 @@ const MobileAttendance = ({ data }) => {
 
   const currentStat = getStatus(activeSubject.percentage, activeSubject.conducted, activeSubject.present);
 
+  const dashboardVariants = {
+    hidden: { opacity: 0 },
+    visible: { 
+      opacity: 1, 
+      transition: { 
+        staggerChildren: 0.1,
+        delayChildren: 0.1 
+      } 
+    },
+    exit: { opacity: 0, transition: { duration: 0.1 } }
+  };
+
+  const itemVariant = {
+    hidden: { y: 20, opacity: 0 },
+    visible: { 
+      y: 0, 
+      opacity: 1, 
+      transition: { type: "spring", stiffness: 300, damping: 24 } 
+    }
+  };
+
+  const scaleVariant = {
+    hidden: { scale: 0.8, opacity: 0 },
+    visible: { 
+      scale: 1, 
+      opacity: 1, 
+      transition: { type: "spring", stiffness: 300, damping: 20 } 
+    }
+  };
+
   if (sortedAttendance.length === 0) return null;
 
   return (
@@ -154,26 +184,47 @@ const MobileAttendance = ({ data }) => {
           {introMode ? (
             <motion.div
               key="intro"
-              exit={{ opacity: 0, transition: { duration: 0 } }} 
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              variants={{
+                hidden: { opacity: 0 },
+                visible: { opacity: 1 },
+                exit: { opacity: 0, y: -40, transition: { duration: 0.25, ease: "easeIn" } } 
+              }}
               className="absolute inset-0 flex flex-col justify-end items-start p-8 pb-32 text-left"
             >
-              <h1 className="text-6xl font-black lowercase tracking-tighter text-[#050505] mb-2" style={{ fontFamily: 'Urbanosta' }}>
+              <motion.h1 
+                variants={{
+                  hidden: { opacity: 0, y: 20 },
+                  visible: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 20 } }
+                }}
+                className="text-6xl font-black lowercase tracking-tighter text-[#050505] mb-2" 
+                style={{ fontFamily: 'Urbanosta' }}
+              >
                 {activeSubject.badge}
-              </h1>
-              <p className="text-xl font-bold lowercase text-[#050505] leading-tight max-w-[80%]" style={{ fontFamily: 'Aonic' }}>
+              </motion.h1>
+              <motion.p 
+                variants={{
+                  hidden: { opacity: 0, y: 20 },
+                  visible: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 20, delay: 0.1 } }
+                }}
+                className="text-xl font-bold lowercase text-[#050505] leading-tight max-w-[80%]" 
+                style={{ fontFamily: 'Aonic' }}
+              >
                 {activeSubject.tagline}
-              </p>
+              </motion.p>
             </motion.div>
           ) : !predictMode ? (
             <motion.div
               key="dashboard"
-              initial={{ opacity: 0 }} 
-              animate={{ opacity: 1 }} 
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3, delay: 0.2 }}
+              variants={dashboardVariants}
+              initial="hidden" 
+              animate="visible" 
+              exit="exit"
               className="flex flex-col h-full justify-between p-6 md:p-8 relative z-20"
             >
-              <div className="flex justify-between items-start">
+              <motion.div variants={itemVariant} className="flex justify-between items-start">
                 <div className="flex items-center gap-2 px-3 py-1 bg-black/5 rounded-full border border-black/5 backdrop-blur-sm">
                   {currentStat.safe ? <Zap size={12} fill="black" /> : <AlertCircle size={12} fill="black" stroke="black" />}
                   <span className="font-mono text-[10px] lowercase tracking-widest font-bold text-black/60">
@@ -184,9 +235,9 @@ const MobileAttendance = ({ data }) => {
                   <Calendar size={12} />
                   <span className="font-mono text-[10px] lowercase tracking-widest font-bold">predict</span>
                 </button>
-              </div>
+              </motion.div>
 
-              <div className="my-auto flex flex-col justify-center">
+              <motion.div variants={scaleVariant} className="my-auto flex flex-col justify-center">
                 <div className="flex items-baseline gap-2">
                   <span className={`text-[22vw] md:text-[9rem] leading-none font-black tracking-tighter ${currentStat.textColor}`} style={{ fontFamily: 'Urbanosta' }}>
                     <MarginCounter value={currentStat.val} color={currentStat.textColor} />
@@ -196,9 +247,9 @@ const MobileAttendance = ({ data }) => {
                     {currentStat.label}
                   </span>
                 </div>
-              </div>
+              </motion.div>
 
-              <div className="pb-1">
+              <motion.div variants={itemVariant} className="pb-1">
                 <h3 className={`text-2xl md:text-3xl font-bold lowercase leading-tight mb-3 line-clamp-1 ${currentStat.textColor}`} style={{ fontFamily: 'Aonic' }}>
                   {activeSubject.title.toLowerCase()}
                 </h3>
@@ -207,13 +258,13 @@ const MobileAttendance = ({ data }) => {
                     className={`h-full ${currentStat.lineColor}`}
                     initial={{ width: 0 }}
                     animate={{ width: `${Math.min(parseFloat(activeSubject.percentage), 100)}%` }}
-                    transition={{ duration: 0.5, ease: "circOut" }}
+                    transition={{ duration: 0.8, ease: "circOut", delay: 0.2 }}
                   />
                 </div>
                 <span className={`block text-[10px] font-mono font-bold lowercase mt-1 ${currentStat.textColor} opacity-60`}>
                   {activeSubject.present}/{activeSubject.conducted} sessions
                 </span>
-              </div>
+              </motion.div>
             </motion.div>
           ) : (
             <motion.div
@@ -236,7 +287,7 @@ const MobileAttendance = ({ data }) => {
       <div 
         ref={listContainerRef}
         onScroll={handleScroll}
-        className={`flex-1 overflow-y-auto bg-[#f5f6fc] custom-scrollbar pb-24 transition-all duration-700 ease-out 
+        className={`flex-1 overflow-y-auto bg-[#f5f6fc] custom-scrollbar pb-24 transition-all duration-700 ease-out snap-y snap-mandatory scroll-pt-4
             ${introMode ? 'opacity-0 translate-y-10 pointer-events-none' : 'opacity-100 translate-y-0 pointer-events-auto'}`}
         style={{ 
             touchAction: 'pan-y', 
@@ -258,7 +309,7 @@ const MobileAttendance = ({ data }) => {
                 key={subject.id}
                 ref={el => (itemRefs.current[index] = el)}
                 onClick={() => { if (!predictMode) setSelectedId(subject.id) }}
-                className={`group relative w-full p-4 rounded-2xl cursor-pointer transition-all duration-300 ease-out border 
+                className={`group relative w-full p-4 rounded-2xl cursor-pointer transition-all duration-300 ease-out border snap-start scroll-mt-16
                     ${isSelected 
                         ? 'bg-white shadow-lg scale-[1.02] border-black/5 opacity-100 z-10' 
                         : 'bg-transparent border-transparent scale-100 opacity-50 grayscale hover:opacity-80'

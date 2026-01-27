@@ -24,13 +24,14 @@ export default function Timetable({ schedule, dayOrder = "1" }) {
     const dayData = schedule[dayKey];
     if (!dayData) return [];
     
- 
     const rawItems = Object.values(dayData).map((details) => {
+      if (!details || !details.time) return null;
+
       const [startStr, endStr] = details.time.split(' - ');
       
       const parseTime = (str) => {
+        if (!str) return 0;
         let [h, m] = str.split(':').map(Number);
- 
         if (h < 8) h += 12; 
         return h * 60 + m;
       };
@@ -42,8 +43,7 @@ export default function Timetable({ schedule, dayOrder = "1" }) {
         minutesStart: parseTime(startStr),
         minutesEnd: parseTime(endStr),
       };
-    }).sort((a, b) => a.minutesStart - b.minutesStart);
-
+    }).filter(Boolean).sort((a, b) => a.minutesStart - b.minutesStart);
 
     const mergedItems = [];
     rawItems.forEach((item) => {
@@ -52,7 +52,7 @@ export default function Timetable({ schedule, dayOrder = "1" }) {
       if (lastItem && 
           lastItem.course === item.course && 
           lastItem.room === item.room &&
-          lastItem.minutesEnd === item.minutesStart) { // Only merge if no gap
+          lastItem.minutesEnd === item.minutesStart) { 
         lastItem.end = item.end;
         lastItem.minutesEnd = item.minutesEnd;
         lastItem.slot = `${lastItem.slot} + ${item.slot}`;

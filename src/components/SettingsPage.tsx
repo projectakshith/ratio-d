@@ -1,54 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  ChevronLeft, 
-  Pencil, 
-  Share2, 
-  Bell, 
-  Moon, 
-  Lock, 
-  Cloud, 
-  ChevronRight,
-  LogOut,
-  Check
+  ChevronLeft, Pencil, Share2, Bell, Moon, Lock, Cloud, 
+  ChevronRight, LogOut, Check, TestTube
 } from 'lucide-react';
-
-interface SettingsPageProps {
-  onBack: () => void;
-  onLogout: () => void; 
-  profile?: any;
-  onUpdateName: (name: string) => void;
-}
+import { requestNotificationPermission } from '../utils/notifs';
 
 const backdropVariants = {
   hidden: { opacity: 0, backdropFilter: 'blur(0px)' },
-  visible: {
-    opacity: 1,
-    backdropFilter: 'blur(12px)',
-    transition: { duration: 0.5 }
-  },
-  exit: {
-    opacity: 0,
-    backdropFilter: 'blur(0px)',
-    transition: { duration: 0.3 }
-  }
+  visible: { opacity: 1, backdropFilter: 'blur(12px)', transition: { duration: 0.5 } },
+  exit: { opacity: 0, backdropFilter: 'blur(0px)', transition: { duration: 0.3 } }
 };
 
 const panelVariants = {
   hidden: { x: '-100%' },
-  visible: {
-    x: '0%',
-    transition: {
-      duration: 0.7,
-      ease: [0.6, 0.05, 0.01, 0.9],
-      when: 'beforeChildren',
-      staggerChildren: 0.05
-    }
-  },
-  exit: {
-    x: '-100%',
-    transition: { duration: 0.4, ease: 'easeIn' }
-  }
+  visible: { x: '0%', transition: { duration: 0.7, ease: [0.6, 0.05, 0.01, 0.9], when: 'beforeChildren', staggerChildren: 0.05 } },
+  exit: { x: '-100%', transition: { duration: 0.4, ease: 'easeIn' } }
 };
 
 const itemVariants = {
@@ -56,9 +23,16 @@ const itemVariants = {
   visible: { opacity: 1, x: 0, transition: { duration: 0.3 } }
 };
 
-const SettingsPage: React.FC<SettingsPageProps> = ({ onBack, onLogout, profile, onUpdateName }) => {
+const SettingsPage = ({ onBack, onLogout, profile, onUpdateName, onTestNotification }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [tempName, setTempName] = useState("");
+  const [notifEnabled, setNotifEnabled] = useState(false);
+
+  useEffect(() => {
+    if ("Notification" in window) {
+      setNotifEnabled(Notification.permission === "granted");
+    }
+  }, []);
 
   const handleSave = () => {
     if (tempName.trim()) {
@@ -68,32 +42,28 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ onBack, onLogout, profile, 
     }
   };
 
+  const handleNotificationClick = async () => {
+    if (!window.isSecureContext) {
+      alert("Notifications require HTTPS.");
+      return;
+    }
+
+    if (Notification.permission === "denied") {
+      alert("Permission blocked. Please reset site permissions.");
+      return;
+    }
+
+    const granted = await requestNotificationPermission();
+    setNotifEnabled(granted);
+  };
+
   return (
     <>
-      <motion.div
-        variants={backdropVariants}
-        initial="hidden"
-        animate="visible"
-        exit="exit"
-        className="fixed inset-0 z-40 bg-black/40"
-        onClick={onBack}
-      />
-
-      <motion.div
-        variants={panelVariants}
-        initial="hidden"
-        animate="visible"
-        exit="exit"
-        className="fixed inset-0 z-50 bg-black text-white flex flex-col overflow-hidden"
-      >
-        <motion.div
-          variants={itemVariants}
-          className="pt-12 pb-4 px-6 flex items-center gap-4"
-        >
-          <button
-            onClick={onBack}
-            className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center active:scale-90 transition-transform"
-          >
+      <motion.div variants={backdropVariants} initial="hidden" animate="visible" exit="exit" className="fixed inset-0 z-40 bg-black/40" onClick={onBack} />
+      <motion.div variants={panelVariants} initial="hidden" animate="visible" exit="exit" className="fixed inset-0 z-50 bg-black text-white flex flex-col overflow-hidden">
+        
+        <motion.div variants={itemVariants} className="pt-12 pb-4 px-6 flex items-center gap-4">
+          <button onClick={onBack} className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center active:scale-90 transition-transform">
             <ChevronLeft className="w-6 h-6" strokeWidth={2.5} />
           </button>
           <h1 className="text-[26px] font-semibold tracking-tight">Settings</h1>
@@ -101,79 +71,34 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ onBack, onLogout, profile, 
 
         <div className="flex-1 overflow-y-auto">
           <div className="px-6 py-8 space-y-12">
-            
             <motion.div variants={itemVariants} className="space-y-6">
               <div className="flex items-center gap-4">
                 <div className="w-16 h-16 rounded-full overflow-hidden bg-white/5">
-                  <img
-                    src="https://cdn.cloudflare.steamstatic.com/steamcommunity/public/images/avatars/c3/c33a1d7eec9e9ad8bfa7e82891e418b81dbc0fce_full.jpg"
-                    className="w-full h-full object-cover"
-                    alt="Profile"
-                  />
+                  <img src="https://cdn.cloudflare.steamstatic.com/steamcommunity/public/images/avatars/c3/c33a1d7eec9e9ad8bfa7e82891e418b81dbc0fce_full.jpg" className="w-full h-full object-cover" alt="Profile" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold capitalize">
-                    {profile?.name ? profile.name.toLowerCase() : 'Student'}
-                  </h3>
-                  <p className="text-xs uppercase tracking-widest text-white/50">
-                    {profile?.regNo || 'Student Account'}
-                  </p>
+                  <h3 className="text-xl font-semibold capitalize">{profile?.name ? profile.name.toLowerCase() : 'Student'}</h3>
+                  <p className="text-xs uppercase tracking-widest text-white/50">{profile?.regNo || 'Student Account'}</p>
                 </div>
               </div>
     
               <div className="relative min-h-[52px]">
                 <AnimatePresence mode="wait">
                   {!isEditing ? (
-                    <motion.div 
-                      key="buttons"
-                      initial={{ opacity: 0, y: 5 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -5 }}
-                      className="flex gap-3"
-                    >
-                      <button 
-                        onClick={() => setIsEditing(true)}
-                        className="flex-1 flex items-center justify-center gap-2 py-3 rounded-[22px] bg-white/5 hover:bg-white/10 transition-colors text-sm font-semibold"
-                      >
-                        <Pencil className="w-4 h-4" />
-                        Edit Profile
+                    <motion.div key="buttons" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} className="flex gap-3">
+                      <button onClick={() => setIsEditing(true)} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-[22px] bg-white/5 hover:bg-white/10 transition-colors text-sm font-semibold">
+                        <Pencil className="w-4 h-4" /> Edit Profile
                       </button>
                       <button className="flex-1 flex items-center justify-center gap-2 py-3 rounded-[22px] bg-white/5 hover:bg-white/10 transition-colors text-sm font-semibold">
-                        <Share2 className="w-4 h-4" />
-                        Share Profile
+                        <Share2 className="w-4 h-4" /> Share Profile
                       </button>
                     </motion.div>
                   ) : (
-                    <motion.div 
-                      key="input-stack"
-                      initial={{ opacity: 0, y: 5 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -5 }}
-                      className="flex flex-col gap-3"
-                    >
-                      <input 
-                        autoFocus
-                        type="text"
-                        placeholder="New display name..."
-                        className="w-full bg-white/10 border border-white/10 rounded-[22px] px-5 py-3 text-sm focus:outline-none focus:border-white/30 text-white"
-                        value={tempName}
-                        onChange={(e) => setTempName(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && handleSave()}
-                      />
+                    <motion.div key="input-stack" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} className="flex flex-col gap-3">
+                      <input autoFocus type="text" placeholder="New display name..." className="w-full bg-white/10 border border-white/10 rounded-[22px] px-5 py-3 text-sm focus:outline-none focus:border-white/30 text-white" value={tempName} onChange={(e) => setTempName(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSave()} />
                       <div className="flex gap-2">
-                        <button 
-                          onClick={handleSave}
-                          className="flex-1 py-3 rounded-[22px] bg-white text-black font-bold text-sm flex items-center justify-center gap-2 active:scale-95 transition-transform"
-                        >
-                          <Check className="w-4 h-4" />
-                          Save
-                        </button>
-                        <button 
-                          onClick={() => { setIsEditing(false); setTempName(""); }}
-                          className="px-6 py-3 rounded-[22px] bg-white/5 text-white/60 text-sm font-semibold active:scale-95 transition-transform"
-                        >
-                          Cancel
-                        </button>
+                        <button onClick={handleSave} className="flex-1 py-3 rounded-[22px] bg-white text-black font-bold text-sm flex items-center justify-center gap-2 active:scale-95 transition-transform"><Check className="w-4 h-4" /> Save</button>
+                        <button onClick={() => { setIsEditing(false); setTempName(""); }} className="px-6 py-3 rounded-[22px] bg-white/5 text-white/60 text-sm font-semibold active:scale-95 transition-transform">Cancel</button>
                       </div>
                     </motion.div>
                   )}
@@ -182,47 +107,47 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ onBack, onLogout, profile, 
             </motion.div>
 
             <motion.div variants={itemVariants} className="space-y-4">
-              <p className="text-[11px] uppercase tracking-widest text-white/40">
-                Preferences
-              </p>
-
+              <p className="text-[11px] uppercase tracking-widest text-white/40">Preferences</p>
               <div className="space-y-1">
-                <SettingItem icon={<Bell className="w-5 h-5 opacity-80" />} label="Notifications" />
-                <SettingItem icon={<Moon className="w-5 h-5 opacity-80" />} label="Dark Mode" toggle />
+                <SettingItem 
+                    icon={<Bell className="w-5 h-5 opacity-80" />} 
+                    label="Notifications" 
+                    toggle={true}
+                    isActive={notifEnabled}
+                    onClick={handleNotificationClick}
+                />
+                <SettingItem icon={<Moon className="w-5 h-5 opacity-80" />} label="Dark Mode" toggle={true} isActive={true} />
                 <SettingItem icon={<Lock className="w-5 h-5 opacity-80" />} label="Privacy" />
                 <SettingItem icon={<Cloud className="w-5 h-5 opacity-80" />} label="Sync Data" />
+                
+                {onTestNotification && (
+                     <SettingItem icon={<TestTube className="w-5 h-5 opacity-80 text-[#ceff1c]" />} label="Test Notification" onClick={onTestNotification} />
+                )}
               </div>
             </motion.div>
           </div>
         </div>
 
         <motion.div variants={itemVariants} className="p-6 pt-4 border-t border-white/5 bg-black z-10 space-y-6">
-          <button 
-            onClick={onLogout} 
-            className="w-full py-4 rounded-[26px] bg-white text-black font-bold text-base hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
-          >
-            <LogOut className="w-5 h-5" />
-            Log Out
+          <button onClick={onLogout} className="w-full py-4 rounded-[26px] bg-white text-black font-bold text-base hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2">
+            <LogOut className="w-5 h-5" /> Log Out
           </button>
-          <p className="text-xs text-center text-white/40">
-            made by <span className="text-white/60">Akshith Rajesh</span> and{' '}
-            <span className="text-white/60">Prethiv Sriman D</span>
-          </p>
+          <p className="text-xs text-center text-white/40">made by <span className="text-white/60">Akshith Rajesh</span> and{' '} <span className="text-white/60">Prethiv Sriman D</span></p>
         </motion.div>
       </motion.div>
     </>
   );
 };
 
-const SettingItem = ({ icon, label, toggle = false }: { icon: React.ReactNode; label: string; toggle?: boolean; }) => (
-  <div className="flex items-center justify-between px-2 py-4 rounded-xl active:bg-white/5 transition-colors">
+const SettingItem = ({ icon, label, toggle = false, isActive = false, onClick }) => (
+  <div onClick={onClick} className="flex items-center justify-between px-2 py-4 rounded-xl active:bg-white/5 transition-colors cursor-pointer">
     <div className="flex items-center gap-4">
       <span className="text-lg">{icon}</span>
       <span className="text-[15px] font-medium text-white/90">{label}</span>
     </div>
     {toggle ? (
-      <div className="w-12 h-7 bg-white/10 rounded-full relative">
-        <div className="absolute right-1 top-1 w-5 h-5 bg-white rounded-full" />
+      <div className={`w-12 h-7 rounded-full relative transition-colors duration-300 ${isActive ? 'bg-[#ceff1c]' : 'bg-white/10'}`}>
+        <div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-all duration-300 ${isActive ? 'right-1 bg-black' : 'left-1'}`} />
       </div>
     ) : (
       <ChevronRight className="w-5 h-5 text-white/40" strokeWidth={2.5} />
