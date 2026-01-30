@@ -21,7 +21,7 @@ const parseTimeValues = (timeStr) => {
 };
 
 const getScheduleStatus = (schedule, activeDayOrder) => {
-  const targetDay = activeDayOrder && activeDayOrder !== '-' ? activeDayOrder : '3';
+  const targetDay = activeDayOrder && activeDayOrder !== '-' ? activeDayOrder : '4';
   const dayKey = `Day ${targetDay}`;
   const todaySchedule = schedule?.[dayKey];
 
