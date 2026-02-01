@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, Loader2, AlertCircle } from 'lucide-react';
+import { ArrowRight, Loader2, AlertCircle, Eye, EyeOff } from 'lucide-react';
 
 interface LoginPageProps {
   onLogin: (data: any, credentials: any) => void;
@@ -12,6 +12,7 @@ const API_URL = `${process.env.NEXT_PUBLIC_API_URL}/login`;
 const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
   const [username, setUsername] = useState<string>('');
   const [password, setPassword] = useState<string>('');
+  const [showPassword, setShowPassword] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
 
@@ -99,14 +100,23 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
             <label className="text-[10px] font-mono uppercase tracking-[0.3em] text-white/60">
               Passkey
             </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-transparent border-b-2 border-white py-4 text-4xl md:text-6xl text-white outline-none focus:border-[#ceff1c] transition-colors placeholder:text-white/20"
-              placeholder="••••••••"
-              style={{ fontFamily: 'Aonic' }}
-            />
+            <div className="relative flex items-center border-b-2 border-white focus-within:border-[#ceff1c] transition-colors">
+              <input
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full bg-transparent py-4 text-4xl md:text-6xl text-white outline-none placeholder:text-white/20"
+                placeholder="••••••••"
+                style={{ fontFamily: 'Aonic' }}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="text-white/40 hover:text-[#ceff1c] transition-colors pr-2"
+              >
+                {showPassword ? <EyeOff size={24} /> : <Eye size={24} />}
+              </button>
+            </div>
           </div>
 
           <AnimatePresence>
