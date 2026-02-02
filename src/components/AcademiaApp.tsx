@@ -1,8 +1,6 @@
 "use client";
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
-import gsap from 'gsap';
-import { useGSAP } from '@gsap/react';
 import { Zap, ArrowUpRight, Bell, ChevronRight, Loader } from 'lucide-react';
 
 import { BentoTile } from './BentoTile'; 
@@ -10,7 +8,9 @@ import Timetable from './Timetable';
 import { BottomNav } from './BottomNav'; 
 import SettingsPage from './SettingsPage';
 import MobileAttendance from './MobileAttendance';
+import { CalendarPage } from './CalendarPage';
 import { requestNotificationPermission, sendNotification } from '../utils/notifs';
+import calendarData from '../../public/calendar_data.json'; 
 
 const parseTimeValues = (timeStr) => {
   if (!timeStr) return 0;
@@ -21,7 +21,7 @@ const parseTimeValues = (timeStr) => {
 };
 
 const getScheduleStatus = (schedule, activeDayOrder) => {
-  const targetDay = activeDayOrder && activeDayOrder !== '-' ? activeDayOrder : '5';
+  const targetDay = activeDayOrder && activeDayOrder !== '-' ? activeDayOrder : '1';
   const dayKey = `Day ${targetDay}`;
   const todaySchedule = schedule?.[dayKey];
 
@@ -360,7 +360,20 @@ export default function AcademiaApp({ data, onLogout, customDisplayName, onUpdat
   const [testSchedule, setTestSchedule] = useState(null);
   const lastNotifiedRef = useRef(null);
 
-  const { profile, attendance, schedule, dayOrder } = data || {};
+  const { profile, attendance, schedule } = data || {};
+  
+  const todayDate = new Date().toLocaleDateString('en-GB', { 
+    day: '2-digit', month: 'short', year: 'numeric' 
+  }); 
+  const todayEntry = calendarData.find(item => item.date === todayDate);
+  const effectiveDayOrder = todayEntry && todayEntry.order !== '-' ? todayEntry.order : (data?.dayOrder || '1');
+
+  const fullData = {
+      ...data,
+      dayOrder: effectiveDayOrder,
+      calendar: calendarData 
+  };
+
   const effectiveSchedule = testSchedule || schedule;
 
   useEffect(() => {
@@ -372,7 +385,7 @@ export default function AcademiaApp({ data, onLogout, customDisplayName, onUpdat
 
   const checkNotifications = useCallback(() => {
     if (!effectiveSchedule) return;
-    const { nextClass } = getScheduleStatus(effectiveSchedule, dayOrder);
+    const { nextClass } = getScheduleStatus(effectiveSchedule, effectiveDayOrder);
     
     if (nextClass) {
         const now = new Date();
@@ -388,7 +401,7 @@ export default function AcademiaApp({ data, onLogout, customDisplayName, onUpdat
             lastNotifiedRef.current = nextClass.course; 
         }
     }
-  }, [effectiveSchedule, dayOrder]);
+  }, [effectiveSchedule, effectiveDayOrder]);
 
   useEffect(() => {
     const interval = setInterval(checkNotifications, 10000); 
@@ -403,7 +416,7 @@ export default function AcademiaApp({ data, onLogout, customDisplayName, onUpdat
     const timeStr = `${String(future.getHours()).padStart(2, '0')}:${String(future.getMinutes()).padStart(2, '0')}`;
     const endStr = `${String(future.getHours() + 1).padStart(2, '0')}:${String(future.getMinutes()).padStart(2, '0')}`;
     
-    const targetDay = dayOrder && dayOrder !== '-' ? dayOrder : '1';
+    const targetDay = effectiveDayOrder && effectiveDayOrder !== '-' ? effectiveDayOrder : '1';
     const fakeKey = `Day ${targetDay}`;
     const randomCourse = `TEST CLASS ${Math.floor(Math.random() * 100)}`;
 
@@ -466,11 +479,11 @@ export default function AcademiaApp({ data, onLogout, customDisplayName, onUpdat
                     transition={{ duration: 0.3 }}
                     className="absolute top-0 left-0 w-full h-full bg-[#050505] will-change-transform"
                 >
-                   {activeTab === 'home' && <HomeDashboard profile={profile} schedule={effectiveSchedule} attendance={attendance} dayOrder={dayOrder} onProfileClick={() => setShowSettings(true)} displayName={customDisplayName} isLoading={isLoading} onLoadingComplete={() => setIsLoading(false)} />}
-                   {activeTab === 'timetable' && <Timetable schedule={effectiveSchedule} dayOrder={dayOrder} />}
+                   {activeTab === 'home' && <HomeDashboard profile={profile} schedule={effectiveSchedule} attendance={attendance} dayOrder={effectiveDayOrder} onProfileClick={() => setShowSettings(true)} displayName={customDisplayName} isLoading={isLoading} onLoadingComplete={() => setIsLoading(false)} />}
+                   {activeTab === 'timetable' && <Timetable schedule={effectiveSchedule} dayOrder={effectiveDayOrder} />}
                    {activeTab === 'attendance' && <MobileAttendance data={{ attendance }} />}
                    {activeTab === 'marks' && <div className="w-full h-full bg-[#050505]" />}
-                   {activeTab === 'calendar' && <div className="w-full h-full bg-[#050505]" />}
+                   {activeTab === 'calendar' && <CalendarPage data={fullData} />}
                 </motion.div>
             )}
         </AnimatePresence>

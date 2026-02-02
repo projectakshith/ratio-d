@@ -1,11 +1,17 @@
 "use client";
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MapPin, User, ArrowRight, Layers, Clock } from 'lucide-react';
 
-export default function Timetable({ schedule, dayOrder = "1" }) {
+export default function Timetable({ schedule, dayOrder }) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [activeDayOrder, setActiveDayOrder] = useState(parseInt(dayOrder) || 1);
+  const [activeDayOrder, setActiveDayOrder] = useState(1);
+
+  useEffect(() => {
+    if (dayOrder && dayOrder !== '-') {
+        setActiveDayOrder(parseInt(dayOrder));
+    }
+  }, [dayOrder]);
 
   const dateDisplay = useMemo(() => {
     const d = new Date();
