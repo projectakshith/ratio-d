@@ -50,11 +50,13 @@ export const CalendarPage: React.FC<CalendarPageProps> = ({ data }) => {
   const handlePrevMonth = () => {
     const newDate = new Date(viewMonth.getFullYear(), viewMonth.getMonth() - 1, 1);
     setViewMonth(newDate);
+    setSelectedDate(newDate); 
   };
 
   const handleNextMonth = () => {
     const newDate = new Date(viewMonth.getFullYear(), viewMonth.getMonth() + 1, 1);
     setViewMonth(newDate);
+    setSelectedDate(newDate);
   };
   
   const goToToday = () => {
@@ -67,14 +69,11 @@ export const CalendarPage: React.FC<CalendarPageProps> = ({ data }) => {
   const viewMonthIndex = viewMonth.getMonth();
   const today = new Date();
 
-
   const selectedDayStr = String(selectedDate.getDate()).padStart(2, '0');
   const selectedMonthStr = selectedDate.toLocaleString('en-US', { month: 'short' }); 
   const selectedYearStr = selectedDate.getFullYear();
   const selectedDateKey = `${selectedDayStr} ${selectedMonthStr} ${selectedYearStr}`;
   const selectedEvent = calendarEvents.find(e => e.date === selectedDateKey);
-
-  const isTodaySelected = selectedDate.toDateString() === today.toDateString();
 
   const display = {
     dayNum: String(selectedDate.getDate()).padStart(2, '0'),
@@ -83,13 +82,6 @@ export const CalendarPage: React.FC<CalendarPageProps> = ({ data }) => {
     statusText: selectedEvent ? (selectedEvent.order !== '-' ? `Day Order ${selectedEvent.order}` : selectedEvent.description) : 'No Schedule',
     isHoliday: selectedEvent?.description?.toLowerCase().includes('holiday') || selectedEvent?.description?.toLowerCase().includes('sunday')
   };
-
-  let badgeClass = "bg-[#1C1C1E] text-white";
-  if (isTodaySelected) {
-      badgeClass = "bg-[#FF3B30] text-white shadow-lg shadow-orange-500/30";
-  } else if (display.isHoliday) {
-      badgeClass = "bg-red-100 text-red-600"; 
-  }
 
   const gridItems = useMemo(() => {
     const daysInMonth = getDaysInMonth(viewYear, viewMonthIndex);
@@ -137,7 +129,6 @@ export const CalendarPage: React.FC<CalendarPageProps> = ({ data }) => {
   return (
     <div className="h-full w-full bg-[#E5E5EA] text-black relative overflow-hidden flex flex-col">
       
-      {/* Top Controls */}
       <div className="absolute top-12 right-8 flex gap-3 z-30">
         <motion.button 
             whileTap={{ scale: 0.9 }} 
@@ -173,7 +164,6 @@ export const CalendarPage: React.FC<CalendarPageProps> = ({ data }) => {
             transition={transition}
             className="mb-8 flex flex-col"
           >
-            {/* Big Date */}
             <div className="flex justify-between items-start w-full">
                 <motion.h1 
                     className="text-[160px] leading-[0.75] font-black tracking-tighter text-[#1C1C1E]" 
@@ -183,8 +173,7 @@ export const CalendarPage: React.FC<CalendarPageProps> = ({ data }) => {
                 </motion.h1>
             </div>
             
-            {/* Info Section */}
-            <div className="flex flex-col mt-8 pl-2">
+            <div className="flex flex-col mt-5 pl-2">
                 <h2 className="text-[32px] font-bold tracking-tight text-[#1C1C1E] uppercase mb-0 leading-none" style={{ fontFamily: 'Aonic' }}>
                   {display.monthStr}
                 </h2>
@@ -195,7 +184,7 @@ export const CalendarPage: React.FC<CalendarPageProps> = ({ data }) => {
                     <motion.div 
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className={`text-right text-[12px] font-black uppercase tracking-wide px-4 py-2 rounded-full transition-colors duration-300 ${badgeClass}`}
+                        className={`text-right text-[12px] font-black uppercase tracking-wide px-4 py-2 rounded-full ${display.isHoliday ? 'bg-[#D1D1D6] text-black/50' : 'bg-[#1C1C1E] text-white'}`}
                         style={{ fontFamily: 'Aonic' }}
                     >
                         {display.statusText}
@@ -205,7 +194,6 @@ export const CalendarPage: React.FC<CalendarPageProps> = ({ data }) => {
           </motion.div>
         </AnimatePresence>
 
-        {/* Calendar Grid */}
         <motion.div 
             initial="hidden"
             animate="visible"
@@ -224,14 +212,15 @@ export const CalendarPage: React.FC<CalendarPageProps> = ({ data }) => {
                 <AnimatePresence mode='popLayout'>
                     {gridItems.map((item, i) => {
                         let bgClass = "";
-                        
+                        let content = null;
+
                         if (item.type === 'padding') {
                             bgClass = "border-2 border-[#D1D1D6] opacity-30"; 
                         } else {
-                            if (item.status === 'active') bgClass = "bg-[#1C1C1E]";
-                            else if (item.status === 'holiday') bgClass = "bg-[#AEAEB2]"; 
-                            else if (item.status === 'today') bgClass = "bg-[#FF3B30]"; 
-                            else if (item.status === 'selected') bgClass = "bg-[#1C1C1E] ring-4 ring-black/20";
+                            if (item.status === 'active') bgClass = "bg-[#1C1C1E]"; // Black for Class
+                            else if (item.status === 'holiday') bgClass = "bg-[#AEAEB2]"; // Grey for Holiday/Weekend
+                            else if (item.status === 'today') bgClass = "bg-[#FF3B30]"; // Orange for Today
+                            else if (item.status === 'selected') bgClass = "bg-[#1C1C1E] ring-4 ring-black/20"; // Selected
                             else bgClass = "bg-[#AEAEB2]"; 
                         }
 
