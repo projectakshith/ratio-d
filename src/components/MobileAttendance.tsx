@@ -11,35 +11,8 @@ import {
 } from "lucide-react";
 import { flavorText } from "../utils/flavortext";
 
-interface SubjectData {
-  title: string;
-  code: string;
-  percent: string;
-  conducted: string;
-  absent: string;
-}
-
-interface AttendanceData {
-  attendance: SubjectData[];
-  timetable?: any;
-  schedule?: any;
-  time_table?: any;
-}
-
-interface CalendarItem {
-  date: string;
-  day: string;
-  order: string;
-  description: string;
-}
-
-interface MobileAttendanceProps {
-  data: AttendanceData;
-  schedule?: any;
-}
-
-const Counter = ({ value, color }: { value: number; color: string }) => {
-  const nodeRef = useRef<HTMLSpanElement>(null);
+const Counter = ({ value, color }) => {
+  const nodeRef = useRef(null);
   const prevValue = useRef(0);
 
   useEffect(() => {
@@ -59,8 +32,8 @@ const Counter = ({ value, color }: { value: number; color: string }) => {
   return <span ref={nodeRef} className={color} />;
 };
 
-const MarginCounter = ({ value, color }: { value: number; color: string }) => {
-  const nodeRef = useRef<HTMLSpanElement>(null);
+const MarginCounter = ({ value, color }) => {
+  const nodeRef = useRef(null);
   const prevValue = useRef(0);
 
   useEffect(() => {
@@ -80,24 +53,21 @@ const MarginCounter = ({ value, color }: { value: number; color: string }) => {
   return <span ref={nodeRef} className={color} />;
 };
 
-const MobileAttendance: React.FC<MobileAttendanceProps> = ({
-  data,
-  schedule,
-}) => {
-  const [calendarData, setCalendarData] = useState<CalendarItem[]>([]);
-  const [selectedId, setSelectedId] = useState<number | null>(null);
+const MobileAttendance = ({ data, schedule }) => {
+  const [calendarData, setCalendarData] = useState([]);
+  const [selectedId, setSelectedId] = useState(null);
   const [predictMode, setPredictMode] = useState(false);
   const [introMode, setIntroMode] = useState(true);
 
-  const [selectedDates, setSelectedDates] = useState<string[]>([]);
-  const [predType, setPredType] = useState<"attend" | "leave">("leave");
+  const [selectedDates, setSelectedDates] = useState([]);
+  const [predType, setPredType] = useState("leave");
   const [calMonth, setCalMonth] = useState(new Date(2026, 0, 1));
   const [isRangeMode, setIsRangeMode] = useState(false);
-  const [rangeStart, setRangeStart] = useState<Date | null>(null);
+  const [rangeStart, setRangeStart] = useState(null);
 
-  const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const listContainerRef = useRef<HTMLDivElement>(null);
-  const scrollTimeout = useRef<NodeJS.Timeout | null>(null);
+  const itemRefs = useRef([]);
+  const listContainerRef = useRef(null);
+  const scrollTimeout = useRef(null);
 
   useEffect(() => {
     fetch("/calendar_data.json")
@@ -177,7 +147,7 @@ const MobileAttendance: React.FC<MobileAttendanceProps> = ({
   }, [baseAttendance]);
 
   useEffect(() => {
-    if (baseAttendance.length > 0) {
+    if (baseAttendance.length > 0 && selectedId === null) {
       setSelectedId(baseAttendance[0].id);
     }
   }, [baseAttendance]);
@@ -197,7 +167,7 @@ const MobileAttendance: React.FC<MobileAttendanceProps> = ({
   }, [predictMode]);
 
   const getImpactMap = () => {
-    const impact: Record<string, number> = {};
+    const impact = {};
     if (calendarData.length === 0) return impact;
     if (Object.keys(effectiveSchedule).length === 0) return impact;
 
@@ -213,7 +183,7 @@ const MobileAttendance: React.FC<MobileAttendanceProps> = ({
         const dayClasses = effectiveSchedule[dayOrderKey];
 
         if (dayClasses) {
-          Object.values(dayClasses).forEach((cls: any) => {
+          Object.values(dayClasses).forEach((cls) => {
             if (!cls.course) return;
             const matchedSubject = baseAttendance.find((s) => {
               const sCode = (s.code || "")
@@ -246,33 +216,7 @@ const MobileAttendance: React.FC<MobileAttendanceProps> = ({
     [selectedDates, calendarData, effectiveSchedule, baseAttendance],
   );
 
-  const getPredictionForSubject = (subject: any) => {
-    const sessions = predictionImpact[subject.code] || 0;
-    const currentPresent = subject.present;
-    const currentConducted = subject.conducted;
-
-    const newPresent =
-      predType === "attend" ? currentPresent + sessions : currentPresent;
-    const newConducted = currentConducted + sessions;
-    const newPct = newConducted === 0 ? 0 : (newPresent / newConducted) * 100;
-
-    const currentStatus = getStatus(
-      parseFloat(subject.percentage),
-      currentConducted,
-      currentPresent,
-    );
-    const newStatus = getStatus(newPct, newConducted, newPresent);
-
-    return {
-      pct: newPct,
-      status: newStatus,
-      currentStatus: currentStatus,
-      diffVal: newStatus.val - currentStatus.val,
-      sessionsAffected: sessions > 0,
-    };
-  };
-
-  const getStatus = (pct: number, conducted: number, present: number) => {
+  const getStatus = (pct, conducted, present) => {
     if (pct >= 75) {
       const margin = Math.floor(present / 0.75 - conducted);
       return {
@@ -340,14 +284,23 @@ const MobileAttendance: React.FC<MobileAttendanceProps> = ({
     );
   }, [baseAttendance, predictionImpact, predType, predictMode]);
 
-  const formatDateKey = (date: Date) => {
+  useEffect(() => {
+    if (predictMode && listContainerRef.current) {
+      listContainerRef.current.scrollTop = 0;
+      if (processedList.length > 0) {
+        setSelectedId(processedList[0].id);
+      }
+    }
+  }, [predictionImpact, predictMode]);
+
+  const formatDateKey = (date) => {
     const dayStr = String(date.getDate()).padStart(2, "0");
     const monthStr = date.toLocaleString("en-US", { month: "short" });
     const yearStr = date.getFullYear();
     return `${dayStr} ${monthStr} ${yearStr}`;
   };
 
-  const handleDateClick = (day: number) => {
+  const handleDateClick = (day) => {
     const clickedDate = new Date(
       calMonth.getFullYear(),
       calMonth.getMonth(),
@@ -382,7 +335,7 @@ const MobileAttendance: React.FC<MobileAttendanceProps> = ({
     }
   };
 
-  const changeMonth = (delta: number) => {
+  const changeMonth = (delta) => {
     setCalMonth(
       new Date(calMonth.getFullYear(), calMonth.getMonth() + delta, 1),
     );
@@ -398,7 +351,6 @@ const MobileAttendance: React.FC<MobileAttendanceProps> = ({
   const bgColor = predictMode ? "#f0f0f0" : overallStats.color;
 
   const handleScroll = () => {
-    // Only allow auto-scroll in standard dashboard mode, disable in predictMode
     if (predictMode || introMode || !listContainerRef.current) return;
     if (scrollTimeout.current) return;
 
@@ -428,7 +380,7 @@ const MobileAttendance: React.FC<MobileAttendanceProps> = ({
     }, 100);
   };
 
-  const stopProp = (e: React.TouchEvent) => e.stopPropagation();
+  const stopProp = (e) => e.stopPropagation();
 
   return (
     <div className="h-full w-full flex flex-col bg-[#f5f6fc] text-[#050505] font-sans relative overflow-hidden touch-pan-y">
@@ -733,6 +685,7 @@ const MobileAttendance: React.FC<MobileAttendanceProps> = ({
           touchAction: "pan-y",
           WebkitOverflowScrolling: "touch",
           overscrollBehavior: "contain",
+          overflowAnchor: "none",
         }}
       >
         <div className="px-6 py-6 flex flex-col gap-4">
@@ -744,11 +697,14 @@ const MobileAttendance: React.FC<MobileAttendanceProps> = ({
             const isSelected = subject.id === selectedId;
             const predData = subject.pred;
             const isSafe = predData.status.safe;
+            const affected = predData.sessionsAffected;
+            const dStat = predData.currentStatus;
 
             const isDashboardMode = !predictMode;
             const isDimmed = isDashboardMode && !isSelected;
-            const isPredictReady = predictMode && selectedDates.length > 0;
-            const isPredictDimmed = predictMode && !isPredictReady;
+
+            const isPredictActive = predictMode && selectedDates.length > 0;
+            const isPredictDimmed = predictMode && !isPredictActive;
 
             return (
               <div
@@ -793,6 +749,11 @@ const MobileAttendance: React.FC<MobileAttendanceProps> = ({
                         >
                           {predData.status.label}
                         </span>
+                        {affected && predData.diffVal !== 0 && (
+                          <span className="text-[9px] font-bold text-black/40 mt-0.5 font-mono">
+                            {dStat.val}h &rarr; {predData.status.val}h
+                          </span>
+                        )}
                       </div>
                     )}
                   </div>
@@ -824,6 +785,9 @@ const MobileAttendance: React.FC<MobileAttendanceProps> = ({
                   </div>
                   {predictMode && (
                     <span className="font-bold flex items-center gap-1">
+                      {affected && (
+                        <span className="w-1 h-1 bg-black rounded-full animate-pulse" />
+                      )}
                       {Math.floor(predData.pct)}%
                     </span>
                   )}
