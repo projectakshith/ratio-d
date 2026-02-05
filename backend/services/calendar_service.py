@@ -11,7 +11,7 @@ class CalendarService:
         
         soup = BeautifulSoup(html_content, 'html.parser')
         
-        # Look for the table containing 'Dt' and 'Day' as seen in the 2025-26 planner
+ 
         tbl = None
         for t in soup.find_all('table'):
             header_text = t.get_text()
@@ -20,12 +20,11 @@ class CalendarService:
                 break
         
         if tbl:
-            # The planner is often organized with Dt, Day, Description, DO repeated 
-            # for multiple months in the same row.
+ 
             rows = tbl.find_all('tr')
             for r in rows:
                 cells = r.find_all('td')
-                # Process cells in groups of 4 (Dt, Day, Description, DO)
+        
                 for i in range(0, len(cells), 4):
                     try:
                         if i + 3 < len(cells):
@@ -34,7 +33,7 @@ class CalendarService:
                             desc_val = TextUtils.clean(cells[i+2].get_text())
                             do_val = TextUtils.clean(cells[i+3].get_text())
                             
-                            # Only add if there is a valid date (numeric)
+          
                             if date_val.isdigit():
                                 if do_val != "-" and day_order == "-":
                                     day_order = do_val
