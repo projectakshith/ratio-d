@@ -14,7 +14,7 @@ import Timetable from "./Timetable";
 import { BottomNav } from "./BottomNav";
 import SettingsPage from "./SettingsPage";
 import MobileAttendance from "./MobileAttendance";
-import { CalendarPage } from "./CalendarPage";
+import CalendarPage from "./CalendarPage";
 import {
   requestNotificationPermission,
   sendNotification,
@@ -663,7 +663,7 @@ export default function AcademiaApp({
                 />
               )}
               {activeTab === 'marks' && <MarksPage data={data} />}
-              {activeTab === "calendar" && <CalendarPage data={fullData} />}
+              {activeTab === 'calendar' && <CalendarPage data={data} />}
               
             </motion.div>
           )}
