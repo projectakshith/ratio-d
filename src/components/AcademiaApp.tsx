@@ -7,7 +7,7 @@ import React, {
   useCallback,
 } from "react";
 import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
-import { Zap, ArrowUpRight, Bell, ChevronRight, Loader } from "lucide-react";
+import { Zap, ArrowUpRight, Bell, ChevronRight, Loader, AlertTriangle, GraduationCap } from "lucide-react";
 
 import { BentoTile } from "./BentoTile";
 import Timetable from "./Timetable";
@@ -21,6 +21,44 @@ import {
 } from "../utils/notifs";
 import calendarData from "../../public/calendar_data.json";
 import MarksPage from './MarksPage';
+
+
+const springTransition = {
+  type: "spring",
+  stiffness: 400,
+  damping: 30,
+  mass: 1
+};
+
+const accordionVariants = {
+  hidden: { 
+    opacity: 0, 
+    height: 0, 
+    marginTop: 0,
+    transition: { 
+      height: { duration: 0.3, ease: "easeInOut" }, 
+      opacity: { duration: 0.2 } 
+    }
+  },
+  visible: { 
+    opacity: 1, 
+    height: "auto", 
+    marginTop: 24, 
+    transition: { 
+      height: { duration: 0.3, ease: "easeInOut" },
+      opacity: { duration: 0.3, delay: 0.1 } 
+    }
+  },
+  exit: { 
+    opacity: 0, 
+    height: 0, 
+    marginTop: 0,
+    transition: { 
+      height: { duration: 0.3, ease: "easeInOut" },
+      opacity: { duration: 0.15 } 
+    }
+  }
+};
 
 const parseTimeValues = (timeStr) => {
   if (!timeStr) return 0;
@@ -116,12 +154,16 @@ const HomeDashboard = ({
   profile,
   schedule,
   attendance,
+  marks,
   dayOrder,
   displayName,
   isLoading,
   onLoadingComplete,
 }) => {
   const [isAlertExpanded, setIsAlertExpanded] = useState(false);
+  const [isMetricExpanded, setIsMetricExpanded] = useState(false);
+  const [metricMode, setMetricMode] = useState("attendance");
+  
   const containerRef = useRef(null);
   const [timeStatus, setTimeStatus] = useState({
     nextClass: null,
@@ -134,11 +176,23 @@ const HomeDashboard = ({
   const startY = useRef(0);
   const startX = useRef(0);
 
+  const upcomingAlerts = useMemo(() => {
+    if (!calendarData) return [];
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+
+    return calendarData
+      .map(item => ({ ...item, dateObj: new Date(item.date) }))
+      .filter(item => !isNaN(item.dateObj) && item.dateObj >= now && item.type === 'exam')
+      .sort((a, b) => a.dateObj - b.dateObj)
+      .slice(0, 2);
+  }, []);
+
   useEffect(() => {
     if (schedule) setTimeStatus(getScheduleStatus(schedule, dayOrder));
   }, [schedule, dayOrder]);
 
-  const overallPercent = useMemo(() => {
+  const overallAttendance = useMemo(() => {
     if (!attendance || attendance.length === 0) return 0;
     const totalConducted = attendance.reduce(
       (acc, curr) => acc + curr.conducted,
@@ -150,6 +204,33 @@ const HomeDashboard = ({
       ? 0
       : Math.round((totalPresent / totalConducted) * 100);
   }, [attendance]);
+
+  const criticalAttendance = useMemo(() => {
+    if (!attendance) return [];
+    return attendance
+        .map(subj => {
+            const present = subj.conducted - subj.absent;
+            const percent = subj.conducted === 0 ? 0 : (present / subj.conducted) * 100;
+            const req = Math.ceil(3 * subj.conducted - 4 * present);
+            
+          
+            const courseCode = subj.code || (subj.course ? subj.course.split(" ")[0] : "");
+            const displayTitle = subj.title || SUBJECT_MAP[courseCode] || subj.course || "Subject";
+
+            return { 
+                ...subj, 
+                percent, 
+                required: req > 0 ? req : 0,
+                displayName: displayTitle
+            };
+        })
+        .filter(subj => subj.percent < 75);
+  }, [attendance]);
+
+  const overallMarks = useMemo(() => {
+      if (!marks || marks.length === 0) return 0;
+      return 0; 
+  }, [marks]);
 
   const studentName =
     displayName || (profile?.name ? profile.name.split(" ")[0] : "Student");
@@ -252,16 +333,17 @@ const HomeDashboard = ({
               borderRadius: isLoading ? 0 : "0 0 48px 48px",
             }}
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-            className={`bg-[#fdfdfd] flex flex-col relative overflow-hidden shrink-0 z-20 ${isAlertExpanded ? "flex-[2]" : "flex-[7]"}`}
+            className={`bg-[#fdfdfd] flex flex-col relative overflow-hidden shrink-0 z-20 ${isAlertExpanded || isMetricExpanded ? "flex-[2]" : "flex-[7]"}`}
             style={{ padding: "32px 32px 40px 32px" }}
           >
             <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/5 pointer-events-none" />
 
             <div className="flex justify-between items-center w-full relative z-20 mb-auto">
               <motion.div
+                layout="position"
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.5, ease: "easeOut", delay: 0.2 }}
+                transition={{ delay: 0.5, duration: 0.5, ease: "easeOut" }}
                 className="flex items-center gap-3 text-black"
               >
                 <img
@@ -286,7 +368,7 @@ const HomeDashboard = ({
                   transition={{ duration: 0.5, delay: 0.3 }}
                   className="flex flex-col relative z-10 mt-8"
                 >
-                  <div className="flex items-center gap-3 mb-10">
+                  <motion.div layout="position" className="flex items-center gap-3 mb-10">
                     <h1
                       className="text-[24px] md:text-[28px] font-bold lowercase tracking-tight text-black/20 leading-none"
                       style={{ fontFamily: "Aonic" }}
@@ -303,10 +385,15 @@ const HomeDashboard = ({
                         alt="Profile"
                       />
                     </button>
-                  </div>
+                  </motion.div>
 
-                  {!isAlertExpanded && (
-                    <div className="flex flex-col">
+                  {!isAlertExpanded && !isMetricExpanded && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0, transition: { duration: 0.1 } }}
+                        className="flex flex-col"
+                    >
                       <span
                         className="text-[16px] md:text-[18px] font-bold lowercase tracking-tight text-black/40 leading-none"
                         style={{ fontFamily: "Aonic" }}
@@ -330,11 +417,16 @@ const HomeDashboard = ({
                           {displayNext.bottom}
                         </span>
                       </div>
-                    </div>
+                    </motion.div>
                   )}
 
-                  {!isAlertExpanded && (
-                    <div className="flex flex-wrap items-center gap-2 mt-6 md:mt-8 w-full">
+                  {!isAlertExpanded && !isMetricExpanded && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0, transition: { duration: 0.1 } }}
+                        className="flex flex-wrap items-center gap-2 mt-6 md:mt-8 w-full"
+                    >
                       <div
                         className="bg-black text-white px-3 py-2 rounded-xl text-[10px] md:text-[11px] font-bold lowercase border border-black/5 flex-shrink-0"
                         style={{ fontFamily: "Aonic" }}
@@ -362,7 +454,7 @@ const HomeDashboard = ({
                       <div className="ml-auto w-10 h-10 bg-black rounded-full flex items-center justify-center text-white active:scale-90 transition-transform flex-shrink-0 shadow-lg">
                         <ArrowUpRight size={20} />
                       </div>
-                    </div>
+                    </motion.div>
                   )}
                 </motion.div>
               )}
@@ -370,109 +462,205 @@ const HomeDashboard = ({
           </motion.div>
 
           {!isLoading && (
-            <motion.div
-              initial={{ opacity: 0, y: 100 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{
-                type: "spring",
-                stiffness: 100,
-                damping: 20,
-                delay: 0.1,
-                staggerChildren: 0.1,
-              }}
-              className="px-1.5 w-full flex flex-col gap-1.5 flex-none mt-1.5 shrink-0"
-            >
-              <BentoTile
-                as={motion.div}
-                onClick={() => setIsAlertExpanded(!isAlertExpanded)}
-                className={`bg-[#ff003c] !px-8 flex flex-col justify-center text-white rounded-[32px] transition-all duration-500 cursor-pointer overflow-hidden ${isAlertExpanded ? "h-[250px]" : "h-[75px]"}`}
-              >
-                <div className="flex justify-between items-center w-full relative z-10">
-                  <div className="flex items-center gap-3">
-                    <Bell size={20} />
-                    <p
-                      className="font-bold text-xl md:text-2xl tracking-normal lowercase"
-                      style={{ fontFamily: "Aonic" }}
-                    >
-                      academic alerts
-                    </p>
-                  </div>
-                  <div className="w-8 h-8 rounded-full bg-black/10 flex items-center justify-center">
-                    <ChevronRight
-                      size={16}
-                      className={`transition-transform duration-500 ${isAlertExpanded ? "rotate-90" : ""}`}
-                    />
-                  </div>
-                </div>
-                {isAlertExpanded && (
-                  <div className="mt-6 space-y-2 relative z-10">
-                    <div
-                      className="bg-black text-[#ff003c] p-4 rounded-2xl font-bold text-[11px] lowercase tracking-normal shadow-2xl"
-                      style={{ fontFamily: "Aonic" }}
-                    >
-                      /// updates synced
+            <LayoutGroup>
+                <motion.div
+                layout
+                initial={{ opacity: 0, y: 100 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={springTransition}
+                className="px-1.5 w-full flex flex-col gap-10 flex-none mt-1.5 shrink-0"
+                >
+                <BentoTile
+                    as={motion.div}
+                    layout
+                    transition={springTransition}
+                    onClick={() => {
+                        setIsAlertExpanded(!isAlertExpanded);
+                        if(isMetricExpanded) setIsMetricExpanded(false);
+                    }}
+                    className={`bg-[#ff003c] !px-8 flex flex-col text-white rounded-[32px] cursor-pointer overflow-hidden ${isAlertExpanded ? "h-[250px]" : "h-[75px]"}`}
+                >
+                    
+                    <motion.div layout="position" className="flex justify-between items-center w-full relative z-10 py-0 -mt-1.5">
+                    <div className="flex items-center gap-3">
+                        <Bell size={20} />
+                        <p
+                        className="font-bold text-xl md:text-2xl tracking-normal lowercase"
+                        style={{ fontFamily: "Aonic" }}
+                        >
+                        academic alerts
+                        </p>
                     </div>
-                    <div
-                      className="bg-white/10 p-4 rounded-2xl font-bold text-[11px] lowercase text-white/80 tracking-normal"
-                      style={{ fontFamily: "Aonic" }}
-                    >
-                      no critical alerts at this moment
+                    <div className="w-8 h-8 rounded-full bg-black/10 flex items-center justify-center">
+                        <ChevronRight
+                        size={16}
+                        className={`transition-transform duration-500 ${isAlertExpanded ? "rotate-90" : ""}`}
+                        />
                     </div>
-                  </div>
-                )}
-              </BentoTile>
+                    </motion.div>
+                    
+                    <AnimatePresence>
+                    {isAlertExpanded && (
+                    <motion.div 
+                        key="alerts-content"
+                        variants={accordionVariants}
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
+                        className="w-full relative z-10"
+                    >
+                        {upcomingAlerts.length > 0 ? (
+                            upcomingAlerts.map((alert, i) => (
+                                <div key={i} className="bg-white p-3 rounded-xl flex flex-col gap-1 border border-black/5 shadow-sm mb-2 last:mb-0">
+                                    <div className="flex justify-between items-start">
+                                        <span className="text-[12px] font-bold leading-tight text-black line-clamp-2" style={{ fontFamily: "Aonic" }}>{alert.description}</span>
+                                        {alert.type === 'exam' && <span className="bg-[#ff003c] text-white text-[9px] font-black px-1.5 py-0.5 rounded-md ml-2 flex-shrink-0">EXAM</span>}
+                                    </div>
+                                    <span className="text-[10px] font-bold text-black/40 uppercase tracking-wide" style={{ fontFamily: "Aonic" }}>
+                                        {alert.date} • {alert.day}
+                                    </span>
+                                </div>
+                            ))
+                        ) : (
+                            <div
+                            className="bg-black/20 p-4 rounded-2xl font-bold text-[11px] lowercase text-white tracking-normal"
+                            style={{ fontFamily: "Aonic" }}
+                            >
+                            no upcoming exams
+                            </div>
+                        )}
+                    </motion.div>
+                    )}
+                    </AnimatePresence>
+                </BentoTile>
 
-              <BentoTile
-                as={motion.div}
-                className="bg-[#ceff1c] flex-1 min-h-[220px] md:min-h-[250px] flex flex-col relative rounded-t-[48px] rounded-b-none !p-8 !pb-32 overflow-hidden"
-              >
-                <div className="flex justify-between items-start w-full z-10">
-                  <div className="w-11 h-11 bg-black rounded-full flex items-center justify-center shadow-xl">
-                    <Zap
-                      size={20}
-                      className="text-[#ceff1c]"
-                      fill="currentColor"
-                    />
-                  </div>
-                  <div
-                    className="bg-black/90 backdrop-blur-xl text-white p-1 rounded-full flex items-center text-[9px] md:text-[10px] font-bold uppercase tracking-[0.1em]"
-                    style={{ fontFamily: "Aonic" }}
-                  >
-                    <div className="bg-[#ceff1c] text-black px-4 py-2 rounded-full shadow-sm cursor-pointer">
-                      attendance
+                <BentoTile
+                    as={motion.div}
+                    layout
+                    transition={springTransition}
+                    onClick={() => {
+                        setIsMetricExpanded(!isMetricExpanded);
+                        if(isAlertExpanded) setIsAlertExpanded(false);
+                    }}
+                    className={`bg-[#ceff1c] flex-1 flex flex-col relative -top-8  relative rounded-t-[48px] !px-5 !pb-[60vh] -mb-[40vh] overflow-hidden cursor-pointer ${isMetricExpanded ? "min-h-[400px]" : "min-h-[220px] md:min-h-[250px]"}`}
+                >
+                    <motion.div layout="position" className="flex justify-between items-start w-full z-10 pt-0 shrink-0">
+                    <div className="w-11 h-11 bg-black rounded-full flex items-center justify-center shadow-xl">
+                        {metricMode === 'attendance' ? (
+                            <Zap size={20} className="text-[#ceff1c]" fill="currentColor" />
+                        ) : (
+                            <GraduationCap size={20} className="text-[#ceff1c]" fill="currentColor" />
+                        )}
                     </div>
-                    <div className="px-4 py-2 text-white/40 cursor-pointer hover:text-white transition-colors">
-                      marks
+                    <div
+                        className="bg-black/90 backdrop-blur-xl text-white p-1 rounded-full flex items-center text-[9px] md:text-[10px] font-bold uppercase tracking-[0.1em]"
+                        style={{ fontFamily: "Aonic" }}
+                        onClick={(e) => e.stopPropagation()} 
+                    >
+                        <div 
+                            onClick={() => setMetricMode('attendance')}
+                            className={`px-4 py-2 rounded-full cursor-pointer transition-colors ${metricMode === 'attendance' ? 'bg-[#ceff1c] text-black shadow-sm' : 'text-white/40 hover:text-white'}`}
+                        >
+                        attendance
+                        </div>
+                        <div 
+                            onClick={() => setMetricMode('marks')}
+                            className={`px-4 py-2 rounded-full cursor-pointer transition-colors ${metricMode === 'marks' ? 'bg-[#ceff1c] text-black shadow-sm' : 'text-white/40 hover:text-white'}`}
+                        >
+                        marks
+                        </div>
                     </div>
-                  </div>
-                </div>
-                <div className="flex justify-between items-end mt-auto z-10">
-                  <div>
-                    <p
-                      className="text-[10px] font-bold uppercase text-black/30 tracking-widest mb-1"
-                      style={{ fontFamily: "Aonic" }}
-                    >
-                      overall
-                    </p>
-                    <h2
-                      className="text-[28px] md:text-[34px] font-bold leading-[0.95] text-black tracking-normal lowercase"
-                      style={{ fontFamily: "Aonic" }}
-                    >
-                      you are <br /> doing well
-                    </h2>
-                  </div>
-                  <div
-                    className="text-[80px] md:text-[88px] font-black leading-[0.7] tracking-[-0.04em] text-black"
-                    style={{ fontFamily: "Urbanosta" }}
-                  >
-                    {overallPercent}
-                    <span className="text-[34px] opacity-20 tracking-normal">
-                      %
-                    </span>
-                  </div>
-                </div>
-              </BentoTile>
-            </motion.div>
+                    </motion.div>
+
+                    <div className="flex flex-col w-full relative h-full">
+                        <AnimatePresence mode="wait">
+                        {isMetricExpanded ? (
+                            <motion.div 
+                                key="expanded"
+                                variants={accordionVariants}
+                                initial="hidden"
+                                animate="visible"
+                                exit="exit"
+                                className="w-full flex flex-col gap-3"
+                            >
+                                <div className="flex items-center justify-between mb-2">
+                                    <span className="text-[14px] font-bold text-black/40 lowercase" style={{ fontFamily: "Aonic" }}>
+                                        {metricMode === 'attendance' ? 'needs attention' : 'academic status'}
+                                    </span>
+                                    <div className="h-[1px] flex-1 bg-black/10 ml-4"></div>
+                                </div>
+                                
+                                {metricMode === 'attendance' ? (
+                                    criticalAttendance.length > 0 ? (
+                                        criticalAttendance.map((subj, i) => (
+                                            <div key={i} className="bg-black/10 p-4 rounded-2xl flex items-center justify-between w-full">
+                                                <span className="font-bold text-[13px] text-black w-[60%] leading-tight truncate" style={{ fontFamily: "Aonic" }}>
+                                                {subj.displayName}
+                                                </span>
+                                                <div className="flex flex-col items-end">
+                                                    <div className="flex items-center gap-1 text-[#ff003c]">
+                                                        <AlertTriangle size={14} />
+                                                        <span className="font-black text-[14px] lowercase" style={{ fontFamily: "Aonic" }}>
+                                                            {subj.required} required
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="bg-black/5 p-4 rounded-2xl text-center w-full">
+                                            <span className="font-bold text-[12px] text-black/60" style={{ fontFamily: "Aonic" }}>attendance is safe</span>
+                                        </div>
+                                    )
+                                ) : (
+                                    <div className="bg-black/5 p-4 rounded-2xl text-center w-full">
+                                        <span className="font-bold text-[12px] text-black/60" style={{ fontFamily: "Aonic" }}>no marks data available</span>
+                                    </div>
+                                )}
+                            </motion.div>
+                        ) : (
+                            <motion.div 
+                                key="collapsed"
+                                variants={accordionVariants}
+                                initial="hidden"
+                                animate="visible"
+                                exit="exit"
+                                className="flex justify-between items-end w-full absolute -bottom-22 left-0" 
+                            >
+                                <div>
+                                    <p
+                                    className="text-[10px] font-bold uppercase text-black/30 tracking-widest mb-1"
+                                    style={{ fontFamily: "Aonic" }}
+                                    >
+                                    {metricMode === 'attendance' ? 'overall' : 'average'}
+                                    </p>
+                                    <h2
+                                    className="text-[28px] md:text-[34px] font-bold leading-[0.95] text-black tracking-normal lowercase"
+                                    style={{ fontFamily: "Aonic" }}
+                                    >
+                                    {metricMode === 'attendance' ? (
+                                        <>you are <br /> doing well</>
+                                    ) : (
+                                        <>academic <br /> performance</>
+                                    )}
+                                    </h2>
+                                </div>
+                                <div
+                                    className="text-[80px] md:text-[88px] font-black leading-[0.7] tracking-[-0.04em] text-black"
+                                    style={{ fontFamily: "Urbanosta" }}
+                                >
+                                    {metricMode === 'attendance' ? overallAttendance : "N/A"}
+                                    <span className="text-[34px] opacity-20 tracking-normal">
+                                    {metricMode === 'attendance' ? "%" : ""}
+                                    </span>
+                                </div>
+                            </motion.div>
+                        )}
+                        </AnimatePresence>
+                    </div>
+                </BentoTile>
+                </motion.div>
+            </LayoutGroup>
           )}
         </motion.div>
       </div>
@@ -495,7 +683,7 @@ export default function AcademiaApp({
   const [testSchedule, setTestSchedule] = useState(null);
   const lastNotifiedRef = useRef(null);
 
-  const { profile, attendance, schedule } = data || {};
+  const { profile, attendance, schedule, marks } = data || {};
 
   const todayDate = new Date().toLocaleDateString("en-GB", {
     day: "2-digit",
@@ -643,6 +831,7 @@ export default function AcademiaApp({
                   profile={profile}
                   schedule={effectiveSchedule}
                   attendance={attendance}
+                  marks={marks}
                   dayOrder={effectiveDayOrder}
                   onProfileClick={() => setShowSettings(true)}
                   displayName={customDisplayName}
@@ -663,7 +852,7 @@ export default function AcademiaApp({
                 />
               )}
               {activeTab === 'marks' && <MarksPage data={data} />}
-              {activeTab === 'calendar' && <CalendarPage data={data} />}
+              {activeTab === 'calendar' && <CalendarPage data={fullData} />}
               
             </motion.div>
           )}
