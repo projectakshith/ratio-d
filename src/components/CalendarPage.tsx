@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Target, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Target, X, Calendar } from 'lucide-react';
 
 const CalendarPage = () => {
   const [calendarData, setCalendarData] = useState([]);
@@ -26,8 +26,7 @@ const CalendarPage = () => {
       calendarData.forEach(item => {
         const dateObj = new Date(item.date);
         if (!isNaN(dateObj.getTime())) {
-            const key = dateObj.toDateString(); 
-            map[key] = item;
+            map[dateObj.toDateString()] = item;
         }
       });
     }
@@ -58,35 +57,50 @@ const CalendarPage = () => {
   }, [selectedDate, eventsMap]);
 
   const hasOrder = currentEvent?.order && currentEvent.order !== '-' && currentEvent.order !== '';
+  const isExam = currentEvent?.type === 'exam';
+  
   const dayOfWeek = selectedDate.getDay();
   const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
   const isHoliday = currentEvent?.description?.toLowerCase().includes('holiday') || (isWeekend && !hasOrder);
 
   const theme = useMemo(() => {
+    if (isExam) return { bg: '#8b5cf6', text: 'text-white', accent: 'bg-white' };
     if (hasOrder) return { bg: '#ceff1c', text: 'text-[#050505]', accent: 'bg-[#050505]' };
     if (isHoliday) return { bg: '#ff003c', text: 'text-white', accent: 'bg-white' };
     return { bg: '#ffffff', text: 'text-[#050505]', accent: 'bg-[#050505]' };
-  }, [hasOrder, isHoliday]);
+  }, [hasOrder, isHoliday, isExam]);
 
   const display = useMemo(() => {
     const dayNum = String(selectedDate.getDate()).padStart(2, '0');
     const weekday = selectedDate.toLocaleString('en-US', { weekday: 'long' }).toLowerCase();
     const month = selectedDate.toLocaleString('en-US', { month: 'short' }).toLowerCase();
     
-    if (hasOrder) {
-        return {
+    if (isExam) {
+       return {
+            pill: weekday,
             bigText: currentEvent.order.padStart(2, '0'),
-            labelTitle: "Day order",
-            subInfo: `${weekday}, ${month} ${dayNum}`,
+            label: "day order",
+            infoMain: `${month} ${dayNum}`,
+            infoSub: currentEvent.description || "Exam Day",
+        };
+    } else if (hasOrder) {
+        return {
+            pill: weekday,
+            bigText: currentEvent.order.padStart(2, '0'),
+            label: "day order",
+            infoMain: `${month} ${dayNum}`,
+            infoSub: "Regular Classes",
         };
     } else {
         return {
+            pill: weekday,
             bigText: dayNum,
-            labelTitle: isHoliday ? "Holiday" : "No schedule",
-            subInfo: `${weekday}, ${month}`,
+            label: "date",
+            infoMain: `${month}`,
+            infoSub: isHoliday ? "Holiday" : "No schedule",
         };
     }
-  }, [selectedDate, hasOrder, isHoliday, currentEvent]);
+  }, [selectedDate, hasOrder, isHoliday, isExam, currentEvent]);
 
   const gridData = useMemo(() => {
     const daysInMonth = getDaysInMonth(viewYear, viewMonthIndex);
@@ -107,6 +121,7 @@ const CalendarPage = () => {
       
       const dayOrder = (event?.order && event.order !== '-') ? event.order : null;
       const isDayHoliday = event?.description?.toLowerCase().includes('holiday') || (dIsWeekend && !dayOrder);
+      const isDayExam = event?.type === 'exam';
 
       slots.push({ 
         type: 'day', 
@@ -116,7 +131,8 @@ const CalendarPage = () => {
         isSelected,
         isToday,
         isDayHoliday,
-        dayOrder
+        dayOrder,
+        isDayExam
       });
     }
     return slots;
@@ -134,7 +150,7 @@ const CalendarPage = () => {
         className="w-full relative z-30 shadow-xl overflow-hidden flex flex-col shrink-0"
         style={{ 
             backgroundColor: theme.bg,
-            height: introMode ? '100%' : '40%', 
+            height: introMode ? '100%' : '38%', 
             transition: 'height 0.6s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.4s ease',
             willChange: 'height'
         }}
@@ -156,19 +172,39 @@ const CalendarPage = () => {
             <motion.div
               key="dashboard"
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="flex flex-col h-full justify-end p-6 pb-2 relative z-20"
+              className="flex flex-col h-full p-6 pb-2 relative z-20"
             >
-               <div className="flex items-end gap-6 translate-y-4">
-                  <span className={`text-[11rem] leading-[0.9] font-black tracking-tighter ${theme.text}`} style={{ fontFamily: 'Urbanosta' }}>
-                    {display.bigText}
-                  </span>
+               <div className="self-start mb-auto pt-2">
+                   <div className={`px-3 py-1 bg-white/20 backdrop-blur-md rounded-full border border-white/30 flex items-center gap-2 shadow-sm`}>
+                       <Calendar size={12} className={theme.text} />
+                       <span className={`text-[11px] font-bold lowercase tracking-wide ${theme.text}`} style={{ fontFamily: 'Aonic' }}>
+                           {display.pill}
+                       </span>
+                   </div>
+               </div>
 
-                  <div className="flex flex-col pb-7 gap-1.5">
-                     <span className={`text-[13px] font-bold tracking-wide capitalize ${theme.text}`} style={{ fontFamily: 'Aonic' }}>
-                        {display.labelTitle}
+               <div className="flex items-end w-full gap-2">
+                  <div className="flex flex-col shrink-0">
+                      <div className={`mb-3`}>
+                          <span className={`text-[13px] font-bold lowercase tracking-wide opacity-50 block ml-1 ${theme.text}`} style={{ fontFamily: 'Aonic' }}>
+                              {display.label}
+                          </span>
+                      </div>
+                      <span className={`text-[9rem] leading-[0.83] font-black tracking-tighter ${theme.text}`} style={{ fontFamily: 'Urbanosta' }}>
+                        {display.bigText}
+                      </span>
+                  </div>
+
+                  <div className="flex flex-col justify-end pb-4 flex-1 min-w-0 pl-3">
+                     <span className={`text-2xl font-bold lowercase leading-none mb-1 ${theme.text}`} style={{ fontFamily: 'Aonic' }}>
+                        {display.infoMain}
                      </span>
-                     <span className={`text-2xl font-bold lowercase leading-none ${theme.text}`} style={{ fontFamily: 'Aonic' }}>
-                        {display.subInfo}
+                     
+                     <span 
+                        className={`text-lg font-bold leading-5 ${theme.text} opacity-90 break-words line-clamp-3`} 
+                        style={{ fontFamily: 'Aonic' }}
+                     >
+                        {display.infoSub}
                      </span>
                   </div>
                </div>
@@ -205,14 +241,18 @@ const CalendarPage = () => {
 
                     let bg = "bg-transparent"; 
                     let text = "text-[#050505]";
-                    let dateColor = "text-black/80"; 
+                    let dateColor = "text-black/30"; 
                     let orderColor = "text-black/20"; 
 
                     if (item.isSelected) {
-                        bg = "bg-[#050505] shadow-lg scale-105 z-10";
-                        text = "text-[#ceff1c]";
-                        dateColor = "text-[#ceff1c]";
-                        orderColor = "text-[#ceff1c]/60";
+                        bg = item.isDayExam ? "bg-[#8b5cf6] shadow-lg scale-105 z-10" : "bg-[#050505] shadow-lg scale-105 z-10";
+                        text = "text-white";
+                        dateColor = "text-white";
+                        orderColor = "text-white/60";
+                    } else if (item.isDayExam) {
+                        bg = "bg-[#8b5cf6]/20 border border-[#8b5cf6]"; 
+                        dateColor = "text-[#8b5cf6]";
+                        orderColor = "text-[#8b5cf6]";
                     } else if (item.isToday) {
                         bg = "bg-[#ceff1c]/20 border border-[#ceff1c]"; 
                     } else if (item.isDayHoliday) {
@@ -221,6 +261,8 @@ const CalendarPage = () => {
                         orderColor = "text-[#ff003c]/30";
                     } else if (item.dayOrder) {
                         bg = "bg-white border border-black/5";
+                        dateColor = "text-black/30"; 
+                        orderColor = "text-black/20"; 
                     }
 
                     return (
@@ -233,7 +275,7 @@ const CalendarPage = () => {
                             }}
                             className={`aspect-square w-full rounded-xl flex flex-col items-center justify-center relative transition-all duration-200 ${bg}`}
                         >
-                            <span className={`absolute top-1.5 left-2 text-[10px] font-black ${dateColor}`} style={{ fontFamily: 'Aonic' }}>
+                            <span className={`absolute top-1.5 left-2 text-[10px] font-bold ${dateColor}`} style={{ fontFamily: 'Aonic' }}>
                                 {item.day}
                             </span>
                             
@@ -248,6 +290,10 @@ const CalendarPage = () => {
                                     <span className="h-4 w-4" /> 
                                 )}
                             </div>
+                            
+                            {item.isDayExam && !item.isSelected && (
+                                <div className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-[#8b5cf6] rounded-full" />
+                            )}
                         </motion.button>
                     );
                 })}
@@ -258,4 +304,4 @@ const CalendarPage = () => {
   );
 };
 
-export default CalendarPage;
+export default CalendarPage;    
