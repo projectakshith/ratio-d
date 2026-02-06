@@ -20,6 +20,7 @@ import {
   sendNotification,
 } from "../utils/notifs";
 import calendarData from "../../public/calendar_data.json";
+import MarksPage from './MarksPage';
 
 const parseTimeValues = (timeStr) => {
   if (!timeStr) return 0;
@@ -661,10 +662,9 @@ export default function AcademiaApp({
                   schedule={effectiveSchedule}
                 />
               )}
-              {activeTab === "marks" && (
-                <div className="w-full h-full bg-[#050505]" />
-              )}
+              {activeTab === 'marks' && <MarksPage data={data} />}
               {activeTab === "calendar" && <CalendarPage data={fullData} />}
+              
             </motion.div>
           )}
         </AnimatePresence>
