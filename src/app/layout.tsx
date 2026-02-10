@@ -18,15 +18,12 @@ export const metadata: Metadata = {
   title: "Ratio'd",
   description: "cool looking and simple academia dashboard",
   manifest: "/manifest.json",
-
   themeColor: "#000000",
-
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
     title: "Ratio'd",
   },
-
   icons: {
     icon: [
       { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
@@ -48,19 +45,13 @@ export default function RootLayout({
           name="viewport"
           content="width=device-width, initial-scale=1, viewport-fit=cover"
         />
-
-        {/* Android PWA */}
         <meta name="mobile-web-app-capable" content="yes" />
-
-        {/* iOS PWA */}
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta
           name="apple-mobile-web-app-status-bar-style"
           content="black-translucent"
         />
         <meta name="apple-mobile-web-app-title" content="Ratio'd" />
-
-        {/* Prevent phone number styling */}
         <meta name="format-detection" content="telephone=no" />
       </head>
 
@@ -75,6 +66,8 @@ export default function RootLayout({
         `}
       >
         {children}
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
