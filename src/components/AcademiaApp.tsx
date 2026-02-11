@@ -127,36 +127,7 @@ const LoadingScreen = ({ onComplete }) => {
   }, [onComplete]);
 
   return (
-    <div className="fixed inset-0 z-50 pointer-events-none flex flex-col justify-end">
-      <motion.div
-        layoutId="hero-white-card"
-        initial={{ y: "100%" }}
-        animate={{ y: "0%" }}
-        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-        className="absolute inset-0 bg-[#fdfdfd]"
-      >
-        <div className="flex justify-between items-center w-full absolute top-12 left-0 px-8 md:px-10 z-20">
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.5, duration: 0.5, ease: "easeOut" }}
-            className="flex items-center gap-3 text-black"
-          >
-            <img
-              src="/icons/icon-192.png"
-              className="w-6 h-6 object-contain"
-              alt="Logo"
-            />
-            <span
-              className="text-xl font-black lowercase tracking-tight"
-              style={{ fontFamily: "Urbanosta" }}
-            >
-              ratio'd
-            </span>
-          </motion.div>
-        </div>
-      </motion.div>
-    </div>
+    <div className="fixed inset-0 z-50 pointer-events-none flex flex-col justify-end"></div>
   );
 };
 
@@ -371,11 +342,6 @@ const HomeDashboard = ({
                 transition={{ delay: 0.5, duration: 0.5, ease: "easeOut" }}
                 className="flex items-center gap-3 text-black"
               >
-                <img
-                  src="/icons/icon-192.png"
-                  className="w-6 h-6 object-contain"
-                  alt="Logo"
-                />
                 <span
                   className="text-xl font-black lowercase tracking-tight"
                   style={{ fontFamily: "Urbanosta" }}
