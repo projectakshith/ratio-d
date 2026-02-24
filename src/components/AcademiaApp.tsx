@@ -10,7 +10,7 @@ export default function AcademiaApp({
   customDisplayName,
   onUpdateName,
 }: any) {
-  const [theme, setTheme] = useState<"brutalist" | "minimalist">("minimalist");
+  const [theme, setTheme] = useState<"brutalist" | "minimalist">("brutalist");
   const academia = useAcademiaData(data);
 
   const sharedProps = {
