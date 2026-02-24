@@ -1,6 +1,90 @@
-import React, { useState, useMemo, useEffect } from "react";
+"use client";
+import React, { useState, useMemo, useEffect, memo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, Target, Calendar } from "lucide-react";
+
+const CalendarDay = memo(
+  ({ item, onClick }: { item: any; onClick: (date: Date) => void }) => {
+    let bg = "bg-transparent";
+    let text = "text-[#050505]";
+    let dateColor = "text-black/30";
+    let orderColor = "text-black/20";
+    let scaleClass = "scale-100";
+    let shadowClass = "";
+
+    if (item.isSelected) {
+      bg = item.isDayExam ? "bg-[#8b5cf6]" : "bg-[#050505]";
+      text = "text-white";
+      dateColor = "text-white";
+      orderColor = "text-white/60";
+      scaleClass = "scale-105";
+      shadowClass = "shadow-lg z-10";
+    } else if (item.isDayExam) {
+      bg = "bg-[#8b5cf6]/20";
+      dateColor = "text-[#8b5cf6]";
+      orderColor = "text-[#8b5cf6]";
+    } else if (item.isToday) {
+      bg = "bg-[#ceff1c]/20";
+    } else if (item.isDayHoliday) {
+      bg = "bg-[#ff003c]/5";
+      dateColor = "text-[#ff003c]";
+      orderColor = "text-[#ff003c]/30";
+    } else if (item.dayOrder) {
+      bg = "bg-white border border-black/5";
+      dateColor = "text-black/30";
+      orderColor = "text-black/20";
+    }
+
+    const fadeClass =
+      item.isPast && !item.isSelected && !item.isToday ? "opacity-40" : "";
+
+    return (
+      <motion.button
+        whileTap={{ scale: 0.9 }}
+        onClick={() => onClick(item.dateObj)}
+        className={`aspect-square w-full rounded-xl flex flex-col items-center justify-center relative ${bg} ${fadeClass} ${scaleClass} ${shadowClass}`}
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        <div className="absolute top-1.5 left-2 flex items-center justify-center pointer-events-none">
+          {item.dayOrder ? (
+            <span
+              className={`text-[10px] font-bold ${orderColor}`}
+              style={{ fontFamily: "Aonic" }}
+            >
+              {item.dayOrder}
+            </span>
+          ) : item.isDayHoliday ? (
+            <span
+              className={`text-[10px] font-bold ${orderColor}`}
+              style={{ fontFamily: "Aonic" }}
+            ></span>
+          ) : null}
+        </div>
+
+        <div className="flex items-center justify-center pt-4">
+          <span
+            className={`text-xl font-black ${dateColor}`}
+            style={{ fontFamily: "Aonic" }}
+          >
+            {item.day}
+          </span>
+        </div>
+      </motion.button>
+    );
+  },
+  (prev, next) => {
+    // Only re-render if visual state changes
+    return (
+      prev.item.isSelected === next.item.isSelected &&
+      prev.item.isToday === next.item.isToday &&
+      prev.item.dayOrder === next.item.dayOrder &&
+      prev.item.dateObj.getTime() === next.item.dateObj.getTime()
+    );
+  },
+);
+
+CalendarDay.displayName = "CalendarDay";
 
 const CalendarPage = () => {
   const [calendarData, setCalendarData] = useState([]);
@@ -20,10 +104,15 @@ const CalendarPage = () => {
     return () => clearTimeout(timer);
   }, []);
 
+  const handleDateClick = useCallback((date: Date) => {
+    setSelectedDate(date);
+    if (navigator.vibrate) navigator.vibrate(2);
+  }, []);
+
   const eventsMap = useMemo(() => {
-    const map = {};
+    const map: any = {};
     if (calendarData) {
-      calendarData.forEach((item) => {
+      calendarData.forEach((item: any) => {
         const dateObj = new Date(item.date);
         if (!isNaN(dateObj.getTime())) {
           map[dateObj.toDateString()] = item;
@@ -33,9 +122,9 @@ const CalendarPage = () => {
     return map;
   }, [calendarData]);
 
-  const getDaysInMonth = (year, month) =>
+  const getDaysInMonth = (year: number, month: number) =>
     new Date(year, month + 1, 0).getDate();
-  const getFirstDayOfMonth = (year, month) => {
+  const getFirstDayOfMonth = (year: number, month: number) => {
     const day = new Date(year, month, 1).getDay();
     return day === 0 ? 6 : day - 1;
   };
@@ -61,7 +150,7 @@ const CalendarPage = () => {
   const todayZero = new Date();
   todayZero.setHours(0, 0, 0, 0);
 
-  const currentEvent = useMemo(() => {
+  const currentEvent: any = useMemo(() => {
     return eventsMap[selectedDate.toDateString()];
   }, [selectedDate, eventsMap]);
 
@@ -177,30 +266,29 @@ const CalendarPage = () => {
 
   return (
     <div className="h-full w-full flex flex-col bg-[#f5f6fc] text-[#050505] font-sans relative overflow-hidden touch-pan-y">
-      <div
-        className="w-full relative z-30 shadow-xl overflow-hidden flex flex-col shrink-0"
-        style={{
-          backgroundColor: theme.bg,
+      <motion.div
+        layout
+        initial={{ height: "100%" }}
+        animate={{
           height: introMode ? "100%" : "38%",
-          transition:
-            "height 0.6s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.4s ease",
-          willChange: "height",
+          backgroundColor: theme.bg,
         }}
+        transition={{
+          type: "spring",
+          stiffness: 120,
+          damping: 20,
+        }}
+        className="w-full relative z-30 shadow-xl overflow-hidden flex flex-col shrink-0"
       >
-        <div className="absolute inset-0 pointer-events-none mix-blend-multiply bg-[url('https://grainy-gradients.vercel.app/noise.svg')] bg-repeat opacity-20" />
+        <div className="absolute inset-0 pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')] bg-repeat opacity-[0.03]" />
 
         <AnimatePresence mode="wait">
           {introMode ? (
             <motion.div
               key="intro"
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              variants={{
-                hidden: { opacity: 0 },
-                visible: { opacity: 1 },
-                exit: { opacity: 0, y: -40, transition: { duration: 0.25 } },
-              }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
               className="absolute inset-0 flex flex-col justify-end items-start p-8 pb-32"
             >
               <h1
@@ -275,10 +363,16 @@ const CalendarPage = () => {
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
+      </motion.div>
 
-      <div
-        className={`flex-1 flex flex-col bg-[#f5f6fc] pb-24 pt-6 px-4 transition-all duration-700 ease-out ${introMode ? "opacity-0 translate-y-10" : "opacity-100 translate-y-0"}`}
+      <motion.div
+        layout
+        className="flex-1 flex flex-col bg-[#f5f6fc] pb-24 pt-6 px-4"
+        initial={{ opacity: 0, y: 50 }}
+        animate={{
+          opacity: introMode ? 0 : 1,
+          y: introMode ? 50 : 0,
+        }}
       >
         <div className="flex justify-between items-center mb-6 px-1 relative">
           <div
@@ -323,83 +417,20 @@ const CalendarPage = () => {
 
         <div className="flex-1 overflow-y-auto custom-scrollbar">
           <div className="grid grid-cols-7 gap-2 gap-y-3 justify-items-center">
-            {gridData.map((item, i) => {
+            {gridData.map((item: any, i: number) => {
               if (item.type === "padding")
                 return <div key={item.key} className="w-full" />;
-
-              let bg = "bg-transparent";
-              let text = "text-[#050505]";
-              let dateColor = "text-black/30";
-              let orderColor = "text-black/20";
-
-              if (item.isSelected) {
-                bg = item.isDayExam
-                  ? "bg-[#8b5cf6] shadow-lg scale-105 z-10"
-                  : "bg-[#050505] shadow-lg scale-105 z-10";
-                text = "text-white";
-                dateColor = "text-white";
-                orderColor = "text-white/60";
-              } else if (item.isDayExam) {
-                bg = "bg-[#8b5cf6]/20 border border-[#8b5cf6]";
-                dateColor = "text-[#8b5cf6]";
-                orderColor = "text-[#8b5cf6]";
-              } else if (item.isToday) {
-                bg = "bg-[#ceff1c]/20 border border-[#ceff1c]";
-              } else if (item.isDayHoliday) {
-                bg = "bg-[#ff003c]/5";
-                dateColor = "text-[#ff003c]";
-                orderColor = "text-[#ff003c]/30";
-              } else if (item.dayOrder) {
-                bg = "bg-white border border-black/5";
-                dateColor = "text-black/30";
-                orderColor = "text-black/20";
-              }
-
-              let fadeClass = "";
-              if (item.isPast && !item.isSelected && !item.isToday) {
-                fadeClass = "opacity-40";
-              }
-
               return (
-                <motion.button
+                <CalendarDay
                   key={item.key}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => {
-                    setSelectedDate(item.dateObj);
-                    if (navigator.vibrate) navigator.vibrate(2);
-                  }}
-                  className={`aspect-square w-full rounded-xl flex flex-col items-center justify-center relative transition-all duration-200 ${bg} ${fadeClass}`}
-                >
-                  <div className="absolute top-1.5 left-2 flex items-center justify-center pointer-events-none">
-                    {item.dayOrder ? (
-                      <span
-                        className={`text-[10px] font-bold ${orderColor}`}
-                        style={{ fontFamily: "Aonic" }}
-                      >
-                        {item.dayOrder}
-                      </span>
-                    ) : item.isDayHoliday ? (
-                      <span
-                        className={`text-[10px] font-bold ${orderColor}`}
-                        style={{ fontFamily: "Aonic" }}
-                      ></span>
-                    ) : null}
-                  </div>
-
-                  <div className="flex items-center justify-center pt-4">
-                    <span
-                      className={`text-xl font-black ${dateColor}`}
-                      style={{ fontFamily: "Aonic" }}
-                    >
-                      {item.day}
-                    </span>
-                  </div>
-                </motion.button>
+                  item={item}
+                  onClick={handleDateClick}
+                />
               );
             })}
           </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };

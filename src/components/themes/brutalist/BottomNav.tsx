@@ -1,7 +1,13 @@
 "use client";
-import React, { useState, useEffect, useRef, memo } from 'react';
-import { motion, useSpring, useTransform } from 'framer-motion';
-import { LayoutGrid, CheckCircle, Home, Calendar, GraduationCap } from 'lucide-react';
+import React, { useState, useEffect, useRef, memo } from "react";
+import { motion, useSpring, useTransform } from "framer-motion";
+import {
+  LayoutGrid,
+  CheckCircle,
+  Home,
+  Calendar,
+  GraduationCap,
+} from "lucide-react";
 
 interface BottomNavProps {
   activeTab: string;
@@ -13,11 +19,11 @@ export const BottomNav = memo(({ activeTab, setActiveTab }: BottomNavProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   const tabs = [
-    { id: 'marks', icon: GraduationCap },
-    { id: 'attendance', icon: CheckCircle },
-    { id: 'home', icon: Home },
-    { id: 'timetable', icon: LayoutGrid },
-    { id: 'calendar', icon: Calendar },
+    { id: "marks", icon: GraduationCap },
+    { id: "attendance", icon: CheckCircle },
+    { id: "home", icon: Home },
+    { id: "timetable", icon: LayoutGrid },
+    { id: "calendar", icon: Calendar },
   ];
 
   const activeIndex = tabs.findIndex((tab) => tab.id === activeTab);
@@ -43,15 +49,15 @@ export const BottomNav = memo(({ activeTab, setActiveTab }: BottomNavProps) => {
   }, [activeIndex, width, x, tabs.length]);
 
   const path = useTransform(x, (cx) => {
-    const h = 85;    
-    const w = width; 
-    const r = 24;    
-    
+    const h = 85;
+    const w = width;
+    const r = 24;
+
     if (w === 0) return "";
 
-    const cupWidth = 120; 
-    const cupDepth = 60;  
-    const shoulder = 25;  
+    const cupWidth = 120;
+    const cupDepth = 60;
+    const shoulder = 25;
 
     return `
       M 0 ${h}
@@ -68,45 +74,44 @@ export const BottomNav = memo(({ activeTab, setActiveTab }: BottomNavProps) => {
   });
 
   return (
-    <div 
+    <div
       ref={containerRef}
       className="fixed bottom-0 left-0 w-full z-[100] h-[85px] pb-safe"
     >
-
-      <svg 
+      <svg
         className="absolute top-0 left-0 w-full h-full pointer-events-none"
-
         style={{ filter: "drop-shadow(0 -5px 10px rgba(0,0,0,0.2))" }}
       >
-        <motion.path 
-          d={path} 
-          fill="#050505" 
+        <motion.path
+          d={path}
+          fill="#050505"
           stroke="rgba(255,255,255,0.05)"
           strokeWidth="1"
-          style={{ willChange: "d" }} 
+          style={{ willChange: "d" }}
         />
       </svg>
 
-
       <motion.div
         className="absolute top-0 left-0 z-50"
-        style={{ 
+        style={{
           x: useTransform(x, (val) => val - 28),
-          willChange: "transform" 
-        }} 
+          willChange: "transform",
+        }}
       >
         <motion.button
-          onClick={() => {}} 
+          onClick={() => {}}
           className="relative w-14 h-14 rounded-full bg-[#dfff00] text-black flex items-center justify-center -top-2"
-          style={{ boxShadow: '0 0 25px rgba(223, 255, 0, 0.4)' }}
+          style={{ boxShadow: "0 0 25px rgba(223, 255, 0, 0.4)" }}
           whileTap={{ scale: 0.9 }}
           animate={{ rotate: activeIndex * 360 }}
           transition={{ type: "spring", stiffness: 200, damping: 20 }}
         >
-           {React.createElement(tabs[activeIndex].icon, { size: 26, strokeWidth: 2.5 })}
+          {React.createElement(tabs[activeIndex].icon, {
+            size: 26,
+            strokeWidth: 2.5,
+          })}
         </motion.button>
       </motion.div>
-
 
       <div className="relative w-full h-full flex items-center justify-around z-20">
         {tabs.map((tab) => {
@@ -116,9 +121,9 @@ export const BottomNav = memo(({ activeTab, setActiveTab }: BottomNavProps) => {
           return (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)} 
+              onClick={() => setActiveTab(tab.id)}
               className="w-full h-full flex flex-col items-center justify-center group outline-none"
-              style={{ WebkitTapHighlightColor: 'transparent' }}
+              style={{ WebkitTapHighlightColor: "transparent" }}
             >
               {!isActive && (
                 <motion.div

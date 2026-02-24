@@ -1,7 +1,7 @@
 "use client";
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, Loader2, AlertCircle, Eye, EyeOff } from 'lucide-react';
+import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ArrowRight, Loader2, AlertCircle, Eye, EyeOff } from "lucide-react";
 
 interface LoginPageProps {
   onLogin: (data: any, credentials: any) => void;
@@ -10,16 +10,16 @@ interface LoginPageProps {
 const API_URL = `${process.env.NEXT_PUBLIC_API_URL}/login`;
 
 const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
-  const [username, setUsername] = useState<string>('');
-  const [password, setPassword] = useState<string>('');
+  const [username, setUsername] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string>('');
+  const [error, setError] = useState<string>("");
 
   const formatUsername = (val: string) => {
-    if (!val) return '';
+    if (!val) return "";
     const cleanVal = val.trim();
-    if (cleanVal.includes('@')) return cleanVal;
+    if (cleanVal.includes("@")) return cleanVal;
     return `${cleanVal}@srmist.edu.in`;
   };
 
@@ -28,21 +28,21 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
     if (!username || !password) return;
 
     setLoading(true);
-    setError('');
+    setError("");
 
     const fullUsername = formatUsername(username);
 
     try {
       const response = await fetch(API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username: fullUsername, password }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.detail || 'Login failed');
+        throw new Error(data.detail || "Login failed");
       }
 
       if (data.success) {
@@ -50,7 +50,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
           onLogin(data, { username: fullUsername, password });
         }, 800);
       } else {
-        throw new Error('Server returned success:false');
+        throw new Error("Server returned success:false");
       }
     } catch (err: any) {
       setError(err.message);
@@ -64,7 +64,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
       <header className="relative z-10">
         <h1
           className="text-5xl md:text-8xl lowercase leading-none tracking-tighter"
-          style={{ fontFamily: 'Urbanosta', color: '#ceff1c' }}
+          style={{ fontFamily: "Urbanosta", color: "#ceff1c" }}
         >
           ratio'd
         </h1>
@@ -83,12 +83,12 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
                 onChange={(e) => setUsername(e.target.value)}
                 className="w-full bg-transparent py-4 text-4xl md:text-6xl text-white outline-none placeholder:text-white/20"
                 placeholder="username"
-                style={{ fontFamily: 'Aonic' }}
+                style={{ fontFamily: "Aonic" }}
               />
-              {!username.includes('@') && username.length > 0 && (
-                <span 
+              {!username.includes("@") && username.length > 0 && (
+                <span
                   className="text-2xl md:text-4xl text-white/30 lowercase pointer-events-none pr-2 select-none"
-                  style={{ fontFamily: 'Aonic' }}
+                  style={{ fontFamily: "Aonic" }}
                 >
                   @srmist.edu.in
                 </span>
@@ -107,7 +107,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full bg-transparent py-4 text-4xl md:text-6xl text-white outline-none placeholder:text-white/20"
                 placeholder="••••••••"
-                style={{ fontFamily: 'Aonic' }}
+                style={{ fontFamily: "Aonic" }}
               />
               <button
                 type="button"
@@ -139,9 +139,9 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
           >
             <span
               className="text-4xl md:text-6xl lowercase text-white group-hover:text-[#ceff1c] transition-colors"
-              style={{ fontFamily: 'aonic' }}
+              style={{ fontFamily: "aonic" }}
             >
-              {loading ? 'WAIT_' : 'signin'}
+              {loading ? "WAIT_" : "signin"}
             </span>
             {loading ? (
               <Loader2 className="animate-spin text-white" size={40} />
