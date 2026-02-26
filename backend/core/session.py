@@ -2,17 +2,18 @@ import requests
 import json
 from urllib.parse import urljoin
 from bs4 import BeautifulSoup
-
-from core.config import BASE_URL, LOGIN_URL, URLS, HEADERS
-from utils.cookies import CookieManager
+from core.config import BASE_URL, LOGIN_URL, HEADERS
 
 class SessionHandler:
-    def __init__(self):
+    def __init__(self, cookies=None):
         self.session = requests.Session()
         self.session.headers.update(HEADERS)
+        if cookies:
+            print("  -> [SESSION] Injected existing cookies from frontend.")
+            self.session.cookies.update(cookies)
 
     def force_logout_sessions(self, html_content):
-        print("[AUTO-FIX] Parsing Concurrent Sessions Page...")
+        print("  -> [SESSION] Parsing Concurrent Sessions Page...")
         soup = BeautifulSoup(html_content, 'html.parser')
         forms = soup.find_all('form')
         terminate_form = None
@@ -38,33 +39,18 @@ class SessionHandler:
             if submit_btn and submit_btn.get('name'):
                 data[submit_btn.get('name')] = submit_btn.get('value', '')
 
-            print(f"[AUTO-FIX] Sending Terminate Request to {action_url}...")
             try:
+                print("  -> [SESSION] Terminating ghost sessions...")
                 r = self.session.post(action_url, data=data)
                 if r.status_code == 200:
-                    print("[AUTO-FIX] Sessions Terminated. Retrying Login...")
-                    return True
-            except Exception as e:
-                print(f"[AUTO-FIX] Failed to terminate: {e}")
-                
-        return False
-
-    def login(self, username, password):
-        cached_cookies = CookieManager.load_cookies(username)
-        if cached_cookies:
-            print(f"[CACHE] Loading cookies for {username}...")
-            self.session.cookies.update(cached_cookies)
-            try:
-                r = self.session.get(urljoin(BASE_URL, URLS["profile"]), allow_redirects=False)
-                if r.status_code == 200 and "signin" not in r.url:
-                    print("[CACHE] Cookies Valid.")
+                    print("  -> [SESSION] Ghost sessions terminated successfully.")
                     return True
             except:
                 pass
-            print("[CACHE] Cookies Invalid/Expired.")
+        return False
 
-        print(f"[LOGIN] Authenticating {username}...")
-        # Reset session for fresh login
+    def login(self, username, password):
+        print(f"  -> [SESSION] Executing hard login for {username}...")
         self.session = requests.Session()
         self.session.headers.update(HEADERS)
         
@@ -78,7 +64,9 @@ class SessionHandler:
         r = self.session.post(LOGIN_URL, data=payload)
         
         if "concurrent" in r.text.lower():
+            print("  -> [SESSION] Concurrent session limit reached!")
             if self.force_logout_sessions(r.text):
+                print("  -> [SESSION] Retrying hard login...")
                 return self.login(username, password)  
 
         try:
@@ -88,16 +76,17 @@ class SessionHandler:
                 redirect_url = data['data']['oauthorize_uri']
                 final_auth_url = f"{redirect_url}&access_token={token}"
                 
-                print(f"[LOGIN] Finalizing Auth...")
+                print("  -> [SESSION] Access Token received. Exchanging for JSESSIONID...")
                 self.session.get(final_auth_url)
                 
                 if 'JSESSIONID' in self.session.cookies:
-                    CookieManager.save_cookies(username, self.session.cookies)
+                    print("  -> [SESSION] SUCCESS: New cookies established.")
                     return True
                 else:
-                    raise Exception("No JSESSIONID cookie received.")
+                    print("  -> [SESSION] ERROR: JSESSIONID not found.")
+                    raise Exception("No JSESSIONID received")
+            else:
+                print("  -> [SESSION] ERROR: Invalid credentials.")
+                raise Exception("Invalid credentials")
         except Exception as e:
-            print(f"[LOGIN FAIL] {e}")
             raise e
-        
-        raise Exception("Login Failed (Unknown Response)")
