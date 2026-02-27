@@ -74,7 +74,6 @@ const CalendarDay = memo(
     );
   },
   (prev, next) => {
-    // Only re-render if visual state changes
     return (
       prev.item.isSelected === next.item.isSelected &&
       prev.item.isToday === next.item.isToday &&
@@ -83,7 +82,6 @@ const CalendarDay = memo(
     );
   },
 );
-
 CalendarDay.displayName = "CalendarDay";
 
 const CalendarPage = () => {
@@ -146,13 +144,13 @@ const CalendarPage = () => {
 
   const viewYear = viewMonth.getFullYear();
   const viewMonthIndex = viewMonth.getMonth();
-  const today = new Date();
   const todayZero = new Date();
   todayZero.setHours(0, 0, 0, 0);
 
-  const currentEvent: any = useMemo(() => {
-    return eventsMap[selectedDate.toDateString()];
-  }, [selectedDate, eventsMap]);
+  const currentEvent: any = useMemo(
+    () => eventsMap[selectedDate.toDateString()],
+    [selectedDate, eventsMap],
+  );
 
   const hasOrder =
     currentEvent?.order &&
@@ -225,16 +223,13 @@ const CalendarPage = () => {
     for (let d = 1; d <= daysInMonth; d++) {
       const currentDayDate = new Date(viewYear, viewMonthIndex, d);
       const event = eventsMap[currentDayDate.toDateString()];
-
       const isSelected =
         currentDayDate.toDateString() === selectedDate.toDateString();
       const isToday =
         currentDayDate.toDateString() === new Date().toDateString();
       const isPast = currentDayDate < todayZero;
-
       const dDayOfWeek = currentDayDate.getDay();
       const dIsWeekend = dDayOfWeek === 0 || dDayOfWeek === 6;
-
       const dayOrder = event?.order && event.order !== "-" ? event.order : null;
       const isDayHoliday =
         event?.description?.toLowerCase().includes("holiday") ||
@@ -266,114 +261,67 @@ const CalendarPage = () => {
 
   return (
     <div className="h-full w-full flex flex-col bg-[#f5f6fc] text-[#050505] font-sans relative overflow-hidden touch-pan-y">
+      {/* Background container */}
+      <div className="absolute inset-0 pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')] bg-repeat opacity-[0.03]" />
+
+      {/* DASHBOARD - Pre-rendered instantly beneath intro to prevent frame drops */}
       <motion.div
-        layout
-        initial={{ height: "100%" }}
-        animate={{
-          height: introMode ? "100%" : "38%",
-          backgroundColor: theme.bg,
-        }}
-        transition={{
-          type: "spring",
-          stiffness: 120,
-          damping: 20,
-        }}
-        className="w-full relative z-30 shadow-xl overflow-hidden flex flex-col shrink-0"
+        className="w-full relative z-20 shadow-xl overflow-hidden flex flex-col shrink-0"
+        initial={false}
+        animate={{ height: "38%", backgroundColor: theme.bg }}
+        transition={{ duration: 0.3 }}
       >
-        <div className="absolute inset-0 pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')] bg-repeat opacity-[0.03]" />
-
-        <AnimatePresence mode="wait">
-          {introMode ? (
-            <motion.div
-              key="intro"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 flex flex-col justify-end items-start p-8 pb-32"
+        <div className="flex flex-col h-full p-6 pb-2 relative z-20">
+          <div className="self-start mb-auto pt-2">
+            <div
+              className={`px-3 py-1 bg-white/20 backdrop-blur-md rounded-full border border-white/30 flex items-center gap-2 shadow-sm`}
             >
-              <h1
-                className="text-6xl font-black lowercase tracking-tighter text-[#050505] mb-2"
+              <Calendar size={12} className={theme.text} />
+              <span
+                className={`text-[11px] font-bold lowercase tracking-wide ${theme.text}`}
                 style={{ fontFamily: "Aonic" }}
               >
-                calendar
-              </h1>
-              <p
-                className="text-xl font-bold lowercase text-[#050505] leading-tight max-w-[80%]"
-                style={{ fontFamily: "Aonic" }}
-              >
-                schedule & orders
-              </p>
-            </motion.div>
-          ) : (
-            <motion.div
-              key="dashboard"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="flex flex-col h-full p-6 pb-2 relative z-20"
-            >
-              <div className="self-start mb-auto pt-2">
-                <div
-                  className={`px-3 py-1 bg-white/20 backdrop-blur-md rounded-full border border-white/30 flex items-center gap-2 shadow-sm`}
+                {display.pill}
+              </span>
+            </div>
+          </div>
+          <div className="flex items-end w-full gap-2">
+            <div className="flex flex-col shrink-0">
+              <div className="mb-3">
+                <span
+                  className={`text-[13px] font-bold lowercase tracking-wide opacity-50 block ml-1 ${theme.text}`}
+                  style={{ fontFamily: "Aonic" }}
                 >
-                  <Calendar size={12} className={theme.text} />
-                  <span
-                    className={`text-[11px] font-bold lowercase tracking-wide ${theme.text}`}
-                    style={{ fontFamily: "Aonic" }}
-                  >
-                    {display.pill}
-                  </span>
-                </div>
+                  {display.label}
+                </span>
               </div>
-
-              <div className="flex items-end w-full gap-2">
-                <div className="flex flex-col shrink-0">
-                  <div className={`mb-3`}>
-                    <span
-                      className={`text-[13px] font-bold lowercase tracking-wide opacity-50 block ml-1 ${theme.text}`}
-                      style={{ fontFamily: "Aonic" }}
-                    >
-                      {display.label}
-                    </span>
-                  </div>
-                  <span
-                    className={`text-[9rem] leading-[0.8] font-black tracking-tighter ${theme.text}`}
-                    style={{ fontFamily: "Urbanosta" }}
-                  >
-                    {display.bigText}
-                  </span>
-                </div>
-
-                <div className="flex flex-col justify-end pb-4 flex-1 min-w-0 pl-3">
-                  <span
-                    className={`text-2xl font-bold lowercase leading-none mb-1 ${theme.text}`}
-                    style={{ fontFamily: "Aonic" }}
-                  >
-                    {display.infoMain}
-                  </span>
-
-                  <span
-                    className={`text-lg font-bold leading-5 ${theme.text} opacity-90 break-words line-clamp-3`}
-                    style={{ fontFamily: "Aonic" }}
-                  >
-                    {display.infoSub}
-                  </span>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+              <span
+                className={`text-[9rem] leading-[0.8] font-black tracking-tighter ${theme.text}`}
+                style={{ fontFamily: "Urbanosta" }}
+              >
+                {display.bigText}
+              </span>
+            </div>
+            <div className="flex flex-col justify-end pb-4 flex-1 min-w-0 pl-3">
+              <span
+                className={`text-2xl font-bold lowercase leading-none mb-1 ${theme.text}`}
+                style={{ fontFamily: "Aonic" }}
+              >
+                {display.infoMain}
+              </span>
+              <span
+                className={`text-lg font-bold leading-5 ${theme.text} opacity-90 break-words line-clamp-3`}
+                style={{ fontFamily: "Aonic" }}
+              >
+                {display.infoSub}
+              </span>
+            </div>
+          </div>
+        </div>
       </motion.div>
 
-      <motion.div
-        layout
-        className="flex-1 flex flex-col bg-[#f5f6fc] pb-24 pt-6 px-4"
-        initial={{ opacity: 0, y: 50 }}
-        animate={{
-          opacity: introMode ? 0 : 1,
-          y: introMode ? 50 : 0,
-        }}
-      >
+      {/* CALENDAR GRID - Pre-rendered instantly beneath intro */}
+      <div className="flex-1 flex flex-col pb-24 pt-6 px-4 z-10">
         <div className="flex justify-between items-center mb-6 px-1 relative">
           <div
             className="absolute left-1/2 -translate-x-1/2 font-black text-xl tracking-tight text-[#050505]"
@@ -381,7 +329,6 @@ const CalendarPage = () => {
           >
             {monthTitle}
           </div>
-
           <button
             onClick={handlePrevMonth}
             className="p-2 hover:bg-black/5 rounded-full transition-colors text-[#050505] z-10"
@@ -403,7 +350,6 @@ const CalendarPage = () => {
             </button>
           </div>
         </div>
-
         <div className="grid grid-cols-7 text-center mb-3">
           {["m", "t", "w", "t", "f", "s", "s"].map((d, i) => (
             <span
@@ -414,7 +360,6 @@ const CalendarPage = () => {
             </span>
           ))}
         </div>
-
         <div className="flex-1 overflow-y-auto custom-scrollbar">
           <div className="grid grid-cols-7 gap-2 gap-y-3 justify-items-center">
             {gridData.map((item: any, i: number) => {
@@ -430,7 +375,33 @@ const CalendarPage = () => {
             })}
           </div>
         </div>
-      </motion.div>
+      </div>
+
+      {/* INTRO OVERLAY - High performance curtain fade */}
+      <AnimatePresence>
+        {introMode && (
+          <motion.div
+            key="introOverlay"
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.4 }}
+            className="absolute inset-0 flex flex-col justify-center items-start p-8 pb-[60%] z-50 bg-[#ffffff]"
+          >
+            <h1
+              className="text-6xl font-black lowercase tracking-tighter text-[#050505] mb-2"
+              style={{ fontFamily: "Aonic" }}
+            >
+              calendar
+            </h1>
+            <p
+              className="text-xl font-bold lowercase text-[#050505]/80 leading-tight max-w-[80%]"
+              style={{ fontFamily: "Aonic" }}
+            >
+              schedule & orders
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

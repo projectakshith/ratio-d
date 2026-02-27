@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import LoginPage from "@/components/shared/LoginPage";
 import AcademiaApp from "@/components/AcademiaApp";
 import { ThemeProvider } from "@/context/ThemeContext";
+import { EncryptionUtils } from "@/utils/Encryption";
 
 export default function Home() {
   const [view, setView] = useState("loading");
@@ -11,29 +12,66 @@ export default function Home() {
   const [isUpdating, setIsUpdating] = useState(false);
 
   const performLogin = async (username, password) => {
+    const savedCookies = EncryptionUtils.loadDecrypted("academia_cookies");
+
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify({
+        username,
+        password,
+        cookies: savedCookies,
+      }),
     });
 
     const result = await response.json();
     if (!result.success) throw new Error("Login failed");
 
-    localStorage.setItem("ratiod_data", JSON.stringify(result));
-    localStorage.setItem(
-      "ratiod_creds",
-      JSON.stringify({ username, password }),
-    );
+    if (result.cookies) {
+      EncryptionUtils.saveEncrypted("academia_cookies", result.cookies);
+      delete result.cookies;
+    }
+
+    localStorage.setItem("ratio_data", JSON.stringify(result));
+    EncryptionUtils.saveEncrypted("ratio_credentials", { username, password });
 
     return result;
   };
 
-  const refreshData = async (creds) => {
+  const refreshData = async (creds, existingData) => {
     setIsUpdating(true);
     try {
-      const newData = await performLogin(creds.username, creds.password);
-      setUserData(newData);
+      const savedCookies = EncryptionUtils.loadDecrypted("academia_cookies");
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/refresh`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            username: creds.username,
+            password: creds.password,
+            cookies: savedCookies,
+          }),
+        },
+      );
+
+      const result = await response.json();
+      if (!result.success) throw new Error("Refresh failed");
+
+      if (result.cookies) {
+        EncryptionUtils.saveEncrypted("academia_cookies", result.cookies);
+        delete result.cookies;
+      }
+
+      const updatedData = {
+        ...existingData,
+        attendance: result.attendance,
+        marks: result.marks,
+      };
+
+      setUserData(updatedData);
+      localStorage.setItem("ratio_data", JSON.stringify(updatedData));
     } catch (err) {
       console.error("Auto-refresh failed:", err);
     } finally {
@@ -43,18 +81,21 @@ export default function Home() {
 
   useEffect(() => {
     const checkSession = async () => {
-      const cachedData = localStorage.getItem("ratiod_data");
-      const cachedCreds = localStorage.getItem("ratiod_creds");
+      EncryptionUtils.cleanOldKeys();
+
+      const cachedData = localStorage.getItem("ratio_data");
+      const cachedCreds = EncryptionUtils.loadDecrypted("ratio_credentials");
       const cachedName = localStorage.getItem("ratiod_custom_name");
 
       if (cachedName) setCustomDisplayName(cachedName);
 
       if (cachedData) {
-        setUserData(JSON.parse(cachedData));
+        const parsedData = JSON.parse(cachedData);
+        setUserData(parsedData);
         setView("app");
 
         if (cachedCreds) {
-          refreshData(JSON.parse(cachedCreds));
+          refreshData(cachedCreds, parsedData);
         }
       } else {
         setView("login");
@@ -70,8 +111,7 @@ export default function Home() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("ratiod_data");
-    localStorage.removeItem("ratiod_creds");
+    EncryptionUtils.flushAllStorage();
     localStorage.removeItem("ratiod_custom_name");
     setUserData(null);
     setCustomDisplayName("");
@@ -86,12 +126,9 @@ export default function Home() {
       <main className="bg-[#050505] min-h-screen">
         {view === "login" ? (
           <LoginPage
-            onLogin={(data, creds) => {
+            onLogin={(data) => {
               setUserData(data);
               setView("app");
-              localStorage.setItem("ratiod_data", JSON.stringify(data));
-              if (creds)
-                localStorage.setItem("ratiod_creds", JSON.stringify(creds));
             }}
           />
         ) : (

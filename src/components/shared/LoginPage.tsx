@@ -2,9 +2,10 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, Loader2, AlertCircle, Eye, EyeOff } from "lucide-react";
+import { EncryptionUtils } from "@/utils/Encryption";
 
 interface LoginPageProps {
-  onLogin: (data: any, credentials: any) => void;
+  onLogin: (data: any) => void;
 }
 
 const API_URL = `${process.env.NEXT_PUBLIC_API_URL}/login`;
@@ -17,10 +18,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
   const [error, setError] = useState<string>("");
 
   const formatUsername = (val: string) => {
-    if (!val) return "";
     const cleanVal = val.trim();
-    if (cleanVal.includes("@")) return cleanVal;
-    return `${cleanVal}@srmist.edu.in`;
+    return cleanVal.includes("@") ? cleanVal : `${cleanVal}@srmist.edu.in`;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -29,28 +28,42 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
 
     setLoading(true);
     setError("");
-
     const fullUsername = formatUsername(username);
 
     try {
+      EncryptionUtils.cleanOldKeys();
+      const savedCookies = EncryptionUtils.loadDecrypted("academia_cookies");
+
       const response = await fetch(API_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: fullUsername, password }),
+        body: JSON.stringify({
+          username: fullUsername,
+          password: password,
+          cookies: savedCookies,
+        }),
       });
 
       const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error(data.detail || "Login failed");
-      }
+      if (!response.ok) throw new Error(data.detail || "Login failed");
 
       if (data.success) {
+        if (data.cookies) {
+          EncryptionUtils.saveEncrypted("academia_cookies", data.cookies);
+          delete data.cookies;
+        }
+
+        EncryptionUtils.saveEncrypted("ratio_credentials", {
+          username: fullUsername,
+          password: password,
+        });
+
+        localStorage.setItem("ratio_data", JSON.stringify(data));
+
         setTimeout(() => {
-          onLogin(data, { username: fullUsername, password });
+          onLogin(data);
         }, 800);
-      } else {
-        throw new Error("Server returned success:false");
       }
     } catch (err: any) {
       setError(err.message);
@@ -81,7 +94,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="w-full bg-transparent py-4 text-4xl md:text-6xl text-white outline-none placeholder:text-white/20"
+                className="w-full bg-transparent py-4 text-4xl md:text-6xl text-white outline-none"
                 placeholder="username"
                 style={{ fontFamily: "Aonic" }}
               />
@@ -105,14 +118,14 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-transparent py-4 text-4xl md:text-6xl text-white outline-none placeholder:text-white/20"
+                className="w-full bg-transparent py-4 text-4xl md:text-6xl text-white outline-none"
                 placeholder="••••••••"
                 style={{ fontFamily: "Aonic" }}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="text-white/40 hover:text-[#ceff1c] transition-colors pr-2"
+                className="text-white/40 hover:text-[#ceff1c] pr-2"
               >
                 {showPassword ? <EyeOff size={24} /> : <Eye size={24} />}
               </button>
@@ -138,7 +151,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
             className="w-full flex items-center justify-between border-t border-white pt-6 group disabled:opacity-30"
           >
             <span
-              className="text-4xl md:text-6xl lowercase text-white group-hover:text-[#ceff1c] transition-colors"
+              className="text-4xl md:text-6xl lowercase text-white group-hover:text-[#ceff1c]"
               style={{ fontFamily: "aonic" }}
             >
               {loading ? "WAIT_" : "signin"}

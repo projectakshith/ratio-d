@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MapPin, User, Clock, Layers } from "lucide-react";
 
@@ -7,6 +7,8 @@ export default function Timetable({ schedule, dayOrder }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeDayOrder, setActiveDayOrder] = useState(1);
   const [introMode, setIntroMode] = useState(true);
+  const itemRefs = useRef<Array<HTMLDivElement | null>>([]);
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (dayOrder && dayOrder !== "-") {
@@ -89,84 +91,74 @@ export default function Timetable({ schedule, dayOrder }) {
     }));
   }, [schedule, activeDayOrder, dayOrder]);
 
+  useEffect(() => {
+    if (!introMode && currentSchedule.length > 0) {
+      const targetIndex = currentSchedule.findIndex((item) => item.isNow) !== -1 
+        ? currentSchedule.findIndex((item) => item.isNow) 
+        : currentSchedule.findIndex((item) => !item.isPast);
+        
+      if (targetIndex !== -1 && itemRefs.current[targetIndex] && scrollContainerRef.current) {
+        setTimeout(() => {
+          const container = scrollContainerRef.current;
+          const element = itemRefs.current[targetIndex];
+          if (!container || !element) return;
+
+          const containerRect = container.getBoundingClientRect();
+          const elementRect = element.getBoundingClientRect();
+          const targetPos = container.scrollTop + (elementRect.top - containerRect.top) - (container.clientHeight / 2) + (elementRect.height / 2);
+
+          container.scrollTo({
+            top: targetPos,
+            behavior: "smooth",
+          });
+        }, 300);
+      }
+    }
+  }, [introMode, currentSchedule, activeDayOrder]);
+
   return (
     <div className="h-screen w-full bg-[#050505] flex flex-col relative overflow-hidden font-sans">
-      <motion.div
-        layout
-        initial={{ height: "100%" }}
-        animate={{
-          height: introMode ? "100%" : "38%",
-        }}
-        transition={{ type: "spring", stiffness: 100, damping: 20 }}
-        className="w-full bg-[#050505] relative z-10 shrink-0 overflow-hidden shadow-xl"
-      >
-        <AnimatePresence mode="wait">
-          {introMode ? (
-            <motion.div
-              key="intro"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 flex flex-col justify-end items-start p-8 pb-32"
+      <div className="absolute inset-0 pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')] bg-repeat opacity-[0.03] z-0" />
+
+      <div className="absolute top-0 w-full h-[35%] pt-16 px-8 z-10 flex flex-col text-white">
+        <div className="flex items-center gap-3 mb-2 ml-1">
+          <span
+            className="text-[#ceff1c] font-black text-sm tracking-[0.2em] uppercase"
+            style={{ fontFamily: "Aonic" }}
+          >
+            {dateDisplay.day}
+          </span>
+          <span className="text-white/60 font-bold text-[9px] uppercase tracking-widest px-2 py-0.5 rounded-sm bg-white/10 border border-white/5">
+            Day Order {dayOrder}
+          </span>
+        </div>
+        <div className="flex items-baseline leading-[0.8]">
+          <h1
+            className="text-[130px] font-medium tracking-tighter text-white"
+            style={{ fontFamily: "Urbanosta" }}
+          >
+            {dateDisplay.date}
+          </h1>
+          <div className="flex flex-col ml-4 mb-3">
+            <span
+              className="text-4xl font-black text-white/30 uppercase"
+              style={{ fontFamily: "Aonic" }}
             >
-              <h1
-                className="text-6xl font-black lowercase tracking-tighter text-white mb-2"
-                style={{ fontFamily: "Aonic" }}
-              >
-                timetable
-              </h1>
-              <p
-                className="text-xl font-bold lowercase text-white/60 leading-tight max-w-[80%]"
-                style={{ fontFamily: "Aonic" }}
-              >
-                today's schedule
-              </p>
-            </motion.div>
-          ) : (
-            <motion.div
-              key="content"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="pt-16 px-8 absolute top-0 w-full h-full"
-            >
-              <div className="flex flex-col text-white">
-                <span
-                  className="text-[#ceff1c] font-black text-sm tracking-[0.2em] uppercase mb-2 ml-1"
-                  style={{ fontFamily: "Aonic" }}
-                >
-                  {dateDisplay.day}
-                </span>
-                <div className="flex items-baseline leading-[0.8]">
-                  <h1
-                    className="text-[130px] font-medium tracking-tighter text-white"
-                    style={{ fontFamily: "Urbanosta" }}
-                  >
-                    {dateDisplay.date}
-                  </h1>
-                  <div className="flex flex-col ml-4 mb-3">
-                    <span
-                      className="text-4xl font-black text-white/30 uppercase"
-                      style={{ fontFamily: "Aonic" }}
-                    >
-                      {dateDisplay.month}
-                    </span>
-                    <span className="text-xs text-white/20 font-bold font-mono tracking-widest mt-1">
-                      {dateDisplay.year}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.div>
+              {dateDisplay.month}
+            </span>
+            <span className="text-xs text-white/20 font-bold font-mono tracking-widest mt-1">
+              {dateDisplay.year}
+            </span>
+          </div>
+        </div>
+      </div>
 
       <motion.div
         layout
         initial={{ y: "100%" }}
         animate={{
           y: introMode ? "100%" : "0%",
-          height: isExpanded ? "85%" : "62%",
+          height: isExpanded ? "85%" : "68%",
         }}
         transition={{ type: "spring", stiffness: 100, damping: 20 }}
         className="absolute bottom-0 w-full bg-[#fdfdfd] flex flex-col shadow-[0_-30px_80px_rgba(0,0,0,0.5)] z-20 overflow-hidden rounded-t-[40px]"
@@ -200,7 +192,7 @@ export default function Timetable({ schedule, dayOrder }) {
                     ${
                       activeDayOrder === num
                         ? "bg-black text-[#ceff1c] shadow-lg scale-105"
-                        : "bg-white text-black/40 shadow-sm hover:bg-gray-50"
+                        : "bg-white text-black/40 shadow-sm hover:bg-gray-50 border border-black/5"
                     }
                   `}
                 >
@@ -211,7 +203,7 @@ export default function Timetable({ schedule, dayOrder }) {
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-4 pb-32 pt-2 custom-scrollbar">
+        <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-4 pb-32 pt-2 custom-scrollbar scroll-smooth">
           <div className="flex flex-col gap-3 min-h-full">
             <AnimatePresence mode="wait">
               {currentSchedule.length > 0 ? (
@@ -226,11 +218,12 @@ export default function Timetable({ schedule, dayOrder }) {
                   {currentSchedule.map((item: any, index: number) => (
                     <div
                       key={`${activeDayOrder}-${index}`}
-                      className={`w-full rounded-[24px] p-5 relative transition-all duration-200
+                      ref={(el) => (itemRefs.current[index] = el)}
+                      className={`w-full rounded-[24px] p-5 relative transition-all duration-200 scroll-mt-24
                         ${
                           item.isNow
-                            ? "bg-white shadow-[0_10px_30px_rgba(59,130,246,0.15)] ring-1 ring-blue-100"
-                            : "bg-white shadow-sm"
+                            ? "bg-white shadow-[0_10px_30px_rgba(59,130,246,0.15)] ring-1 ring-blue-100 scale-[1.02]"
+                            : "bg-white shadow-sm border border-black/5"
                         }
                         ${
                           item.isPast
@@ -321,6 +314,31 @@ export default function Timetable({ schedule, dayOrder }) {
           </div>
         </div>
       </motion.div>
+
+      <AnimatePresence>
+        {introMode && (
+          <motion.div
+            key="introOverlay"
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.4 }}
+            className="absolute inset-0 flex flex-col justify-end items-start p-8 pb-[25vh] z-50 bg-[#050505]"
+          >
+            <h1
+              className="text-6xl font-black lowercase tracking-tighter text-white mb-2"
+              style={{ fontFamily: "Aonic" }}
+            >
+              timetable
+            </h1>
+            <p
+              className="text-xl font-bold lowercase text-white/60 leading-tight max-w-[80%]"
+              style={{ fontFamily: "Aonic" }}
+            >
+              today's schedule
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

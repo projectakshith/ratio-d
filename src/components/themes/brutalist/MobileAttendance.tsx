@@ -11,33 +11,7 @@ import {
 } from "lucide-react";
 import { flavorText } from "@/utils/flavortext";
 
-const Counter = ({ value, color }) => {
-  const nodeRef = useRef(null);
-  const prevValue = useRef(0);
-
-  useEffect(() => {
-    const node = nodeRef.current;
-    if (!node) return;
-    if (Math.abs(prevValue.current - value) < 1) {
-      node.textContent = Math.round(value) + "%";
-      prevValue.current = value;
-      return;
-    }
-    const controls = animate(prevValue.current, value, {
-      duration: 0.5,
-      ease: "easeOut",
-      onUpdate: (v) => {
-        node.textContent = Math.round(v) + "%";
-      },
-    });
-    prevValue.current = value;
-    return () => controls.stop();
-  }, [value]);
-
-  return <span ref={nodeRef} className={color} />;
-};
-
-const MarginCounter = ({ value, color }) => {
+const MarginCounter = ({ value }) => {
   const nodeRef = useRef(null);
   const prevValue = useRef(0);
 
@@ -60,7 +34,7 @@ const MarginCounter = ({ value, color }) => {
     return () => controls.stop();
   }, [value]);
 
-  return <span ref={nodeRef} className={color} />;
+  return <span ref={nodeRef} />;
 };
 
 const MobileAttendance = ({ data, schedule }) => {
@@ -73,6 +47,7 @@ const MobileAttendance = ({ data, schedule }) => {
   const [calMonth, setCalMonth] = useState(new Date());
   const [isRangeMode, setIsRangeMode] = useState(false);
   const [rangeStart, setRangeStart] = useState(null);
+
   const itemRefs = useRef([]);
   const listContainerRef = useRef(null);
   const scrollTimeout = useRef(null);
@@ -125,7 +100,12 @@ const MobileAttendance = ({ data, schedule }) => {
 
   const overallStats = useMemo(() => {
     if (baseAttendance.length === 0)
-      return { pct: 0, badge: "safe", tagline: "all good", color: "#ceff1c" };
+      return {
+        pct: 0,
+        badge: "safe",
+        tagline: "all good",
+        color: "text-[#ceff1c]",
+      };
     let totalConducted = 0;
     let totalPresent = 0;
     baseAttendance.forEach((s) => {
@@ -141,7 +121,12 @@ const MobileAttendance = ({ data, schedule }) => {
     let tagline = "you're doing great";
     if (category === "cooked") tagline = "academic comeback needed";
     if (category === "danger") tagline = "treading on thin ice";
-    const color = category === "safe" ? "#ceff1c" : "#ff003c";
+    const color =
+      category === "safe"
+        ? "text-[#ceff1c]"
+        : category === "danger"
+          ? "text-[#ffb800]"
+          : "text-[#ff003c]";
     return { pct: overallPct, badge, tagline, color };
   }, [baseAttendance]);
 
@@ -152,7 +137,7 @@ const MobileAttendance = ({ data, schedule }) => {
   }, [baseAttendance]);
 
   useEffect(() => {
-    const timer = setTimeout(() => setIntroMode(false), 600);
+    const timer = setTimeout(() => setIntroMode(false), 800);
     return () => clearTimeout(timer);
   }, []);
 
@@ -167,8 +152,11 @@ const MobileAttendance = ({ data, schedule }) => {
 
   const getImpactMap = () => {
     const impact = {};
-    if (calendarData.length === 0) return impact;
-    if (Object.keys(effectiveSchedule).length === 0) return impact;
+    if (
+      calendarData.length === 0 ||
+      Object.keys(effectiveSchedule).length === 0
+    )
+      return impact;
     selectedDates.forEach((dateStr) => {
       const dayInfo = calendarData.find((c) => {
         if (!c.date) return false;
@@ -223,22 +211,10 @@ const MobileAttendance = ({ data, schedule }) => {
   const getStatus = (pct, conducted, present) => {
     if (pct >= 75) {
       const margin = Math.floor(present / 0.75 - conducted);
-      return {
-        val: Math.max(0, margin),
-        label: "margin",
-        safe: true,
-        textColor: "text-[#050505]",
-        lineColor: "bg-[#050505]",
-      };
+      return { val: Math.max(0, margin), label: "margin", safe: true };
     }
     const needed = Math.ceil((0.75 * conducted - present) / 0.25);
-    return {
-      val: Math.max(0, needed),
-      label: "recover",
-      safe: false,
-      textColor: "text-[#050505]",
-      lineColor: "bg-white",
-    };
+    return { val: Math.max(0, needed), label: "recover", safe: false };
   };
 
   const processedList = useMemo(() => {
@@ -332,36 +308,58 @@ const MobileAttendance = ({ data, schedule }) => {
     }
   };
 
-  const changeMonth = (delta) => {
-    setCalMonth(
-      new Date(calMonth.getFullYear(), calMonth.getMonth() + delta, 1),
-    );
-  };
-
   const activeSubject =
-    baseAttendance.find((s) => s.id === selectedId) || baseAttendance[0];
-  const currentActiveStat = getStatus(
-    parseFloat(activeSubject.percentage),
-    activeSubject.conducted,
-    activeSubject.present,
-  );
+    processedList.find((s) => s.id === selectedId) || processedList[0] || {};
+  const currentActiveStat =
+    predictMode && activeSubject.pred
+      ? activeSubject.pred.status
+      : getStatus(
+          parseFloat(activeSubject.percentage || 0),
+          activeSubject.conducted || 0,
+          activeSubject.present || 0,
+        );
 
-  const bgColor = predictMode
-    ? "#f0f0f0"
-    : currentActiveStat.safe
-      ? "#ceff1c"
-      : "#ff003c";
+  const activePct =
+    predictMode && activeSubject.pred
+      ? activeSubject.pred.pct
+      : parseFloat(activeSubject.percentage || "0");
+  const themeColorClass =
+    activePct < 75
+      ? "text-[#ff003c]"
+      : activePct < 85
+        ? "text-[#ffb800]"
+        : "text-[#ceff1c]";
+  const barColorClass =
+    activePct < 75
+      ? "bg-[#ff003c]"
+      : activePct < 85
+        ? "bg-[#ffb800]"
+        : "bg-[#ceff1c]";
 
+  // Smooth RequestAnimationFrame scroll logic tuned for "snap-start"
   const handleScroll = () => {
     if (predictMode || introMode || !listContainerRef.current) return;
     if (scrollTimeout.current) return;
+
     scrollTimeout.current = setTimeout(() => {
       const container = listContainerRef.current;
       if (!container) return;
+
+      if (container.scrollTop < 20) {
+        if (processedList.length > 0 && selectedId !== processedList[0].id) {
+          setSelectedId(processedList[0].id);
+          if (navigator.vibrate) navigator.vibrate(2);
+        }
+        scrollTimeout.current = null;
+        return;
+      }
+
+      // Upper boundary trigger line perfectly aligned with snap-start
       const triggerLine =
-        container.getBoundingClientRect().top + container.offsetHeight * 0.3;
+        container.getBoundingClientRect().top + container.offsetHeight * 0.2;
       let closestId = null;
       let minDistance = Infinity;
+
       itemRefs.current.forEach((el, index) => {
         if (!el) return;
         const rect = el.getBoundingClientRect();
@@ -371,68 +369,57 @@ const MobileAttendance = ({ data, schedule }) => {
           closestId = processedList[index].id;
         }
       });
+
       if (closestId !== null && closestId !== selectedId) {
         setSelectedId(closestId);
         if (navigator.vibrate) navigator.vibrate(2);
       }
       scrollTimeout.current = null;
-    }, 100);
+    }, 50);
   };
 
   const stopProp = (e) => e.stopPropagation();
 
   return (
-    <div className="h-full w-full flex flex-col bg-[#f5f6fc] text-[#050505] font-sans relative overflow-hidden touch-pan-y">
-      <div
-        className="absolute inset-0 w-full h-full z-0 transition-colors duration-500 ease-in-out"
-        style={{ backgroundColor: bgColor }}
-      >
-        <div className="absolute inset-0 pointer-events-none mix-blend-multiply bg-[url('https://grainy-gradients.vercel.app/noise.svg')] bg-repeat opacity-20" />
+    <div className="h-full w-full flex flex-col bg-[#050505] text-white font-sans relative overflow-hidden touch-pan-y">
+      <div className="absolute inset-0 w-full h-full z-0 bg-[#050505]">
+        <div className="absolute inset-0 pointer-events-none opacity-20 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] bg-repeat mix-blend-screen" />
+      </div>
+
+      {/* DASHBOARD - Pre-rendered instantly behind the intro overlay to eliminate lag */}
+      <div className="absolute top-0 left-0 w-full h-[45%] z-10">
         <AnimatePresence mode="wait">
-          {introMode ? (
-            <motion.div
-              key="intro"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3 }}
-              className="absolute inset-0 flex flex-col justify-end items-start p-8 pb-32"
-            >
-              <h1
-                className="text-6xl font-black lowercase tracking-tighter text-[#050505] mb-2"
-                style={{ fontFamily: "Aonic" }}
-              >
-                {overallStats.badge}
-              </h1>
-              <p
-                className="text-xl font-bold lowercase text-[#050505] leading-tight max-w-[80%]"
-                style={{ fontFamily: "Aonic" }}
-              >
-                {overallStats.tagline}
-              </p>
-            </motion.div>
-          ) : !predictMode ? (
+          {!predictMode ? (
             <motion.div
               key="dashboard"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute top-0 left-0 w-full h-[45%] flex flex-col justify-between p-6 md:p-8"
+              className="w-full h-full flex flex-col justify-between p-6 md:p-8"
             >
               <div className="flex justify-between items-start">
-                <div className="flex items-center gap-2 px-3 py-1 bg-black/5 rounded-full border border-black/5 backdrop-blur-sm">
+                <div className="flex items-center gap-2 px-3 py-1 bg-white/10 rounded-full border border-white/5 backdrop-blur-md">
                   {currentActiveStat.safe ? (
-                    <Zap size={12} fill="black" />
+                    <Zap
+                      size={12}
+                      className={`transition-colors duration-300 ${themeColorClass}`}
+                      fill="currentColor"
+                    />
                   ) : (
-                    <AlertCircle size={12} fill="black" stroke="black" />
+                    <AlertCircle
+                      size={12}
+                      className={`transition-colors duration-300 ${themeColorClass}`}
+                    />
                   )}
-                  <span className="font-mono text-[10px] lowercase tracking-widest font-bold text-black/60">
+                  <span
+                    className={`font-mono text-[10px] lowercase tracking-widest font-bold transition-colors duration-300 ${themeColorClass}`}
+                  >
                     {activeSubject.badge}
                   </span>
                 </div>
                 <button
                   onClick={() => setPredictMode(true)}
-                  className="flex items-center gap-2 bg-black text-white px-4 py-2 rounded-full active:scale-95 transition-transform shadow-lg"
+                  className="flex items-center gap-2 bg-white text-black px-4 py-2 rounded-full active:scale-95 transition-transform"
                 >
                   <CalendarIcon size={12} />
                   <span className="font-mono text-[10px] lowercase tracking-widest font-bold">
@@ -441,39 +428,39 @@ const MobileAttendance = ({ data, schedule }) => {
                 </button>
               </div>
               <div className="my-auto flex flex-col justify-center">
-                <div className="flex items-baseline gap-2">
+                <div className="flex items-baseline gap-3">
                   <span
-                    className={`text-[22vw] md:text-[9rem] leading-none font-black tracking-tighter ${currentActiveStat.textColor}`}
+                    className={`text-[22vw] md:text-[9rem] leading-[0.8] font-black tracking-tighter transition-colors duration-300 ease-out ${themeColorClass}`}
                     style={{ fontFamily: "Urbanosta" }}
                   >
-                    <MarginCounter
-                      value={currentActiveStat.val}
-                      color={currentActiveStat.textColor}
-                    />
-                    h
+                    <MarginCounter value={currentActiveStat.val} />h
+                  </span>
+                  <span
+                    className={`text-xl md:text-2xl font-bold lowercase opacity-70 transition-colors duration-300 ${themeColorClass}`}
+                    style={{ fontFamily: "Aonic" }}
+                  >
+                    {currentActiveStat.label}
                   </span>
                 </div>
               </div>
               <div className="pb-1">
                 <h3
-                  className={`text-2xl md:text-3xl font-bold lowercase leading-tight mb-3 line-clamp-1 ${currentActiveStat.textColor}`}
+                  className="text-2xl md:text-3xl font-bold lowercase leading-tight mb-3 line-clamp-1 text-white"
                   style={{ fontFamily: "Aonic" }}
                 >
-                  {activeSubject.title.toLowerCase()}
+                  {activeSubject.title?.toLowerCase()}
                 </h3>
-                <div className="w-full h-[4px] bg-black/10 mb-2 relative overflow-hidden rounded-full">
+                <div className="w-full h-[4px] bg-white/10 mb-2 relative overflow-hidden rounded-full">
                   <motion.div
-                    className={`h-full ${currentActiveStat.lineColor}`}
+                    className={`h-full transition-colors duration-300 ease-out ${barColorClass}`}
                     initial={{ width: 0 }}
                     animate={{
-                      width: `${Math.min(parseFloat(activeSubject.percentage), 100)}%`,
+                      width: `${Math.min(parseFloat(activeSubject.percentage || "0"), 100)}%`,
                     }}
                     transition={{ duration: 0.8, ease: "circOut" }}
                   />
                 </div>
-                <span
-                  className={`block text-[10px] font-mono font-bold lowercase mt-1 ${currentActiveStat.textColor} opacity-60`}
-                >
+                <span className="block text-[10px] font-mono font-bold lowercase mt-1 text-white/50">
                   {activeSubject.present}/{activeSubject.conducted} sessions
                 </span>
               </div>
@@ -484,7 +471,7 @@ const MobileAttendance = ({ data, schedule }) => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="absolute top-0 left-0 w-full h-[55%] flex flex-col p-6 relative z-20 text-[#050505]"
+              className="w-full h-full flex flex-col p-6 text-white"
             >
               <div className="flex justify-between items-center mb-4">
                 <div className="flex items-center gap-2 opacity-60">
@@ -495,30 +482,38 @@ const MobileAttendance = ({ data, schedule }) => {
                 </div>
                 <div className="flex items-center gap-3">
                   {isRangeMode && (
-                    <span className="text-[9px] font-bold text-black/40 animate-pulse">
+                    <span className="text-[9px] font-bold text-white/40 animate-pulse">
                       {rangeStart ? "Select end date" : "Select start date"}
                     </span>
                   )}
                   <button
                     onClick={() => setIsRangeMode(!isRangeMode)}
-                    className={`px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all border ${isRangeMode ? "bg-black text-[#ceff1c] border-black" : "bg-transparent text-black/60 border-black/10"}`}
+                    className={`px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all border ${isRangeMode ? "bg-white text-black border-white" : "bg-transparent text-white/60 border-white/20"}`}
                   >
                     {isRangeMode ? "Range On" : "Select Range"}
                   </button>
                   <button
                     onClick={() => setPredictMode(false)}
-                    className="p-2 bg-black/10 hover:bg-black/20 rounded-full transition-colors"
+                    className="p-2 bg-white/10 hover:bg-white/20 rounded-full transition-colors"
                   >
                     <X size={16} />
                   </button>
                 </div>
               </div>
               <div className="flex-1 flex flex-col overflow-hidden">
-                <div className="bg-white/60 backdrop-blur-md rounded-3xl p-3 mb-2 flex-1 flex flex-col min-h-0 shadow-sm border border-black/5">
+                <div className="bg-white/10 backdrop-blur-md rounded-3xl p-3 mb-2 flex-1 flex flex-col min-h-0 border border-white/10">
                   <div className="flex justify-between items-center mb-2 px-2">
                     <button
-                      onClick={() => changeMonth(-1)}
-                      className="p-1 hover:bg-black/5 rounded-full"
+                      onClick={() =>
+                        setCalMonth(
+                          new Date(
+                            calMonth.getFullYear(),
+                            calMonth.getMonth() - 1,
+                            1,
+                          ),
+                        )
+                      }
+                      className="p-1 hover:bg-white/10 rounded-full"
                     >
                       <ChevronLeft size={16} />
                     </button>
@@ -532,8 +527,16 @@ const MobileAttendance = ({ data, schedule }) => {
                       })}
                     </span>
                     <button
-                      onClick={() => changeMonth(1)}
-                      className="p-1 hover:bg-black/5 rounded-full"
+                      onClick={() =>
+                        setCalMonth(
+                          new Date(
+                            calMonth.getFullYear(),
+                            calMonth.getMonth() + 1,
+                            1,
+                          ),
+                        )
+                      }
+                      className="p-1 hover:bg-white/10 rounded-full"
                     >
                       <ChevronRight size={16} />
                     </button>
@@ -542,7 +545,7 @@ const MobileAttendance = ({ data, schedule }) => {
                     {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => (
                       <span
                         key={i}
-                        className="text-[9px] font-bold text-black/30"
+                        className="text-[9px] font-bold text-white/30"
                       >
                         {d}
                       </span>
@@ -589,16 +592,7 @@ const MobileAttendance = ({ data, schedule }) => {
                         <button
                           key={dateKey}
                           onClick={() => handleDateClick(d)}
-                          className={`w-8 h-8 flex items-center justify-center rounded-full text-[10px] font-bold transition-all relative
-                                            ${
-                                              isSelected
-                                                ? "bg-[#050505] text-[#ceff1c] scale-105 shadow-md z-10"
-                                                : isRangeStart
-                                                  ? "bg-black/50 text-white"
-                                                  : isToday
-                                                    ? "bg-transparent text-[#050505] ring-2 ring-[#050505]"
-                                                    : "text-black/60 hover:bg-black/5"
-                                            }`}
+                          className={`w-8 h-8 flex items-center justify-center rounded-full text-[10px] font-bold transition-all relative ${isSelected ? "bg-[#ceff1c] text-black scale-105 z-10" : isRangeStart ? "bg-white/50 text-white" : isToday ? "bg-transparent text-white ring-2 ring-white" : "text-white/60 hover:bg-white/10"}`}
                         >
                           {d}
                         </button>
@@ -607,10 +601,10 @@ const MobileAttendance = ({ data, schedule }) => {
                   </div>
                 </div>
                 <div className="flex items-center gap-4 shrink-0">
-                  <div className="flex bg-white shadow-sm border border-black/5 p-1 rounded-full w-full max-w-[200px] relative h-10">
+                  <div className="flex bg-white/10 border border-white/5 p-1 rounded-full w-full max-w-[200px] relative h-10">
                     <motion.div
                       layoutId="predToggle"
-                      className={`absolute rounded-full h-[calc(100%-8px)] top-1 ${predType === "attend" ? "bg-[#050505]" : "bg-[#ff003c]"}`}
+                      className={`absolute rounded-full h-[calc(100%-8px)] top-1 ${predType === "attend" ? "bg-white" : "bg-[#ff003c]"}`}
                       style={{
                         width: "calc(50% - 4px)",
                         left: predType === "attend" ? 4 : "50%",
@@ -618,13 +612,13 @@ const MobileAttendance = ({ data, schedule }) => {
                     />
                     <button
                       onClick={() => setPredType("attend")}
-                      className={`flex-1 text-[10px] font-black uppercase tracking-wider relative z-10 transition-colors ${predType === "attend" ? "text-white" : "text-black/40"}`}
+                      className={`flex-1 text-[10px] font-black uppercase tracking-wider relative z-10 transition-colors ${predType === "attend" ? "text-black" : "text-white/40"}`}
                     >
                       Attend
                     </button>
                     <button
                       onClick={() => setPredType("leave")}
-                      className={`flex-1 text-[10px] font-black uppercase tracking-wider relative z-10 transition-colors ${predType === "leave" ? "text-white" : "text-black/40"}`}
+                      className={`flex-1 text-[10px] font-black uppercase tracking-wider relative z-10 transition-colors ${predType === "leave" ? "text-white" : "text-white/40"}`}
                     >
                       Leave
                     </button>
@@ -649,48 +643,52 @@ const MobileAttendance = ({ data, schedule }) => {
         </AnimatePresence>
       </div>
 
-      <motion.div
+      {/* LIST - Native CSS Snapping, Pre-Rendered */}
+      <div
         ref={listContainerRef}
         onScroll={handleScroll}
         onTouchStart={stopProp}
         onTouchMove={stopProp}
         onTouchEnd={stopProp}
-        className={`absolute bottom-0 w-full rounded-t-[32px] overflow-y-auto bg-[#f5f6fc] custom-scrollbar pb-24 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] z-30 transition-all duration-700 cubic-bezier(0.16, 1, 0.3, 1) ${
-          introMode ? "translate-y-full" : "translate-y-0"
+        className={`absolute bottom-0 w-full overflow-y-auto bg-[#f5f6fc] text-black custom-scrollbar pb-32 rounded-t-[32px] shadow-[0_-10px_40px_rgba(0,0,0,0.3)] z-20 transition-transform duration-700 ease-in-out snap-y snap-mandatory ${
+          introMode ? "translate-y-[60%]" : "translate-y-0"
         } ${predictMode ? "h-[45%]" : "h-[55%]"}`}
-        style={{
-          touchAction: "pan-y",
-          WebkitOverflowScrolling: "touch",
-          overscrollBehavior: "contain",
-        }}
+        style={{ WebkitOverflowScrolling: "touch" }}
       >
-        <div className="px-6 py-6 flex flex-col gap-4">
-          <span className="font-mono text-[10px] lowercase tracking-widest text-[#050505]/40 mb-2 block sticky top-0 bg-[#f5f6fc] z-10 py-2">
+        <div className="px-6 flex flex-col gap-4 pt-4">
+          <span className="font-mono text-[10px] lowercase tracking-widest text-[#050505]/40 mb-2 block sticky top-0 bg-[#f5f6fc] z-20 py-2">
             /// {predictMode ? "predicted margin" : "watchlist"}
           </span>
+
           {processedList.map((subject, index) => {
             const isSelected = subject.id === selectedId;
             const predData = subject.pred;
             const isSafe = predData.status.safe;
             const affected = predData.sessionsAffected;
             const dStat = predData.currentStatus;
-            const isDashboardMode = !predictMode;
-            const isDimmed = isDashboardMode && !isSelected;
             const isPredictActive = predictMode && selectedDates.length > 0;
             const isPredictDimmed = predictMode && isPredictActive && !affected;
+
             return (
               <div
                 key={subject.id}
+                data-id={subject.id}
                 ref={(el) => (itemRefs.current[index] = el)}
                 onClick={() => {
-                  if (!predictMode) setSelectedId(subject.id);
+                  if (!predictMode) {
+                    itemRefs.current[index]?.scrollIntoView({
+                      behavior: "smooth",
+                      block: "start",
+                    });
+                  }
                 }}
-                className={`group relative w-full p-4 rounded-2xl cursor-pointer transition-all duration-300 ease-out border
+                // Swapped to snap-start so no top spacing is required
+                className={`group relative w-full p-4 rounded-2xl cursor-pointer transition-all duration-300 ease-out border snap-start scroll-mt-16 shrink-0
                     ${
-                      isDashboardMode
+                      !predictMode
                         ? isSelected
                           ? "bg-white shadow-xl scale-[1.02] border-black/5 opacity-100 z-10"
-                          : "bg-transparent border-transparent scale-100 opacity-50 grayscale hover:opacity-80"
+                          : "bg-transparent border-transparent scale-100 opacity-40 grayscale hover:opacity-80"
                         : "bg-white shadow-sm border-transparent scale-100 opacity-100"
                     }
                     ${isPredictDimmed ? "opacity-30 grayscale" : ""}
@@ -701,11 +699,11 @@ const MobileAttendance = ({ data, schedule }) => {
                     className="text-lg font-bold lowercase truncate max-w-[60%]"
                     style={{ fontFamily: "Aonic" }}
                   >
-                    {subject.title.toLowerCase()}
+                    {subject.title?.toLowerCase()}
                   </h4>
                   <div className="flex flex-col items-end min-w-[80px]">
                     <span
-                      className={`text-2xl font-black leading-none ${predictMode ? (isSafe ? "text-[#050505]" : "text-[#ff003c]") : currentActiveStat.safe ? "text-[#050505]" : "text-[#ff003c]"}`}
+                      className={`text-2xl font-black leading-none transition-colors duration-300 ${predictMode ? (isSafe ? "text-[#050505]" : "text-[#ff003c]") : currentActiveStat.safe ? "text-[#050505]" : "text-[#ff003c]"}`}
                       style={{ fontFamily: "Urbanosta" }}
                     >
                       {predictMode
@@ -715,7 +713,7 @@ const MobileAttendance = ({ data, schedule }) => {
                     {predictMode && (
                       <div className="flex flex-col items-end mt-1">
                         <span
-                          className={`text-[10px] font-bold lowercase ${isSafe ? "text-[#050505]" : "text-[#ff003c]"}`}
+                          className={`text-[10px] font-bold lowercase transition-colors duration-300 ${isSafe ? "text-[#050505]" : "text-[#ff003c]"}`}
                         >
                           {predData.status.label}
                         </span>
@@ -738,7 +736,7 @@ const MobileAttendance = ({ data, schedule }) => {
                     />
                   )}
                   <div
-                    className={`h-full absolute top-0 left-0 transition-all duration-500 ${predictMode ? (isSafe ? "bg-[#050505]" : "bg-[#ff003c]") : currentActiveStat.safe ? "bg-[#050505]" : "bg-[#ff003c]"}`}
+                    className={`h-full absolute top-0 left-0 transition-all duration-300 ${predictMode ? (isSafe ? "bg-[#050505]" : "bg-[#ff003c]") : currentActiveStat.safe ? "bg-[#050505]" : "bg-[#ff003c]"}`}
                     style={{
                       width: `${Math.min(predictMode ? predData.pct : parseFloat(subject.percentage), 100)}%`,
                     }}
@@ -747,9 +745,9 @@ const MobileAttendance = ({ data, schedule }) => {
                 <div className="flex justify-between items-center text-[10px] font-mono tracking-wide text-[#050505]/50 lowercase">
                   <div className="flex items-center gap-2">
                     <div
-                      className={`w-1.5 h-1.5 rounded-full ${predictMode ? (isSafe ? "bg-[#ceff1c]" : "bg-[#ff003c]") : currentActiveStat.safe ? "bg-[#ceff1c]" : "bg-[#ff003c]"}`}
+                      className={`w-1.5 h-1.5 rounded-full transition-colors duration-300 ${predictMode ? (isSafe ? "bg-[#ceff1c]" : "bg-[#ff003c]") : currentActiveStat.safe ? "bg-[#ceff1c]" : "bg-[#ff003c]"}`}
                     />
-                    <span>{subject.code.toLowerCase()}</span>
+                    <span>{subject.code?.toLowerCase()}</span>
                   </div>
                   {predictMode && (
                     <span className="font-bold flex items-center gap-1">
@@ -763,9 +761,36 @@ const MobileAttendance = ({ data, schedule }) => {
               </div>
             );
           })}
-          <div className="h-24" />
+          {/* Small spacer to allow the final element to scroll up fully */}
+          <div className="h-[20vh] shrink-0 pointer-events-none" />
         </div>
-      </motion.div>
+      </div>
+
+      {/* INTRO OVERLAY - Completely decoupled from list rendering */}
+      <AnimatePresence>
+        {introMode && (
+          <motion.div
+            key="introOverlay"
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.4 }}
+            className="absolute inset-0 flex flex-col justify-end items-start p-8 pb-[60%] z-50 bg-[#050505]"
+          >
+            <h1
+              className={`text-6xl font-black lowercase tracking-tighter mb-2 ${overallStats.color}`}
+              style={{ fontFamily: "Aonic" }}
+            >
+              {overallStats.badge}
+            </h1>
+            <p
+              className="text-xl font-bold lowercase text-white/80 leading-tight max-w-[80%]"
+              style={{ fontFamily: "Aonic" }}
+            >
+              {overallStats.tagline}
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

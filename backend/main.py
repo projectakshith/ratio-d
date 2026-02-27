@@ -155,6 +155,3 @@ def login(creds: Credentials):
         print(f"[ERROR] Exception caught: {str(e)}")
         print(f"{'='*50}\n")
         raise HTTPException(status_code=401, detail=str(e))
-
-if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
