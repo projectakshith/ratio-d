@@ -105,7 +105,7 @@ export default function MinimalHomepage() {
               sup!
             </span>
             <span
-              className="text-[28px] leading-none font-bold lowercase tracking-tight text-[#111111]"
+              className="text-[25px] leading-none font-medium lowercase tracking-tight text-[#111111]"
               style={{ fontFamily: "'Montserrat', sans-serif" }}
             >
               {userName}
@@ -279,7 +279,7 @@ export default function MinimalHomepage() {
             </div>
             <div className="flex-1 flex flex-col justify-center min-w-0 py-0.5">
               <span
-                className="text-[15px] font-bold lowercase leading-tight truncate mb-0.5 text-white"
+                className="text-[15px] font-bold lowercase leading-tight truncate mb-0.5 text-b"
                 style={{ fontFamily: "'Montserrat', sans-serif" }}
               >
                 academic alerts
