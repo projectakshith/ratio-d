@@ -1,10 +1,11 @@
 "use client";
 import React, { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import Dashboard from "./Dashboard";
+import Dashboard from "./Dashboard"; // This is your MinimalHomepage
 import MinimalAttendance from "./Attendance";
 import MinimalMarks from "./Marks";
 import MinimalTimetable from "./Timetable";
+import MinimalCalendar from "./Calendar";
 import Navbar from "./Navbar";
 
 export default function MinimalTheme(props: any) {
@@ -95,6 +96,7 @@ export default function MinimalTheme(props: any) {
                 data={props.data}
                 timeStatus={props.academia?.timeStatus}
                 currentRoast={props.academia?.currentRoast || "analyzing..."}
+                setActiveTab={setActiveTab} /* <--- THIS IS THE FIX */
               />
             </motion.div>
           )}
@@ -109,6 +111,19 @@ export default function MinimalTheme(props: any) {
               className="h-full w-full overflow-hidden"
             >
               <MinimalTimetable />
+            </motion.div>
+          )}
+
+          {activeTab === "calendar" && (
+            <motion.div
+              key="calendar"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.3 }}
+              className="h-full w-full overflow-hidden"
+            >
+              <MinimalCalendar />
             </motion.div>
           )}
         </AnimatePresence>
