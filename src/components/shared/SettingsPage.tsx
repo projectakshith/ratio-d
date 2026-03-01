@@ -18,13 +18,8 @@ import { requestNotificationPermission } from "@/utils/notifs";
 import { StudentProfile } from "@/types";
 
 const THEMES = [
-  { id: "brutalisim-814", name: "Brutalisim 814" },
-  { id: "elegant-484", name: "Elegant 484" },
-  { id: "retro", name: "Retro" },
-  { id: "minimal", name: "Minimal" },
-  { id: "classic", name: "Classic" },
-  { id: "monochrome", name: "Monochrome" },
-  { id: "catpuccin", name: "Catpuccin" },
+  { id: "brutalist", name: "Brutalist" },
+  { id: "minimalist", name: "Minimalist" },
 ];
 
 const backdropVariants = {
@@ -142,7 +137,7 @@ const SettingsPage = ({
   onUpdateName,
   onTestNotification,
   onSelectTheme,
-  currentTheme = "brutalisim-814",
+  currentTheme = "minimalist",
 }: SettingsPageProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [tempName, setTempName] = useState("");
@@ -221,7 +216,7 @@ const SettingsPage = ({
               <div className="flex items-center gap-4">
                 <div className="w-16 h-16 rounded-full overflow-hidden bg-white/5">
                   <img
-                    src="https://cdn.cloudflare.steamstatic.com/steamcommunity/public/images/avatars/c3/c33a1d7eec9e9ad8bfa7e82891e418b81dbc0fce_full.jpg "
+                    src="/image.png"
                     className="w-full h-full object-cover"
                     alt="Profile"
                   />

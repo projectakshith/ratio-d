@@ -35,6 +35,7 @@ export const EncryptionUtils = {
       "ratio_credentials",
       "ratio_data",
       "ratiod_custom_name",
+      "ratiod_theme",
     ];
 
     Object.keys(localStorage).forEach((key) => {
@@ -48,5 +49,6 @@ export const EncryptionUtils = {
     localStorage.removeItem("academia_cookies");
     localStorage.removeItem("ratio_credentials");
     localStorage.removeItem("ratio_data");
+    localStorage.removeItem("ratiod_theme");
   },
 };

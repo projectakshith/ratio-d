@@ -6,16 +6,13 @@ import {
   Bell,
   CheckCircle,
   GraduationCap,
-  User,
   X,
   Plus,
+  Lock,
+  Users,
 } from "lucide-react";
 
-export default function MinimalHomepage({
-  setActiveTab,
-}: {
-  setActiveTab?: (tab: string) => void;
-}) {
+export default function MinimalHomepage({ setActiveTab, onOpenSettings }: any) {
   const userName = "akshith";
   const dayOrder = "01";
   const upcomingAttendance = "74.5";
@@ -24,12 +21,9 @@ export default function MinimalHomepage({
   const [mounted, setMounted] = useState(false);
   const [showAlerts, setShowAlerts] = useState(false);
   const [newNote, setNewNote] = useState("");
-  const [personalNotes, setPersonalNotes] = useState([
-    { id: 1, text: "bring physics lab record on friday", date: "today" },
-    { id: 2, text: "ask prof about ml assignment", date: "yesterday" },
-  ]);
+  const [isPublicMode, setIsPublicMode] = useState(false);
 
-  const officialAlerts = [
+  const [officialAlerts] = useState([
     {
       id: 101,
       title: "CT-1 Schedule Released",
@@ -42,7 +36,30 @@ export default function MinimalHomepage({
       desc: "Last date to clear dues is tomorrow.",
       type: "admin",
     },
-  ];
+  ]);
+
+  const [classNotes, setClassNotes] = useState([
+    {
+      id: 201,
+      text: "physics lab postponed to next week",
+      author: "rahul",
+      date: "2 hrs ago",
+    },
+    {
+      id: 202,
+      text: "sir said to read chapter 4 for surprise quiz",
+      author: "sneha",
+      date: "5 hrs ago",
+    },
+  ]);
+
+  const [personalNotes, setPersonalNotes] = useState([
+    {
+      id: 301,
+      text: "ask prof about ml assignment extension",
+      date: "yesterday",
+    },
+  ]);
 
   useEffect(() => {
     setMounted(true);
@@ -50,10 +67,18 @@ export default function MinimalHomepage({
 
   const handleAddNote = () => {
     if (!newNote.trim()) return;
-    setPersonalNotes([
-      { id: Date.now(), text: newNote, date: "just now" },
-      ...personalNotes,
-    ]);
+
+    if (isPublicMode) {
+      setClassNotes([
+        { id: Date.now(), text: newNote, author: userName, date: "just now" },
+        ...classNotes,
+      ]);
+    } else {
+      setPersonalNotes([
+        { id: Date.now(), text: newNote, date: "just now" },
+        ...personalNotes,
+      ]);
+    }
     setNewNote("");
   };
 
@@ -138,9 +163,17 @@ export default function MinimalHomepage({
           transition={{ duration: 0.4 }}
           className="flex justify-between items-center mb-6 shrink-0"
         >
-          <div className="w-[50px] h-[50px] rounded-[16px] bg-[#111111] flex items-center justify-center shadow-[0_4px_12px_rgba(0,0,0,0.15)]">
-            <User size={22} color="white" />
-          </div>
+          <button
+            onClick={onOpenSettings}
+            className="w-[50px] h-[50px] rounded-[16px] bg-transparent flex items-center justify-center overflow-hidden active:scale-95 transition-transform"
+          >
+            <img
+              src="/image.png"
+              alt="Profile"
+              className="w-full h-full object-cover"
+            />
+          </button>
+
           <div className="flex flex-col items-end">
             <span
               className="text-[16px] font-semibold lowercase tracking-widest text-[#111111]/50 mb-[-4px]"
@@ -406,10 +439,10 @@ export default function MinimalHomepage({
                   ALERTS
                 </span>
                 <span
-                  className="text-[10px] font-bold lowercase tracking-[0.2em] text-white/40 mt-1.5"
+                  className="text-[10px] font-bold lowercase tracking-[0.2em] text-[#ceff1c] mt-1.5"
                   style={{ fontFamily: "'Afacad', sans-serif" }}
                 >
-                  academic & personal
+                  class feed & personal
                 </span>
               </div>
               <button
@@ -420,21 +453,21 @@ export default function MinimalHomepage({
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto no-scrollbar flex flex-col gap-8 pb-4">
+            <div className="flex-1 overflow-y-auto no-scrollbar flex flex-col gap-10 pb-4">
               <div className="flex flex-col gap-3">
                 <div className="flex items-center gap-3 w-full">
                   <span
-                    className="text-[11px] font-bold lowercase tracking-[0.25em] text-white/50 whitespace-nowrap"
+                    className="text-[11px] font-bold lowercase tracking-[0.25em] text-white/40 whitespace-nowrap"
                     style={{ fontFamily: "'Montserrat', sans-serif" }}
                   >
                     official
                   </span>
-                  <div className="flex-1 h-[1px] bg-white/10 rounded-full" />
+                  <div className="flex-1 h-[1.5px] bg-white/10 rounded-full" />
                 </div>
                 {officialAlerts.map((alert) => (
                   <div
                     key={alert.id}
-                    className="bg-white/5 border border-white/10 rounded-[20px] p-4 flex flex-col"
+                    className="bg-white/5 border-[1.5px] border-white/10 rounded-[20px] p-4 flex flex-col"
                   >
                     <div className="flex items-start justify-between mb-2">
                       <span
@@ -444,14 +477,14 @@ export default function MinimalHomepage({
                         {alert.title}
                       </span>
                       <span
-                        className={`text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded-md ${alert.type === "exam" ? "bg-[#8b5cf6]/20 text-[#8b5cf6]" : "bg-[#ceff1c]/20 text-[#ceff1c]"}`}
+                        className={`text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded-md shrink-0 ml-2 ${alert.type === "exam" ? "bg-[#8b5cf6]/20 text-[#8b5cf6]" : "bg-[#FF4D4D]/20 text-[#FF4D4D]"}`}
                         style={{ fontFamily: "'Afacad', sans-serif" }}
                       >
                         {alert.type}
                       </span>
                     </div>
                     <span
-                      className="text-[13px] font-medium text-white/60 lowercase"
+                      className="text-[14px] font-medium text-white/60 lowercase"
                       style={{ fontFamily: "'Afacad', sans-serif" }}
                     >
                       {alert.desc}
@@ -463,12 +496,65 @@ export default function MinimalHomepage({
               <div className="flex flex-col gap-3">
                 <div className="flex items-center gap-3 w-full">
                   <span
-                    className="text-[11px] font-bold lowercase tracking-[0.25em] text-white/50 whitespace-nowrap"
+                    className="text-[11px] font-bold lowercase tracking-[0.25em] text-[#ceff1c] whitespace-nowrap"
                     style={{ fontFamily: "'Montserrat', sans-serif" }}
                   >
-                    my notes
+                    class feed
                   </span>
-                  <div className="flex-1 h-[1px] bg-white/10 rounded-full" />
+                  <div className="flex-1 h-[1.5px] bg-[#ceff1c]/20 rounded-full" />
+                </div>
+
+                {classNotes.length === 0 ? (
+                  <span
+                    className="text-[12px] font-medium text-white/30 lowercase text-center py-4"
+                    style={{ fontFamily: "'Afacad', sans-serif" }}
+                  >
+                    no updates from the class yet.
+                  </span>
+                ) : (
+                  classNotes.map((note) => (
+                    <div
+                      key={note.id}
+                      className="bg-[#ceff1c]/5 border-[1.5px] border-[#ceff1c]/20 rounded-[20px] p-4 flex flex-col relative overflow-hidden"
+                    >
+                      <div className="absolute top-0 right-0 w-16 h-16 bg-[#ceff1c]/10 rounded-bl-[100px] pointer-events-none" />
+                      <span
+                        className="text-[15px] font-bold text-white lowercase leading-snug mb-3 pr-4"
+                        style={{ fontFamily: "'Afacad', sans-serif" }}
+                      >
+                        "{note.text}"
+                      </span>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#ceff1c]" />
+                          <span
+                            className="text-[10px] font-bold uppercase tracking-widest text-[#ceff1c]"
+                            style={{ fontFamily: "'Montserrat', sans-serif" }}
+                          >
+                            {note.author}
+                          </span>
+                        </div>
+                        <span
+                          className="text-[10px] font-bold tracking-widest uppercase text-white/30"
+                          style={{ fontFamily: "'Montserrat', sans-serif" }}
+                        >
+                          {note.date}
+                        </span>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center gap-3 w-full">
+                  <span
+                    className="text-[11px] font-bold lowercase tracking-[0.25em] text-white/40 whitespace-nowrap"
+                    style={{ fontFamily: "'Montserrat', sans-serif" }}
+                  >
+                    my private notes
+                  </span>
+                  <div className="flex-1 h-[1.5px] bg-white/10 rounded-full" />
                 </div>
 
                 {personalNotes.length === 0 ? (
@@ -476,16 +562,16 @@ export default function MinimalHomepage({
                     className="text-[12px] font-medium text-white/30 lowercase text-center py-4"
                     style={{ fontFamily: "'Afacad', sans-serif" }}
                   >
-                    no notes added yet.
+                    no private notes added yet.
                   </span>
                 ) : (
                   personalNotes.map((note) => (
                     <div
                       key={note.id}
-                      className="bg-white/5 border border-white/10 rounded-[16px] p-3.5 flex flex-col"
+                      className="bg-white/5 border-[1.5px] border-white/10 rounded-[20px] p-4 flex flex-col"
                     >
                       <span
-                        className="text-[14px] font-bold text-white/90 lowercase leading-snug mb-2"
+                        className="text-[15px] font-bold text-white/80 lowercase leading-snug mb-3"
                         style={{ fontFamily: "'Afacad', sans-serif" }}
                       >
                         {note.text}
@@ -503,22 +589,58 @@ export default function MinimalHomepage({
             </div>
 
             <div className="mt-auto shrink-0 pt-4 bg-[#111111]">
-              <div className="flex items-center gap-2 bg-white/10 p-1.5 rounded-[20px]">
+              <div
+                className={`flex items-center gap-2 p-1.5 rounded-[20px] border-[1.5px] transition-colors ${isPublicMode ? "bg-[#ceff1c]/5 border-[#ceff1c]/30" : "bg-white/10 border-transparent"}`}
+              >
+                <button
+                  onClick={() => setIsPublicMode(!isPublicMode)}
+                  className={`w-10 h-10 rounded-[14px] flex items-center justify-center transition-all shrink-0 ${
+                    isPublicMode
+                      ? "bg-[#ceff1c] text-[#111111]"
+                      : "bg-white/10 text-white/60 hover:text-white"
+                  }`}
+                >
+                  {isPublicMode ? (
+                    <Users size={18} strokeWidth={2.5} />
+                  ) : (
+                    <Lock size={18} strokeWidth={2.5} />
+                  )}
+                </button>
+
                 <input
                   type="text"
                   value={newNote}
                   onChange={(e) => setNewNote(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleAddNote()}
-                  placeholder="add a note..."
-                  className="flex-1 bg-transparent text-white outline-none px-3 text-[14px] font-medium placeholder:text-white/30 lowercase"
+                  placeholder={
+                    isPublicMode
+                      ? "broadcast to class..."
+                      : "add a private note..."
+                  }
+                  className="flex-1 bg-transparent text-white outline-none px-2 text-[14px] font-bold placeholder:font-medium placeholder:text-white/30 lowercase"
                   style={{ fontFamily: "'Afacad', sans-serif" }}
                 />
+
                 <button
                   onClick={handleAddNote}
-                  className="w-10 h-10 bg-[#ceff1c] text-[#111111] rounded-[14px] flex items-center justify-center active:scale-95 transition-transform"
+                  className={`w-10 h-10 rounded-[14px] flex items-center justify-center active:scale-95 transition-all shrink-0 ${
+                    isPublicMode
+                      ? "bg-[#ceff1c] text-[#111111]"
+                      : "bg-white text-[#111111]"
+                  }`}
                 >
                   <Plus size={20} strokeWidth={3} />
                 </button>
+              </div>
+              <div className="flex justify-center mt-2">
+                <span
+                  className="text-[10px] font-bold tracking-[0.1em] lowercase text-white/30"
+                  style={{ fontFamily: "'Afacad', sans-serif" }}
+                >
+                  {isPublicMode
+                    ? "note will be visible to everyone in class"
+                    : "note will only be visible to you"}
+                </span>
               </div>
             </div>
           </motion.div>

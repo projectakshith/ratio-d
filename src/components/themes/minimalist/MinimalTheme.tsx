@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import Dashboard from "./Dashboard"; // This is your MinimalHomepage
+import Dashboard from "./Dashboard";
 import MinimalAttendance from "./Attendance";
 import MinimalMarks from "./Marks";
 import MinimalTimetable from "./Timetable";
@@ -96,7 +96,8 @@ export default function MinimalTheme(props: any) {
                 data={props.data}
                 timeStatus={props.academia?.timeStatus}
                 currentRoast={props.academia?.currentRoast || "analyzing..."}
-                setActiveTab={setActiveTab} /* <--- THIS IS THE FIX */
+                setActiveTab={setActiveTab}
+                onOpenSettings={props.onOpenSettings}
               />
             </motion.div>
           )}

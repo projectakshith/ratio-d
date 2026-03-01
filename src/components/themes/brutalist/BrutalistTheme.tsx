@@ -4,7 +4,6 @@ import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
 import Dashboard from "./Dashboard";
 import { BottomNav } from "./BottomNav";
 import Timetable from "./Timetable";
-import SettingsPage from "./SettingsPage";
 import MobileAttendance from "./MobileAttendance";
 import CalendarPage from "./CalendarPage";
 import MarksPage from "./MarksPage";
@@ -13,10 +12,11 @@ import { AcademiaData } from "@/types";
 
 interface BrutalistThemeProps {
   data: AcademiaData;
-  academia: any; 
+  academia: any;
   onLogout: () => void;
   customDisplayName?: string;
   onUpdateName?: (name: string) => void;
+  onOpenSettings: () => void;
 }
 
 const LoadingScreen = ({ onComplete }: { onComplete: () => void }) => {
@@ -104,12 +104,10 @@ const LoadingScreen = ({ onComplete }: { onComplete: () => void }) => {
 export default function BrutalistTheme({
   data,
   academia,
-  onLogout,
   customDisplayName,
-  onUpdateName,
+  onOpenSettings,
 }: BrutalistThemeProps) {
   const [[activeTab, direction], setTabState] = useState(["home", 0]);
-  const [showSettings, setShowSettings] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   const setPage = (newTab: string) => {
@@ -147,7 +145,7 @@ export default function BrutalistTheme({
                   upcomingAlerts={academia.upcomingAlerts}
                   overallAttendance={academia.overallAttendance}
                   criticalAttendance={academia.criticalAttendance}
-                  onProfileClick={() => setShowSettings(true)}
+                  onProfileClick={onOpenSettings}
                 />
               )}
               {activeTab === "timetable" && (
@@ -171,19 +169,7 @@ export default function BrutalistTheme({
         </AnimatePresence>
       </LayoutGroup>
 
-      <AnimatePresence>
-        {showSettings && (
-          <SettingsPage
-            onBack={() => setShowSettings(false)}
-            onLogout={onLogout}
-            profile={data?.profile}
-            onUpdateName={onUpdateName}
-            onTestNotification={academia.triggerTestClass}
-          />
-        )}
-      </AnimatePresence>
-
-      {!showSettings && !isLoading && (
+      {!isLoading && (
         <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none">
           <div className="pointer-events-auto">
             <BottomNav activeTab={String(activeTab)} setActiveTab={setPage} />

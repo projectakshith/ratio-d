@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from "react";
 import LoginPage from "@/components/shared/LoginPage";
 import AcademiaApp from "@/components/AcademiaApp";
-import { ThemeProvider } from "@/context/ThemeContext";
 import { EncryptionUtils } from "@/utils/Encryption";
 
 export default function Home() {
@@ -122,24 +121,22 @@ export default function Home() {
     return <div className="h-screen w-full bg-[#050505]" />;
 
   return (
-    <ThemeProvider>
-      <main className="bg-[#050505] min-h-screen">
-        {view === "login" ? (
-          <LoginPage
-            onLogin={(data) => {
-              setUserData(data);
-              setView("app");
-            }}
-          />
-        ) : (
-          <AcademiaApp
-            data={userData}
-            onLogout={handleLogout}
-            customDisplayName={customDisplayName}
-            onUpdateName={handleUpdateName}
-          />
-        )}
-      </main>
-    </ThemeProvider>
+    <main className="bg-[#050505] min-h-screen">
+      {view === "login" ? (
+        <LoginPage
+          onLogin={(data) => {
+            setUserData(data);
+            setView("app");
+          }}
+        />
+      ) : (
+        <AcademiaApp
+          data={userData}
+          onLogout={handleLogout}
+          customDisplayName={customDisplayName}
+          onUpdateName={handleUpdateName}
+        />
+      )}
+    </main>
   );
 }
