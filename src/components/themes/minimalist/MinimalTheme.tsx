@@ -9,11 +9,22 @@ import MinimalCalendar from "./Calendar";
 import Navbar from "./Navbar";
 
 export default function MinimalTheme(props: any) {
-  const [activeTab, setActiveTab] = useState("home");
-  const [touchStart, setTouchStart] = useState<number | null>(null);
-  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const [tabState, setTabState] = useState({ activeTab: "home", direction: 0 });
+  const { activeTab, direction } = tabState;
 
   const tabs = ["marks", "attendance", "home", "timetable", "calendar"];
+
+  const handleTabChange = (newTab: string) => {
+    const currentIndex = tabs.indexOf(activeTab);
+    const newIndex = tabs.indexOf(newTab);
+    setTabState({
+      activeTab: newTab,
+      direction: newIndex > currentIndex ? 1 : -1,
+    });
+  };
+
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     setTouchEnd(null);
@@ -32,12 +43,29 @@ export default function MinimalTheme(props: any) {
     const currentIndex = tabs.indexOf(activeTab);
 
     if (isLeftSwipe && currentIndex < tabs.length - 1) {
-      setActiveTab(tabs[currentIndex + 1]);
+      handleTabChange(tabs[currentIndex + 1]);
     }
-
     if (isRightSwipe && currentIndex > 0) {
-      setActiveTab(tabs[currentIndex - 1]);
+      handleTabChange(tabs[currentIndex - 1]);
     }
+  };
+
+  const variants = {
+    enter: (direction: number) => ({
+      x: direction > 0 ? "30%" : "-30%",
+      opacity: 0,
+      filter: "blur(8px)",
+    }),
+    center: {
+      x: 0,
+      opacity: 1,
+      filter: "blur(0px)",
+    },
+    exit: (direction: number) => ({
+      x: direction < 0 ? "30%" : "-30%",
+      opacity: 0,
+      filter: "blur(8px)",
+    }),
   };
 
   return (
@@ -56,90 +84,50 @@ export default function MinimalTheme(props: any) {
       />
 
       <div className="flex-1 relative overflow-hidden">
-        <AnimatePresence mode="wait">
-          {activeTab === "marks" && (
-            <motion.div
-              key="marks"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              transition={{ duration: 0.3 }}
-              className="h-full w-full overflow-hidden"
-            >
-              <MinimalMarks />
-            </motion.div>
-          )}
-
-          {activeTab === "attendance" && (
-            <motion.div
-              key="attendance"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.3 }}
-              className="h-full w-full overflow-hidden"
-            >
-              <MinimalAttendance />
-            </motion.div>
-          )}
-
-          {activeTab === "home" && (
-            <motion.div
-              key="home"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              transition={{ duration: 0.3 }}
-              className="h-full w-full overflow-y-auto custom-scrollbar"
-            >
-              <Dashboard
-                data={props.data}
-                timeStatus={props.academia?.timeStatus}
-                currentRoast={props.academia?.currentRoast || "analyzing..."}
-                setActiveTab={setActiveTab}
-                onOpenSettings={props.onOpenSettings}
-              />
-            </motion.div>
-          )}
-
-          {activeTab === "timetable" && (
-            <motion.div
-              key="timetable"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.3 }}
-              className="h-full w-full overflow-hidden"
-            >
-              <MinimalTimetable />
-            </motion.div>
-          )}
-
-          {activeTab === "calendar" && (
-            <motion.div
-              key="calendar"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.3 }}
-              className="h-full w-full overflow-hidden"
-            >
-              <MinimalCalendar />
-            </motion.div>
-          )}
+        <AnimatePresence mode="popLayout" custom={direction} initial={false}>
+          <motion.div
+            key={activeTab}
+            custom={direction}
+            variants={variants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{
+              x: { type: "spring", stiffness: 600, damping: 45, mass: 0.8 },
+              opacity: { duration: 0.12 },
+              filter: { duration: 0.15 },
+            }}
+            className="h-full w-full absolute inset-0 overflow-hidden"
+          >
+            {activeTab === "marks" && <MinimalMarks />}
+            {activeTab === "attendance" && <MinimalAttendance />}
+            {activeTab === "home" && (
+              <div className="h-full w-full overflow-y-auto no-scrollbar">
+                <Dashboard
+                  data={props.data}
+                  timeStatus={props.academia?.timeStatus}
+                  currentRoast={props.academia?.currentRoast || "analyzing..."}
+                  setActiveTab={handleTabChange}
+                  onOpenSettings={props.onOpenSettings}
+                />
+              </div>
+            )}
+            {activeTab === "timetable" && <MinimalTimetable />}
+            {activeTab === "calendar" && <MinimalCalendar />}
+          </motion.div>
         </AnimatePresence>
       </div>
 
       <AnimatePresence>
         {activeTab === "home" && (
           <motion.div
-            initial={{ y: 100, opacity: 0 }}
+            initial={{ y: 30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 100, opacity: 0 }}
-            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            exit={{ y: 30, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 500, damping: 40 }}
             className="absolute bottom-0 left-0 w-full z-50"
           >
-            <Navbar activeTab={activeTab} setActiveTab={setActiveTab} />
+            <Navbar activeTab={activeTab} setActiveTab={handleTabChange} />
           </motion.div>
         )}
       </AnimatePresence>

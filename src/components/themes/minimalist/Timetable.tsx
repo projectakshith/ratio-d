@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MapPin, Clock, User, Plus, X } from "lucide-react";
 
@@ -7,15 +7,12 @@ export default function MinimalTimetable() {
   const [mounted, setMounted] = useState(false);
   const [activeDay, setActiveDay] = useState<number>(1);
   const [isAddingClass, setIsAddingClass] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const [newSub, setNewSub] = useState("");
   const [newRoom, setNewRoom] = useState("");
   const [newTime, setNewTime] = useState("");
   const [newType, setNewType] = useState<"theory" | "lab">("theory");
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const [scheduleData, setScheduleData] = useState<Record<number, any[]>>({
     1: [
@@ -228,6 +225,27 @@ export default function MinimalTimetable() {
     ],
   });
 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (mounted) {
+      const timer = setTimeout(() => {
+        const currentClassElement = document.getElementById(
+          "active-class-indicator",
+        );
+        if (currentClassElement) {
+          currentClassElement.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+          });
+        }
+      }, 400);
+      return () => clearTimeout(timer);
+    }
+  }, [mounted, activeDay]);
+
   const handleAddClass = () => {
     if (!newSub.trim() || !newRoom.trim() || !newTime.trim()) return;
 
@@ -286,7 +304,10 @@ export default function MinimalTimetable() {
       />
 
       <div className="absolute inset-0 bg-[#F7F7F7]">
-        <div className="h-full w-full overflow-y-auto no-scrollbar px-6 pt-10 pb-[280px] flex flex-col relative">
+        <div
+          ref={scrollContainerRef}
+          className="h-full w-full overflow-y-auto no-scrollbar px-6 pt-10 pb-[280px] flex flex-col relative"
+        >
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -436,6 +457,7 @@ export default function MinimalTimetable() {
                   return (
                     <div
                       key={item.id}
+                      id={item.isCurrent ? "active-class-indicator" : undefined}
                       className="flex items-stretch gap-4 w-full z-10"
                     >
                       <div className="w-12 flex justify-center pt-6 shrink-0 relative">
