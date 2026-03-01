@@ -52,19 +52,16 @@ export default function MinimalTheme(props: any) {
 
   const variants = {
     enter: (direction: number) => ({
-      x: direction > 0 ? "30%" : "-30%",
+      x: direction > 0 ? "100%" : "-100%",
       opacity: 0,
-      filter: "blur(8px)",
     }),
     center: {
       x: 0,
       opacity: 1,
-      filter: "blur(0px)",
     },
     exit: (direction: number) => ({
-      x: direction < 0 ? "30%" : "-30%",
+      x: direction < 0 ? "100%" : "-100%",
       opacity: 0,
-      filter: "blur(8px)",
     }),
   };
 
@@ -74,6 +71,7 @@ export default function MinimalTheme(props: any) {
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
+      style={{ transform: "translateZ(0)" }}
     >
       <style
         dangerouslySetInnerHTML={{
@@ -93,18 +91,23 @@ export default function MinimalTheme(props: any) {
             animate="center"
             exit="exit"
             transition={{
-              x: { type: "spring", stiffness: 600, damping: 45, mass: 0.8 },
-              opacity: { duration: 0.12 },
-              filter: { duration: 0.15 },
+              x: { type: "spring", stiffness: 500, damping: 50, mass: 1 },
+              opacity: { duration: 0.2 },
             }}
             className="h-full w-full absolute inset-0 overflow-hidden"
+            style={{ willChange: "transform, opacity" }}
           >
-            {activeTab === "marks" && <MinimalMarks />}
-            {activeTab === "attendance" && <MinimalAttendance />}
+            {activeTab === "marks" && (
+              <MinimalMarks data={props.data} academia={props.academia} />
+            )}
+            {activeTab === "attendance" && (
+              <MinimalAttendance data={props.data} academia={props.academia} />
+            )}
             {activeTab === "home" && (
               <div className="h-full w-full overflow-y-auto no-scrollbar">
                 <Dashboard
                   data={props.data}
+                  academia={props.academia}
                   timeStatus={props.academia?.timeStatus}
                   currentRoast={props.academia?.currentRoast || "analyzing..."}
                   setActiveTab={handleTabChange}
@@ -112,8 +115,12 @@ export default function MinimalTheme(props: any) {
                 />
               </div>
             )}
-            {activeTab === "timetable" && <MinimalTimetable />}
-            {activeTab === "calendar" && <MinimalCalendar />}
+            {activeTab === "timetable" && (
+              <MinimalTimetable data={props.data} academia={props.academia} />
+            )}
+            {activeTab === "calendar" && (
+              <MinimalCalendar data={props.data} academia={props.academia} />
+            )}
           </motion.div>
         </AnimatePresence>
       </div>
@@ -121,10 +128,10 @@ export default function MinimalTheme(props: any) {
       <AnimatePresence>
         {activeTab === "home" && (
           <motion.div
-            initial={{ y: 30, opacity: 0 }}
+            initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 30, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 500, damping: 40 }}
+            exit={{ y: 20, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 400, damping: 30 }}
             className="absolute bottom-0 left-0 w-full z-50"
           >
             <Navbar activeTab={activeTab} setActiveTab={handleTabChange} />

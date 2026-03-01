@@ -1,16 +1,14 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Calculator, X, ChevronLeft, ChevronRight, Check } from "lucide-react";
 import {
-  Calculator,
-  X,
-  ChevronLeft,
-  ChevronRight,
-  Check,
-  Plus,
-} from "lucide-react";
+  getBaseAttendance,
+  getImpactMap,
+  getProcessedList,
+} from "@/utils/attendanceLogic";
 
-export default function MinimalAttendance() {
+export default function MinimalAttendance({ data, academia }: any) {
   const [mounted, setMounted] = useState(false);
   const [isPredictOverlay, setIsPredictOverlay] = useState(false);
   const [isPredicting, setIsPredicting] = useState(false);
@@ -27,187 +25,136 @@ export default function MinimalAttendance() {
     setMounted(true);
   }, []);
 
-  const baseSubjects = [
-    {
-      id: 1,
-      code: "dtm",
-      name: "discrete transforms",
-      attended: 35,
-      total: 41,
-    },
-    {
-      id: 2,
-      code: "oops",
-      name: "object oriented prog",
-      attended: 29,
-      total: 39,
-    },
-    { id: 3, code: "ml", name: "machine learning", attended: 38, total: 42 },
-    { id: 4, code: "dsa", name: "data structures", attended: 32, total: 41 },
-    { id: 5, code: "os", name: "operating systems", attended: 29, total: 40 },
-    { id: 6, code: "dbms", name: "database systems", attended: 34, total: 41 },
-  ];
+  const getAcronym = (name: string) => {
+    if (!name) return "";
+    const skipWords = [
+      "and",
+      "of",
+      "to",
+      "in",
+      "for",
+      "with",
+      "a",
+      "an",
+      "the",
+    ];
+    return name
+      .toLowerCase()
+      .split(/\s+/)
+      .filter((word) => word.length > 0 && !skipWords.includes(word))
+      .map((word) => word[0])
+      .join("")
+      .toLowerCase();
+  };
+
+  const baseAttendance = useMemo(
+    () => getBaseAttendance(data?.attendance || []),
+    [data?.attendance],
+  );
+
+  const impactMap = useMemo(() => {
+    if (!isPredicting || selectedDates.length === 0) return {};
+    return getImpactMap(
+      selectedDates,
+      academia?.calendarData || [],
+      academia?.effectiveSchedule || {},
+      baseAttendance,
+    );
+  }, [isPredicting, selectedDates, academia, baseAttendance]);
+
+  const processedList = useMemo(() => {
+    const list = getProcessedList(
+      baseAttendance,
+      impactMap,
+      predictAction,
+      isPredicting,
+    );
+    return list.map((s) => ({
+      ...s,
+      displayCode: getAcronym(s.title),
+      fullName: s.title.toLowerCase(),
+      percent: s.pred.pct.toFixed(1),
+      safe: s.pred.status.safe,
+      val: s.pred.status.val,
+    }));
+  }, [baseAttendance, impactMap, predictAction, isPredicting]);
+
+  const lowAttendance = useMemo(
+    () => processedList.filter((s) => !s.safe).sort((a, b) => b.val - a.val),
+    [processedList],
+  );
+
+  const safeAttendance = useMemo(
+    () => processedList.filter((s) => s.safe).sort((a, b) => a.val - b.val),
+    [processedList],
+  );
+
+  const stats = useMemo(() => {
+    let totalC = 0,
+      totalP = 0;
+    baseAttendance.forEach((s) => {
+      const sessions = impactMap[s.code] || 0;
+      totalC += s.conducted + sessions;
+      totalP += s.present + (predictAction === "attend" ? sessions : 0);
+    });
+    const pct = totalC === 0 ? 0 : (totalP / totalC) * 100;
+    return { percent: pct.toFixed(1), safe: pct >= 75 };
+  }, [baseAttendance, impactMap, predictAction, isPredicting]);
 
   const calYear = currentCalDate.getFullYear();
   const calMonth = currentCalDate.getMonth();
   const monthName = currentCalDate.toLocaleString("en-US", { month: "long" });
   const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
-  const firstDay = new Date(calYear, calMonth, 1).getDay();
-  const startOffset = firstDay === 0 ? 6 : firstDay - 1;
+  const startOffset = (new Date(calYear, calMonth, 1).getDay() + 6) % 7;
 
   const formatDate = (y: number, m: number, d: number) =>
     `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
-
   const isWeekendStr = (dateStr: string) => {
     const [y, m, d] = dateStr.split("-").map(Number);
-    const date = new Date(y, m - 1, d);
-    return date.getDay() === 0 || date.getDay() === 6;
-  };
-
-  const getDatesBetween = (startStr: string, endStr: string) => {
-    let start = new Date(
-      startStr.split("-")[0] as any,
-      Number(startStr.split("-")[1]) - 1,
-      Number(startStr.split("-")[2]),
-    );
-    let end = new Date(
-      endStr.split("-")[0] as any,
-      Number(endStr.split("-")[1]) - 1,
-      Number(endStr.split("-")[2]),
-    );
-
-    if (start > end) {
-      const temp = start;
-      start = end;
-      end = temp;
-    }
-
-    const dates = [];
-    let current = new Date(start);
-    while (current <= end) {
-      const dStr = formatDate(
-        current.getFullYear(),
-        current.getMonth(),
-        current.getDate(),
-      );
-      if (!isWeekendStr(dStr)) {
-        dates.push(dStr);
-      }
-      current.setDate(current.getDate() + 1);
-    }
-    return dates;
-  };
-
-  const handlePrevMonth = () => {
-    setCurrentCalDate(new Date(calYear, calMonth - 1, 1));
-  };
-
-  const handleNextMonth = () => {
-    setCurrentCalDate(new Date(calYear, calMonth + 1, 1));
-  };
-
-  const toggleRangeMode = () => {
-    setIsRangeMode(!isRangeMode);
-    setRangeStart(null);
-    setRangeEnd(null);
+    const day = new Date(y, m - 1, d).getDay();
+    return day === 0 || day === 6;
   };
 
   const handleDateClick = (day: number) => {
     const dStr = formatDate(calYear, calMonth, day);
     if (isWeekendStr(dStr)) return;
-
     if (!isRangeMode) {
-      if (selectedDates.includes(dStr)) {
-        setSelectedDates((prev) => prev.filter((d) => d !== dStr));
-      } else {
-        setSelectedDates((prev) => [...prev, dStr]);
-      }
+      setSelectedDates((prev) =>
+        prev.includes(dStr) ? prev.filter((d) => d !== dStr) : [...prev, dStr],
+      );
     } else {
       if (!rangeStart || (rangeStart && rangeEnd)) {
         setRangeStart(dStr);
         setRangeEnd(null);
-        setSelectedDates((prev) => {
-          if (!prev.includes(dStr)) return [...prev, dStr];
-          return prev;
-        });
+        setSelectedDates((prev) =>
+          prev.includes(dStr) ? prev : [...prev, dStr],
+        );
       } else {
         setRangeEnd(dStr);
-        const newDates = getDatesBetween(rangeStart, dStr);
-        setSelectedDates((prev) => {
-          const combined = new Set([...prev, ...newDates]);
-          return Array.from(combined);
-        });
+        let start = new Date(
+          rangeStart.split("-")[0] as any,
+          Number(rangeStart.split("-")[1]) - 1,
+          Number(rangeStart.split("-")[2]),
+        );
+        let end = new Date(
+          dStr.split("-")[0] as any,
+          Number(dStr.split("-")[1]) - 1,
+          Number(dStr.split("-")[2]),
+        );
+        if (start > end) [start, end] = [end, start];
+        const range = [];
+        for (
+          let dt = new Date(start);
+          dt <= end;
+          dt.setDate(dt.getDate() + 1)
+        ) {
+          const s = formatDate(dt.getFullYear(), dt.getMonth(), dt.getDate());
+          if (!isWeekendStr(s)) range.push(s);
+        }
+        setSelectedDates((prev) => Array.from(new Set([...prev, ...range])));
       }
     }
   };
-
-  const isDateSelected = (day: number) => {
-    const dStr = formatDate(calYear, calMonth, day);
-    if (isRangeMode && rangeStart === dStr && !rangeEnd) return true;
-    return selectedDates.includes(dStr);
-  };
-
-  const confirmPrediction = () => {
-    setIsPredicting(true);
-    setIsPredictOverlay(false);
-  };
-
-  const cancelPrediction = () => {
-    setIsPredicting(false);
-    setSelectedDates([]);
-    setRangeStart(null);
-    setRangeEnd(null);
-  };
-
-  const predictDays = isPredicting ? selectedDates.length : 0;
-
-  const calculateStats = (attended: number, total: number) => {
-    const target = 0.75;
-    const percent = total === 0 ? 0 : (attended / total) * 100;
-    const safe = percent >= 75;
-    let marginVal = 0;
-
-    if (safe) {
-      marginVal = Math.floor((attended - target * total) / target);
-    } else {
-      marginVal = Math.ceil((target * total - attended) / (1 - target));
-    }
-
-    return {
-      percent: percent.toFixed(1),
-      safe,
-      marginVal: Math.max(0, marginVal),
-    };
-  };
-
-  const currentSubjects = baseSubjects.map((sub) => {
-    const newTotal = sub.total + predictDays;
-    const newAttended =
-      sub.attended +
-      (isPredicting && predictAction === "attend" ? predictDays : 0);
-    const stats = calculateStats(newAttended, newTotal);
-    return { ...sub, attended: newAttended, total: newTotal, ...stats };
-  });
-
-  const lowAttendance = currentSubjects.filter((s) => !s.safe);
-  const safeAttendance = currentSubjects.filter((s) => s.safe);
-
-  const baseTotalAttended = baseSubjects.reduce(
-    (sum, s) => sum + s.attended,
-    0,
-  );
-  const baseTotalClasses = baseSubjects.reduce((sum, s) => sum + s.total, 0);
-  const baseOverallPercent =
-    baseTotalClasses === 0
-      ? "0.0"
-      : ((baseTotalAttended / baseTotalClasses) * 100).toFixed(1);
-
-  const totalAttended = currentSubjects.reduce((sum, s) => sum + s.attended, 0);
-  const totalClasses = currentSubjects.reduce((sum, s) => sum + s.total, 0);
-  const overallPercent =
-    totalClasses === 0
-      ? "0.0"
-      : ((totalAttended / totalClasses) * 100).toFixed(1);
 
   if (!mounted) return null;
 
@@ -216,21 +163,11 @@ export default function MinimalAttendance() {
       <style
         dangerouslySetInnerHTML={{
           __html: `
-          @import url('https://fonts.googleapis.com/css2?family=Afacad:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700;800;900&display=swap');
-
-          .no-scrollbar::-webkit-scrollbar {
-            display: none;
-          }
-          .no-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-          }
-
-          .warning-dotted {
-            background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='24' ry='24' stroke='%23FF4D4D' stroke-width='3' stroke-dasharray='6%2c 10' stroke-dashoffset='0' stroke-linecap='round'/%3e%3c/svg%3e");
-            border-radius: 24px;
-          }
-        `,
+        @import url('https://fonts.googleapis.com/css2?family=Afacad:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700;800;900&display=swap');
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .warning-dotted { background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='24' ry='14' stroke='%23FF4D4D' stroke-width='3' stroke-dasharray='6%2c 10' stroke-dashoffset='0' stroke-linecap='round'/%3e%3c/svg%3e"); border-radius: 24px; }
+      `,
         }}
       />
 
@@ -243,21 +180,17 @@ export default function MinimalAttendance() {
             className="w-full flex flex-col items-center mt-2 mb-12 shrink-0"
           >
             <span
-              className={`text-[12px] font-bold lowercase tracking-[0.3em] mb-3 transition-colors text-[#111111]`}
+              className="text-[12px] font-bold lowercase tracking-[0.3em] mb-3 text-[#111111]"
               style={{ fontFamily: "'Montserrat', sans-serif" }}
             >
               {isPredicting ? "predicted attendance" : "overall attendance"}
             </span>
             <div className="flex items-baseline gap-1">
               <span
-                className={`text-[7.5rem] leading-[0.8] font-black tracking-tighter transition-colors ${
-                  parseFloat(overallPercent) >= 75
-                    ? "text-[#111111]"
-                    : "text-[#FF4D4D]"
-                }`}
+                className={`text-[7.5rem] leading-[0.8] font-black tracking-tighter transition-colors ${stats.safe ? "text-[#111111]" : "text-[#FF4D4D]"}`}
                 style={{ fontFamily: "'Montserrat', sans-serif" }}
               >
-                {overallPercent}
+                {stats.percent}
               </span>
               <span
                 className="text-[2.5rem] font-bold text-[#111111]/40"
@@ -323,7 +256,10 @@ export default function MinimalAttendance() {
                     edit
                   </button>
                   <button
-                    onClick={cancelPrediction}
+                    onClick={() => {
+                      setIsPredicting(false);
+                      setSelectedDates([]);
+                    }}
                     className="w-8 h-8 bg-[#FF4D4D]/20 rounded-full flex items-center justify-center text-[#FF4D4D] active:scale-95 transition-all"
                   >
                     <X size={16} strokeWidth={3} />
@@ -349,18 +285,17 @@ export default function MinimalAttendance() {
                 </span>
                 <div className="flex-1 h-[1.5px] bg-[#FF4D4D]/20 rounded-full" />
               </div>
-
-              {lowAttendance.map((sub) => (
+              {lowAttendance.map((sub: any) => (
                 <div
                   key={sub.id}
                   className="w-full bg-white border-[1.5px] border-[#FF4D4D]/30 rounded-[18px] p-4 flex items-center justify-between shadow-sm transition-all"
                 >
                   <div className="flex flex-col items-center justify-center w-[70px] shrink-0">
                     <span
-                      className="text-[3.2rem] leading-[0.8] font-black tracking-tighter text-[#FF4D4D] text-center"
+                      className="text-[3.2rem] leading-[0.8] font-black tracking-tighter text-[#FF4D4D]"
                       style={{ fontFamily: "'Montserrat', sans-serif" }}
                     >
-                      {sub.marginVal}
+                      {sub.val}
                     </span>
                     <span
                       className="text-[10px] font-bold uppercase tracking-widest mt-1 text-[#FF4D4D]/70 text-center"
@@ -369,26 +304,22 @@ export default function MinimalAttendance() {
                       required
                     </span>
                   </div>
-
                   <div className="flex-1 flex flex-col items-end text-right min-w-0 ml-4">
                     <span
                       className="text-[16px] font-black uppercase tracking-widest leading-[1.1] truncate w-full text-[#FF4D4D]"
                       style={{ fontFamily: "'Montserrat', sans-serif" }}
                     >
-                      {sub.code}
+                      {sub.displayCode}
                     </span>
                     <span
-                      className="text-[13px] font-medium lowercase tracking-wide leading-[1.1] mt-0.5 truncate w-full text-[#FF4D4D]/70"
+                      className="text-[12px] font-medium lowercase tracking-wide leading-[1.1] mt-0.5 truncate w-full text-[#FF4D4D]/70"
                       style={{ fontFamily: "'Afacad', sans-serif" }}
                     >
-                      {sub.name}
+                      {sub.fullName}
                     </span>
                     <div className="flex items-center gap-2 mt-2">
-                      <span
-                        className="text-[12px] font-bold tracking-widest text-[#FF4D4D]/70"
-                        style={{ fontFamily: "'Afacad', sans-serif" }}
-                      >
-                        {sub.attended}/{sub.total}
+                      <span className="text-[12px] font-bold text-[#FF4D4D]/70">
+                        {sub.present}/{sub.conducted}
                       </span>
                       <div className="w-[3px] h-[3px] rounded-full bg-[#FF4D4D]/40" />
                       <span
@@ -401,18 +332,18 @@ export default function MinimalAttendance() {
                   </div>
                 </div>
               ))}
-
               <div className="w-full flex justify-center mt-2">
                 <span
                   className="text-[11px] font-bold lowercase tracking-widest text-[#FF4D4D]/60"
                   style={{ fontFamily: "'Afacad', sans-serif" }}
                 >
-                  blud is donating tution fees
+                  academic comeback needed
                 </span>
               </div>
             </motion.div>
           )}
 
+          {/* Safe Subjects Segment restored */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -428,18 +359,17 @@ export default function MinimalAttendance() {
               </span>
               <div className="flex-1 h-[1.5px] bg-[#111111]/10 rounded-full" />
             </div>
-
-            {safeAttendance.map((sub) => (
+            {safeAttendance.map((sub: any) => (
               <div
                 key={sub.id}
                 className="w-full border-[1.5px] rounded-[24px] p-5 flex items-center justify-between bg-white shadow-sm border-[#111111]/10 transition-all"
               >
                 <div className="flex flex-col items-center justify-center w-[70px] shrink-0">
                   <span
-                    className="text-[3.2rem] leading-[0.8] font-black tracking-tighter text-[#111111] text-center"
+                    className="text-[3.2rem] leading-[0.8] font-black tracking-tighter text-[#111111]"
                     style={{ fontFamily: "'Montserrat', sans-serif" }}
                   >
-                    {sub.marginVal}
+                    {sub.val}
                   </span>
                   <span
                     className="text-[10px] font-bold uppercase tracking-widest mt-1 text-[#111111]/40 text-center"
@@ -448,26 +378,22 @@ export default function MinimalAttendance() {
                     margin
                   </span>
                 </div>
-
                 <div className="flex-1 flex flex-col items-end text-right min-w-0 ml-4">
                   <span
                     className="text-[16px] font-black uppercase tracking-widest leading-[1.1] truncate w-full text-[#111111]"
                     style={{ fontFamily: "'Montserrat', sans-serif" }}
                   >
-                    {sub.code}
+                    {sub.displayCode}
                   </span>
                   <span
                     className="text-[13px] font-medium lowercase tracking-wide leading-[1.1] mt-0.5 truncate w-full text-[#111111]/50"
                     style={{ fontFamily: "'Afacad', sans-serif" }}
                   >
-                    {sub.name}
+                    {sub.fullName}
                   </span>
                   <div className="flex items-center gap-2 mt-2">
-                    <span
-                      className="text-[12px] font-bold tracking-widest text-[#111111]/40"
-                      style={{ fontFamily: "'Afacad', sans-serif" }}
-                    >
-                      {sub.attended}/{sub.total}
+                    <span className="text-[12px] font-bold text-[#111111]/40">
+                      {sub.present}/{sub.conducted}
                     </span>
                     <div className="w-[3px] h-[3px] rounded-full bg-[#111111]/20" />
                     <span
@@ -483,12 +409,13 @@ export default function MinimalAttendance() {
           </motion.div>
         </div>
 
+        {/* Wave Text Background Footer */}
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-[#F7F7F7] via-[#F7F7F7] to-transparent px-6 pt-24 pb-[30px] z-20 flex justify-between items-end pointer-events-none">
           {"attendance".split("").map((char, i) => (
             <span
               key={i}
-              className="text-[3.2rem] leading-[0.75] lowercase text-[#111111]"
-              style={{ fontFamily: "'Afacad', sans-serif", fontWeight: 400 }}
+              className="text-[3.2rem] leading-[0.75] lowercase text-[#111111] opacity-[0.12]"
+              style={{ fontFamily: "'Afacad', sans-serif" }}
             >
               {char}
             </span>
@@ -507,9 +434,7 @@ export default function MinimalAttendance() {
             dragConstraints={{ top: 0, bottom: 0 }}
             dragElastic={{ top: 0, bottom: 0.8 }}
             onDragEnd={(e, info) => {
-              if (info.offset.y > 100 || info.velocity.y > 500) {
-                setIsPredictOverlay(false);
-              }
+              if (info.offset.y > 100) setIsPredictOverlay(false);
             }}
             className="fixed inset-0 bg-[#111111] z-[60] flex flex-col overflow-hidden px-6 pt-10 pb-6"
           >
@@ -537,123 +462,75 @@ export default function MinimalAttendance() {
                 <X size={20} strokeWidth={2.5} />
               </button>
             </div>
-
-            <div className="flex flex-col flex-1 justify-center w-full mt-6">
-              <div className="flex items-center gap-2 bg-white/5 p-1 rounded-[16px] mb-6">
+            {/* Calendar UI logic from static snippet */}
+            <div className="flex flex-col flex-1 justify-center w-full mt-6 overflow-y-auto no-scrollbar">
+              <div className="flex items-center gap-2 bg-white/5 p-1 rounded-[16px] mb-6 shrink-0">
                 <button
                   onClick={() => setPredictAction("leave")}
-                  className={`flex-1 py-2.5 rounded-[12px] text-[11px] font-bold uppercase tracking-widest transition-all ${
-                    predictAction === "leave"
-                      ? "bg-[#ceff1c] text-[#111111]"
-                      : "text-white/50 hover:text-white/80"
-                  }`}
+                  className={`flex-1 py-2.5 rounded-[12px] text-[11px] font-bold uppercase transition-all ${predictAction === "leave" ? "bg-[#ceff1c] text-[#111111]" : "text-white/50"}`}
                   style={{ fontFamily: "'Montserrat', sans-serif" }}
                 >
                   leaves
                 </button>
                 <button
                   onClick={() => setPredictAction("attend")}
-                  className={`flex-1 py-2.5 rounded-[12px] text-[11px] font-bold uppercase tracking-widest transition-all ${
-                    predictAction === "attend"
-                      ? "bg-[#ceff1c] text-[#111111]"
-                      : "text-white/50 hover:text-white/80"
-                  }`}
+                  className={`flex-1 py-2.5 rounded-[12px] text-[11px] font-bold uppercase transition-all ${predictAction === "attend" ? "bg-[#ceff1c] text-[#111111]" : "text-white/50"}`}
                   style={{ fontFamily: "'Montserrat', sans-serif" }}
                 >
                   attending
                 </button>
               </div>
-
-              <div className="w-full flex justify-between items-center mb-6">
+              <div className="w-full flex justify-between items-center mb-6 shrink-0">
                 <button
-                  onClick={handlePrevMonth}
-                  className="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center text-white active:scale-95 transition-all"
+                  onClick={() =>
+                    setCurrentCalDate(new Date(calYear, calMonth - 1, 1))
+                  }
+                  className="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center text-white"
                 >
-                  <ChevronLeft size={20} strokeWidth={2.5} />
+                  <ChevronLeft />
                 </button>
                 <span
-                  className="text-[16px] font-black uppercase tracking-widest text-white"
+                  className="text-[16px] font-black uppercase text-white"
                   style={{ fontFamily: "'Montserrat', sans-serif" }}
                 >
                   {monthName} {calYear}
                 </span>
                 <button
-                  onClick={handleNextMonth}
-                  className="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center text-white active:scale-95 transition-all"
+                  onClick={() =>
+                    setCurrentCalDate(new Date(calYear, calMonth + 1, 1))
+                  }
+                  className="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center text-white"
                 >
-                  <ChevronRight size={20} strokeWidth={2.5} />
+                  <ChevronRight />
                 </button>
               </div>
-
-              <div className="w-full flex flex-col bg-white/5 border border-white/10 rounded-[24px] p-5 mb-6">
-                <div className="w-full flex justify-between items-center mb-5 pb-4 border-b border-white/10">
-                  <span
-                    className="text-[11px] font-bold lowercase tracking-widest text-white/50"
-                    style={{ fontFamily: "'Afacad', sans-serif" }}
-                  >
-                    select dates
-                  </span>
-                  <button
-                    onClick={toggleRangeMode}
-                    className="flex items-center gap-2.5 bg-white/5 px-3 py-1.5 rounded-full transition-all active:scale-95"
-                  >
-                    <span
-                      className="text-[10px] font-bold lowercase tracking-widest text-white/60 transition-colors"
-                      style={{ fontFamily: "'Afacad', sans-serif" }}
-                    >
-                      range select
-                    </span>
-                    <div
-                      className={`w-3.5 h-3.5 rounded-full border-[1.5px] flex items-center justify-center transition-all ${
-                        isRangeMode
-                          ? "border-[#ceff1c] bg-[#ceff1c]/10"
-                          : "border-white/40"
-                      }`}
-                    >
-                      {isRangeMode && (
-                        <div className="w-1.5 h-1.5 rounded-full bg-[#ceff1c]" />
-                      )}
-                    </div>
-                  </button>
-                </div>
-
+              <div className="w-full flex flex-col bg-white/5 border border-white/10 rounded-[24px] p-5 mb-6 shrink-0">
                 <div className="grid grid-cols-7 gap-2 mb-3">
                   {["m", "t", "w", "t", "f", "s", "s"].map((d, i) => (
                     <div
                       key={i}
                       className="text-center text-[11px] font-bold text-white/40 uppercase"
-                      style={{ fontFamily: "'Afacad', sans-serif" }}
                     >
                       {d}
                     </div>
                   ))}
                 </div>
-
                 <div className="grid grid-cols-7 gap-2">
                   {Array.from({ length: startOffset }).map((_, i) => (
-                    <div key={`empty-${i}`} className="aspect-square" />
+                    <div key={i} className="aspect-square" />
                   ))}
-
                   {Array.from({ length: daysInMonth }).map((_, i) => {
                     const day = i + 1;
                     const dStr = formatDate(calYear, calMonth, day);
-                    const weekend = isWeekendStr(dStr);
-                    const selected = isDateSelected(day);
-
+                    const selected =
+                      (isRangeMode && rangeStart === dStr && !rangeEnd) ||
+                      selectedDates.includes(dStr);
                     return (
                       <button
                         key={day}
                         onClick={() => handleDateClick(day)}
-                        disabled={weekend}
-                        className={`aspect-square rounded-[12px] flex items-center justify-center text-[15px] font-black transition-all
-                          ${
-                            weekend
-                              ? "text-white/10 cursor-not-allowed"
-                              : selected
-                                ? "bg-[#ceff1c] text-[#111111] scale-105 shadow-[0_0_12px_rgba(206,255,28,0.3)]"
-                                : "bg-white/10 text-white hover:bg-white/20"
-                          }
-                        `}
+                        disabled={isWeekendStr(dStr)}
+                        className={`aspect-square rounded-[12px] flex items-center justify-center text-[15px] font-black ${isWeekendStr(dStr) ? "text-white/10" : selected ? "bg-[#ceff1c] text-[#111111] shadow-lg" : "bg-white/10 text-white"}`}
                         style={{ fontFamily: "'Montserrat', sans-serif" }}
                       >
                         {day}
@@ -663,28 +540,27 @@ export default function MinimalAttendance() {
                 </div>
               </div>
             </div>
-
             <div className="w-full flex justify-between items-center bg-white/5 border border-white/10 p-4 rounded-[24px] shrink-0 mt-auto">
               <div className="flex flex-col ml-2">
-                <span
-                  className="text-[12px] font-bold lowercase tracking-[0.2em] text-white/50 mb-0.5"
-                  style={{ fontFamily: "'Montserrat', sans-serif" }}
-                >
-                  total days {predictAction === "leave" ? "off" : "present"}
+                <span className="text-[12px] font-bold text-white/50 mb-0.5">
+                  total days
                 </span>
                 <span
-                  className="text-[28px] leading-none font-black tracking-tighter text-white"
+                  className="text-[28px] font-black text-white"
                   style={{ fontFamily: "'Montserrat', sans-serif" }}
                 >
                   {selectedDates.length}
                 </span>
               </div>
               <button
-                onClick={confirmPrediction}
-                className="bg-[#ceff1c] text-[#111111] px-8 py-4 rounded-[16px] flex items-center gap-3 active:scale-95 transition-all shadow-[0_0_20px_rgba(206,255,28,0.2)]"
+                onClick={() => {
+                  setIsPredicting(true);
+                  setIsPredictOverlay(false);
+                }}
+                className="bg-[#ceff1c] text-[#111111] px-8 py-4 rounded-[16px] flex items-center gap-3 active:scale-95 shadow-xl"
               >
                 <span
-                  className="text-[14px] font-black uppercase tracking-widest"
+                  className="text-[14px] font-black uppercase"
                   style={{ fontFamily: "'Montserrat', sans-serif" }}
                 >
                   confirm
