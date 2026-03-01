@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import Dashboard from "./Dashboard";
 import MinimalAttendance from "./Attendance";
+import MinimalMarks from "./Marks";
 import Navbar from "./Navbar";
 
 export default function MinimalTheme(props: any) {
@@ -54,6 +55,19 @@ export default function MinimalTheme(props: any) {
 
       <div className="flex-1 relative overflow-hidden">
         <AnimatePresence mode="wait">
+          {activeTab === "marks" && (
+            <motion.div
+              key="marks"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.3 }}
+              className="h-full w-full overflow-hidden"
+            >
+              <MinimalMarks />
+            </motion.div>
+          )}
+
           {activeTab === "home" && (
             <motion.div
               key="home"
