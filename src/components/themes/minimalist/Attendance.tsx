@@ -1,12 +1,22 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Calculator, X, ChevronLeft, ChevronRight, Check } from "lucide-react";
+import {
+  Calculator,
+  X,
+  ChevronLeft,
+  ChevronRight,
+  Check,
+  Plus,
+} from "lucide-react";
 
 export default function MinimalAttendance() {
   const [mounted, setMounted] = useState(false);
   const [isPredictOverlay, setIsPredictOverlay] = useState(false);
   const [isPredicting, setIsPredicting] = useState(false);
+  const [predictAction, setPredictAction] = useState<"leave" | "attend">(
+    "leave",
+  );
   const [isRangeMode, setIsRangeMode] = useState(false);
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
   const [rangeStart, setRangeStart] = useState<string | null>(null);
@@ -38,7 +48,6 @@ export default function MinimalAttendance() {
     { id: 6, code: "dbms", name: "database systems", attended: 34, total: 41 },
   ];
 
-  // Calendar Utilities
   const calYear = currentCalDate.getFullYear();
   const calMonth = currentCalDate.getMonth();
   const monthName = currentCalDate.toLocaleString("en-US", { month: "long" });
@@ -150,7 +159,7 @@ export default function MinimalAttendance() {
     setRangeEnd(null);
   };
 
-  const missedClasses = isPredicting ? selectedDates.length : 0;
+  const predictDays = isPredicting ? selectedDates.length : 0;
 
   const calculateStats = (attended: number, total: number) => {
     const target = 0.75;
@@ -172,19 +181,29 @@ export default function MinimalAttendance() {
   };
 
   const currentSubjects = baseSubjects.map((sub) => {
-    const newTotal = sub.total + missedClasses;
-    const stats = calculateStats(sub.attended, newTotal);
-    return { ...sub, ...stats };
+    const newTotal = sub.total + predictDays;
+    const newAttended =
+      sub.attended +
+      (isPredicting && predictAction === "attend" ? predictDays : 0);
+    const stats = calculateStats(newAttended, newTotal);
+    return { ...sub, attended: newAttended, total: newTotal, ...stats };
   });
 
   const lowAttendance = currentSubjects.filter((s) => !s.safe);
   const safeAttendance = currentSubjects.filter((s) => s.safe);
 
-  const totalAttended = currentSubjects.reduce((sum, s) => sum + s.attended, 0);
-  const totalClasses = currentSubjects.reduce(
-    (sum, s) => sum + s.total + missedClasses,
+  const baseTotalAttended = baseSubjects.reduce(
+    (sum, s) => sum + s.attended,
     0,
   );
+  const baseTotalClasses = baseSubjects.reduce((sum, s) => sum + s.total, 0);
+  const baseOverallPercent =
+    baseTotalClasses === 0
+      ? "0.0"
+      : ((baseTotalAttended / baseTotalClasses) * 100).toFixed(1);
+
+  const totalAttended = currentSubjects.reduce((sum, s) => sum + s.attended, 0);
+  const totalClasses = currentSubjects.reduce((sum, s) => sum + s.total, 0);
   const overallPercent =
     totalClasses === 0
       ? "0.0"
@@ -199,8 +218,13 @@ export default function MinimalAttendance() {
           __html: `
           @import url('https://fonts.googleapis.com/css2?family=Afacad:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700;800;900&display=swap');
 
-          .no-scrollbar::-webkit-scrollbar { display: none; }
-          .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+          .no-scrollbar::-webkit-scrollbar {
+            display: none;
+          }
+          .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+          }
 
           .warning-dotted {
             background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='24' ry='24' stroke='%23FF4D4D' stroke-width='3' stroke-dasharray='6%2c 10' stroke-dashoffset='0' stroke-linecap='round'/%3e%3c/svg%3e");
@@ -219,7 +243,7 @@ export default function MinimalAttendance() {
             className="w-full flex flex-col items-center mt-2 mb-12 shrink-0"
           >
             <span
-              className={`text-[12px] font-bold lowercase tracking-[0.3em] mb-3 transition-colors ${isPredicting ? "text-[#ceff1c]" : "text-[#111111]/40"}`}
+              className={`text-[12px] font-bold lowercase tracking-[0.3em] mb-3 transition-colors text-[#111111]`}
               style={{ fontFamily: "'Montserrat', sans-serif" }}
             >
               {isPredicting ? "predicted attendance" : "overall attendance"}
@@ -228,9 +252,7 @@ export default function MinimalAttendance() {
               <span
                 className={`text-[7.5rem] leading-[0.8] font-black tracking-tighter transition-colors ${
                   parseFloat(overallPercent) >= 75
-                    ? isPredicting
-                      ? "text-[#ceff1c]"
-                      : "text-[#111111]"
+                    ? "text-[#111111]"
                     : "text-[#FF4D4D]"
                 }`}
                 style={{ fontFamily: "'Montserrat', sans-serif" }}
@@ -263,7 +285,7 @@ export default function MinimalAttendance() {
                     className="text-[14px] font-bold lowercase tracking-widest text-[#111111]"
                     style={{ fontFamily: "'Montserrat', sans-serif" }}
                   >
-                    predict leaves
+                    predict
                   </span>
                 </div>
                 <Calculator
@@ -287,7 +309,8 @@ export default function MinimalAttendance() {
                       className="text-[10px] font-bold lowercase tracking-[0.2em] text-white/50 mt-1"
                       style={{ fontFamily: "'Afacad', sans-serif" }}
                     >
-                      {selectedDates.length} days off
+                      {selectedDates.length} days{" "}
+                      {predictAction === "leave" ? "off" : "present"}
                     </span>
                   </div>
                 </div>
@@ -365,7 +388,7 @@ export default function MinimalAttendance() {
                         className="text-[12px] font-bold tracking-widest text-[#FF4D4D]/70"
                         style={{ fontFamily: "'Afacad', sans-serif" }}
                       >
-                        {sub.attended}/{sub.total + missedClasses}
+                        {sub.attended}/{sub.total}
                       </span>
                       <div className="w-[3px] h-[3px] rounded-full bg-[#FF4D4D]/40" />
                       <span
@@ -444,7 +467,7 @@ export default function MinimalAttendance() {
                       className="text-[12px] font-bold tracking-widest text-[#111111]/40"
                       style={{ fontFamily: "'Afacad', sans-serif" }}
                     >
-                      {sub.attended}/{sub.total + missedClasses}
+                      {sub.attended}/{sub.total}
                     </span>
                     <div className="w-[3px] h-[3px] rounded-full bg-[#111111]/20" />
                     <span
@@ -502,7 +525,9 @@ export default function MinimalAttendance() {
                   className="text-[10px] font-bold lowercase tracking-[0.2em] text-white/40 mt-1.5"
                   style={{ fontFamily: "'Afacad', sans-serif" }}
                 >
-                  plan your leaves
+                  {predictAction === "leave"
+                    ? "plan your leaves"
+                    : "plan your presence"}
                 </span>
               </div>
               <button
@@ -514,6 +539,31 @@ export default function MinimalAttendance() {
             </div>
 
             <div className="flex flex-col flex-1 justify-center w-full mt-6">
+              <div className="flex items-center gap-2 bg-white/5 p-1 rounded-[16px] mb-6">
+                <button
+                  onClick={() => setPredictAction("leave")}
+                  className={`flex-1 py-2.5 rounded-[12px] text-[11px] font-bold uppercase tracking-widest transition-all ${
+                    predictAction === "leave"
+                      ? "bg-[#ceff1c] text-[#111111]"
+                      : "text-white/50 hover:text-white/80"
+                  }`}
+                  style={{ fontFamily: "'Montserrat', sans-serif" }}
+                >
+                  leaves
+                </button>
+                <button
+                  onClick={() => setPredictAction("attend")}
+                  className={`flex-1 py-2.5 rounded-[12px] text-[11px] font-bold uppercase tracking-widest transition-all ${
+                    predictAction === "attend"
+                      ? "bg-[#ceff1c] text-[#111111]"
+                      : "text-white/50 hover:text-white/80"
+                  }`}
+                  style={{ fontFamily: "'Montserrat', sans-serif" }}
+                >
+                  attending
+                </button>
+              </div>
+
               <div className="w-full flex justify-between items-center mb-6">
                 <button
                   onClick={handlePrevMonth}
@@ -554,7 +604,11 @@ export default function MinimalAttendance() {
                       range select
                     </span>
                     <div
-                      className={`w-3.5 h-3.5 rounded-full border-[1.5px] flex items-center justify-center transition-all ${isRangeMode ? "border-[#ceff1c] bg-[#ceff1c]/10" : "border-white/40"}`}
+                      className={`w-3.5 h-3.5 rounded-full border-[1.5px] flex items-center justify-center transition-all ${
+                        isRangeMode
+                          ? "border-[#ceff1c] bg-[#ceff1c]/10"
+                          : "border-white/40"
+                      }`}
                     >
                       {isRangeMode && (
                         <div className="w-1.5 h-1.5 rounded-full bg-[#ceff1c]" />
@@ -616,7 +670,7 @@ export default function MinimalAttendance() {
                   className="text-[12px] font-bold lowercase tracking-[0.2em] text-white/50 mb-0.5"
                   style={{ fontFamily: "'Montserrat', sans-serif" }}
                 >
-                  total leaves
+                  total days {predictAction === "leave" ? "off" : "present"}
                 </span>
                 <span
                   className="text-[28px] leading-none font-black tracking-tighter text-white"

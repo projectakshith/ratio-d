@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import Dashboard from "./Dashboard";
 import MinimalAttendance from "./Attendance";
 import MinimalMarks from "./Marks";
+import MinimalTimetable from "./Timetable";
 import Navbar from "./Navbar";
 
 export default function MinimalTheme(props: any) {
@@ -68,6 +69,19 @@ export default function MinimalTheme(props: any) {
             </motion.div>
           )}
 
+          {activeTab === "attendance" && (
+            <motion.div
+              key="attendance"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.3 }}
+              className="h-full w-full overflow-hidden"
+            >
+              <MinimalAttendance />
+            </motion.div>
+          )}
+
           {activeTab === "home" && (
             <motion.div
               key="home"
@@ -85,16 +99,16 @@ export default function MinimalTheme(props: any) {
             </motion.div>
           )}
 
-          {activeTab === "attendance" && (
+          {activeTab === "timetable" && (
             <motion.div
-              key="attendance"
+              key="timetable"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.3 }}
               className="h-full w-full overflow-hidden"
             >
-              <MinimalAttendance />
+              <MinimalTimetable />
             </motion.div>
           )}
         </AnimatePresence>
