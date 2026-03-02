@@ -89,7 +89,7 @@ const MarksPage = ({ data }: { data: any }) => {
 
       const triggerLine =
         container.getBoundingClientRect().top + container.offsetHeight * 0.2;
-      let closestId = null;
+      let closestId: any = null;
       let minDistance = Infinity;
 
       itemRefs.current.forEach((el, index) => {
@@ -138,7 +138,6 @@ const MarksPage = ({ data }: { data: any }) => {
         <div className="absolute inset-0 pointer-events-none opacity-10 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] bg-repeat mix-blend-screen" />
       </div>
 
-      {/* DASHBOARD */}
       <div className="absolute top-0 left-0 w-full h-[45%] flex flex-col justify-between p-6 md:p-8 z-10">
         <div className="flex justify-between items-start">
           <div className="flex items-center gap-2 px-3 py-1 bg-white/10 rounded-full border border-white/5 backdrop-blur-md">
@@ -247,7 +246,6 @@ const MarksPage = ({ data }: { data: any }) => {
         </div>
       </div>
 
-      {/* LIST CONTAINER */}
       <div
         ref={listContainerRef}
         onScroll={handleScroll}
@@ -341,7 +339,6 @@ const MarksPage = ({ data }: { data: any }) => {
         </div>
       </div>
 
-      {/* INTRO OVERLAY */}
       <AnimatePresence>
         {introMode && (
           <motion.div
