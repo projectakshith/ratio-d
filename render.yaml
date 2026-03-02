@@ -1,0 +1,10 @@
+- type: web
+  name: nextjs-static
+  runtime: static
+  buildCommand: yarn; yarn build
+  staticPublishPath: out
+  pullRequestPreviewsEnabled: true   
+  envVars:
+  - key: NODE_ENV
+    value: production
+
