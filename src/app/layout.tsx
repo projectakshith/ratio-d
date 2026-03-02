@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Ratio'd",
+  title: "Ratio'd-dev",
   description: "cool looking and simple academia dashboard",
   manifest: "/manifest.json",
   themeColor: "#000000",
