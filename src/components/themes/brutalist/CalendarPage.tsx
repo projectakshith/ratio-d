@@ -84,20 +84,14 @@ const CalendarDay = memo(
 );
 CalendarDay.displayName = "CalendarDay";
 
-const CalendarPage = () => {
-  const [calendarData, setCalendarData] = useState([]);
+const CalendarPage = ({ calendarData, academia, data }: any) => {
   const [viewMonth, setViewMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [introMode, setIntroMode] = useState(true);
 
-  useEffect(() => {
-    fetch("/calendar_data.json")
-      .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data)) setCalendarData(data);
-      })
-      .catch((err) => console.error(err));
+  const activeData = calendarData || academia?.calendarData || [];
 
+  useEffect(() => {
     const timer = setTimeout(() => setIntroMode(false), 800);
     return () => clearTimeout(timer);
   }, []);
@@ -109,8 +103,8 @@ const CalendarPage = () => {
 
   const eventsMap = useMemo(() => {
     const map: any = {};
-    if (calendarData) {
-      calendarData.forEach((item: any) => {
+    if (activeData) {
+      activeData.forEach((item: any) => {
         const dateObj = new Date(item.date);
         if (!isNaN(dateObj.getTime())) {
           map[dateObj.toDateString()] = item;
@@ -118,7 +112,7 @@ const CalendarPage = () => {
       });
     }
     return map;
-  }, [calendarData]);
+  }, [activeData]);
 
   const getDaysInMonth = (year: number, month: number) =>
     new Date(year, month + 1, 0).getDate();
@@ -261,10 +255,8 @@ const CalendarPage = () => {
 
   return (
     <div className="h-full w-full flex flex-col bg-[#f5f6fc] text-[#050505] font-sans relative overflow-hidden touch-pan-y">
-      {/* Background container */}
       <div className="absolute inset-0 pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')] bg-repeat opacity-[0.03]" />
 
-      {/* DASHBOARD - Pre-rendered instantly beneath intro to prevent frame drops */}
       <motion.div
         className="w-full relative z-20 shadow-xl overflow-hidden flex flex-col shrink-0"
         initial={false}
@@ -320,7 +312,6 @@ const CalendarPage = () => {
         </div>
       </motion.div>
 
-      {/* CALENDAR GRID - Pre-rendered instantly beneath intro */}
       <div className="flex-1 flex flex-col pb-24 pt-6 px-4 z-10">
         <div className="flex justify-between items-center mb-6 px-1 relative">
           <div
@@ -362,7 +353,7 @@ const CalendarPage = () => {
         </div>
         <div className="flex-1 overflow-y-auto custom-scrollbar">
           <div className="grid grid-cols-7 gap-2 gap-y-3 justify-items-center">
-            {gridData.map((item: any, i: number) => {
+            {gridData.map((item: any) => {
               if (item.type === "padding")
                 return <div key={item.key} className="w-full" />;
               return (
@@ -377,7 +368,6 @@ const CalendarPage = () => {
         </div>
       </div>
 
-      {/* INTRO OVERLAY - High performance curtain fade */}
       <AnimatePresence>
         {introMode && (
           <motion.div
