@@ -20,6 +20,7 @@ const springTransition: any = {
   mass: 1,
 };
 
+// ADD : any TO SILENCE VERCEL TS COMPILER
 const accordionVariants: any = {
   hidden: {
     opacity: 0,
@@ -148,7 +149,6 @@ const HomeDashboard = ({
     <div className="h-full w-full bg-[#050505] relative overflow-hidden">
       <div className="absolute top-0 left-0 w-full h-[200px] bg-[#fdfdfd] z-0" />
 
-      {/* Pull to Refresh Indicator */}
       <div
         className="absolute top-0 left-0 w-full flex justify-center pt-8 z-0 transition-opacity duration-300"
         style={{
@@ -177,7 +177,6 @@ const HomeDashboard = ({
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
           className="flex flex-col min-h-full"
         >
-          {/* Header Section */}
           <motion.div
             layout
             initial={{ height: "auto", borderRadius: 0 }}
@@ -228,7 +227,7 @@ const HomeDashboard = ({
                     className="w-9 h-9 rounded-full overflow-hidden border-2 border-black/5 active:scale-90 transition-transform shadow-sm"
                   >
                     <img
-                      src="https://cdn.cloudflare.steamstatic.com/steamcommunity/public/images/avatars/c3/c33a1d7eec9e9ad8bfa7e82891e418b81dbc0fce_full.jpg"
+                      src="/image.png"
                       className="object-cover w-full h-full"
                       alt="Profile"
                     />
