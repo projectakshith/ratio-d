@@ -1,6 +1,6 @@
 {
-  "name": "Ratio'd",
-  "short_name": "Ratio'd",
+  "name": "Ratio'd-dev",
+  "short_name": "Ratio'd-dev",
   "description": "cool looking and simple academia dashboard",
   "start_url": "/",
   "display": "standalone",
