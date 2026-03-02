@@ -1,12 +1,13 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Calculator, Star, X } from "lucide-react";
+import { Calculator, X } from "lucide-react";
+import { processAndSortMarks, buildCourseMap } from "@/utils/marksLogic";
 
-export default function MinimalMarks() {
+export default function MinimalMarks({ data }: any) {
   const [mounted, setMounted] = useState(false);
   const [predictMode, setPredictMode] = useState(false);
-  const [predSubjectId, setPredSubjectId] = useState<number>(1);
+  const [predSubjectId, setPredSubjectId] = useState<number | null>(null);
   const [expectedMarks, setExpectedMarks] = useState<number>(0);
   const [targetGrade, setTargetGrade] = useState<number>(91);
 
@@ -14,73 +15,143 @@ export default function MinimalMarks() {
     setMounted(true);
   }, []);
 
-  const subjects = [
-    {
-      id: 1,
-      code: "dtm",
-      name: "discrete transforms",
-      ft1: 12,
-      ft2: null,
-      other: 24,
-      recent: "ft1 updated",
-    },
-    {
-      id: 2,
-      code: "oops",
-      name: "object oriented prog",
-      ft1: 14,
-      ft2: 13,
-      other: 28,
-      recent: "ft2 updated",
-    },
-    {
-      id: 3,
-      code: "ml",
-      name: "machine learning",
-      ft1: 10,
-      ft2: 11,
-      other: 25,
-      recent: null,
-    },
-    {
-      id: 4,
-      code: "dsa",
-      name: "data structures",
-      ft1: 15,
-      ft2: null,
-      other: 22,
-      recent: null,
-    },
-    {
-      id: 5,
-      code: "os",
-      name: "operating systems",
-      ft1: 6,
-      ft2: 7,
-      other: 12,
-      recent: null,
-    },
-    {
-      id: 6,
-      code: "dbms",
-      name: "database systems",
-      ft1: 10,
-      ft2: 8,
-      other: 18,
-      recent: null,
-    },
-  ];
+  const getAcronym = (name: string) => {
+    if (!name) return "";
+    const lowerName = name.toLowerCase().trim();
+    if (lowerName.includes("internet of things")) return "iot";
+    if (lowerName.includes("design thinking")) return "dtm";
 
-  const getInternalTotal = (sub: any) =>
-    (sub.ft1 || 0) + (sub.ft2 || 0) + (sub.other || 0);
+    const skipWords = [
+      "and",
+      "of",
+      "to",
+      "in",
+      "for",
+      "with",
+      "a",
+      "an",
+      "the",
+    ];
+    const parts = lowerName.split(/\s+/).filter((w) => !skipWords.includes(w));
+    if (parts.length === 1 && parts[0].length <= 5) return parts[0];
+    return parts.map((w) => w[0]).join("");
+  };
 
-  const getMarkColor = (mark: number | null, max: number) => {
-    if (mark === null || mark === undefined) return "text-[#111111]/20";
-    const ratio = mark / max;
-    if (ratio >= 0.75) return "text-[#111111]";
-    if (ratio >= 0.5) return "text-[#F97316]";
+  const getTheme = (pct: number, max: number) => {
+    if (max === 0)
+      return {
+        wrapperBg: "bg-[#F7F7F7]/50",
+        cardBg: "bg-white",
+        border: "border-[#111111]/10",
+        text: "text-[#111111]",
+        subText: "text-[#111111]/50",
+        boxBg: "bg-[#F7F7F7]",
+        dottedClass: "neutral-dotted",
+      };
+    if (pct >= 85)
+      return {
+        wrapperBg: "bg-[#F2FFDB]/60",
+        cardBg: "bg-white",
+        border: "border-[#85a818]/30",
+        text: "text-[#4d6600]",
+        subText: "text-[#4d6600]/60",
+        boxBg: "bg-[#F2FFDB]/40",
+        dottedClass: "safe-dotted",
+      };
+    if (pct >= 60)
+      return {
+        wrapperBg: "bg-[#FFF4E5]/70",
+        cardBg: "bg-white",
+        border: "border-[#F97316]/30",
+        text: "text-[#EA580C]",
+        subText: "text-[#EA580C]/60",
+        boxBg: "bg-[#FFF4E5]/50",
+        dottedClass: "danger-dotted",
+      };
+    return {
+      wrapperBg: "bg-[#FFEDED]/60",
+      cardBg: "bg-white",
+      border: "border-[#FF4D4D]/30",
+      text: "text-[#FF4D4D]",
+      subText: "text-[#FF4D4D]/70",
+      boxBg: "bg-[#FFEDED]/50",
+      dottedClass: "warning-dotted",
+    };
+  };
+
+  const getMarkColor = (got: number, max: number) => {
+    if (max === 0) return "text-[#111111]";
+    const pct = (got / max) * 100;
+    if (pct >= 75) return "text-[#85a818]";
+    if (pct >= 50) return "text-[#F97316]";
     return "text-[#FF4D4D]";
   };
+
+  const getBoxTheme = (got: number | null, max: number) => {
+    if (got === null || max === 0)
+      return {
+        boxBg: "bg-[#F7F7F7]",
+        text: "text-[#111111]/50",
+        subText: "text-[#111111]/40",
+        border: "border-[#111111]/5",
+      };
+    const pct = (got / max) * 100;
+    if (pct >= 75)
+      return {
+        boxBg: "bg-[#F2FFDB]/60",
+        text: "text-[#4d6600]",
+        subText: "text-[#4d6600]/60",
+        border: "border-[#85a818]/20",
+      };
+    if (pct >= 50)
+      return {
+        boxBg: "bg-[#FFF4E5]/70",
+        text: "text-[#EA580C]",
+        subText: "text-[#EA580C]/60",
+        border: "border-[#F97316]/20",
+      };
+    return {
+      boxBg: "bg-[#FFEDED]/60",
+      text: "text-[#FF4D4D]",
+      subText: "text-[#FF4D4D]/70",
+      border: "border-[#FF4D4D]/20",
+    };
+  };
+
+  const subjects = useMemo(() => {
+    if (!data?.marks || data.marks.length === 0) return [];
+    const courseMap = buildCourseMap(data);
+    const sorted = processAndSortMarks(data.marks, courseMap);
+
+    return sorted.map((sub: any, i: number) => {
+      let recent = null;
+      if (i < 2 && sub.assessments.length > 0) {
+        const lastAss = sub.assessments[sub.assessments.length - 1];
+        let recTitle = lastAss.title.toLowerCase();
+        if (recTitle.match(/ct[- ]?1/)) recTitle = "ft1";
+        else if (recTitle.match(/ct[- ]?2/)) recTitle = "ft2";
+        else if (recTitle.match(/ct[- ]?3/)) recTitle = "ct3";
+        else if (recTitle.includes("quiz")) recTitle = "quiz";
+        else if (recTitle.includes("assign")) recTitle = "assign";
+        else recTitle = recTitle.substring(0, 5);
+        recent = { test: recTitle, text: "updated" };
+      }
+
+      return {
+        ...sub,
+        displayCode: getAcronym(sub.title) || sub.code,
+        displayName: sub.title.toLowerCase(),
+        recent,
+        theme: getTheme(sub.percentage, sub.totalMax),
+      };
+    });
+  }, [data]);
+
+  useEffect(() => {
+    if (subjects.length > 0 && predSubjectId === null) {
+      setPredSubjectId(subjects[0].id);
+    }
+  }, [subjects, predSubjectId]);
 
   const handleExpectedChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let val = parseInt(e.target.value);
@@ -88,19 +159,36 @@ export default function MinimalMarks() {
     setExpectedMarks(Math.min(maxPossibleExpected, Math.max(0, val)));
   };
 
-  const recentlyUpdated = subjects.filter((s) => s.recent);
-  const allMarks = subjects.filter((s) => !s.recent);
-
-  const totalObtained = subjects.reduce(
-    (sum, sub) => sum + getInternalTotal(sub),
-    0,
+  const recentlyUpdated = subjects.filter(
+    (s: any, i: number) => i < 2 && s.assessments.length > 0,
   );
-  const maxTotal = subjects.length * 60;
+  const allMarks = subjects;
 
-  const activePredSub =
-    subjects.find((s) => s.id === predSubjectId) || subjects[0];
-  const currentInternals = getInternalTotal(activePredSub);
-  const maxPossibleExpected = 60 - currentInternals;
+  const totalObtained = useMemo(() => {
+    return subjects.reduce(
+      (acc: number, sub: any) =>
+        acc + sub.assessments.reduce((a: number, curr: any) => a + curr.got, 0),
+      0,
+    );
+  }, [subjects]);
+
+  const maxTotal = useMemo(() => {
+    return subjects.reduce(
+      (acc: number, sub: any) =>
+        acc + sub.assessments.reduce((a: number, curr: any) => a + curr.max, 0),
+      0,
+    );
+  }, [subjects]);
+
+  const activePredSub = subjects.find((s: any) => s.id === predSubjectId) ||
+    subjects[0] || {
+      displayCode: "--",
+      displayName: "no data",
+      totalGot: 0,
+      totalMax: 60,
+    };
+  const currentInternals = activePredSub.totalGot || 0;
+  const maxPossibleExpected = Math.max(0, 60 - currentInternals);
   const projectedInternals = currentInternals + expectedMarks;
   const semRequired = targetGrade - projectedInternals;
 
@@ -111,7 +199,7 @@ export default function MinimalMarks() {
     { label: "B+", min: 61 },
   ];
 
-  const baseGpa = 8.74;
+  const baseGpa = data?.profile?.cgpa ? parseFloat(data.profile.cgpa) : 8.74;
   let gpaOffset = 0;
   if (targetGrade === 91) gpaOffset = 0.08;
   else if (targetGrade === 81) gpaOffset = 0.04;
@@ -126,6 +214,23 @@ export default function MinimalMarks() {
         ? "text-[#FF4D4D]"
         : "text-white";
 
+  const recentOverallPct =
+    recentlyUpdated.length > 0
+      ? recentlyUpdated.reduce((acc: number, s: any) => acc + s.percentage, 0) /
+        recentlyUpdated.length
+      : 0;
+
+  const recentBgTheme = getTheme(recentOverallPct, 100);
+
+  const gpaFlavorText =
+    baseGpa >= 9.0
+      ? "academic weapon"
+      : baseGpa >= 8.0
+        ? "keeping it steady"
+        : baseGpa >= 7.0
+          ? "needs a slight push"
+          : "your gpa is in the trenches";
+
   if (!mounted) return null;
 
   return (
@@ -134,14 +239,13 @@ export default function MinimalMarks() {
         dangerouslySetInnerHTML={{
           __html: `
           @import url('https://fonts.googleapis.com/css2?family=Afacad:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700;800;900&display=swap');
-
           .no-scrollbar::-webkit-scrollbar { display: none; }
           .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-          .recent-dotted {
-            background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='24' ry='24' stroke='%23111111' stroke-width='3' stroke-dasharray='6%2c 10' stroke-dashoffset='0' stroke-linecap='round'/%3e%3c/svg%3e");
-            border-radius: 24px;
-          }
+          .warning-dotted { background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='24' ry='24' stroke='%23FF4D4D' stroke-opacity='0.4' stroke-width='3' stroke-dasharray='6%2c 10' stroke-dashoffset='0' stroke-linecap='round'/%3e%3c/svg%3e"); border-radius: 24px; }
+          .safe-dotted { background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='24' ry='24' stroke='%2385a818' stroke-opacity='0.4' stroke-width='3' stroke-dasharray='6%2c 10' stroke-dashoffset='0' stroke-linecap='round'/%3e%3c/svg%3e"); border-radius: 24px; }
+          .danger-dotted { background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='24' ry='24' stroke='%23F97316' stroke-opacity='0.4' stroke-width='3' stroke-dasharray='6%2c 10' stroke-dashoffset='0' stroke-linecap='round'/%3e%3c/svg%3e"); border-radius: 24px; }
+          .neutral-dotted { background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='24' ry='24' stroke='%23111111' stroke-opacity='0.15' stroke-width='3' stroke-dasharray='6%2c 10' stroke-dashoffset='0' stroke-linecap='round'/%3e%3c/svg%3e"); border-radius: 24px; }
         `,
         }}
       />
@@ -155,23 +259,25 @@ export default function MinimalMarks() {
             className="w-full flex flex-col items-center mt-2 mb-12 shrink-0"
           >
             <span
-              className="text-[12px] font-bold lowercase tracking-[0.3em] text-[#111111]/40 mb-3"
+              className="text-[12px] font-bold lowercase tracking-[0.3em] text-[#111111] mb-3"
               style={{ fontFamily: "'Montserrat', sans-serif" }}
             >
               total marks
             </span>
             <div className="flex items-baseline gap-1">
               <span
-                className="text-[7.5rem] leading-[0.8] font-black tracking-tighter text-[#111111]"
+                className={`text-[7.5rem] leading-[0.8] font-black tracking-tighter ${getMarkColor(totalObtained, maxTotal)}`}
                 style={{ fontFamily: "'Montserrat', sans-serif" }}
               >
-                {totalObtained}
+                {Number.isInteger(totalObtained)
+                  ? totalObtained
+                  : totalObtained.toFixed(1)}
               </span>
               <span
                 className="text-[2.5rem] font-bold text-[#111111]/40"
                 style={{ fontFamily: "'Montserrat', sans-serif" }}
               >
-                /{maxTotal}
+                /{maxTotal > 0 ? maxTotal : "0"}
               </span>
             </div>
           </motion.div>
@@ -211,204 +317,264 @@ export default function MinimalMarks() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.2 }}
-              className="w-full recent-dotted p-5 flex flex-col gap-4 mb-8 bg-white shrink-0"
+              className={`w-full ${recentBgTheme.dottedClass} p-5 flex flex-col gap-4 mb-8 shrink-0 ${recentBgTheme.wrapperBg}`}
             >
               <div className="flex items-center gap-3 w-full">
                 <span
-                  className="text-[12px] font-bold lowercase tracking-[0.25em] text-[#111111] whitespace-nowrap"
+                  className={`text-[12px] font-bold lowercase tracking-[0.25em] whitespace-nowrap ${recentBgTheme.text}`}
                   style={{ fontFamily: "'Montserrat', sans-serif" }}
                 >
                   recently updated
                 </span>
-                <div className="flex-1 h-[1.5px] bg-[#111111]/10 rounded-full" />
+                <div
+                  className={`flex-1 h-[1.5px] rounded-full opacity-40 bg-current ${recentBgTheme.text}`}
+                />
               </div>
 
-              {recentlyUpdated.map((sub) => {
-                const total = getInternalTotal(sub);
-                return (
-                  <div
-                    key={sub.id}
-                    className="w-full border-[1.5px] border-[#111111]/10 rounded-[24px] p-5 flex items-center justify-between bg-white shadow-sm transition-all"
-                  >
-                    <div className="flex flex-col items-center justify-center w-[70px] shrink-0">
+              {recentlyUpdated.map((sub: any) => (
+                <div
+                  key={sub.id}
+                  className={`w-full border-[1.5px] rounded-[24px] p-4 flex flex-col shadow-sm transition-all gap-4 ${sub.theme.cardBg} ${sub.theme.border}`}
+                >
+                  <div className="flex justify-between items-center w-full">
+                    <div className="flex flex-col items-center justify-center min-w-[85px] shrink-0 px-1">
                       <span
-                        className={`text-[3.5rem] leading-[0.8] font-black tracking-tighter ${getMarkColor(total, 60)}`}
+                        className={`text-[3.2rem] leading-[0.8] font-black tracking-tighter ${sub.theme.text}`}
                         style={{ fontFamily: "'Montserrat', sans-serif" }}
                       >
-                        {total}
+                        {Number.isInteger(sub.totalGot)
+                          ? sub.totalGot
+                          : sub.totalGot.toFixed(1)}
                       </span>
                       <span
-                        className="text-[10px] font-bold uppercase tracking-widest mt-2 text-[#111111]/40"
+                        className={`text-[10px] font-bold uppercase tracking-widest mt-1 text-center ${sub.theme.subText}`}
                         style={{ fontFamily: "'Afacad', sans-serif" }}
                       >
-                        out of 60
+                        out of {sub.totalMax}
                       </span>
                     </div>
 
                     <div className="flex-1 flex flex-col items-end text-right min-w-0 ml-4">
                       <span
-                        className="text-[18px] font-black uppercase tracking-widest leading-none mb-0.5 truncate w-full text-[#111111]"
+                        className={`text-[16px] font-black uppercase tracking-widest leading-[1.1] truncate w-full ${sub.theme.text}`}
                         style={{ fontFamily: "'Montserrat', sans-serif" }}
                       >
-                        {sub.code}
+                        {sub.displayCode}
                       </span>
                       <span
-                        className="text-[14px] font-medium lowercase tracking-wide mb-3 truncate w-full text-[#111111]/50"
+                        className={`text-[13px] font-medium lowercase tracking-wide leading-[1.1] mt-0.5 truncate w-full ${sub.theme.subText}`}
                         style={{ fontFamily: "'Afacad', sans-serif" }}
                       >
-                        {sub.name}
+                        {sub.displayName}
                       </span>
-                      <div className="bg-[#F7F7F7] border-[1px] border-[#111111]/10 px-3 py-1.5 rounded-full flex items-center justify-center">
-                        <span
-                          className="text-[9px] font-bold tracking-widest text-[#111111]/60 uppercase"
-                          style={{ fontFamily: "'Afacad', sans-serif" }}
+                      {sub.recent && (
+                        <div
+                          className={`border-[1px] px-3 py-1.5 rounded-full mt-2 flex items-center justify-center ${sub.theme.boxBg} ${sub.theme.border}`}
                         >
-                          {sub.recent}
-                        </span>
-                      </div>
+                          <span
+                            className={`text-[9px] uppercase tracking-widest ${sub.theme.text}`}
+                            style={{ fontFamily: "'Afacad', sans-serif" }}
+                          >
+                            <strong className="font-black">
+                              {sub.recent.test}
+                            </strong>{" "}
+                            <span className="opacity-70">
+                              {sub.recent.text}
+                            </span>
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
-                );
-              })}
+
+                  <div className="flex gap-2 w-full mt-1 overflow-x-auto no-scrollbar pb-1">
+                    {sub.assessments.slice(-3).map((box: any, idx: number) => {
+                      const boxTheme = getBoxTheme(box.got, box.max);
+                      return (
+                        <div
+                          key={idx}
+                          className={`min-w-[65px] flex-1 rounded-[12px] p-2 flex flex-col items-center justify-center border-[1px] ${boxTheme.boxBg} ${boxTheme.border}`}
+                        >
+                          <span
+                            className={`text-[12px] font-bold uppercase tracking-widest mb-0.5 ${boxTheme.subText}`}
+                            style={{ fontFamily: "'Afacad', sans-serif" }}
+                          >
+                            {box.title}
+                          </span>
+                          <div className="flex items-baseline justify-center gap-0.5 w-full">
+                            <span
+                              className={`text-[18px] font-black leading-none tracking-tighter ${boxTheme.text}`}
+                              style={{ fontFamily: "'Montserrat', sans-serif" }}
+                            >
+                              {Number.isInteger(box.got)
+                                ? box.got
+                                : box.got.toFixed(1)}
+                            </span>
+                            <span
+                              className={`text-[10px] font-bold ${boxTheme.subText}`}
+                              style={{ fontFamily: "'Montserrat', sans-serif" }}
+                            >
+                              /{box.max}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {Array.from({
+                      length: Math.max(0, 3 - sub.assessments.length),
+                    }).map((_, idx) => (
+                      <div
+                        key={`empty-${idx}`}
+                        className={`min-w-[65px] flex-1 rounded-[12px] p-2 flex flex-col items-center justify-center border-[1px] opacity-40 bg-[#F7F7F7] border-[#111111]/5`}
+                      >
+                        <span
+                          className={`text-[12px] font-bold uppercase tracking-widest mb-0.5 text-[#111111]/50`}
+                          style={{ fontFamily: "'Afacad', sans-serif" }}
+                        >
+                          --
+                        </span>
+                        <div className="flex items-baseline justify-center gap-0.5 w-full">
+                          <span
+                            className={`text-[18px] font-black leading-none tracking-tighter text-[#111111]/50`}
+                            style={{ fontFamily: "'Montserrat', sans-serif" }}
+                          >
+                            -
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
 
               <div className="w-full flex justify-center mt-1">
                 <span
-                  className="text-[11px] font-bold lowercase tracking-widest text-[#111111]/50"
+                  className={`text-[11px] font-bold lowercase tracking-widest ${recentBgTheme.text}`}
                   style={{ fontFamily: "'Afacad', sans-serif" }}
                 >
-                  your gpa is in the trenches
+                  {gpaFlavorText}
                 </span>
               </div>
             </motion.div>
           )}
 
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.3 }}
-            className="flex flex-col gap-3.5 w-full shrink-0"
-          >
-            <div className="flex items-center gap-3 mb-2 w-full">
-              <span
-                className="text-[12px] font-bold lowercase tracking-[0.25em] text-[#111111]/40 whitespace-nowrap"
-                style={{ fontFamily: "'Montserrat', sans-serif" }}
-              >
-                all subjects
-              </span>
-              <div className="flex-1 h-[1.5px] bg-[#111111]/10 rounded-full" />
-            </div>
+          {allMarks.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.3 }}
+              className="flex flex-col gap-3.5 w-full shrink-0"
+            >
+              <div className="flex items-center gap-3 mb-2 w-full">
+                <span
+                  className="text-[12px] font-bold lowercase tracking-[0.25em] text-[#111111]/40 whitespace-nowrap"
+                  style={{ fontFamily: "'Montserrat', sans-serif" }}
+                >
+                  all subjects
+                </span>
+                <div className="flex-1 h-[1.5px] bg-[#111111]/10 rounded-full" />
+              </div>
 
-            {allMarks.map((sub) => {
-              const total = getInternalTotal(sub);
-              return (
+              {allMarks.map((sub: any) => (
                 <div
                   key={sub.id}
-                  className="w-full border-[1.5px] border-[#111111]/10 rounded-[24px] p-5 flex flex-col bg-white shadow-sm gap-5 transition-all"
+                  className="w-full border-[1.5px] rounded-[24px] p-4 flex flex-col shadow-sm gap-4 transition-all bg-white border-[#111111]/10"
                 >
                   <div className="flex justify-between items-center w-full">
-                    <div className="flex flex-col items-center justify-center w-[70px] shrink-0">
+                    <div className="flex flex-col items-center justify-center min-w-[85px] shrink-0 px-1">
                       <span
-                        className={`text-[3.5rem] leading-[0.8] font-black tracking-tighter ${getMarkColor(total, 60)}`}
+                        className="text-[3.2rem] leading-[0.8] font-black tracking-tighter text-[#111111]"
                         style={{ fontFamily: "'Montserrat', sans-serif" }}
                       >
-                        {total}
+                        {Number.isInteger(sub.totalGot)
+                          ? sub.totalGot
+                          : sub.totalGot.toFixed(1)}
                       </span>
                       <span
-                        className="text-[10px] font-bold uppercase tracking-widest mt-2 text-[#111111]/40"
+                        className="text-[10px] font-bold uppercase tracking-widest mt-1 text-center text-[#111111]/40"
                         style={{ fontFamily: "'Afacad', sans-serif" }}
                       >
-                        out of 60
+                        out of {sub.totalMax}
                       </span>
                     </div>
 
                     <div className="flex-1 flex flex-col items-end text-right min-w-0 ml-4">
                       <span
-                        className="text-[18px] font-black uppercase tracking-widest leading-none mb-0.5 truncate w-full text-[#111111]"
+                        className="text-[16px] font-black uppercase tracking-widest leading-[1.1] truncate w-full text-[#111111]"
                         style={{ fontFamily: "'Montserrat', sans-serif" }}
                       >
-                        {sub.code}
+                        {sub.displayCode}
                       </span>
                       <span
-                        className="text-[14px] font-medium lowercase tracking-wide mb-1 truncate w-full text-[#111111]/50"
+                        className="text-[13px] font-medium lowercase tracking-wide leading-[1.1] mt-0.5 truncate w-full text-[#111111]/50"
                         style={{ fontFamily: "'Afacad', sans-serif" }}
                       >
-                        {sub.name}
+                        {sub.displayName}
                       </span>
                     </div>
                   </div>
 
-                  <div className="flex gap-2 w-full mt-1">
-                    <div className="flex-1 bg-[#F7F7F7] rounded-[12px] p-2.5 flex flex-col items-center justify-center">
-                      <span
-                        className="text-[12px] font-bold uppercase tracking-widest text-[#111111]/50 mb-1"
-                        style={{ fontFamily: "'Afacad', sans-serif" }}
+                  <div className="flex gap-2 w-full mt-1 overflow-x-auto no-scrollbar pb-1">
+                    {sub.assessments.slice(-3).map((box: any, idx: number) => {
+                      const boxTheme = getBoxTheme(box.got, box.max);
+                      return (
+                        <div
+                          key={idx}
+                          className={`min-w-[65px] flex-1 rounded-[12px] p-2 flex flex-col items-center justify-center border-[1px] ${boxTheme.boxBg} ${boxTheme.border}`}
+                        >
+                          <span
+                            className={`text-[12px] font-bold uppercase tracking-widest mb-0.5 ${boxTheme.subText}`}
+                            style={{ fontFamily: "'Afacad', sans-serif" }}
+                          >
+                            {box.title}
+                          </span>
+                          <div className="flex items-baseline justify-center gap-0.5 w-full">
+                            <span
+                              className={`text-[18px] font-black leading-none tracking-tighter ${boxTheme.text}`}
+                              style={{ fontFamily: "'Montserrat', sans-serif" }}
+                            >
+                              {Number.isInteger(box.got)
+                                ? box.got
+                                : box.got.toFixed(1)}
+                            </span>
+                            <span
+                              className={`text-[10px] font-bold ${boxTheme.subText}`}
+                              style={{ fontFamily: "'Montserrat', sans-serif" }}
+                            >
+                              /{box.max}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {Array.from({
+                      length: Math.max(0, 3 - sub.assessments.length),
+                    }).map((_, idx) => (
+                      <div
+                        key={`empty-${idx}`}
+                        className="min-w-[65px] flex-1 rounded-[12px] p-2 flex flex-col items-center justify-center border-[1px] opacity-40 bg-[#F7F7F7] border-[#111111]/5"
                       >
-                        ft1
-                      </span>
-                      <div className="flex items-baseline gap-0.5">
                         <span
-                          className="text-[24px] font-black leading-none tracking-tighter text-[#111111]"
-                          style={{ fontFamily: "'Montserrat', sans-serif" }}
+                          className="text-[12px] font-bold uppercase tracking-widest mb-0.5 text-[#111111]/50"
+                          style={{ fontFamily: "'Afacad', sans-serif" }}
                         >
-                          {sub.ft1 ?? "-"}
+                          --
                         </span>
-                        <span
-                          className="text-[11px] font-bold text-[#111111]/40"
-                          style={{ fontFamily: "'Montserrat', sans-serif" }}
-                        >
-                          /15
-                        </span>
+                        <div className="flex items-baseline justify-center gap-0.5 w-full">
+                          <span
+                            className="text-[18px] font-black leading-none tracking-tighter text-[#111111]/50"
+                            style={{ fontFamily: "'Montserrat', sans-serif" }}
+                          >
+                            -
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex-1 bg-[#F7F7F7] rounded-[12px] p-2.5 flex flex-col items-center justify-center">
-                      <span
-                        className="text-[12px] font-bold uppercase tracking-widest text-[#111111]/50 mb-1"
-                        style={{ fontFamily: "'Afacad', sans-serif" }}
-                      >
-                        ft2
-                      </span>
-                      <div className="flex items-baseline gap-0.5">
-                        <span
-                          className="text-[24px] font-black leading-none tracking-tighter text-[#111111]"
-                          style={{ fontFamily: "'Montserrat', sans-serif" }}
-                        >
-                          {sub.ft2 ?? "-"}
-                        </span>
-                        <span
-                          className="text-[11px] font-bold text-[#111111]/40"
-                          style={{ fontFamily: "'Montserrat', sans-serif" }}
-                        >
-                          /15
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex-1 bg-[#F7F7F7] rounded-[12px] p-2.5 flex flex-col items-center justify-center">
-                      <span
-                        className="text-[12px] font-bold uppercase tracking-widest text-[#111111]/50 mb-1"
-                        style={{ fontFamily: "'Afacad', sans-serif" }}
-                      >
-                        oth
-                      </span>
-                      <div className="flex items-baseline gap-0.5">
-                        <span
-                          className="text-[24px] font-black leading-none tracking-tighter text-[#111111]"
-                          style={{ fontFamily: "'Montserrat', sans-serif" }}
-                        >
-                          {sub.other ?? "-"}
-                        </span>
-                        <span
-                          className="text-[11px] font-bold text-[#111111]/40"
-                          style={{ fontFamily: "'Montserrat', sans-serif" }}
-                        >
-                          /30
-                        </span>
-                      </div>
-                    </div>
+                    ))}
                   </div>
                 </div>
-              );
-            })}
-          </motion.div>
+              ))}
+            </motion.div>
+          )}
         </div>
 
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-[#F7F7F7] via-[#F7F7F7] to-transparent px-6 pt-24 pb-[30px] z-20 flex justify-between items-end pointer-events-none">
@@ -470,14 +636,14 @@ export default function MinimalMarks() {
                   className="text-[16px] font-black uppercase tracking-widest text-white/90 shrink-0"
                   style={{ fontFamily: "'Montserrat', sans-serif" }}
                 >
-                  {activePredSub.code}
+                  {activePredSub.displayCode}
                 </span>
                 <div className="w-[1.5px] h-4 bg-white/20 shrink-0" />
                 <span
                   className="text-[13px] font-medium lowercase tracking-wide text-white/60 truncate min-w-0"
                   style={{ fontFamily: "'Afacad', sans-serif" }}
                 >
-                  {activePredSub.name}
+                  {activePredSub.displayName}
                 </span>
               </div>
 
@@ -538,7 +704,9 @@ export default function MinimalMarks() {
                       className="text-[2rem] leading-[1] font-black text-white"
                       style={{ fontFamily: "'Montserrat', sans-serif" }}
                     >
-                      {currentInternals}
+                      {Number.isInteger(currentInternals)
+                        ? currentInternals
+                        : currentInternals.toFixed(1)}
                     </span>
                     <span
                       className="text-[12px] font-bold text-white/40"
@@ -636,7 +804,7 @@ export default function MinimalMarks() {
                   className="flex gap-2 overflow-x-auto no-scrollbar w-full px-2"
                   onPointerDownCapture={(e) => e.stopPropagation()}
                 >
-                  {subjects.map((sub) => (
+                  {subjects.map((sub: any) => (
                     <button
                       key={sub.id}
                       onClick={() => {
@@ -650,7 +818,7 @@ export default function MinimalMarks() {
                       }`}
                       style={{ fontFamily: "'Afacad', sans-serif" }}
                     >
-                      {sub.code}
+                      {sub.displayCode}
                     </button>
                   ))}
                 </div>
