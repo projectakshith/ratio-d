@@ -79,6 +79,25 @@ export const processAndSortMarks = (rawMarks: any[], courseMap: any) => {
         code ||
         "Unknown Subject";
 
+      let status: "cooked" | "danger" | "safe" | "neutral" = "neutral";
+      let badge = "pending";
+
+      if (!actualIsNA && max > 0) {
+        if (percentage >= 80) {
+          status = "safe";
+          badge = "outstanding";
+        } else if (percentage >= 60) {
+          status = "danger";
+          badge = "average";
+        } else {
+          status = "cooked";
+          badge = "critical";
+        }
+      }
+
+      const latestTest =
+        assessments.length > 0 ? assessments[assessments.length - 1] : null;
+
       return {
         id: index,
         title,
@@ -89,6 +108,13 @@ export const processAndSortMarks = (rawMarks: any[], courseMap: any) => {
         percentage,
         isNA: actualIsNA,
         assessments,
+
+        score: got,
+        max: max === 0 ? 60 : max,
+        testName: latestTest ? latestTest.title : "total",
+        displayScore: actualIsNA ? "N/A" : got.toString(),
+        status,
+        badge,
       };
     })
     .sort((a: any, b: any) => {
@@ -96,4 +122,24 @@ export const processAndSortMarks = (rawMarks: any[], courseMap: any) => {
       if (!a.isNA && b.isNA) return -1;
       return b.percentage - a.percentage;
     });
+};
+
+export const getActiveSubject = (sortedMarks: any[], selectedId: any) => {
+  if (selectedId === null && sortedMarks.length > 0) return sortedMarks[0];
+  return (
+    sortedMarks.find((s: any) => s.id === selectedId) || sortedMarks[0] || {}
+  );
+};
+
+export const getMarksTheme = (status: string) => {
+  switch (status) {
+    case "safe":
+      return { bg: "#ceff1c", text: "text-[#050505]", bar: "bg-[#050505]" };
+    case "cooked":
+      return { bg: "#ff003c", text: "text-white", bar: "bg-white" };
+    case "danger":
+      return { bg: "#ffb800", text: "text-[#050505]", bar: "bg-[#050505]" };
+    default:
+      return { bg: "#f0f0f0", text: "text-[#050505]", bar: "bg-[#050505]" };
+  }
 };

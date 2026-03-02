@@ -3,8 +3,13 @@ import React, { useState, useMemo, useRef, useEffect } from "react";
 import { motion, AnimatePresence, animate } from "framer-motion";
 import { Zap, AlertCircle } from "lucide-react";
 import { getRandomRoast } from "@/utils/flavortext";
+import {
+  processAndSortMarks,
+  getActiveSubject,
+  buildCourseMap,
+} from "@/utils/marksLogic";
 
-const ScoreCounter = ({ value }) => {
+const ScoreCounter = ({ value }: any) => {
   const nodeRef = useRef<any>(null);
   const prevValue = useRef(0);
 
@@ -20,7 +25,7 @@ const ScoreCounter = ({ value }) => {
       duration: 0.8,
       ease: "circOut",
       onUpdate: (v) => {
-        node.textContent = v.toFixed(1);
+        node.textContent = Number.isInteger(v) ? v.toString() : v.toFixed(1);
       },
     });
     prevValue.current = numericValue;
@@ -37,88 +42,15 @@ const MarksPage = ({ data }: { data: any }) => {
   const listContainerRef = useRef<any>(null);
   const scrollTimeout = useRef<any>(null);
 
-  const courseMap = useMemo(() => {
-    const map: any = {};
-    if (data?.attendance) {
-      data.attendance.forEach((sub: any) => {
-        if (sub.code && sub.title) {
-          map[sub.code.trim()] = sub.title;
-        }
-      });
-    }
-    return map;
-  }, [data]);
-
+  const courseMap = useMemo(() => buildCourseMap(data), [data]);
   const rawMarks = Array.isArray(data?.marks) ? data.marks : [];
 
   const sortedMarks = useMemo(() => {
-    return rawMarks
-      .map((subject: any, index: number) => {
-        const assessments = subject.assessments || [];
-        const latestTest =
-          assessments.length > 0 ? assessments[assessments.length - 1] : null;
-        const perfString = subject.performance || "N/A";
-        const isNA = perfString === "N/A" || perfString === ".";
-        let got = 0;
-        let max = 0;
-        if (!isNA && perfString.includes("/")) {
-          const parts = perfString.split("/");
-          got = parseFloat(parts[0]);
-          max = parseFloat(parts[1]);
-        } else if (!isNA) {
-          got = parseFloat(perfString);
-          max = 100;
-        }
-        const percentage = max > 0 ? (got / max) * 100 : 0;
-        const code = subject.courseCode || "";
-        const cleanCode = code.trim();
-        const title =
-          courseMap[cleanCode] ||
-          subject.courseTitle ||
-          code ||
-          "Unknown Subject";
-        let status: "cooked" | "danger" | "safe" | "neutral" = "neutral";
-        let badge = "pending";
-        if (!isNA && max > 0) {
-          if (percentage >= 85) {
-            status = "safe";
-            badge = "outstanding";
-          } else if (percentage >= 70) {
-            status = "danger";
-            badge = "average";
-          } else {
-            status = "cooked";
-            badge = "critical";
-          }
-        }
-        return {
-          id: index,
-          title,
-          code: cleanCode,
-          type: subject.type || "Theory",
-          score: got,
-          max: max,
-          testName: latestTest ? latestTest.title : "total",
-          percentage: Math.round(percentage),
-          displayScore: isNA ? "N/A" : got.toString(),
-          status,
-          badge,
-          isNA,
-          assessments,
-        };
-      })
-      .sort((a: any, b: any) => {
-        if (a.isNA && !b.isNA) return 1;
-        if (!a.isNA && b.isNA) return -1;
-        return b.percentage - a.percentage;
-      });
+    return processAndSortMarks(rawMarks, courseMap);
   }, [rawMarks, courseMap]);
 
   const activeSubject = useMemo(() => {
-    if (selectedId === null && sortedMarks.length > 0) return sortedMarks[0];
-    return (
-      sortedMarks.find((s: any) => s.id === selectedId) || sortedMarks[0] || {}
-    );
+    return getActiveSubject(sortedMarks, selectedId);
   }, [selectedId, sortedMarks]);
 
   const currentRoast = useMemo(() => {
@@ -184,6 +116,7 @@ const MarksPage = ({ data }: { data: any }) => {
       : activeSubject.status === "danger"
         ? "text-[#ffb800]"
         : "text-[#ff003c]";
+
   const barColorClass =
     activeSubject.status === "safe"
       ? "bg-[#ceff1c]"
@@ -205,7 +138,7 @@ const MarksPage = ({ data }: { data: any }) => {
         <div className="absolute inset-0 pointer-events-none opacity-10 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] bg-repeat mix-blend-screen" />
       </div>
 
-      {/* DASHBOARD - Always rendered */}
+      {/* DASHBOARD */}
       <div className="absolute top-0 left-0 w-full h-[45%] flex flex-col justify-between p-6 md:p-8 z-10">
         <div className="flex justify-between items-start">
           <div className="flex items-center gap-2 px-3 py-1 bg-white/10 rounded-full border border-white/5 backdrop-blur-md">
@@ -228,9 +161,9 @@ const MarksPage = ({ data }: { data: any }) => {
             </span>
           </div>
         </div>
+
         <div className="my-auto flex flex-col justify-center">
           <div className="flex items-baseline gap-6">
-            {/* Added tracking-wide for increased letter spacing on big numbers */}
             <span
               className={`text-[20vw] md:text-[8rem] leading-[0.8] font-black tracking-wide transition-colors duration-300 ease-out ${themeColorClass}`}
               style={{ fontFamily: "Urbanosta" }}
@@ -243,7 +176,10 @@ const MarksPage = ({ data }: { data: any }) => {
                   className={`text-xl font-bold opacity-40 transition-colors duration-300 ease-out ${themeColorClass}`}
                   style={{ fontFamily: "Urbanosta" }}
                 >
-                  /{activeSubject.max.toFixed(1)}
+                  /
+                  {Number.isInteger(activeSubject.max)
+                    ? activeSubject.max
+                    : activeSubject.max.toFixed(1)}
                 </span>
                 <span
                   className={`text-[12px] font-black uppercase tracking-tight opacity-40 transition-colors duration-300 ease-out ${themeColorClass}`}
@@ -261,6 +197,7 @@ const MarksPage = ({ data }: { data: any }) => {
             </span>
           )}
         </div>
+
         <div className="pb-1">
           <h3
             className="text-xl md:text-2xl font-bold lowercase leading-tight mb-4 line-clamp-1 text-white"
@@ -310,7 +247,7 @@ const MarksPage = ({ data }: { data: any }) => {
         </div>
       </div>
 
-      {/* LIST CONTAINER - Pre rendered */}
+      {/* LIST CONTAINER */}
       <div
         ref={listContainerRef}
         onScroll={handleScroll}
@@ -329,6 +266,7 @@ const MarksPage = ({ data }: { data: any }) => {
             let itemColor = "text-[#050505]";
             let barColor = "bg-[#050505]";
             let pillColor = "bg-[#ceff1c]";
+
             if (subject.status === "cooked") {
               itemColor = "text-[#ff003c]";
               pillColor = "bg-[#ff003c]";
@@ -338,11 +276,14 @@ const MarksPage = ({ data }: { data: any }) => {
               pillColor = "bg-[#ffb800]";
               barColor = "bg-[#ffb800]";
             }
+
             return (
               <div
                 key={subject.id}
                 data-id={subject.id}
-                ref={(el) => (itemRefs.current[index] = el)}
+                ref={(el) => {
+                  itemRefs.current[index] = el;
+                }}
                 onClick={() => {
                   itemRefs.current[index]?.scrollIntoView({
                     behavior: "smooth",
@@ -396,7 +337,6 @@ const MarksPage = ({ data }: { data: any }) => {
             );
           })}
 
-          {/* Small spacer to allow final item to scroll up */}
           <div className="h-[20vh] shrink-0 pointer-events-none" />
         </div>
       </div>
