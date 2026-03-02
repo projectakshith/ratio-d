@@ -11,16 +11,16 @@ import {
   GraduationCap,
 } from "lucide-react";
 import { BentoTile } from "./BentoTile";
-import { StudentProfile, AttendanceRecord, ScheduleData } from "@/types";
+import { StudentProfile, AttendanceRecord } from "@/types";
 
-const springTransition = {
+const springTransition: any = {
   type: "spring",
   stiffness: 400,
   damping: 30,
   mass: 1,
 };
 
-const accordionVariants = {
+const accordionVariants: any = {
   hidden: {
     opacity: 0,
     height: 0,
