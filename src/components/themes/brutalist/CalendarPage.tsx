@@ -209,7 +209,7 @@ const CalendarPage = ({ calendarData, academia, data }: any) => {
   const gridData = useMemo(() => {
     const daysInMonth = getDaysInMonth(viewYear, viewMonthIndex);
     const startOffset = getFirstDayOfMonth(viewYear, viewMonthIndex);
-    const slots = [];
+    const slots: any[] = []; // Explicit type definition fixes the build error
 
     for (let i = 0; i < startOffset; i++)
       slots.push({ type: "padding", key: `prev-${i}` });
@@ -255,8 +255,10 @@ const CalendarPage = ({ calendarData, academia, data }: any) => {
 
   return (
     <div className="h-full w-full flex flex-col bg-[#f5f6fc] text-[#050505] font-sans relative overflow-hidden touch-pan-y">
+      {/* Background container */}
       <div className="absolute inset-0 pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')] bg-repeat opacity-[0.03]" />
 
+      {/* DASHBOARD */}
       <motion.div
         className="w-full relative z-20 shadow-xl overflow-hidden flex flex-col shrink-0"
         initial={false}
@@ -312,6 +314,7 @@ const CalendarPage = ({ calendarData, academia, data }: any) => {
         </div>
       </motion.div>
 
+      {/* CALENDAR GRID */}
       <div className="flex-1 flex flex-col pb-24 pt-6 px-4 z-10">
         <div className="flex justify-between items-center mb-6 px-1 relative">
           <div
@@ -353,7 +356,7 @@ const CalendarPage = ({ calendarData, academia, data }: any) => {
         </div>
         <div className="flex-1 overflow-y-auto custom-scrollbar">
           <div className="grid grid-cols-7 gap-2 gap-y-3 justify-items-center">
-            {gridData.map((item: any) => {
+            {gridData.map((item: any, i: number) => {
               if (item.type === "padding")
                 return <div key={item.key} className="w-full" />;
               return (
@@ -368,6 +371,7 @@ const CalendarPage = ({ calendarData, academia, data }: any) => {
         </div>
       </div>
 
+      {/* INTRO OVERLAY */}
       <AnimatePresence>
         {introMode && (
           <motion.div
