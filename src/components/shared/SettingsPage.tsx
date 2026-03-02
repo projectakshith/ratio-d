@@ -22,7 +22,7 @@ const THEMES = [
   { id: "minimalist", name: "Minimalist" },
 ];
 
-const backdropVariants = {
+const backdropVariants: any = {
   hidden: { opacity: 0, backdropFilter: "blur(0px)" },
   visible: {
     opacity: 1,
@@ -36,7 +36,7 @@ const backdropVariants = {
   },
 };
 
-const panelVariants = {
+const panelVariants: any = {
   hidden: { x: "-100%" },
   visible: {
     x: "0%",
@@ -50,7 +50,7 @@ const panelVariants = {
   exit: { x: "-100%", transition: { duration: 0.4, ease: "easeIn" } },
 };
 
-const themePanelVariants = {
+const themePanelVariants: any = {
   hidden: { x: "100%" },
   visible: {
     x: "0%",
@@ -64,12 +64,12 @@ const themePanelVariants = {
   exit: { x: "100%", transition: { duration: 0.35, ease: "easeIn" } },
 };
 
-const itemVariants = {
+const itemVariants: any = {
   hidden: { opacity: 0, x: -10 },
   visible: { opacity: 1, x: 0, transition: { duration: 0.3 } },
 };
 
-const themeItemVariants = {
+const themeItemVariants: any = {
   hidden: { opacity: 0, y: 10 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
 };
