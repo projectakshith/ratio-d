@@ -162,7 +162,7 @@ export default function BrutalistTheme({
               )}
               {activeTab === "marks" && <MarksPage data={data} />}
               {activeTab === "calendar" && (
-                <CalendarPage calendarData={academia.calendarData} />
+                <CalendarPage data={data} academia={academia} />
               )}
             </motion.div>
           )}
