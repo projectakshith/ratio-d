@@ -1,8 +1,9 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ChevronRight,
+  ChevronLeft,
   Bell,
   CheckCircle,
   GraduationCap,
@@ -11,17 +12,240 @@ import {
   Lock,
   Users,
 } from "lucide-react";
+import {
+  calculateOverallAttendance,
+  getCriticalAttendance,
+  parseTimeValues,
+} from "@/utils/academiaLogic";
+import { processAndSortMarks, buildCourseMap } from "@/utils/marksLogic";
 
-export default function MinimalHomepage({ setActiveTab, onOpenSettings }: any) {
-  const userName = "akshith";
-  const dayOrder = "01";
-  const upcomingAttendance = "74.5";
-  const upcomingSafe = parseFloat(upcomingAttendance) >= 75;
-
+export default function MinimalHomepage({
+  data,
+  academia,
+  setActiveTab,
+  onOpenSettings,
+}: any) {
   const [mounted, setMounted] = useState(false);
   const [showAlerts, setShowAlerts] = useState(false);
   const [newNote, setNewNote] = useState("");
   const [isPublicMode, setIsPublicMode] = useState(false);
+  const [showExtraSlots, setShowExtraSlots] = useState(false);
+
+  const userName =
+    data?.profile?.name?.split(" ")[0]?.toLowerCase() || "akshith";
+  const currentDayOrder = academia?.effectiveDayOrder || data?.dayOrder || "1";
+  const [selectedDay, setSelectedDay] = useState(
+    parseInt(currentDayOrder) || 1,
+  );
+
+  const handleDaySwitch = (dir: "prev" | "next") => {
+    setSelectedDay((prev) =>
+      dir === "prev" ? (prev > 1 ? prev - 1 : 5) : prev < 5 ? prev + 1 : 1,
+    );
+  };
+
+  const getAcronym = (name: string) => {
+    if (!name) return "";
+    const lowerName = name.toLowerCase().trim();
+    if (lowerName.includes("internet of things")) return "iot";
+    if (lowerName.includes("design thinking")) return "dtm";
+
+    const skipWords = [
+      "and",
+      "of",
+      "to",
+      "in",
+      "for",
+      "with",
+      "a",
+      "an",
+      "the",
+    ];
+    const parts = lowerName.split(/\s+/).filter((w) => !skipWords.includes(w));
+    if (parts.length === 1 && parts[0].length <= 5) return parts[0];
+    return parts.map((w) => w[0]).join("");
+  };
+
+  const { standardGrid, extraGrid } = useMemo(() => {
+    const scheduleData = data?.timetable || data?.schedule || {};
+    const dayData = scheduleData[`Day ${selectedDay}`] || {};
+    const nowMins = new Date().getHours() * 60 + new Date().getMinutes();
+
+    const sortedClasses = Object.entries(dayData)
+      .map(([time, details]: [string, any]) => ({
+        time,
+        startMinutes: parseTimeValues(time.split("-")[0]),
+        endMinutes: parseTimeValues(time.split("-")[1]),
+        ...details,
+      }))
+      .sort((a, b) => a.startMinutes - b.startMinutes);
+
+    const targetStarts = [480, 530, 580, 635, 690, 745, 800, 855, 905, 955];
+
+    const std = Array(10)
+      .fill(null)
+      .map((_, i) => ({ id: i + 1, active: false }));
+    const ext: any[] = [];
+
+    sortedClasses.forEach((cls) => {
+      let closestIdx = -1;
+      let minDiff = 9999;
+
+      for (let i = 0; i < 10; i++) {
+        const diff = Math.abs(cls.startMinutes - targetStarts[i]);
+        if (diff <= 35 && diff < minDiff) {
+          closestIdx = i;
+          minDiff = diff;
+        }
+      }
+
+      const isPractical =
+        cls.type?.toLowerCase().includes("practical") ||
+        cls.course?.toLowerCase().includes("lab");
+
+      const mappedCls = {
+        sub: getAcronym(cls.course),
+        room: cls.room?.toLowerCase() || "--",
+        time: cls.time.replace(/\s+/g, ""),
+        isPractical,
+        active: true,
+        isCurrent:
+          String(selectedDay) === String(currentDayOrder) &&
+          nowMins >= cls.startMinutes &&
+          nowMins < cls.endMinutes,
+      };
+
+      if (closestIdx !== -1 && !std[closestIdx].active) {
+        std[closestIdx] = {
+          ...std[closestIdx],
+          ...mappedCls,
+          id: closestIdx + 1,
+        };
+      } else {
+        ext.push({ ...mappedCls, id: `ext-${cls.time}` });
+      }
+    });
+
+    return { standardGrid: std, extraGrid: ext };
+  }, [data, selectedDay, currentDayOrder]);
+
+  const { currentClass, nextClass } = useMemo(() => {
+    const scheduleData = data?.timetable || data?.schedule || {};
+    const todayData = scheduleData[`Day ${currentDayOrder}`] || {};
+    const nowMins = new Date().getHours() * 60 + new Date().getMinutes();
+
+    let curr = null;
+    let nxt = null;
+
+    const sortedClasses = Object.entries(todayData)
+      .map(([time, details]: any) => ({
+        time,
+        startMinutes: parseTimeValues(time.split("-")[0]),
+        endMinutes: parseTimeValues(time.split("-")[1]),
+        ...details,
+      }))
+      .sort((a, b) => a.startMinutes - b.startMinutes);
+
+    for (const cls of sortedClasses) {
+      if (nowMins >= cls.startMinutes && nowMins < cls.endMinutes) {
+        curr = cls;
+      } else if (cls.startMinutes > nowMins && !nxt) {
+        nxt = cls;
+      }
+    }
+
+    return { currentClass: curr, nextClass: nxt };
+  }, [data, currentDayOrder]);
+
+  const displayCourse = (nextClass?.course || "free time").toLowerCase();
+  const displayCourseWords = displayCourse.split(" ");
+  const line1 = displayCourseWords[0];
+  const line2 =
+    displayCourseWords.slice(1).join(" ") ||
+    (nextClass?.room ? nextClass.room.toLowerCase() : "relax");
+  const displayTiming = nextClass?.time?.split("-")[0].trim() || "--:--";
+
+  const { alertName, alertPctNum, alertPct, alertMargin, alertLabel } =
+    useMemo(() => {
+      const targetClass = nextClass || currentClass;
+      const critical = getCriticalAttendance(data?.attendance || []);
+      let targetSubject =
+        critical.length > 0 ? critical[0] : data?.attendance?.[0] || null;
+
+      if (targetClass && data?.attendance) {
+        const match = data.attendance.find((a: any) => {
+          const cName = targetClass.course
+            .toLowerCase()
+            .replace(/[^a-z0-9]/g, "");
+          const aName = (a.title || a.course || "")
+            .toLowerCase()
+            .replace(/[^a-z0-9]/g, "");
+          return (
+            cName === aName || aName.includes(cName) || cName.includes(aName)
+          );
+        });
+        if (match) targetSubject = match;
+      }
+
+      const conducted = targetSubject ? targetSubject.conducted : 0;
+      const present = targetSubject ? conducted - targetSubject.absent : 0;
+      const pct = conducted > 0 ? (present / conducted) * 100 : 100;
+      const isSafe = pct >= 75;
+
+      let margin = 0;
+      if (isSafe && conducted > 0) {
+        margin = Math.floor(present / 0.75 - conducted);
+      } else if (!isSafe && conducted > 0) {
+        margin = Math.ceil((0.75 * conducted - present) / 0.25);
+      }
+
+      return {
+        alertName:
+          targetSubject?.title?.toLowerCase() ||
+          targetSubject?.course?.toLowerCase() ||
+          "attendance",
+        alertPctNum: pct,
+        alertPct: pct.toFixed(1),
+        alertMargin: Math.max(0, margin),
+        alertLabel: isSafe ? "margin" : "recover",
+      };
+    }, [data?.attendance, nextClass, currentClass]);
+
+  const attendanceCategory =
+    alertPctNum < 75 ? "cooked" : alertPctNum >= 85 ? "safe" : "danger";
+  const attStyles = {
+    safe: {
+      bg: "bg-[#ceff1c]",
+      border: "border-[#ceff1c]",
+      text: "text-[#111111]",
+      iconBg: "bg-[#111111]/10",
+      subText: "text-[#111111]/70",
+      arrow: "text-[#111111]/30",
+    },
+    danger: {
+      bg: "bg-[#FFF4E5]",
+      border: "border-[#F97316]/30",
+      text: "text-[#EA580C]",
+      iconBg: "bg-[#EA580C]/10",
+      subText: "text-[#EA580C]/70",
+      arrow: "text-[#EA580C]/50",
+    },
+    cooked: {
+      bg: "bg-[#FFEDED]",
+      border: "border-[#FF4D4D]/30",
+      text: "text-[#FF4D4D]",
+      iconBg: "bg-[#FF4D4D]/10",
+      subText: "text-[#FF4D4D]/70",
+      arrow: "text-[#FF4D4D]/50",
+    },
+  }[attendanceCategory];
+
+  const overallPct = calculateOverallAttendance(data?.attendance || []);
+  const sortedMarks = processAndSortMarks(
+    data?.marks || [],
+    buildCourseMap(data),
+  );
+  const latestMark = sortedMarks.length > 0 ? sortedMarks[0] : null;
 
   const [officialAlerts] = useState([
     {
@@ -67,7 +291,6 @@ export default function MinimalHomepage({ setActiveTab, onOpenSettings }: any) {
 
   const handleAddNote = () => {
     if (!newNote.trim()) return;
-
     if (isPublicMode) {
       setClassNotes([
         { id: Date.now(), text: newNote, author: userName, date: "just now" },
@@ -82,62 +305,66 @@ export default function MinimalHomepage({ setActiveTab, onOpenSettings }: any) {
     setNewNote("");
   };
 
-  const timetableGrid = [
-    {
-      id: 1,
-      sub: "dtm",
-      room: "tp101",
-      time: "8:00-8:50",
-      active: true,
-      isCurrent: true,
-    },
-    {
-      id: 2,
-      sub: "oops",
-      room: "ub204",
-      time: "8:50-9:40",
-      active: true,
-      isCurrent: false,
-    },
-    { id: 3, active: false },
-    {
-      id: 4,
-      sub: "ml",
-      room: "tp102",
-      time: "10:40-11:30",
-      active: true,
-      isCurrent: false,
-    },
-    { id: 5, active: false },
-    {
-      id: 6,
-      sub: "dsa",
-      room: "ub205",
-      time: "11:30-12:20",
-      active: true,
-      isCurrent: false,
-    },
-    { id: 7, active: false },
-    {
-      id: 8,
-      sub: "os",
-      room: "tp103",
-      time: "1:30-2:20",
-      active: true,
-      isCurrent: false,
-    },
-    { id: 9, active: false },
-    {
-      id: 10,
-      sub: "dbms",
-      room: "tp104",
-      time: "2:20-3:10",
-      active: true,
-      isCurrent: false,
-    },
-  ];
+  const renderSlot = (slot: any) => {
+    if (!slot.active) {
+      return (
+        <div
+          key={slot.id}
+          className="aspect-square bg-[#EFEFEF]/50 custom-dotted"
+        />
+      );
+    }
+
+    let boxClass = "bg-white border-[#111111]/20";
+    let topText = "text-[#111111]/50";
+    let midText = "text-[#111111]";
+    let botText = "text-[#111111]/70";
+
+    if (slot.isCurrent) {
+      boxClass =
+        "bg-[#111111] border-[#111111] shadow-[0_6px_16px_rgba(0,0,0,0.2)] scale-105 z-10";
+      topText = "text-white/80";
+      midText = "text-white";
+      botText = "text-white/80";
+    } else if (slot.isPractical) {
+      boxClass = "bg-[#e0f2fe] border-[#bae6fd]";
+      topText = "text-[#0369a1]/60";
+      midText = "text-[#0369a1]";
+      botText = "text-[#0369a1]/70";
+    }
+
+    return (
+      <div
+        key={slot.id}
+        className={`aspect-square rounded-[14px] border-[1.5px] flex flex-col items-center justify-center gap-[4px] p-1 transition-all ${boxClass}`}
+      >
+        <span
+          className={`text-[10px] font-bold uppercase tracking-widest leading-none text-center ${topText}`}
+          style={{ fontFamily: "'Afacad', sans-serif" }}
+        >
+          {slot.room}
+        </span>
+        <span
+          className={`text-[17px] font-black uppercase tracking-wider leading-none ${midText}`}
+          style={{ fontFamily: "'Montserrat', sans-serif" }}
+        >
+          {slot.sub}
+        </span>
+        <span
+          className={`text-[10.5px] font-bold tracking-tight leading-none text-center ${botText}`}
+          style={{ fontFamily: "'Afacad', sans-serif" }}
+        >
+          {slot.time}
+        </span>
+      </div>
+    );
+  };
 
   if (!mounted) return null;
+
+  const displayGrid = showExtraSlots
+    ? [...standardGrid, ...extraGrid]
+    : standardGrid;
 
   return (
     <>
@@ -156,7 +383,7 @@ export default function MinimalHomepage({ setActiveTab, onOpenSettings }: any) {
         }}
       />
 
-      <div className="min-h-screen w-full flex flex-col bg-[#F7F7F7] text-[#111111] px-6 pt-6 pb-24">
+      <div className="min-h-screen w-full flex flex-col bg-[#F7F7F7] text-[#111111] px-6 pt-6 pb-24 overflow-x-hidden">
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -173,7 +400,6 @@ export default function MinimalHomepage({ setActiveTab, onOpenSettings }: any) {
               className="w-full h-full object-cover"
             />
           </button>
-
           <div className="flex flex-col items-end">
             <span
               className="text-[16px] font-semibold lowercase tracking-widest text-[#111111]/50 mb-[-4px]"
@@ -191,50 +417,51 @@ export default function MinimalHomepage({ setActiveTab, onOpenSettings }: any) {
         </motion.div>
 
         <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="flex items-center justify-between mb-3 px-1"
+        >
+          <div className="flex items-center gap-3">
+            <span
+              className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#111111]/40"
+              style={{ fontFamily: "'Montserrat', sans-serif" }}
+            >
+              Day Order {selectedDay}{" "}
+              {String(selectedDay) === String(currentDayOrder) && "• today"}
+            </span>
+            {extraGrid.length > 0 && (
+              <button
+                onClick={() => setShowExtraSlots(!showExtraSlots)}
+                className="bg-[#111111]/5 px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest text-[#111111]/50 active:scale-95 transition-all"
+                style={{ fontFamily: "'Afacad', sans-serif" }}
+              >
+                {showExtraSlots ? "hide extra" : `+${extraGrid.length} extra`}
+              </button>
+            )}
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => handleDaySwitch("prev")}
+              className="active:scale-75 transition-transform"
+            >
+              <ChevronLeft size={18} className="text-[#111111]/40" />
+            </button>
+            <button
+              onClick={() => handleDaySwitch("next")}
+              className="active:scale-75 transition-transform"
+            >
+              <ChevronRight size={18} className="text-[#111111]/40" />
+            </button>
+          </div>
+        </motion.div>
+
+        <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.1 }}
-          className="grid grid-cols-5 gap-[8px] mb-8 shrink-0"
+          className="grid grid-cols-5 gap-[8px] mb-8 shrink-0 transition-all"
         >
-          {timetableGrid.map((slot) =>
-            slot.active ? (
-              <div
-                key={slot.id}
-                className={`aspect-square rounded-[14px] border-[1.5px] border-[#111111] flex flex-col items-center justify-center gap-[6px] p-1 transition-all
-                  ${slot.isCurrent ? "bg-[#111111] shadow-[0_6px_16px_rgba(0,0,0,0.2)] scale-105 z-10" : "bg-white"}
-                `}
-              >
-                <span
-                  className={`text-[10px] font-bold uppercase tracking-widest leading-none text-center
-                    ${slot.isCurrent ? "text-white/80" : "text-[#111111]/50"}`}
-                  style={{ fontFamily: "'Afacad', sans-serif" }}
-                >
-                  {slot.room}
-                </span>
-
-                <span
-                  className={`text-[17px] font-black uppercase tracking-wider leading-none
-                    ${slot.isCurrent ? "text-white" : "text-[#111111]"}`}
-                  style={{ fontFamily: "'Montserrat', sans-serif" }}
-                >
-                  {slot.sub}
-                </span>
-
-                <span
-                  className={`text-[9.5px] font-bold tracking-tight leading-none text-center
-                    ${slot.isCurrent ? "text-white" : "text-[#111111]/70"}`}
-                  style={{ fontFamily: "'Afacad', sans-serif" }}
-                >
-                  {slot.time}
-                </span>
-              </div>
-            ) : (
-              <div
-                key={slot.id}
-                className="aspect-square bg-[#EFEFEF]/50 custom-dotted"
-              />
-            ),
-          )}
+          {displayGrid.map(renderSlot)}
         </motion.div>
 
         <motion.div
@@ -255,49 +482,57 @@ export default function MinimalHomepage({ setActiveTab, onOpenSettings }: any) {
               className="text-[13px] font-black uppercase tracking-[0.2em] text-[#111111] whitespace-nowrap"
               style={{ fontFamily: "'Afacad', sans-serif" }}
             >
-              DO {dayOrder}
+              DO {String(currentDayOrder).padStart(2, "0")}
             </span>
           </div>
 
-          <div className="flex flex-col">
+          <div className="flex flex-col max-w-full">
             <span
-              className="text-[4.5rem] leading-[0.85] font-black tracking-tighter lowercase text-[#111111]"
+              className="text-[4.5rem] leading-[0.85] font-black tracking-tighter lowercase text-[#111111] truncate pt-3"
               style={{ fontFamily: "'Montserrat', sans-serif" }}
             >
-              machine
+              {line1}
             </span>
-            <div className="flex items-baseline gap-3">
+            <div className="flex items-baseline gap-3 w-full pb-3">
               <span
-                className="text-[4.5rem] leading-[0.85] font-black tracking-tighter lowercase text-[#111111]"
+                className="text-[4.5rem] leading-[0.85] font-black tracking-tighter lowercase text-[#111111] truncate flex-1 min-w-0"
                 style={{ fontFamily: "'Montserrat', sans-serif" }}
               >
-                learning
+                {line2}
               </span>
               <span
-                className="text-[1.25rem] font-bold uppercase tracking-widest text-[#111111]/40"
+                className="text-[1.25rem] font-bold uppercase tracking-widest text-[#111111]/40 shrink-0"
                 style={{ fontFamily: "'Afacad', sans-serif" }}
               >
-                tp102
+                {displayTiming}
               </span>
             </div>
           </div>
 
-          <div className="flex items-center justify-between mt-5 w-full bg-white px-4 py-2.5 rounded-full border-[1.5px] border-[#111111]/10 shadow-sm">
-            <div className="flex items-center gap-3">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#111111] animate-pulse" />
+          <div className="flex items-center justify-between mt-3 w-full bg-white px-4 py-3 rounded-full border-[1.5px] border-[#111111]/10 shadow-sm min-w-0">
+            <div className="flex items-center gap-3 min-w-0">
               <span
-                className="text-[14px] font-bold lowercase text-[#111111]/70"
+                className={`w-2.5 h-2.5 rounded-full bg-[#111111] shrink-0 ${currentClass ? "animate-pulse" : ""}`}
+              />
+              <span
+                className="text-[14px] font-bold lowercase text-[#111111]/70 truncate"
                 style={{ fontFamily: "'Afacad', sans-serif" }}
               >
                 current class •{" "}
-                <strong className="text-[#111111] font-black">dtm</strong>
+                <strong className="text-[#111111] font-black uppercase tracking-widest">
+                  {currentClass
+                    ? getAcronym(currentClass.course).toUpperCase()
+                    : "FREE"}
+                </strong>
               </span>
             </div>
             <span
-              className="text-[12px] font-bold lowercase text-[#111111]/40"
+              className="text-[12px] font-bold lowercase text-[#111111]/40 shrink-0 ml-2"
               style={{ fontFamily: "'Afacad', sans-serif" }}
             >
-              ends at 8:50
+              {currentClass
+                ? `ends at ${currentClass.time.split("-")[1].trim()}`
+                : "check back later"}
             </span>
           </div>
         </motion.div>
@@ -310,44 +545,35 @@ export default function MinimalHomepage({ setActiveTab, onOpenSettings }: any) {
         >
           <div
             onClick={() => setActiveTab && setActiveTab("attendance")}
-            className={`w-full border-[1.5px] rounded-[24px] p-2 pr-5 flex items-center gap-4 shadow-sm transition-all active:scale-[0.98] cursor-pointer
-            ${upcomingSafe ? "bg-white border-[#111111]/10" : "bg-[#FFEDED] border-[#FF4D4D]/30"}
-          `}
+            className={`w-full border-[1.5px] rounded-[24px] p-2 pr-5 flex items-center gap-4 shadow-sm transition-all active:scale-[0.98] cursor-pointer ${attStyles.bg} ${attStyles.border}`}
           >
             <div
-              className={`w-[50px] h-[50px] rounded-[18px] flex items-center justify-center shrink-0
-              ${upcomingSafe ? "bg-[#F4F4F4]" : "bg-[#FF4D4D]/10"}
-            `}
+              className={`w-[50px] h-[50px] rounded-[18px] flex items-center justify-center shrink-0 ${attStyles.iconBg}`}
             >
               <CheckCircle
                 size={20}
                 strokeWidth={2.5}
-                className={upcomingSafe ? "text-[#111111]" : "text-[#FF4D4D]"}
+                className={attStyles.text}
               />
             </div>
             <div className="flex-1 flex flex-col justify-center min-w-0 py-0.5">
               <span
-                className={`text-[15px] font-bold lowercase leading-tight truncate mb-0.5
-                  ${upcomingSafe ? "text-[#111111]" : "text-[#FF4D4D]"}
-                `}
+                className={`text-[15px] font-bold lowercase leading-tight truncate mb-0.5 ${attStyles.text}`}
                 style={{ fontFamily: "'Montserrat', sans-serif" }}
               >
-                machine learning
+                {alertName}
               </span>
               <span
-                className={`text-[13px] font-medium lowercase truncate
-                  ${upcomingSafe ? "text-[#111111]/50" : "text-[#FF4D4D]/70"}
-                `}
+                className={`text-[13px] font-medium lowercase truncate ${attStyles.subText}`}
                 style={{ fontFamily: "'Afacad', sans-serif" }}
               >
-                {upcomingAttendance}% •{" "}
-                {upcomingSafe ? "safe to bunk" : "attendance required"}
+                {alertPct}% • {alertMargin} {alertLabel}
               </span>
             </div>
             <ChevronRight
               size={22}
               strokeWidth={2}
-              className={`shrink-0 ${upcomingSafe ? "text-[#111111]/30" : "text-[#FF4D4D]/50"}`}
+              className={`shrink-0 ${attStyles.arrow}`}
             />
           </div>
 
@@ -369,7 +595,9 @@ export default function MinimalHomepage({ setActiveTab, onOpenSettings }: any) {
                 className="text-[13px] font-medium lowercase text-white/70 truncate"
                 style={{ fontFamily: "'Afacad', sans-serif" }}
               >
-                attendance might be cooked.
+                {overallPct < 75
+                  ? "attendance might be cooked."
+                  : "stats looking solid."}
               </span>
             </div>
             <ChevronRight
@@ -401,7 +629,9 @@ export default function MinimalHomepage({ setActiveTab, onOpenSettings }: any) {
                 className="text-[13px] font-medium lowercase text-[#111111]/50 truncate"
                 style={{ fontFamily: "'Afacad', sans-serif" }}
               >
-                software eng • 18/20
+                {latestMark
+                  ? `${getAcronym(latestMark.title || latestMark.courseTitle || latestMark.code)} • ${latestMark.displayScore}/${latestMark.max}`
+                  : "no recent tests"}
               </span>
             </div>
             <ChevronRight
