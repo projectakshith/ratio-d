@@ -354,7 +354,6 @@ const MobileAttendance = ({ data, schedule }) => {
         return;
       }
 
-      // Upper boundary trigger line perfectly aligned with snap-start
       const triggerLine =
         container.getBoundingClientRect().top + container.offsetHeight * 0.2;
       let closestId = null;
@@ -386,7 +385,6 @@ const MobileAttendance = ({ data, schedule }) => {
         <div className="absolute inset-0 pointer-events-none opacity-20 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] bg-repeat mix-blend-screen" />
       </div>
 
-      {/* DASHBOARD - Pre-rendered instantly behind the intro overlay to eliminate lag */}
       <div className="absolute top-0 left-0 w-full h-[45%] z-10">
         <AnimatePresence mode="wait">
           {!predictMode ? (
