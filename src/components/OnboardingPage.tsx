@@ -54,11 +54,11 @@ const OnboardingPage = () => {
   };
 
   if (isMobile === null)
-    return <div className="h-screen w-full bg-[#0c30ff]" />;
+    return <div className="h-[100dvh] w-full bg-[#0c30ff]" />;
 
   if (isPWA) {
     return (
-      <div className="h-screen w-full bg-[#0c30ff] flex flex-col justify-center items-center p-8">
+      <div className="h-[100dvh] w-full bg-[#0c30ff] flex flex-col justify-center items-center p-8">
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -83,7 +83,7 @@ const OnboardingPage = () => {
   }
 
   return (
-    <div className="h-screen w-full flex flex-col justify-between p-8 md:p-16 md:px-24 bg-[#0c30ff] overflow-hidden text-white relative">
+    <div className="h-[100dvh] w-full flex flex-col justify-between p-8 pb-16 md:p-16 md:px-24 bg-[#0c30ff] overflow-hidden text-white relative">
       <header className="flex justify-between items-start w-full">
         <h1
           className="text-5xl md:text-7xl lowercase tracking-tighter text-[#ceff1c]"
@@ -99,7 +99,7 @@ const OnboardingPage = () => {
         )}
       </header>
 
-      <main className="w-full max-w-3xl mt-auto pb-12 md:pb-24">
+      <main className="w-full max-w-3xl mt-auto pb-16 md:pb-24">
         <AnimatePresence mode="wait">
           {!isMobile ? (
             <motion.div
