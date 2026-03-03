@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   title: "Ratio'd",
   description: "cool looking and simple academia dashboard",
   manifest: "/manifest.json",
-  themeColor: "#000000",
+  themeColor: "#ffffff",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",

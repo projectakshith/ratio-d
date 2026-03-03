@@ -7,7 +7,7 @@ import { EncryptionUtils } from "@/utils/Encryption";
 
 export default function Home() {
   const [view, setView] = useState("loading");
-  const [userData, setUserData] = useState(null);
+  const [userData, setUserData] = useState<any>(null);
   const [customDisplayName, setCustomDisplayName] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
 
@@ -72,8 +72,11 @@ export default function Home() {
 
       setUserData(updatedData);
       localStorage.setItem("ratio_data", JSON.stringify(updatedData));
+
+      return updatedData;
     } catch (err) {
       console.error("Auto-refresh failed:", err);
+      return existingData;
     } finally {
       setIsUpdating(false);
     }
@@ -83,8 +86,8 @@ export default function Home() {
     const checkState = async () => {
       EncryptionUtils.cleanOldKeys();
 
-      const isStandalone = 
-        window.matchMedia("(display-mode: standalone)").matches || 
+      const isStandalone =
+        window.matchMedia("(display-mode: standalone)").matches ||
         (window.navigator as any).standalone;
 
       const cachedData = localStorage.getItem("ratio_data");
@@ -98,8 +101,8 @@ export default function Home() {
         setUserData(parsedData);
 
         setView(isStandalone ? "app" : "onboarding");
-        
-        if (cachedCreds && isStandalone) {
+
+        if (cachedCreds) {
           refreshData(cachedCreds, parsedData);
         }
       } else {
@@ -109,6 +112,23 @@ export default function Home() {
 
     checkState();
   }, []);
+
+  useEffect(() => {
+    if (view !== "app") return;
+
+    const interval = setInterval(
+      () => {
+        const creds = EncryptionUtils.loadDecrypted("ratio_credentials");
+        const data = localStorage.getItem("ratio_data");
+        if (creds && data) {
+          refreshData(creds, JSON.parse(data));
+        }
+      },
+      30 * 60 * 1000,
+    );
+
+    return () => clearInterval(interval);
+  }, [view]);
 
   const handleUpdateName = (newName: string) => {
     setCustomDisplayName(newName);
@@ -124,19 +144,29 @@ export default function Home() {
   };
 
   const handleDevBypass = () => {
-    console.log("Dev bypass triggered: skipping PWA checks.");
-    setView(userData ? "app" : "login");
+    const cachedData = localStorage.getItem("ratio_data");
+    setView(cachedData ? "app" : "login");
   };
 
-  if (view === "loading")
-    return <div className="h-screen w-full bg-[#050505]" />;
+  if (view === "loading") {
+    return (
+      <div className="h-[100dvh] w-full bg-[#0c30ff] flex items-center justify-center">
+        <h1
+          className="text-5xl md:text-7xl lowercase tracking-tighter text-[#ceff1c] animate-pulse"
+          style={{ fontFamily: "Urbanosta, sans-serif" }}
+        >
+          ratio'd
+        </h1>
+      </div>
+    );
+  }
 
   return (
     <main className="bg-[#050505] min-h-screen relative">
       {view === "onboarding" && (
-        <button 
+        <button
           onClick={handleDevBypass}
-          className="absolute top-0 right-0 w-16 h-16 z-[9999] opacity-0 cursor-default"
+          className="absolute top-0 right-0 w-24 h-24 z-[9999] opacity-0"
           aria-label="Developer Bypass"
         />
       )}
@@ -159,6 +189,7 @@ export default function Home() {
           onLogout={handleLogout}
           customDisplayName={customDisplayName}
           onUpdateName={handleUpdateName}
+          isUpdating={isUpdating}
         />
       )}
     </main>
