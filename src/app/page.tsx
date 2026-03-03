@@ -1,15 +1,42 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import LoginPage from "@/components/shared/LoginPage";
 import AcademiaApp from "@/components/AcademiaApp";
 import OnboardingPage from "@/components/OnboardingPage";
 import { EncryptionUtils } from "@/utils/Encryption";
+import { WifiOff, Wifi } from "lucide-react";
 
 export default function Home() {
   const [view, setView] = useState("loading");
   const [userData, setUserData] = useState<any>(null);
   const [customDisplayName, setCustomDisplayName] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
+
+  const [isOffline, setIsOffline] = useState(false);
+  const [showBigOffline, setShowBigOffline] = useState(false);
+  const [justCameOnline, setJustCameOnline] = useState(false);
+
+  useEffect(() => {
+    EncryptionUtils.cleanOldKeys();
+
+    const isStandalone =
+      typeof window !== "undefined" &&
+      (window.matchMedia("(display-mode: standalone)").matches ||
+        (window.navigator as any).standalone);
+
+    const cachedData = localStorage.getItem("ratio_data");
+    const cachedName = localStorage.getItem("ratiod_custom_name");
+
+    if (cachedName) setCustomDisplayName(cachedName);
+
+    if (cachedData) {
+      setUserData(JSON.parse(cachedData));
+      setView(isStandalone ? "app" : "onboarding");
+    } else {
+      setView(isStandalone ? "login" : "onboarding");
+    }
+  }, []);
 
   const performLogin = async (username: string, password: string) => {
     const savedCookies = EncryptionUtils.loadDecrypted("academia_cookies");
@@ -75,7 +102,6 @@ export default function Home() {
 
       return updatedData;
     } catch (err) {
-      console.error("Auto-refresh failed:", err);
       return existingData;
     } finally {
       setIsUpdating(false);
@@ -83,52 +109,65 @@ export default function Home() {
   };
 
   useEffect(() => {
-    const checkState = async () => {
-      EncryptionUtils.cleanOldKeys();
+    if (typeof window === "undefined") return;
 
-      const isStandalone =
-        window.matchMedia("(display-mode: standalone)").matches ||
-        (window.navigator as any).standalone;
+    const handleOnline = () => {
+      setIsOffline(false);
+      setShowBigOffline(false);
+      setJustCameOnline(true);
+      setTimeout(() => setJustCameOnline(false), 3000);
 
-      const cachedData = localStorage.getItem("ratio_data");
-      const cachedCreds = EncryptionUtils.loadDecrypted("ratio_credentials");
-      const cachedName = localStorage.getItem("ratiod_custom_name");
-
-      if (cachedName) setCustomDisplayName(cachedName);
-
-      if (cachedData) {
-        const parsedData = JSON.parse(cachedData);
-        setUserData(parsedData);
-
-        setView(isStandalone ? "app" : "onboarding");
-
-        if (cachedCreds) {
-          refreshData(cachedCreds, parsedData);
-        }
-      } else {
-        setView(isStandalone ? "login" : "onboarding");
+      if (view === "app") {
+        const creds = EncryptionUtils.loadDecrypted("ratio_credentials");
+        const data = localStorage.getItem("ratio_data");
+        if (creds && data) refreshData(creds, JSON.parse(data));
       }
     };
 
-    checkState();
-  }, []);
+    const handleOffline = () => {
+      setIsOffline(true);
+      setShowBigOffline(true);
+      setTimeout(() => setShowBigOffline(false), 2000);
+    };
+
+    if (!navigator.onLine) {
+      handleOffline();
+    }
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, [view]);
 
   useEffect(() => {
-    if (view !== "app") return;
+    if (view !== "app" || typeof window === "undefined") return;
+
+    const cachedData = localStorage.getItem("ratio_data");
+    const cachedCreds = EncryptionUtils.loadDecrypted("ratio_credentials");
+
+    if (cachedData && cachedCreds && !isOffline) {
+      refreshData(cachedCreds, JSON.parse(cachedData));
+    }
 
     const interval = setInterval(
       () => {
-        const creds = EncryptionUtils.loadDecrypted("ratio_credentials");
-        const data = localStorage.getItem("ratio_data");
-        if (creds && data) {
-          refreshData(creds, JSON.parse(data));
+        if (navigator.onLine) {
+          const creds = EncryptionUtils.loadDecrypted("ratio_credentials");
+          const data = localStorage.getItem("ratio_data");
+          if (creds && data) {
+            refreshData(creds, JSON.parse(data));
+          }
         }
       },
       30 * 60 * 1000,
     );
 
     return () => clearInterval(interval);
-  }, [view]);
+  }, [view, isOffline]);
 
   const handleUpdateName = (newName: string) => {
     setCustomDisplayName(newName);
@@ -148,30 +187,109 @@ export default function Home() {
     setView(cachedData ? "app" : "login");
   };
 
-  if (view === "loading") {
-    return (
-      <div className="h-[100dvh] w-full bg-[#0c30ff] flex items-center justify-center">
-        <h1
-          className="text-5xl md:text-7xl lowercase tracking-tighter text-[#ceff1c] animate-pulse"
-          style={{ fontFamily: "Urbanosta, sans-serif" }}
-        >
-          ratio'd
-        </h1>
-      </div>
-    );
-  }
-
   return (
-    <main className="bg-[#050505] min-h-screen relative">
-      {view === "onboarding" && (
-        <button
-          onClick={handleDevBypass}
-          className="absolute top-0 right-0 w-24 h-24 z-[9999] opacity-0"
-          aria-label="Developer Bypass"
-        />
+    <main className="bg-[#050505] min-h-[100dvh] w-full relative overflow-hidden">
+      <AnimatePresence>
+        {isOffline && (
+          <motion.div
+            initial={{ y: "-100%" }}
+            animate={{ y: showBigOffline ? "0%" : "-100%" }}
+            exit={{ y: "-100%" }}
+            transition={{ type: "spring", stiffness: 300, damping: 25 }}
+            className="fixed top-0 left-0 right-0 z-[9999] flex flex-col items-center pointer-events-none"
+          >
+            <div className="bg-[#FF4D4D] w-full py-4 px-6 flex flex-col items-center justify-center shadow-xl relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-full h-1 bg-black/20" />
+              <div className="flex flex-col items-center gap-2 mt-4">
+                <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-md mb-1">
+                  <WifiOff size={24} className="text-white" strokeWidth={2.5} />
+                </div>
+                <span
+                  className="text-3xl font-black lowercase tracking-widest text-white leading-none"
+                  style={{ fontFamily: "Aonic, sans-serif" }}
+                >
+                  Offline
+                </span>
+                <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/80 max-w-[250px] text-center leading-snug">
+                  You are viewing cached data.
+                </span>
+              </div>
+            </div>
+
+            <div className="bg-[#FF4D4D] px-6 py-2 rounded-b-3xl shadow-lg mt-0 flex justify-center items-center">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-white/90 flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                waiting for connection
+              </span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isOffline && !showBigOffline && (
+          <motion.div
+            initial={{ y: -50, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: -50, opacity: 0 }}
+            transition={{
+              type: "spring",
+              stiffness: 300,
+              damping: 25,
+              delay: 0.1,
+            }}
+            className="fixed top-0 left-0 right-0 z-[9998] pointer-events-none flex justify-center items-start"
+          >
+            <div className="bg-[#FF4D4D] px-6 py-2 rounded-b-3xl shadow-md flex justify-center items-center">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-white/90 flex items-center gap-2 text-center">
+                <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                waiting for connection
+              </span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {justCameOnline && !isOffline && (
+          <motion.div
+            initial={{ y: -50, opacity: 0 }}
+            animate={{ y: 24, opacity: 1 }}
+            exit={{ y: -50, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 400, damping: 25 }}
+            className="fixed top-0 left-0 right-0 z-[9999] pointer-events-none flex justify-center"
+          >
+            <div className="bg-[#85a818] px-5 py-2.5 rounded-full shadow-lg flex items-center gap-3 border-[1.5px] border-black/10">
+              <Wifi size={14} className="text-white" strokeWidth={3} />
+              <span className="text-[11px] font-black uppercase tracking-[0.2em] text-white">
+                Back Online
+              </span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {view === "loading" && (
+        <div className="absolute inset-0 bg-[#0c30ff] flex items-center justify-center z-50">
+          <h1
+            className="text-5xl md:text-7xl lowercase tracking-tighter text-[#ceff1c] animate-pulse"
+            style={{ fontFamily: "Urbanosta, sans-serif" }}
+          >
+            ratio'd
+          </h1>
+        </div>
       )}
 
-      {view === "onboarding" && <OnboardingPage />}
+      {view === "onboarding" && (
+        <>
+          <button
+            onClick={handleDevBypass}
+            className="absolute top-0 right-0 w-24 h-24 z-[99] opacity-0"
+            aria-label="Developer Bypass"
+          />
+          <OnboardingPage />
+        </>
+      )}
 
       {view === "login" && (
         <LoginPage
