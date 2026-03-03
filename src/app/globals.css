@@ -5,15 +5,15 @@
 @tailwind utilities;
 @font-face {
     font-family: "Akira";
-    src: url("../fonts/Akira.otf");
+    src: url("/fonts/Akira.otf");
 }
 @font-face {
     font-family: "Aonic";
-    src: url("../fonts/Aonic.ttf");
+    src: url("/fonts/Aonic.ttf");
 }
 @font-face {
     font-family: "Urbanosta";
-    src: url("../fonts/Urbanosta.otf");
+    src: url("/fonts/Urbanosta.otf");
 }
 body {
     background-color: #f2f2f2;
