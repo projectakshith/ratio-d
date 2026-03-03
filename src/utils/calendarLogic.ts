@@ -1,152 +1,139 @@
-export const buildEventsMap = (calendarData: any[]) => {
-  const map: Record<string, any> = {};
-  if (calendarData) {
-    calendarData.forEach((item) => {
-      const dateObj = new Date(item.date);
-      if (!isNaN(dateObj.getTime())) {
-        map[dateObj.toDateString()] = item;
+export const parseTimetableTime = (str: string) => {
+  if (!str) return 0;
+  let [h, m] = str.split(":").map(Number);
+  if (h < 8) h += 12;
+  return h * 60 + m;
+};
+
+export const getAcronym = (name: string) => {
+  if (!name) return "";
+  const lowerName = name.toLowerCase().trim();
+  if (lowerName.includes("internet of things")) return "iot";
+  if (lowerName.includes("design thinking")) return "dtm";
+  const skipWords = ["and", "of", "to", "in", "for", "with", "a", "an", "the"];
+  const parts = lowerName.split(/\s+/).filter((w) => !skipWords.includes(w));
+  if (parts.length === 1 && parts[0].length <= 5) return parts[0];
+  return parts.map((w) => w[0]).join("");
+};
+
+export const buildCourseMap = (data: any) => {
+  const map: any = {};
+  if (data?.attendance) {
+    data.attendance.forEach((sub: any) => {
+      if (sub.code && sub.title) {
+        map[sub.code.trim()] = sub.title;
       }
     });
   }
   return map;
 };
 
-export const getDaysInMonth = (year: number, month: number) =>
-  new Date(year, month + 1, 0).getDate();
-
-export const getFirstDayOfMonth = (year: number, month: number) => {
-  const day = new Date(year, month, 1).getDay();
-  return day === 0 ? 6 : day - 1;
-};
-
-export const getDayInfo = (dateObj: Date, eventsMap: Record<string, any>) => {
-  const currentEvent = eventsMap[dateObj.toDateString()];
-  const hasOrder =
-    currentEvent?.order &&
-    currentEvent.order !== "-" &&
-    currentEvent.order !== "";
-  const isExam = currentEvent?.type === "exam";
-  const dayOfWeek = dateObj.getDay();
-  const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-  const isHoliday =
-    currentEvent?.description?.toLowerCase().includes("holiday") ||
-    (isWeekend && !hasOrder);
-
-  return { currentEvent, hasOrder, isExam, isWeekend, isHoliday };
-};
-
-export const getCalendarTheme = (
-  isExam: boolean,
-  hasOrder: boolean,
-  isHoliday: boolean
+export const processSchedule = (
+  schedule: any,
+  customClasses: Record<number, any[]>,
+  activeDay: number,
+  dayOrder: number,
+  courseMap: any,
 ) => {
-  if (isExam)
-    return { bg: "#8b5cf6", text: "text-white", accent: "bg-white" };
-  if (hasOrder)
-    return { bg: "#ceff1c", text: "text-[#050505]", accent: "bg-[#050505]" };
-  if (isHoliday)
-    return { bg: "#ff003c", text: "text-white", accent: "bg-white" };
-  return { bg: "#ffffff", text: "text-[#050505]", accent: "bg-[#050505]" };
-};
+  const baseClasses = schedule[`Day ${activeDay}`]
+    ? Object.values(schedule[`Day ${activeDay}`])
+    : [];
+  const cClasses = customClasses[activeDay] || [];
 
-export const getDisplayData = (
-  selectedDate: Date,
-  currentEvent: any,
-  isExam: boolean,
-  hasOrder: boolean,
-  isHoliday: boolean
-) => {
-  const dayNum = String(selectedDate.getDate()).padStart(2, "0");
-  const weekday = selectedDate
-    .toLocaleString("en-US", { weekday: "long" })
-    .toLowerCase();
-  const month = selectedDate
-    .toLocaleString("en-US", { month: "short" })
-    .toLowerCase();
-
-  if (isExam) {
-    return {
-      pill: weekday,
-      bigText: currentEvent?.order
-        ? currentEvent.order.padStart(2, "0")
-        : dayNum,
-      label: "day order",
-      infoMain: `${month} ${dayNum}`,
-      infoSub: currentEvent?.description || "Exam Day",
-    };
-  } else if (hasOrder) {
-    return {
-      pill: weekday,
-      bigText: currentEvent.order.padStart(2, "0"),
-      label: "day order",
-      infoMain: `${month} ${dayNum}`,
-      infoSub: "Regular Classes",
-    };
-  } else {
-    return {
-      pill: weekday,
-      bigText: dayNum,
-      label: "date",
-      infoMain: `${month}`,
-      infoSub: isHoliday ? "Holiday" : "No schedule",
-    };
-  }
-};
-
-export const getMonthTitle = (viewMonth: Date, viewYear: number) => {
-  const m = viewMonth.toLocaleString("default", { month: "long" });
-  return (
-    m.charAt(0).toUpperCase() + m.slice(1).toLowerCase() + " " + viewYear
+  const combined = [...baseClasses, ...cClasses].filter(
+    (c: any) => c && c.time,
   );
+
+  const rawItems = combined
+    .map((details: any) => {
+      const [startStr, endStr] = details.time.split(" - ");
+      const code =
+        details.courseCode || details.course || details.code || "N/A";
+      const cleanCode = code.split("-")[0].trim();
+      const fullName =
+        courseMap[cleanCode] ||
+        details.courseTitle ||
+        details.name ||
+        details.course ||
+        "Unknown Subject";
+
+      const isLab = details.slot?.toUpperCase().includes("P");
+
+      return {
+        id: details.id || Math.random().toString(36).substring(2, 9),
+        code: getAcronym(fullName) || cleanCode,
+        name: fullName.toLowerCase(),
+        time: details.time,
+        start: startStr,
+        end: endStr,
+        minutesStart: parseTimetableTime(startStr),
+        minutesEnd: parseTimetableTime(endStr),
+        room: details.room || "TBA",
+        faculty: details.faculty || "TBA",
+        type: isLab ? "lab" : "theory",
+        slot: details.slot,
+      };
+    })
+    .sort((a, b) => a.minutesStart - b.minutesStart);
+
+  const mergedItems: any[] = [];
+  rawItems.forEach((item) => {
+    const lastItem = mergedItems[mergedItems.length - 1];
+    if (
+      lastItem &&
+      lastItem.name === item.name &&
+      lastItem.room === item.room &&
+      lastItem.minutesEnd === item.minutesStart
+    ) {
+      lastItem.end = item.end;
+      lastItem.time = `${lastItem.start} - ${item.end}`;
+      lastItem.minutesEnd = item.minutesEnd;
+    } else {
+      mergedItems.push({ ...item });
+    }
+  });
+
+  const now = new Date();
+  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+  const isToday = dayOrder === activeDay;
+
+  const finalWithBreaks: any[] = [];
+  for (let i = 0; i < mergedItems.length; i++) {
+    finalWithBreaks.push(mergedItems[i]);
+    if (i < mergedItems.length - 1) {
+      const current = mergedItems[i];
+      const next = mergedItems[i + 1];
+      if (next.minutesStart > current.minutesEnd) {
+        const gapDuration = next.minutesStart - current.minutesEnd;
+        let breakTitle = "short break";
+        if (gapDuration >= 40) breakTitle = "lunch break";
+
+        finalWithBreaks.push({
+          id: `break-${i}`,
+          type: "break",
+          title: breakTitle,
+          time: `${current.end} - ${next.start}`,
+        });
+      }
+    }
+  }
+
+  return finalWithBreaks.map((item) => {
+    if (item.type === "break") return item;
+    return {
+      ...item,
+      isCurrent:
+        isToday &&
+        nowMinutes >= item.minutesStart &&
+        nowMinutes < item.minutesEnd,
+    };
+  });
 };
 
-export const generateGridData = (
-  viewYear: number,
-  viewMonthIndex: number,
-  eventsMap: Record<string, any>,
-  selectedDate: Date
-) => {
-  const daysInMonth = getDaysInMonth(viewYear, viewMonthIndex);
-  const startOffset = getFirstDayOfMonth(viewYear, viewMonthIndex);
-  const slots = [];
-  const todayZero = new Date();
-  todayZero.setHours(0, 0, 0, 0);
-
-  for (let i = 0; i < startOffset; i++) {
-    slots.push({ type: "padding", key: `prev-${i}` });
-  }
-
-  for (let d = 1; d <= daysInMonth; d++) {
-    const currentDayDate = new Date(viewYear, viewMonthIndex, d);
-    const event = eventsMap[currentDayDate.toDateString()];
-
-    const isSelected =
-      currentDayDate.toDateString() === selectedDate.toDateString();
-    const isToday =
-      currentDayDate.toDateString() === new Date().toDateString();
-    const isPast = currentDayDate < todayZero;
-
-    const dDayOfWeek = currentDayDate.getDay();
-    const dIsWeekend = dDayOfWeek === 0 || dDayOfWeek === 6;
-
-    const dayOrder = event?.order && event.order !== "-" ? event.order : null;
-    const isDayHoliday =
-      event?.description?.toLowerCase().includes("holiday") ||
-      (dIsWeekend && !dayOrder);
-    const isDayExam = event?.type === "exam";
-
-    slots.push({
-      type: "day",
-      day: d,
-      key: `day-${d}`,
-      dateObj: currentDayDate,
-      isSelected,
-      isToday,
-      isPast,
-      isDayHoliday,
-      dayOrder,
-      isDayExam,
-    });
-  }
-  return slots;
+export const getDayOverview = (dayClasses: any[]) => {
+  const regularClasses = dayClasses.filter((c) => c.type !== "break");
+  if (regularClasses.length === 0) return { start: "--", end: "--", count: 0 };
+  const start = regularClasses[0].start;
+  const end = regularClasses[regularClasses.length - 1].end;
+  return { start, end, count: regularClasses.length };
 };

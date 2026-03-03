@@ -18,25 +18,92 @@ import {
   parseTimeValues,
 } from "@/utils/academiaLogic";
 import { processAndSortMarks, buildCourseMap } from "@/utils/marksLogic";
+import { getAcronym, processSchedule } from "@/utils/timetableLogic";
+import calendarDataJson from "@/data/calendar_data.json";
+
+const containerVariants = {
+  hidden: { opacity: 0, scale: 0.98, filter: "blur(4px)" },
+  show: {
+    opacity: 1,
+    scale: 1,
+    filter: "blur(0px)",
+    transition: { duration: 0.4, ease: "easeOut", staggerChildren: 0.03 },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, x: 20 },
+  show: {
+    opacity: 1,
+    x: 0,
+    transition: { type: "spring", stiffness: 350, damping: 30 },
+  },
+};
 
 export default function MinimalHomepage({
   data,
   academia,
   setActiveTab,
   onOpenSettings,
+  isAlertsOpen,
+  setIsAlertsOpen,
 }: any) {
   const [mounted, setMounted] = useState(false);
-  const [showAlerts, setShowAlerts] = useState(false);
   const [newNote, setNewNote] = useState("");
   const [isPublicMode, setIsPublicMode] = useState(false);
   const [showExtraSlots, setShowExtraSlots] = useState(false);
 
-  const userName =
-    data?.profile?.name?.split(" ")[0]?.toLowerCase() || "akshith";
+  const globalAlias =
+    typeof window !== "undefined"
+      ? localStorage.getItem("app_alias_name")
+      : null;
+  const userName = (
+    globalAlias ||
+    data?.profile?.name?.split(" ")[0] ||
+    "student"
+  ).toLowerCase();
+
   const currentDayOrder = academia?.effectiveDayOrder || data?.dayOrder || "1";
-  const [selectedDay, setSelectedDay] = useState(
-    parseInt(currentDayOrder) || 1,
-  );
+
+  const [selectedDay, setSelectedDay] = useState(1);
+  const [customClasses, setCustomClasses] = useState<Record<number, any[]>>({});
+
+  useEffect(() => {
+    const order = parseInt(currentDayOrder) || 1;
+    const scheduleData =
+      academia?.effectiveSchedule || data?.timetable || data?.schedule || {};
+    const todayData = scheduleData[`Day ${order}`] || {};
+
+    let lastEnd = 0;
+    Object.values(todayData).forEach((timeStr: any) => {
+      const endStr = timeStr?.time?.split("-")[1] || timeStr?.split("-")[1];
+      if (endStr) {
+        const endMins = parseTimeValues(endStr);
+        if (endMins > lastEnd) lastEnd = endMins;
+      }
+    });
+
+    const nowMins = new Date().getHours() * 60 + new Date().getMinutes();
+    if (lastEnd > 0 && nowMins >= lastEnd) {
+      setSelectedDay(order < 5 ? order + 1 : 1);
+    } else {
+      setSelectedDay(order);
+    }
+    setMounted(true);
+
+    const fetchCustoms = () => {
+      const stored = localStorage.getItem("ratio_custom_classes");
+      if (stored) {
+        try {
+          setCustomClasses(JSON.parse(stored));
+        } catch (e) {}
+      }
+    };
+    fetchCustoms();
+    window.addEventListener("custom_classes_updated", fetchCustoms);
+    return () =>
+      window.removeEventListener("custom_classes_updated", fetchCustoms);
+  }, [currentDayOrder, academia?.effectiveSchedule]);
 
   const handleDaySwitch = (dir: "prev" | "next") => {
     setSelectedDay((prev) =>
@@ -44,125 +111,103 @@ export default function MinimalHomepage({
     );
   };
 
-  const getAcronym = (name: string) => {
-    if (!name) return "";
-    const lowerName = name.toLowerCase().trim();
-    if (lowerName.includes("internet of things")) return "iot";
-    if (lowerName.includes("design thinking")) return "dtm";
-
-    const skipWords = [
-      "and",
-      "of",
-      "to",
-      "in",
-      "for",
-      "with",
-      "a",
-      "an",
-      "the",
-    ];
-    const parts = lowerName.split(/\s+/).filter((w) => !skipWords.includes(w));
-    if (parts.length === 1 && parts[0].length <= 5) return parts[0];
-    return parts.map((w) => w[0]).join("");
-  };
+  const courseMap = useMemo(() => buildCourseMap(data), [data]);
 
   const { standardGrid, extraGrid } = useMemo(() => {
-    const scheduleData = data?.timetable || data?.schedule || {};
-    const dayData = scheduleData[`Day ${selectedDay}`] || {};
-    const nowMins = new Date().getHours() * 60 + new Date().getMinutes();
+    const scheduleData =
+      academia?.effectiveSchedule || data?.timetable || data?.schedule || {};
 
-    const sortedClasses = Object.entries(dayData)
-      .map(([time, details]: [string, any]) => ({
-        time,
-        startMinutes: parseTimeValues(time.split("-")[0]),
-        endMinutes: parseTimeValues(time.split("-")[1]),
-        ...details,
-      }))
-      .sort((a, b) => a.startMinutes - b.startMinutes);
+    const processedDay = processSchedule(
+      scheduleData,
+      customClasses,
+      selectedDay,
+      parseInt(currentDayOrder),
+      courseMap,
+    );
 
     const targetStarts = [480, 530, 580, 635, 690, 745, 800, 855, 905, 955];
-
     const std = Array(10)
       .fill(null)
-      .map((_, i) => ({ id: i + 1, active: false }));
+      .map((_, i) => ({ id: `std-empty-${i}`, active: false }));
     const ext: any[] = [];
 
-    sortedClasses.forEach((cls) => {
+    processedDay.forEach((cls: any, i: number) => {
+      if (cls.type === "break") return;
+
       let closestIdx = -1;
       let minDiff = 9999;
 
-      for (let i = 0; i < 10; i++) {
-        const diff = Math.abs(cls.startMinutes - targetStarts[i]);
+      for (let j = 0; j < 10; j++) {
+        const diff = Math.abs(cls.minutesStart - targetStarts[j]);
         if (diff <= 35 && diff < minDiff) {
-          closestIdx = i;
+          closestIdx = j;
           minDiff = diff;
         }
       }
 
-      const isPractical =
-        cls.type?.toLowerCase().includes("practical") ||
-        cls.course?.toLowerCase().includes("lab");
-
       const mappedCls = {
-        sub: getAcronym(cls.course),
-        room: cls.room?.toLowerCase() || "--",
-        time: cls.time.replace(/\s+/g, ""),
-        isPractical,
+        ...cls,
+        sub: cls.code,
         active: true,
-        isCurrent:
-          String(selectedDay) === String(currentDayOrder) &&
-          nowMins >= cls.startMinutes &&
-          nowMins < cls.endMinutes,
+        isPractical: cls.type === "lab",
       };
 
       if (closestIdx !== -1 && !std[closestIdx].active) {
         std[closestIdx] = {
           ...std[closestIdx],
           ...mappedCls,
-          id: closestIdx + 1,
+          id: `std-active-${closestIdx}`,
         };
       } else {
-        ext.push({ ...mappedCls, id: `ext-${cls.time}` });
+        ext.push({ ...mappedCls, id: `ext-${cls.time}-${i}` });
       }
     });
 
     return { standardGrid: std, extraGrid: ext };
-  }, [data, selectedDay, currentDayOrder]);
+  }, [data, academia, selectedDay, currentDayOrder, customClasses, courseMap]);
 
   const { currentClass, nextClass } = useMemo(() => {
-    const scheduleData = data?.timetable || data?.schedule || {};
-    const todayData = scheduleData[`Day ${currentDayOrder}`] || {};
+    const scheduleData =
+      academia?.effectiveSchedule || data?.timetable || data?.schedule || {};
+    const processedDay = processSchedule(
+      scheduleData,
+      customClasses,
+      selectedDay,
+      parseInt(currentDayOrder),
+      courseMap,
+    );
     const nowMins = new Date().getHours() * 60 + new Date().getMinutes();
+    const isToday = String(selectedDay) === String(currentDayOrder);
 
     let curr = null;
     let nxt = null;
 
-    const sortedClasses = Object.entries(todayData)
-      .map(([time, details]: any) => ({
-        time,
-        startMinutes: parseTimeValues(time.split("-")[0]),
-        endMinutes: parseTimeValues(time.split("-")[1]),
-        ...details,
-      }))
-      .sort((a, b) => a.startMinutes - b.startMinutes);
-
-    for (const cls of sortedClasses) {
-      if (nowMins >= cls.startMinutes && nowMins < cls.endMinutes) {
-        curr = cls;
-      } else if (cls.startMinutes > nowMins && !nxt) {
-        nxt = cls;
+    if (isToday) {
+      for (const cls of processedDay) {
+        if (cls.type === "break") continue;
+        if (nowMins >= cls.minutesStart && nowMins < cls.minutesEnd) {
+          curr = cls;
+        } else if (cls.minutesStart > nowMins && !nxt) {
+          nxt = cls;
+        }
+      }
+    } else {
+      const activeClasses = processedDay.filter((c: any) => c.type !== "break");
+      if (activeClasses.length > 0) {
+        nxt = activeClasses[0];
       }
     }
 
     return { currentClass: curr, nextClass: nxt };
-  }, [data, currentDayOrder]);
+  }, [data, academia, selectedDay, currentDayOrder, customClasses, courseMap]);
 
-  const displayCourse = (nextClass?.course || "free time").toLowerCase();
+  const displayCourse = (
+    nextClass?.name ||
+    nextClass?.courseTitle ||
+    nextClass?.course ||
+    "free time"
+  ).toLowerCase();
   const displayCourseWords = displayCourse.split(" ");
-  const line1 = displayCourseWords[0];
-  const line2 =
-    displayCourseWords.slice(1).join(" ") ||
-    (nextClass?.room ? nextClass.room.toLowerCase() : "relax");
   const displayTiming = nextClass?.time?.split("-")[0].trim() || "--:--";
 
   const { alertName, alertPctNum, alertPct, alertMargin, alertLabel } =
@@ -174,7 +219,12 @@ export default function MinimalHomepage({
 
       if (targetClass && data?.attendance) {
         const match = data.attendance.find((a: any) => {
-          const cName = targetClass.course
+          const cName = (
+            targetClass.name ||
+            targetClass.courseTitle ||
+            targetClass.course ||
+            ""
+          )
             .toLowerCase()
             .replace(/[^a-z0-9]/g, "");
           const aName = (a.title || a.course || "")
@@ -215,12 +265,12 @@ export default function MinimalHomepage({
     alertPctNum < 75 ? "cooked" : alertPctNum >= 85 ? "safe" : "danger";
   const attStyles = {
     safe: {
-      bg: "bg-[#ceff1c]",
-      border: "border-[#ceff1c]",
-      text: "text-[#111111]",
-      iconBg: "bg-[#111111]/10",
-      subText: "text-[#111111]/70",
-      arrow: "text-[#111111]/30",
+      bg: "bg-[#F2FFDB]",
+      border: "border-[#85a818]/30",
+      text: "text-[#4d6600]",
+      iconBg: "bg-[#85a818]/10",
+      subText: "text-[#4d6600]/70",
+      arrow: "text-[#4d6600]/30",
     },
     danger: {
       bg: "bg-[#FFF4E5]",
@@ -241,74 +291,69 @@ export default function MinimalHomepage({
   }[attendanceCategory];
 
   const overallPct = calculateOverallAttendance(data?.attendance || []);
-  const sortedMarks = processAndSortMarks(
-    data?.marks || [],
-    buildCourseMap(data),
-  );
+  const sortedMarks = processAndSortMarks(data?.marks || [], courseMap);
   const latestMark = sortedMarks.length > 0 ? sortedMarks[0] : null;
 
-  const [officialAlerts] = useState([
-    {
-      id: 101,
-      title: "CT-1 Schedule Released",
-      desc: "Starts from Oct 12th. Check timetable.",
-      type: "exam",
-    },
-    {
-      id: 102,
-      title: "Fee Payment Overdue",
-      desc: "Last date to clear dues is tomorrow.",
-      type: "admin",
-    },
-  ]);
+  const officialAlerts = useMemo(() => {
+    const calData = academia?.calendarData || calendarDataJson || [];
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
 
-  const [classNotes, setClassNotes] = useState([
-    {
-      id: 201,
-      text: "physics lab postponed to next week",
-      author: "rahul",
-      date: "2 hrs ago",
-    },
-    {
-      id: 202,
-      text: "sir said to read chapter 4 for surprise quiz",
-      author: "sneha",
-      date: "5 hrs ago",
-    },
-  ]);
+    return calData
+      .filter((ev: any) => {
+        const d = new Date(ev.date);
+        return (
+          d >= now &&
+          (ev.type === "exam" ||
+            ev.description.toLowerCase().includes("holiday"))
+        );
+      })
+      .sort(
+        (a: any, b: any) =>
+          new Date(a.date).getTime() - new Date(b.date).getTime(),
+      )
+      .slice(0, 3)
+      .map((ev: any, i: number) => ({
+        id: i,
+        title: ev.type === "exam" ? "Assessment" : "Upcoming Break",
+        desc: ev.description,
+        type: ev.type === "exam" ? "exam" : "holiday",
+        date: ev.date,
+      }));
+  }, [academia?.calendarData]);
 
-  const [personalNotes, setPersonalNotes] = useState([
-    {
-      id: 301,
-      text: "ask prof about ml assignment extension",
-      date: "yesterday",
-    },
-  ]);
+  const [classNotes, setClassNotes] = useState<any[]>([]);
+  const [personalNotes, setPersonalNotes] = useState<any[]>([]);
 
   useEffect(() => {
-    setMounted(true);
+    const savedNotes = localStorage.getItem("ratio_private_notes");
+    if (savedNotes) {
+      try {
+        setPersonalNotes(JSON.parse(savedNotes));
+      } catch (e) {}
+    }
   }, []);
 
   const handleAddNote = () => {
     if (!newNote.trim()) return;
+
+    const newNoteObj = { id: Date.now(), text: newNote, date: "just now" };
+
     if (isPublicMode) {
-      setClassNotes([
-        { id: Date.now(), text: newNote, author: userName, date: "just now" },
-        ...classNotes,
-      ]);
+      setClassNotes([{ ...newNoteObj, author: userName }, ...classNotes]);
     } else {
-      setPersonalNotes([
-        { id: Date.now(), text: newNote, date: "just now" },
-        ...personalNotes,
-      ]);
+      const updatedNotes = [newNoteObj, ...personalNotes];
+      setPersonalNotes(updatedNotes);
+      localStorage.setItem("ratio_private_notes", JSON.stringify(updatedNotes));
     }
     setNewNote("");
   };
 
-  const renderSlot = (slot: any) => {
+  const renderSlot = (slot: any, index: number) => {
     if (!slot.active) {
       return (
-        <div
+        <motion.div
+          variants={itemVariants}
           key={slot.id}
           className="aspect-square bg-[#EFEFEF]/50 custom-dotted"
         />
@@ -328,14 +373,15 @@ export default function MinimalHomepage({
       botText = "text-white/80";
     } else if (slot.isPractical) {
       boxClass = "bg-[#e0f2fe] border-[#bae6fd]";
-      topText = "text-[#0369a1]/60";
-      midText = "text-[#0369a1]";
-      botText = "text-[#0369a1]/70";
+      topText = "text-[#111111]/50";
+      midText = "text-[#111111]";
+      botText = "text-[#111111]/70";
     }
 
     return (
-      <div
-        key={slot.id}
+      <motion.div
+        variants={itemVariants}
+        key={`${slot.id}-${index}`}
         className={`aspect-square rounded-[14px] border-[1.5px] flex flex-col items-center justify-center gap-[4px] p-1 transition-all ${boxClass}`}
       >
         <span
@@ -356,7 +402,7 @@ export default function MinimalHomepage({
         >
           {slot.time}
         </span>
-      </div>
+      </motion.div>
     );
   };
 
@@ -371,8 +417,6 @@ export default function MinimalHomepage({
       <style
         dangerouslySetInnerHTML={{
           __html: `
-          @import url('https://fonts.googleapis.com/css2?family=Afacad:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700;800;900&display=swap');
-
           .custom-dotted {
             background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='14' ry='14' stroke='%2311111150' stroke-width='2' stroke-dasharray='4%2c 8' stroke-dashoffset='0' stroke-linecap='round'/%3e%3c/svg%3e");
             border-radius: 14px;
@@ -427,7 +471,9 @@ export default function MinimalHomepage({
               style={{ fontFamily: "'Montserrat', sans-serif" }}
             >
               Day Order {selectedDay}{" "}
-              {String(selectedDay) === String(currentDayOrder) && "• today"}
+              {String(selectedDay) === String(currentDayOrder)
+                ? "• today"
+                : "• upcoming"}
             </span>
             {extraGrid.length > 0 && (
               <button
@@ -455,19 +501,23 @@ export default function MinimalHomepage({
           </div>
         </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.1 }}
-          className="grid grid-cols-5 gap-[8px] mb-8 shrink-0 transition-all"
-        >
-          {displayGrid.map(renderSlot)}
-        </motion.div>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={selectedDay}
+            variants={containerVariants}
+            initial="hidden"
+            animate="show"
+            exit="hidden"
+            className="grid grid-cols-5 gap-[8px] mb-8 shrink-0 transition-all"
+          >
+            {displayGrid.map((slot, i) => renderSlot(slot, i))}
+          </motion.div>
+        </AnimatePresence>
 
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.2 }}
+          variants={itemVariants}
+          initial="hidden"
+          animate="show"
           className="flex flex-col mb-8 shrink-0 w-full"
         >
           <div className="flex items-center gap-3 mb-2 w-full">
@@ -482,7 +532,7 @@ export default function MinimalHomepage({
               className="text-[13px] font-black uppercase tracking-[0.2em] text-[#111111] whitespace-nowrap"
               style={{ fontFamily: "'Afacad', sans-serif" }}
             >
-              DO {String(currentDayOrder).padStart(2, "0")}
+              DO {String(selectedDay).padStart(2, "0")}
             </span>
           </div>
 
@@ -491,14 +541,15 @@ export default function MinimalHomepage({
               className="text-[4.5rem] leading-[0.85] font-black tracking-tighter lowercase text-[#111111] truncate pt-3"
               style={{ fontFamily: "'Montserrat', sans-serif" }}
             >
-              {line1}
+              {displayCourseWords[0]}
             </span>
             <div className="flex items-baseline gap-3 w-full pb-3">
               <span
                 className="text-[4.5rem] leading-[0.85] font-black tracking-tighter lowercase text-[#111111] truncate flex-1 min-w-0"
                 style={{ fontFamily: "'Montserrat', sans-serif" }}
               >
-                {line2}
+                {displayCourseWords.slice(1).join(" ") ||
+                  (nextClass ? "" : "relax")}
               </span>
               <span
                 className="text-[1.25rem] font-bold uppercase tracking-widest text-[#111111]/40 shrink-0"
@@ -521,7 +572,12 @@ export default function MinimalHomepage({
                 current class •{" "}
                 <strong className="text-[#111111] font-black uppercase tracking-widest">
                   {currentClass
-                    ? getAcronym(currentClass.course).toUpperCase()
+                    ? getAcronym(
+                        currentClass.name ||
+                          currentClass.courseTitle ||
+                          currentClass.course ||
+                          currentClass.code,
+                      ).toUpperCase()
                     : "FREE"}
                 </strong>
               </span>
@@ -538,12 +594,13 @@ export default function MinimalHomepage({
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.3 }}
+          variants={containerVariants}
+          initial="hidden"
+          animate="show"
           className="flex flex-col gap-3 shrink-0 w-full"
         >
-          <div
+          <motion.div
+            variants={itemVariants}
             onClick={() => setActiveTab && setActiveTab("attendance")}
             className={`w-full border-[1.5px] rounded-[24px] p-2 pr-5 flex items-center gap-4 shadow-sm transition-all active:scale-[0.98] cursor-pointer ${attStyles.bg} ${attStyles.border}`}
           >
@@ -575,10 +632,11 @@ export default function MinimalHomepage({
               strokeWidth={2}
               className={`shrink-0 ${attStyles.arrow}`}
             />
-          </div>
+          </motion.div>
 
-          <div
-            onClick={() => setShowAlerts(true)}
+          <motion.div
+            variants={itemVariants}
+            onClick={() => setIsAlertsOpen(true)}
             className="w-full bg-[#111111] text-white border-[1.5px] border-[#111111] rounded-[24px] p-2 pr-5 flex items-center gap-4 shadow-md active:scale-[0.98] transition-transform cursor-pointer"
           >
             <div className="w-[50px] h-[50px] rounded-[18px] bg-white/10 flex items-center justify-center shrink-0">
@@ -586,7 +644,7 @@ export default function MinimalHomepage({
             </div>
             <div className="flex-1 flex flex-col justify-center min-w-0 py-0.5">
               <span
-                className="text-[15px] font-bold lowercase leading-tight truncate mb-0.5 text-b"
+                className="text-[15px] font-bold lowercase leading-tight truncate mb-0.5 text-white"
                 style={{ fontFamily: "'Montserrat', sans-serif" }}
               >
                 academic alerts
@@ -595,9 +653,11 @@ export default function MinimalHomepage({
                 className="text-[13px] font-medium lowercase text-white/70 truncate"
                 style={{ fontFamily: "'Afacad', sans-serif" }}
               >
-                {overallPct < 75
-                  ? "attendance might be cooked."
-                  : "stats looking solid."}
+                {officialAlerts.length > 0
+                  ? `${officialAlerts[0].title} coming up.`
+                  : overallPct < 75
+                    ? "attendance might be cooked."
+                    : "stats looking solid."}
               </span>
             </div>
             <ChevronRight
@@ -605,9 +665,10 @@ export default function MinimalHomepage({
               strokeWidth={2}
               className="text-white/30 shrink-0"
             />
-          </div>
+          </motion.div>
 
-          <div
+          <motion.div
+            variants={itemVariants}
             onClick={() => setActiveTab && setActiveTab("marks")}
             className="w-full bg-white border-[1.5px] border-[#111111]/10 rounded-[24px] p-2 pr-5 flex items-center gap-4 shadow-sm active:scale-[0.98] transition-transform cursor-pointer"
           >
@@ -639,12 +700,12 @@ export default function MinimalHomepage({
               strokeWidth={2}
               className="text-[#111111]/30 shrink-0"
             />
-          </div>
+          </motion.div>
         </motion.div>
       </div>
 
       <AnimatePresence>
-        {showAlerts && (
+        {isAlertsOpen && (
           <motion.div
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
@@ -655,11 +716,12 @@ export default function MinimalHomepage({
             dragElastic={{ top: 0, bottom: 0.8 }}
             onDragEnd={(e, info) => {
               if (info.offset.y > 100 || info.velocity.y > 500) {
-                setShowAlerts(false);
+                setIsAlertsOpen(false);
               }
             }}
             className="fixed inset-0 bg-[#111111] z-[60] flex flex-col px-6 pt-10 pb-6 overflow-hidden"
           >
+            <div className="w-12 h-1.5 bg-white/20 rounded-full mx-auto mb-6 shrink-0" />
             <div className="flex justify-between items-start w-full shrink-0 mb-6">
               <div className="flex flex-col">
                 <span
@@ -669,14 +731,14 @@ export default function MinimalHomepage({
                   ALERTS
                 </span>
                 <span
-                  className="text-[10px] font-bold lowercase tracking-[0.2em] text-[#ceff1c] mt-1.5"
+                  className="text-[10px] font-bold lowercase tracking-[0.2em] text-[#85a818] mt-1.5"
                   style={{ fontFamily: "'Afacad', sans-serif" }}
                 >
                   class feed & personal
                 </span>
               </div>
               <button
-                onClick={() => setShowAlerts(false)}
+                onClick={() => setIsAlertsOpen(false)}
                 className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white active:scale-95 transition-all shrink-0"
               >
                 <X size={20} strokeWidth={2.5} />
@@ -684,7 +746,7 @@ export default function MinimalHomepage({
             </div>
 
             <div className="flex-1 overflow-y-auto no-scrollbar flex flex-col gap-10 pb-4">
-              <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-3 mt-4">
                 <div className="flex items-center gap-3 w-full">
                   <span
                     className="text-[11px] font-bold lowercase tracking-[0.25em] text-white/40 whitespace-nowrap"
@@ -694,60 +756,96 @@ export default function MinimalHomepage({
                   </span>
                   <div className="flex-1 h-[1.5px] bg-white/10 rounded-full" />
                 </div>
-                {officialAlerts.map((alert) => (
-                  <div
-                    key={alert.id}
-                    className="bg-white/5 border-[1.5px] border-white/10 rounded-[20px] p-4 flex flex-col"
-                  >
-                    <div className="flex items-start justify-between mb-2">
+
+                {officialAlerts.length === 0 ? (
+                  <div className="w-full flex flex-col items-center justify-center py-6 gap-2 opacity-30">
+                    <div className="w-full h-px bg-white/20 rounded-full" />
+                    <div className="w-3/4 h-px bg-white/20 rounded-full" />
+                    <div className="w-1/2 h-px bg-white/20 rounded-full" />
+                  </div>
+                ) : (
+                  officialAlerts.map((alert) => (
+                    <div
+                      key={alert.id}
+                      className="bg-[#1a1a1a] border border-white/10 rounded-[20px] p-5 flex flex-col relative overflow-hidden"
+                    >
+                      <div
+                        className={`absolute top-0 right-0 w-24 h-24 rounded-bl-[100px] pointer-events-none ${alert.type === "exam" ? "bg-[#8b5cf6]/10" : "bg-[#FF4D4D]/10"}`}
+                      />
+
+                      <div className="flex items-center gap-3 mb-4 z-10">
+                        <span
+                          className={`text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full shrink-0 ${alert.type === "exam" ? "bg-[#8b5cf6] text-white" : "bg-[#FF4D4D] text-white"}`}
+                          style={{ fontFamily: "'Afacad', sans-serif" }}
+                        >
+                          {alert.type}
+                        </span>
+                        <span
+                          className="text-[12px] font-bold text-white/50 tracking-wider uppercase"
+                          style={{ fontFamily: "'Montserrat', sans-serif" }}
+                        >
+                          {alert.date}
+                        </span>
+                      </div>
+
                       <span
-                        className="text-[16px] font-black tracking-widest uppercase text-white"
+                        className="text-[20px] font-black tracking-wide text-white leading-tight mb-4 z-10"
                         style={{ fontFamily: "'Montserrat', sans-serif" }}
                       >
                         {alert.title}
                       </span>
-                      <span
-                        className={`text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded-md shrink-0 ml-2 ${alert.type === "exam" ? "bg-[#8b5cf6]/20 text-[#8b5cf6]" : "bg-[#FF4D4D]/20 text-[#FF4D4D]"}`}
-                        style={{ fontFamily: "'Afacad', sans-serif" }}
-                      >
-                        {alert.type}
-                      </span>
+
+                      <div className="flex flex-col gap-2.5 z-10">
+                        {alert.desc
+                          .split(" / ")
+                          .map((sub: string, idx: number) => (
+                            <div
+                              key={idx}
+                              className="flex items-start gap-3 bg-white/5 rounded-xl p-3 border border-white/5"
+                            >
+                              {alert.desc.includes("/") && (
+                                <div
+                                  className={`mt-1.5 w-1.5 h-1.5 rounded-full shrink-0 ${alert.type === "exam" ? "bg-[#8b5cf6]" : "bg-[#FF4D4D]"}`}
+                                />
+                              )}
+                              <span
+                                className="text-[15px] font-bold text-white/90 lowercase leading-snug"
+                                style={{ fontFamily: "'Afacad', sans-serif" }}
+                              >
+                                {sub.trim()}
+                              </span>
+                            </div>
+                          ))}
+                      </div>
                     </div>
-                    <span
-                      className="text-[14px] font-medium text-white/60 lowercase"
-                      style={{ fontFamily: "'Afacad', sans-serif" }}
-                    >
-                      {alert.desc}
-                    </span>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
 
               <div className="flex flex-col gap-3">
                 <div className="flex items-center gap-3 w-full">
                   <span
-                    className="text-[11px] font-bold lowercase tracking-[0.25em] text-[#ceff1c] whitespace-nowrap"
+                    className="text-[11px] font-bold lowercase tracking-[0.25em] text-[#85a818] whitespace-nowrap"
                     style={{ fontFamily: "'Montserrat', sans-serif" }}
                   >
                     class feed
                   </span>
-                  <div className="flex-1 h-[1.5px] bg-[#ceff1c]/20 rounded-full" />
+                  <div className="flex-1 h-[1.5px] bg-[#85a818]/20 rounded-full" />
                 </div>
 
                 {classNotes.length === 0 ? (
-                  <span
-                    className="text-[12px] font-medium text-white/30 lowercase text-center py-4"
-                    style={{ fontFamily: "'Afacad', sans-serif" }}
-                  >
-                    no updates from the class yet.
-                  </span>
+                  <div className="w-full flex flex-col items-center justify-center py-6 gap-2 opacity-30">
+                    <div className="w-full h-px bg-white/20 rounded-full" />
+                    <div className="w-3/4 h-px bg-white/20 rounded-full" />
+                    <div className="w-1/2 h-px bg-white/20 rounded-full" />
+                  </div>
                 ) : (
                   classNotes.map((note) => (
                     <div
                       key={note.id}
-                      className="bg-[#ceff1c]/5 border-[1.5px] border-[#ceff1c]/20 rounded-[20px] p-4 flex flex-col relative overflow-hidden"
+                      className="bg-[#85a818]/5 border-[1.5px] border-[#85a818]/20 rounded-[20px] p-4 flex flex-col relative overflow-hidden"
                     >
-                      <div className="absolute top-0 right-0 w-16 h-16 bg-[#ceff1c]/10 rounded-bl-[100px] pointer-events-none" />
+                      <div className="absolute top-0 right-0 w-16 h-16 bg-[#85a818]/10 rounded-bl-[100px] pointer-events-none" />
                       <span
                         className="text-[15px] font-bold text-white lowercase leading-snug mb-3 pr-4"
                         style={{ fontFamily: "'Afacad', sans-serif" }}
@@ -756,9 +854,9 @@ export default function MinimalHomepage({
                       </span>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-1.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-[#ceff1c]" />
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#85a818]" />
                           <span
-                            className="text-[10px] font-bold uppercase tracking-widest text-[#ceff1c]"
+                            className="text-[10px] font-bold uppercase tracking-widest text-[#85a818]"
                             style={{ fontFamily: "'Montserrat', sans-serif" }}
                           >
                             {note.author}
@@ -779,7 +877,7 @@ export default function MinimalHomepage({
               <div className="flex flex-col gap-3">
                 <div className="flex items-center gap-3 w-full">
                   <span
-                    className="text-[11px] font-bold lowercase tracking-[0.25em] text-white/40 whitespace-nowrap"
+                    className="text-[11px] font-bold lowercase tracking-[0.2em] text-white/40 whitespace-nowrap"
                     style={{ fontFamily: "'Montserrat', sans-serif" }}
                   >
                     my private notes
@@ -788,12 +886,11 @@ export default function MinimalHomepage({
                 </div>
 
                 {personalNotes.length === 0 ? (
-                  <span
-                    className="text-[12px] font-medium text-white/30 lowercase text-center py-4"
-                    style={{ fontFamily: "'Afacad', sans-serif" }}
-                  >
-                    no private notes added yet.
-                  </span>
+                  <div className="w-full flex flex-col items-center justify-center py-6 gap-2 opacity-30">
+                    <div className="w-full h-px bg-white/20 rounded-full" />
+                    <div className="w-3/4 h-px bg-white/20 rounded-full" />
+                    <div className="w-1/2 h-px bg-white/20 rounded-full" />
+                  </div>
                 ) : (
                   personalNotes.map((note) => (
                     <div
@@ -820,13 +917,13 @@ export default function MinimalHomepage({
 
             <div className="mt-auto shrink-0 pt-4 bg-[#111111]">
               <div
-                className={`flex items-center gap-2 p-1.5 rounded-[20px] border-[1.5px] transition-colors ${isPublicMode ? "bg-[#ceff1c]/5 border-[#ceff1c]/30" : "bg-white/10 border-transparent"}`}
+                className={`flex items-center gap-2 p-1.5 rounded-[20px] border-[1.5px] transition-colors ${isPublicMode ? "bg-[#85a818]/5 border-[#85a818]/30" : "bg-white/10 border-transparent"}`}
               >
                 <button
                   onClick={() => setIsPublicMode(!isPublicMode)}
                   className={`w-10 h-10 rounded-[14px] flex items-center justify-center transition-all shrink-0 ${
                     isPublicMode
-                      ? "bg-[#ceff1c] text-[#111111]"
+                      ? "bg-[#85a818] text-white"
                       : "bg-white/10 text-white/60 hover:text-white"
                   }`}
                 >
@@ -855,7 +952,7 @@ export default function MinimalHomepage({
                   onClick={handleAddNote}
                   className={`w-10 h-10 rounded-[14px] flex items-center justify-center active:scale-95 transition-all shrink-0 ${
                     isPublicMode
-                      ? "bg-[#ceff1c] text-[#111111]"
+                      ? "bg-[#85a818] text-white"
                       : "bg-white text-[#111111]"
                   }`}
                 >

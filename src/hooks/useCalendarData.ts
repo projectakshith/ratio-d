@@ -1,23 +1,28 @@
-import { useState, useMemo, useEffect } from "react";
-import calendarDataJson from "../../public/calendar_data.json";
-import { CalendarEvent } from "../types";
+import { useState, useMemo, useEffect, useCallback } from "react";
+import calendarDataJson from "@/data/calendar_data.json";
 
-export const useCalendarData = (calendarDataProp?: CalendarEvent[]) => {
+export const useCalendarData = (calendarDataProp?: any[]) => {
   const [viewMonth, setViewMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [introMode, setIntroMode] = useState(true);
 
+  // Safely fallback to the JSON file
   const calendarData =
-    calendarDataProp || (calendarDataJson as CalendarEvent[]) || [];
+    (calendarDataProp?.length ? calendarDataProp : calendarDataJson) || [];
 
   useEffect(() => {
     const timer = setTimeout(() => setIntroMode(false), 800);
     return () => clearTimeout(timer);
   }, []);
 
+  const handleDateClick = useCallback((date: Date) => {
+    setSelectedDate(date);
+    if (navigator.vibrate) navigator.vibrate(2);
+  }, []);
+
   const eventsMap = useMemo(() => {
-    const map: Record<string, CalendarEvent> = {};
-    calendarData.forEach((item) => {
+    const map: Record<string, any> = {};
+    calendarData.forEach((item: any) => {
       const dateObj = new Date(item.date);
       if (!isNaN(dateObj.getTime())) map[dateObj.toDateString()] = item;
     });
@@ -67,10 +72,33 @@ export const useCalendarData = (calendarDataProp?: CalendarEvent[]) => {
     (isWeekend && !hasOrder);
 
   const theme = useMemo(() => {
-    if (isExam) return { bg: "#8b5cf6", text: "text-white" };
-    if (hasOrder) return { bg: "#ceff1c", text: "text-[#050505]" };
-    if (isHoliday) return { bg: "#ff003c", text: "text-white" };
-    return { bg: "#ffffff", text: "text-[#050505]" };
+    if (isExam)
+      return {
+        bg: "#8b5cf6",
+        text: "text-white",
+        border: "border-transparent",
+        accent: "bg-white/20 text-white",
+      };
+    if (isHoliday)
+      return {
+        bg: "#FF4D4D",
+        text: "text-white",
+        border: "border-transparent",
+        accent: "bg-white/20 text-white",
+      };
+    if (hasOrder)
+      return {
+        bg: "#F2FFDB",
+        text: "text-[#4d6600]",
+        border: "border-[#85a818]/30",
+        accent: "bg-[#85a818]/10 text-[#4d6600]",
+      };
+    return {
+      bg: "#ffffff",
+      text: "text-[#111111]",
+      border: "border-[#111111]/10",
+      accent: "bg-[#F7F7F7] text-[#111111]",
+    };
   }, [hasOrder, isHoliday, isExam]);
 
   const display = useMemo(() => {
@@ -83,14 +111,18 @@ export const useCalendarData = (calendarDataProp?: CalendarEvent[]) => {
       .toLowerCase();
 
     if (isExam) {
+      const parts = (currentEvent.description || "Test Scheduled").split(":");
       return {
         pill: weekday,
         bigText: currentEvent.order
           ? currentEvent.order.padStart(2, "0")
           : dayNum,
         label: "day order",
-        infoMain: `${month} ${dayNum}`,
-        infoSub: currentEvent.description || "Exam Day",
+        infoMain: parts[0]?.trim() || "Test",
+        infoSub:
+          parts.slice(1).join(":").trim() ||
+          currentEvent.description ||
+          "Exam Day",
       };
     } else if (hasOrder) {
       return {
@@ -100,13 +132,21 @@ export const useCalendarData = (calendarDataProp?: CalendarEvent[]) => {
         infoMain: `${month} ${dayNum}`,
         infoSub: "Regular Classes",
       };
+    } else if (isHoliday) {
+      return {
+        pill: weekday,
+        label: "holiday",
+        bigText: dayNum,
+        infoMain: `${month} ${dayNum}`,
+        infoSub: currentEvent?.description || "Take a break",
+      };
     } else {
       return {
         pill: weekday,
         bigText: dayNum,
         label: "date",
-        infoMain: `${month}`,
-        infoSub: isHoliday ? "Holiday" : "No schedule",
+        infoMain: `${month} ${dayNum}`,
+        infoSub: "No schedule",
       };
     }
   }, [selectedDate, hasOrder, isHoliday, isExam, currentEvent]);
@@ -168,6 +208,6 @@ export const useCalendarData = (calendarDataProp?: CalendarEvent[]) => {
     handleNextMonth,
     goToToday,
     gridData,
-    setSelectedDate,
+    handleDateClick,
   };
 };

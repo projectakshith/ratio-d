@@ -1,344 +1,644 @@
 "use client";
-import React, { useState, useMemo, useEffect, useRef } from "react";
+import React, { useEffect, useState, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MapPin, User, Clock, Layers } from "lucide-react";
+import { MapPin, Clock, User, Plus, X } from "lucide-react";
+import {
+  buildCourseMap,
+  processSchedule,
+  getDayOverview,
+  parseTimetableTime,
+} from "@/utils/timetableLogic";
 
-export default function Timetable({ schedule, dayOrder }) {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [activeDayOrder, setActiveDayOrder] = useState(1);
-  const [introMode, setIntroMode] = useState(true);
-  const itemRefs = useRef<Array<HTMLDivElement | null>>([]);
-  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+export default function MinimalTimetable({ data, academia }: any) {
+  const [mounted, setMounted] = useState(false);
+  const schedule = academia?.effectiveSchedule || {};
+  const dayOrder = parseInt(String(academia?.effectiveDayOrder)) || 1;
+
+  const [activeDay, setActiveDay] = useState<number>(1);
+  const [isAddingClass, setIsAddingClass] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  const [newSub, setNewSub] = useState("");
+  const [newRoom, setNewRoom] = useState("");
+  const [startTime, setStartTime] = useState("08:00");
+  const [endTime, setEndTime] = useState("08:50");
+  const [newType, setNewType] = useState<"theory" | "lab">("theory");
+
+  const [customClasses, setCustomClasses] = useState<Record<number, any[]>>({});
 
   useEffect(() => {
-    if (dayOrder && dayOrder !== "-") {
-      setActiveDayOrder(parseInt(dayOrder));
-    }
-    const timer = setTimeout(() => setIntroMode(false), 800);
-    return () => clearTimeout(timer);
-  }, [dayOrder]);
+    setMounted(true);
+    if (!isNaN(dayOrder) && dayOrder >= 1 && dayOrder <= 5) {
+      const todayData = schedule[`Day ${dayOrder}`] || {};
+      let lastEnd = 0;
+      Object.keys(todayData).forEach((time) => {
+        const endStr = time.split("-")[1];
+        if (endStr) {
+          const endMins = parseTimetableTime(endStr);
+          if (endMins > lastEnd) lastEnd = endMins;
+        }
+      });
 
-  const dateDisplay = useMemo(() => {
-    const d = new Date();
-    return {
-      date: d.getDate(),
-      month: d.toLocaleString("default", { month: "short" }).toUpperCase(),
-      day: d.toLocaleString("default", { weekday: "long" }).toUpperCase(),
-      year: d.getFullYear(),
+      const nowMins = new Date().getHours() * 60 + new Date().getMinutes();
+      if (lastEnd > 0 && nowMins >= lastEnd) {
+        setActiveDay(dayOrder < 5 ? dayOrder + 1 : 1);
+      } else {
+        setActiveDay(dayOrder);
+      }
+    }
+    const updateCustomClasses = () => {
+      const stored = localStorage.getItem("ratio_custom_classes");
+      if (stored) {
+        try {
+          setCustomClasses(JSON.parse(stored));
+        } catch (e) {}
+      }
     };
-  }, []);
+    updateCustomClasses();
+    window.addEventListener("custom_classes_updated", updateCustomClasses);
+    return () =>
+      window.removeEventListener("custom_classes_updated", updateCustomClasses);
+  }, [dayOrder, schedule]);
+
+  const courseMap = useMemo(() => buildCourseMap(data), [data]);
+
+  const handleAddClass = () => {
+    if (!newSub.trim() || !newRoom.trim() || !startTime || !endTime) return;
+
+    const stored = localStorage.getItem("ratio_custom_classes");
+    const currentCustoms = stored ? JSON.parse(stored) : {};
+
+    const newClassItem = {
+      id: Date.now().toString(),
+      code: newSub,
+      courseTitle: newSub,
+      course: newSub,
+      time: `${startTime} - ${endTime}`,
+      room: newRoom,
+      faculty: "user added",
+      slot: newType === "lab" ? "P1" : "A1",
+      type: newType,
+      isCustom: true,
+    };
+
+    const updated = {
+      ...currentCustoms,
+      [activeDay]: [...(currentCustoms[activeDay] || []), newClassItem],
+    };
+
+    localStorage.setItem("ratio_custom_classes", JSON.stringify(updated));
+    window.dispatchEvent(new Event("custom_classes_updated"));
+
+    setNewSub("");
+    setNewRoom("");
+    setStartTime("08:00");
+    setEndTime("08:50");
+    setIsAddingClass(false);
+  };
+
+  const handleDeleteCustom = (day: number, timeStr: string) => {
+    const stored = localStorage.getItem("ratio_custom_classes");
+    if (!stored) return;
+    const currentCustoms = JSON.parse(stored);
+
+    if (currentCustoms[day]) {
+      currentCustoms[day] = currentCustoms[day].filter(
+        (c: any) => c.time !== timeStr,
+      );
+      localStorage.setItem(
+        "ratio_custom_classes",
+        JSON.stringify(currentCustoms),
+      );
+      window.dispatchEvent(new Event("custom_classes_updated"));
+    }
+  };
 
   const currentSchedule = useMemo(() => {
-    if (!schedule) return [];
-
-    const dayKey = `Day ${activeDayOrder}`;
-    const dayData = schedule[dayKey];
-    if (!dayData) return [];
-
-    const rawItems = Object.values(dayData)
-      .map((details: any) => {
-        if (!details || !details.time) return null;
-
-        const [startStr, endStr] = details.time.split(" - ");
-
-        const parseTime = (str) => {
-          if (!str) return 0;
-          let [h, m] = str.split(":").map(Number);
-          if (h < 8) h += 12;
-          return h * 60 + m;
-        };
-
-        return {
-          ...details,
-          start: startStr,
-          end: endStr,
-          minutesStart: parseTime(startStr),
-          minutesEnd: parseTime(endStr),
-        };
-      })
-      .filter(Boolean)
-      .sort((a, b) => a.minutesStart - b.minutesStart);
-
-    const mergedItems = [];
-    rawItems.forEach((item) => {
-      const lastItem: any = mergedItems[mergedItems.length - 1];
-
-      if (
-        lastItem &&
-        lastItem.course === item.course &&
-        lastItem.room === item.room &&
-        lastItem.minutesEnd === item.minutesStart
-      ) {
-        lastItem.end = item.end;
-        lastItem.minutesEnd = item.minutesEnd;
-        lastItem.slot = `${lastItem.slot} + ${item.slot}`;
-      } else {
-        mergedItems.push({ ...item });
-      }
-    });
-
-    const now = new Date();
-    const nowMinutes = now.getHours() * 60 + now.getMinutes();
-    const isToday = parseInt(dayOrder) === activeDayOrder;
-
-    return mergedItems.map((item) => ({
-      ...item,
-      isNow:
-        isToday &&
-        nowMinutes >= item.minutesStart &&
-        nowMinutes < item.minutesEnd,
-      isPast: isToday && nowMinutes >= item.minutesEnd,
-    }));
-  }, [schedule, activeDayOrder, dayOrder]);
+    return processSchedule(
+      schedule,
+      customClasses,
+      activeDay,
+      dayOrder,
+      courseMap,
+    );
+  }, [schedule, customClasses, activeDay, dayOrder, courseMap]);
 
   useEffect(() => {
-    if (!introMode && currentSchedule.length > 0) {
-      const targetIndex = currentSchedule.findIndex((item) => item.isNow) !== -1 
-        ? currentSchedule.findIndex((item) => item.isNow) 
-        : currentSchedule.findIndex((item) => !item.isPast);
-        
-      if (targetIndex !== -1 && itemRefs.current[targetIndex] && scrollContainerRef.current) {
-        setTimeout(() => {
-          const container = scrollContainerRef.current;
-          const element = itemRefs.current[targetIndex];
-          if (!container || !element) return;
-
-          const containerRect = container.getBoundingClientRect();
-          const elementRect = element.getBoundingClientRect();
-          const targetPos = container.scrollTop + (elementRect.top - containerRect.top) - (container.clientHeight / 2) + (elementRect.height / 2);
-
-          container.scrollTo({
-            top: targetPos,
+    if (mounted) {
+      const timer = setTimeout(() => {
+        const currentClassElement = document.getElementById(
+          "active-class-indicator",
+        );
+        if (currentClassElement) {
+          currentClassElement.scrollIntoView({
             behavior: "smooth",
+            block: "center",
           });
-        }, 300);
-      }
+        }
+      }, 400);
+      return () => clearTimeout(timer);
     }
-  }, [introMode, currentSchedule, activeDayOrder]);
+  }, [mounted, activeDay]);
+
+  if (!mounted) return null;
+  const overview = getDayOverview(currentSchedule);
 
   return (
-    <div className="h-screen w-full bg-[#050505] flex flex-col relative overflow-hidden font-sans">
-      <div className="absolute inset-0 pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')] bg-repeat opacity-[0.03] z-0" />
+    <>
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
+          .no-scrollbar::-webkit-scrollbar { display: none; }
+          .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-      <div className="absolute top-0 w-full h-[35%] pt-16 px-8 z-10 flex flex-col text-white">
-        <div className="flex items-center gap-3 mb-2 ml-1">
-          <span
-            className="text-[#ceff1c] font-black text-sm tracking-[0.2em] uppercase"
-            style={{ fontFamily: "Aonic" }}
-          >
-            {dateDisplay.day}
-          </span>
-          <span className="text-white/60 font-bold text-[9px] uppercase tracking-widest px-2 py-0.5 rounded-sm bg-white/10 border border-white/5">
-            Day Order {dayOrder}
-          </span>
-        </div>
-        <div className="flex items-baseline leading-[0.8]">
-          <h1
-            className="text-[130px] font-medium tracking-tighter text-white"
-            style={{ fontFamily: "Urbanosta" }}
-          >
-            {dateDisplay.date}
-          </h1>
-          <div className="flex flex-col ml-4 mb-3">
-            <span
-              className="text-4xl font-black text-white/30 uppercase"
-              style={{ fontFamily: "Aonic" }}
-            >
-              {dateDisplay.month}
-            </span>
-            <span className="text-xs text-white/20 font-bold font-mono tracking-widest mt-1">
-              {dateDisplay.year}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <motion.div
-        layout
-        initial={{ y: "100%" }}
-        animate={{
-          y: introMode ? "100%" : "0%",
-          height: isExpanded ? "85%" : "68%",
+          .break-dotted {
+            background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='20' ry='20' stroke='%23111111' stroke-width='2' stroke-dasharray='6%2c 12' stroke-dashoffset='0' stroke-linecap='round' opacity='0.15'/%3e%3c/svg%3e");
+            border-radius: 20px;
+          }
+        `,
         }}
-        transition={{ type: "spring", stiffness: 100, damping: 20 }}
-        className="absolute bottom-0 w-full bg-[#fdfdfd] flex flex-col shadow-[0_-30px_80px_rgba(0,0,0,0.5)] z-20 overflow-hidden rounded-t-[40px]"
-      >
-        <div className="w-full bg-[#fdfdfd] z-30 pt-4 pb-2 sticky top-0 shrink-0">
-          <div
-            className="w-full flex justify-center mb-6 cursor-grab active:cursor-grabbing py-2"
-            onClick={() => setIsExpanded(!isExpanded)}
-          >
-            <div className="w-12 h-1.5 bg-black/10 rounded-full transition-colors hover:bg-black/20"></div>
-          </div>
+      />
 
-          <div className="px-6 pb-2">
-            <div className="flex justify-between items-center mb-3">
-              <span className="text-[10px] font-black uppercase tracking-widest text-black/40">
-                Day Order
+      <div className="absolute inset-0 bg-[#F7F7F7]">
+        {/* Lowered z-index of the scroll container to z-10 so gradient text overlays it cleanly */}
+        <div
+          ref={scrollContainerRef}
+          className="h-full w-full overflow-y-auto no-scrollbar px-6 pt-10 pb-[280px] flex flex-col relative z-10"
+        >
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="w-full flex flex-col items-center mt-2 mb-8 shrink-0 relative"
+          >
+            <span
+              className="text-[12px] font-bold lowercase tracking-[0.3em] text-[#111111]/40 mb-3 text-center"
+              style={{ fontFamily: "'Montserrat', sans-serif" }}
+            >
+              current day order
+            </span>
+            <div className="flex items-baseline gap-2">
+              <span
+                className="text-[7.5rem] leading-[0.8] font-black tracking-tighter text-[#111111] text-center"
+                style={{ fontFamily: "'Montserrat', sans-serif" }}
+              >
+                {String(activeDay).padStart(2, "0")}
               </span>
-              {parseInt(dayOrder) === activeDayOrder && (
-                <span className="text-[9px] font-bold uppercase tracking-widest text-black bg-[#ceff1c] px-2 py-0.5 rounded-sm">
-                  Today
+              {activeDay !== dayOrder && (
+                <span
+                  className="text-[14px] font-bold text-[#111111]/40 lowercase tracking-widest"
+                  style={{ fontFamily: "'Afacad', sans-serif" }}
+                >
+                  • upcoming
                 </span>
               )}
             </div>
+          </motion.div>
 
-            <div className="flex justify-between gap-2">
-              {[1, 2, 3, 4, 5].map((num) => (
-                <button
-                  key={num}
-                  onClick={() => setActiveDayOrder(num)}
-                  className={`flex-1 h-11 rounded-xl flex items-center justify-center text-lg font-bold transition-all duration-200
-                    ${
-                      activeDayOrder === num
-                        ? "bg-black text-[#ceff1c] shadow-lg scale-105"
-                        : "bg-white text-black/40 shadow-sm hover:bg-gray-50 border border-black/5"
-                    }
-                  `}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.1 }}
+            className="flex flex-col mb-8 w-full shrink-0"
+          >
+            <button
+              onClick={() => setIsAddingClass(true)}
+              className="w-full border-[1.5px] border-[#111111] rounded-[24px] p-4 flex items-center justify-between bg-white shadow-sm active:scale-95 transition-all"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-2 h-2 rounded-full bg-[#111111]" />
+                <span
+                  className="text-[14px] font-bold lowercase tracking-widest text-[#111111]"
+                  style={{ fontFamily: "'Montserrat', sans-serif" }}
                 >
-                  {num}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
+                  custom class
+                </span>
+              </div>
+              <Plus size={20} strokeWidth={2.5} className="text-[#111111]" />
+            </button>
+          </motion.div>
 
-        <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-4 pb-32 pt-2 custom-scrollbar scroll-smooth">
-          <div className="flex flex-col gap-3 min-h-full">
-            <AnimatePresence mode="wait">
-              {currentSchedule.length > 0 ? (
-                <motion.div
-                  key={activeDayOrder}
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ duration: 0.2 }}
-                  className="flex flex-col gap-3"
-                >
-                  {currentSchedule.map((item: any, index: number) => (
-                    <div
-                      key={`${activeDayOrder}-${index}`}
-                      ref={(el) => (itemRefs.current[index] = el)}
-                      className={`w-full rounded-[24px] p-5 relative transition-all duration-200 scroll-mt-24
-                        ${
-                          item.isNow
-                            ? "bg-white shadow-[0_10px_30px_rgba(59,130,246,0.15)] ring-1 ring-blue-100 scale-[1.02]"
-                            : "bg-white shadow-sm border border-black/5"
-                        }
-                        ${
-                          item.isPast
-                            ? "opacity-50 grayscale-[0.5]"
-                            : "opacity-100"
-                        }
-                      `}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeDay}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.3, ease: [0.25, 1, 0.5, 1] }}
+              className="flex flex-col w-full"
+            >
+              <div className="w-full bg-[#F2FFDB] border-[1.5px] border-[#85a818]/30 rounded-[24px] p-5 mb-8 flex items-center justify-between shadow-sm">
+                <div className="flex flex-col">
+                  <span
+                    className="text-[10px] font-bold lowercase tracking-[0.2em] text-[#4d6600]/60 mb-1"
+                    style={{ fontFamily: "'Afacad', sans-serif" }}
+                  >
+                    day overview
+                  </span>
+                  <div className="flex items-baseline gap-2">
+                    <span
+                      className="text-[24px] font-black tracking-tighter text-[#4d6600]"
+                      style={{ fontFamily: "'Montserrat', sans-serif" }}
                     >
-                      <div className="flex justify-between items-start mb-4">
-                        <div className="flex items-center gap-2">
-                          <div
-                            className={`p-2 rounded-lg ${
-                              item.isNow
-                                ? "bg-blue-50 text-blue-600"
-                                : "bg-gray-50 text-gray-400"
-                            }`}
+                      {overview.start}
+                    </span>
+                    <span
+                      className="text-[14px] font-bold text-[#4d6600]/40"
+                      style={{ fontFamily: "'Montserrat', sans-serif" }}
+                    >
+                      to
+                    </span>
+                    <span
+                      className="text-[24px] font-black tracking-tighter text-[#4d6600]"
+                      style={{ fontFamily: "'Montserrat', sans-serif" }}
+                    >
+                      {overview.end}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex flex-col items-end">
+                  <span
+                    className="text-[32px] leading-[0.8] font-black text-[#4d6600]"
+                    style={{ fontFamily: "'Montserrat', sans-serif" }}
+                  >
+                    {overview.count}
+                  </span>
+                  <span
+                    className="text-[10px] font-bold uppercase tracking-widest text-[#4d6600]/60 mt-1.5"
+                    style={{ fontFamily: "'Afacad', sans-serif" }}
+                  >
+                    classes
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-4 w-full relative">
+                <div className="absolute left-[23px] top-6 bottom-6 w-[2px] bg-[#111111]/5 rounded-full z-0" />
+
+                {currentSchedule.map((item) => {
+                  if (item.type === "break") {
+                    return (
+                      <div
+                        key={item.id}
+                        className="flex items-center gap-4 w-full z-10"
+                      >
+                        <div className="w-12 flex justify-center shrink-0">
+                          <div className="w-2.5 h-2.5 rounded-full bg-[#111111]/10 ring-4 ring-[#F7F7F7]" />
+                        </div>
+                        <div className="flex-1 break-dotted p-4 flex items-center justify-between">
+                          <span
+                            className="text-[14px] font-bold lowercase tracking-widest text-[#111111]/40"
+                            style={{ fontFamily: "'Afacad', sans-serif" }}
                           >
-                            <Clock size={16} />
-                          </div>
-                          <div className="flex flex-col">
-                            <span className="text-lg font-bold text-black leading-none">
-                              {item.start}
-                            </span>
-                            <span className="text-[10px] font-medium text-black/40 uppercase mt-1">
-                              to {item.end}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="text-[9px] font-bold text-black/40 uppercase tracking-widest bg-black/5 px-2 py-1 rounded">
-                          {item.slot}
-                        </div>
-                      </div>
-
-                      <div className="mb-4">
-                        <h3
-                          className="text-lg font-bold text-black leading-tight lowercase mb-2"
-                          style={{ fontFamily: "Aonic" }}
-                        >
-                          {item.course}
-                        </h3>
-                        <div className="flex items-center gap-2">
-                          <User size={12} className="text-black/30" />
-                          <span className="text-[10px] font-bold uppercase tracking-wide text-black/50">
-                            {item.faculty?.split("(")[0] || "Faculty N/A"}
+                            {item.title}
+                          </span>
+                          <span
+                            className="text-[11px] font-bold tracking-widest text-[#111111]/40"
+                            style={{ fontFamily: "'Montserrat', sans-serif" }}
+                          >
+                            {item.time}
                           </span>
                         </div>
                       </div>
+                    );
+                  }
 
-                      <div className="pt-3 border-t border-gray-50 flex justify-between items-center">
-                        <div className="flex items-center gap-1.5">
-                          <MapPin
-                            size={14}
-                            className={
-                              item.isNow ? "text-blue-500" : "text-black/20"
-                            }
-                          />
-                          <span className="text-xs font-black text-black uppercase">
-                            {item.room}
-                          </span>
-                        </div>
+                  const isLab = item.type === "lab";
+                  const labTheme = isLab
+                    ? "border-[#0EA5E9]/20 bg-[#E0F2FE]/50"
+                    : "border-[#111111]/10 bg-white";
+                  const currentTheme = item.isCurrent
+                    ? "bg-[#111111] border-transparent shadow-lg scale-[1.02] transform-gpu"
+                    : labTheme;
+                  const textTheme = item.isCurrent
+                    ? "text-white"
+                    : isLab
+                      ? "text-[#0EA5E9]"
+                      : "text-[#111111]";
+                  const subTextTheme = item.isCurrent
+                    ? "text-white/60"
+                    : isLab
+                      ? "text-[#0EA5E9]/70"
+                      : "text-[#111111]/50";
 
-                        {item.isNow && (
-                          <span className="flex items-center gap-1.5 text-[9px] font-black text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full uppercase tracking-tighter">
-                            <span className="w-1.5 h-1.5 bg-blue-600 rounded-full animate-pulse"></span>
-                            In Progress
-                          </span>
+                  return (
+                    <div
+                      key={item.id}
+                      id={item.isCurrent ? "active-class-indicator" : undefined}
+                      className="flex items-stretch gap-4 w-full z-10 relative"
+                    >
+                      <div className="w-12 flex justify-center pt-6 shrink-0 relative">
+                        <div
+                          className={`w-3.5 h-3.5 rounded-full ring-4 ring-[#F7F7F7] z-10 ${item.isCurrent ? "bg-[#85a818] animate-pulse shadow-[0_0_12px_rgba(133,168,24,0.8)]" : isLab ? "bg-[#0EA5E9]" : "bg-[#111111]"}`}
+                        />
+                        {item.isCurrent && (
+                          <div className="absolute top-6 w-3.5 h-3.5 rounded-full bg-[#85a818] animate-ping opacity-50" />
                         )}
                       </div>
+
+                      <div
+                        className={`flex-1 border-[1.5px] rounded-[24px] p-5 flex flex-col transition-all relative ${currentTheme} ${!item.isCurrent && "shadow-sm"}`}
+                      >
+                        {item.isCustom && (
+                          <button
+                            onClick={() =>
+                              handleDeleteCustom(activeDay, item.time)
+                            }
+                            className="absolute top-3 right-3 w-8 h-8 bg-[#FF4D4D]/10 text-[#FF4D4D] rounded-full flex items-center justify-center hover:bg-[#FF4D4D]/20 active:scale-95 transition-all z-20"
+                          >
+                            <X size={16} strokeWidth={2.5} />
+                          </button>
+                        )}
+
+                        <div className="flex justify-between items-start mb-4 pr-10">
+                          <div
+                            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-[10px] ${item.isCurrent ? "bg-white/10" : isLab ? "bg-[#0EA5E9]/10" : "bg-[#F7F7F7]"}`}
+                          >
+                            <Clock
+                              size={12}
+                              className={
+                                item.isCurrent
+                                  ? "text-[#85a818]"
+                                  : isLab
+                                    ? "text-[#0EA5E9]"
+                                    : "text-[#111111]/50"
+                              }
+                            />
+                            <span
+                              className={`text-[12px] font-bold tracking-widest ${textTheme}`}
+                              style={{ fontFamily: "'Montserrat', sans-serif" }}
+                            >
+                              {item.time}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            {isLab && !item.isCurrent && (
+                              <span
+                                className="text-[9px] font-bold uppercase tracking-[0.25em] text-[#0EA5E9] bg-[#0EA5E9]/10 px-2 py-1 rounded-md shrink-0 ml-2"
+                                style={{ fontFamily: "'Afacad', sans-serif" }}
+                              >
+                                practical
+                              </span>
+                            )}
+                            {item.isCurrent && (
+                              <span
+                                className="text-[9px] font-bold uppercase tracking-[0.25em] text-white bg-[#85a818] px-2 py-1 rounded-md shrink-0 ml-2"
+                                style={{ fontFamily: "'Afacad', sans-serif" }}
+                              >
+                                live
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        <span
+                          className={`text-[24px] font-black uppercase tracking-widest leading-none mb-1 ${textTheme}`}
+                          style={{ fontFamily: "'Montserrat', sans-serif" }}
+                        >
+                          {item.code}
+                        </span>
+                        <span
+                          className={`text-[14px] font-medium lowercase tracking-wide mb-5 ${subTextTheme}`}
+                          style={{ fontFamily: "'Afacad', sans-serif" }}
+                        >
+                          {item.name}
+                        </span>
+
+                        <div
+                          className={`flex items-center justify-between pt-4 mt-auto border-t ${item.isCurrent ? "border-white/10" : isLab ? "border-[#0EA5E9]/20" : "border-[#111111]/5"}`}
+                        >
+                          <div className="flex items-center gap-3 flex-wrap">
+                            <div className="flex items-center gap-1.5">
+                              <MapPin
+                                size={12}
+                                className={
+                                  item.isCurrent
+                                    ? "text-white/40"
+                                    : isLab
+                                      ? "text-[#0EA5E9]/50"
+                                      : "text-[#111111]/30"
+                                }
+                              />
+                              <span
+                                className={`text-[11px] font-bold uppercase tracking-wider ${textTheme}`}
+                                style={{
+                                  fontFamily: "'Montserrat', sans-serif",
+                                }}
+                              >
+                                {item.room}
+                              </span>
+                            </div>
+                            <div
+                              className={`w-1 h-1 rounded-full ${item.isCurrent ? "bg-white/20" : isLab ? "bg-[#0EA5E9]/30" : "bg-[#111111]/20"}`}
+                            />
+                            <div className="flex items-center gap-1.5">
+                              <User
+                                size={12}
+                                className={
+                                  item.isCurrent
+                                    ? "text-white/40"
+                                    : isLab
+                                      ? "text-[#0EA5E9]/50"
+                                      : "text-[#111111]/30"
+                                }
+                              />
+                              <span
+                                className={`text-[11px] font-bold lowercase tracking-wider ${item.isCurrent ? "text-white/80" : isLab ? "text-[#0EA5E9]" : "text-[#111111]/70"}`}
+                                style={{ fontFamily: "'Afacad', sans-serif" }}
+                              >
+                                {item.faculty}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                  ))}
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="empty"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="flex flex-col items-center justify-center py-20 opacity-30"
-                >
-                  <Layers size={48} className="mb-4" />
-                  <h3 className="text-xl font-bold lowercase">free day</h3>
-                  <p className="text-[10px] uppercase tracking-[0.2em]">
-                    No classes scheduled
-                  </p>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+                  );
+                })}
+              </div>
+            </motion.div>
+          </AnimatePresence>
         </div>
-      </motion.div>
+
+        <div className="fixed bottom-[85px] left-1/2 -translate-x-1/2 bg-[#111111]/95 backdrop-blur-md p-1.5 pr-2 rounded-full flex items-center gap-1 z-40 shadow-[0_8px_32px_rgba(17,17,17,0.3)] border border-white/10">
+          <span
+            className="text-[11px] font-bold text-white/40 ml-3 mr-1 tracking-widest"
+            style={{ fontFamily: "'Montserrat', sans-serif" }}
+          >
+            DO
+          </span>
+          <div className="w-[1.5px] h-5 bg-white/20 mx-1 rounded-full" />
+          {[1, 2, 3, 4, 5].map((day) => (
+            <button
+              key={day}
+              onClick={() => setActiveDay(day)}
+              className={`w-10 h-10 flex items-center justify-center rounded-full transition-all duration-300 ${
+                activeDay === day
+                  ? "bg-[#85a818] text-white scale-105 shadow-[0_0_12px_rgba(133,168,24,0.4)]"
+                  : "bg-transparent text-white/40 hover:text-white hover:bg-white/10"
+              }`}
+            >
+              <span
+                className="text-[16px] font-black"
+                style={{ fontFamily: "'Montserrat', sans-serif" }}
+              >
+                {day}
+              </span>
+            </button>
+          ))}
+        </div>
+
+        {/* Elevate z-index to 40 and ensure solid background fade over the cards */}
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-[#F7F7F7] via-[#F7F7F7]/95 to-transparent px-6 pt-24 pb-[30px] z-40 flex justify-between items-end pointer-events-none">
+          {"timetable".split("").map((char, i) => (
+            <span
+              key={i}
+              className="text-[3.2rem] leading-[0.75] lowercase text-[#111111]"
+              style={{ fontFamily: "'Afacad', sans-serif", fontWeight: 400 }}
+            >
+              {char}
+            </span>
+          ))}
+        </div>
+      </div>
 
       <AnimatePresence>
-        {introMode && (
+        {isAddingClass && (
           <motion.div
-            key="introOverlay"
-            initial={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.4 }}
-            className="absolute inset-0 flex flex-col justify-end items-start p-8 pb-[25vh] z-50 bg-[#050505]"
+            initial={{ y: "100%" }}
+            animate={{ y: 0 }}
+            exit={{ y: "100%" }}
+            transition={{ duration: 0.4, ease: [0.25, 1, 0.5, 1] }}
+            className="fixed inset-0 bg-[#111111] z-[60] flex flex-col px-6 pt-10 pb-6 overflow-hidden"
           >
-            <h1
-              className="text-6xl font-black lowercase tracking-tighter text-white mb-2"
-              style={{ fontFamily: "Aonic" }}
+            <div className="flex justify-between items-start w-full shrink-0 mb-10">
+              <div className="flex flex-col">
+                <span
+                  className="text-[32px] leading-[1] font-black uppercase tracking-[0.15em] text-white"
+                  style={{ fontFamily: "'Montserrat', sans-serif" }}
+                >
+                  ADD CLASS
+                </span>
+                <span
+                  className="text-[10px] font-bold lowercase tracking-[0.2em] text-[#85a818] mt-1.5"
+                  style={{ fontFamily: "'Afacad', sans-serif" }}
+                >
+                  custom schedule mapping
+                </span>
+              </div>
+              <button
+                onClick={() => setIsAddingClass(false)}
+                className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white active:scale-95 transition-all shrink-0"
+              >
+                <X size={20} strokeWidth={2.5} />
+              </button>
+            </div>
+
+            <div className="flex flex-col gap-6 flex-1 w-full">
+              <div className="flex flex-col gap-2">
+                <span
+                  className="text-[11px] font-bold uppercase tracking-widest text-white/50 pl-1"
+                  style={{ fontFamily: "'Afacad', sans-serif" }}
+                >
+                  Subject Code
+                </span>
+                <input
+                  type="text"
+                  placeholder="e.g. DTM"
+                  value={newSub}
+                  onChange={(e) => setNewSub(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 rounded-[16px] px-4 py-4 text-white text-[16px] font-bold placeholder:text-white/20 uppercase tracking-widest outline-none focus:border-[#85a818]/50 transition-colors"
+                  style={{ fontFamily: "'Montserrat', sans-serif" }}
+                />
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <span
+                  className="text-[11px] font-bold uppercase tracking-widest text-white/50 pl-1"
+                  style={{ fontFamily: "'Afacad', sans-serif" }}
+                >
+                  Room / Hall
+                </span>
+                <input
+                  type="text"
+                  placeholder="e.g. UB304"
+                  value={newRoom}
+                  onChange={(e) => setNewRoom(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 rounded-[16px] px-4 py-4 text-white text-[16px] font-bold placeholder:text-white/20 uppercase tracking-widest outline-none focus:border-[#85a818]/50 transition-colors"
+                  style={{ fontFamily: "'Montserrat', sans-serif" }}
+                />
+              </div>
+
+              <div className="flex gap-3">
+                <div className="flex-1 flex flex-col gap-2">
+                  <span
+                    className="text-[11px] font-bold uppercase tracking-widest text-white/50 pl-1"
+                    style={{ fontFamily: "'Afacad', sans-serif" }}
+                  >
+                    Start Time
+                  </span>
+                  <input
+                    type="time"
+                    value={startTime}
+                    onChange={(e) => setStartTime(e.target.value)}
+                    className="w-full bg-white/5 border border-white/10 rounded-[16px] px-4 py-4 text-white text-[16px] font-bold outline-none focus:border-[#85a818]/50 transition-colors [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert"
+                    style={{ fontFamily: "'Montserrat', sans-serif" }}
+                  />
+                </div>
+                <div className="flex-1 flex flex-col gap-2">
+                  <span
+                    className="text-[11px] font-bold uppercase tracking-widest text-white/50 pl-1"
+                    style={{ fontFamily: "'Afacad', sans-serif" }}
+                  >
+                    End Time
+                  </span>
+                  <input
+                    type="time"
+                    value={endTime}
+                    onChange={(e) => setEndTime(e.target.value)}
+                    className="w-full bg-white/5 border border-white/10 rounded-[16px] px-4 py-4 text-white text-[16px] font-bold outline-none focus:border-[#85a818]/50 transition-colors [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert"
+                    style={{ fontFamily: "'Montserrat', sans-serif" }}
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2 mt-2">
+                <span
+                  className="text-[11px] font-bold uppercase tracking-widest text-white/50 pl-1 mb-1"
+                  style={{ fontFamily: "'Afacad', sans-serif" }}
+                >
+                  Class Type
+                </span>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setNewType("theory")}
+                    className={`flex-1 py-4 rounded-[16px] text-[13px] font-bold uppercase tracking-widest transition-all ${newType === "theory" ? "bg-white text-[#111111]" : "bg-white/5 text-white/50 border border-white/10"}`}
+                    style={{ fontFamily: "'Montserrat', sans-serif" }}
+                  >
+                    Theory
+                  </button>
+                  <button
+                    onClick={() => setNewType("lab")}
+                    className={`flex-1 py-4 rounded-[16px] text-[13px] font-bold uppercase tracking-widest transition-all ${newType === "lab" ? "bg-[#0EA5E9] text-white" : "bg-white/5 text-white/50 border border-white/10"}`}
+                    style={{ fontFamily: "'Montserrat', sans-serif" }}
+                  >
+                    Practical
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={handleAddClass}
+              className="w-full bg-[#85a818] text-white py-5 rounded-[20px] text-[15px] font-black uppercase tracking-[0.2em] shadow-[0_0_20px_rgba(133,168,24,0.3)] active:scale-[0.98] transition-all mt-auto shrink-0"
+              style={{ fontFamily: "'Montserrat', sans-serif" }}
             >
-              timetable
-            </h1>
-            <p
-              className="text-xl font-bold lowercase text-white/60 leading-tight max-w-[80%]"
-              style={{ fontFamily: "Aonic" }}
-            >
-              today's schedule
-            </p>
+              add to schedule
+            </button>
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </>
   );
 }

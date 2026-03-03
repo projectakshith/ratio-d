@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { sendNotification } from "@/utils/notifs";
-import calendarDataJson from "../../public/calendar_data.json";
+import calendarDataJson from "@/data/calendar_data.json";
 import { AcademiaData, CalendarEvent, ScheduleData } from "@/types";
 
 export const parseTimeValues = (timeStr: string): number => {
@@ -84,6 +84,32 @@ export const useAcademiaData = (data: AcademiaData) => {
     todayEntry && todayEntry.order !== "-"
       ? todayEntry.order
       : initialDayOrder || "1";
+
+  useEffect(() => {
+    const syncCustomClasses = () => {
+      try {
+        const stored = localStorage.getItem("ratio_custom_classes");
+        let mergedSchedule = JSON.parse(JSON.stringify(initialSchedule || {}));
+
+        if (stored) {
+          const customClasses = JSON.parse(stored);
+          Object.keys(customClasses).forEach((dayNum) => {
+            const dayKey = `Day ${dayNum}`;
+            if (!mergedSchedule[dayKey]) mergedSchedule[dayKey] = {};
+            customClasses[dayNum].forEach((cls: any) => {
+              mergedSchedule[dayKey][cls.time] = { ...cls };
+            });
+          });
+        }
+        setSchedule(mergedSchedule);
+      } catch (e) {}
+    };
+
+    syncCustomClasses();
+    window.addEventListener("custom_classes_updated", syncCustomClasses);
+    return () =>
+      window.removeEventListener("custom_classes_updated", syncCustomClasses);
+  }, [initialSchedule]);
 
   const upcomingAlerts = useMemo(() => {
     const now = new Date();

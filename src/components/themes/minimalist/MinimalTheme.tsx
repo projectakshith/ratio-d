@@ -10,6 +10,7 @@ import Navbar from "./Navbar";
 
 export default function MinimalTheme(props: any) {
   const [tabState, setTabState] = useState({ activeTab: "home", direction: 0 });
+  const [isAlertsOpen, setIsAlertsOpen] = useState(false);
   const { activeTab, direction } = tabState;
 
   const tabs = ["marks", "attendance", "home", "timetable", "calendar"];
@@ -112,6 +113,8 @@ export default function MinimalTheme(props: any) {
                   currentRoast={props.academia?.currentRoast || "analyzing..."}
                   setActiveTab={handleTabChange}
                   onOpenSettings={props.onOpenSettings}
+                  isAlertsOpen={isAlertsOpen}
+                  setIsAlertsOpen={setIsAlertsOpen}
                 />
               </div>
             )}
@@ -126,7 +129,7 @@ export default function MinimalTheme(props: any) {
       </div>
 
       <AnimatePresence>
-        {activeTab === "home" && (
+        {activeTab === "home" && !isAlertsOpen && (
           <motion.div
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}

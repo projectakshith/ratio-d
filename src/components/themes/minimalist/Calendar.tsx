@@ -1,7 +1,31 @@
 "use client";
-import React, { useState, useMemo, useEffect, memo, useCallback } from "react";
+import React, { useState, useEffect, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight, Target, Calendar } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Target,
+  Calendar as CalendarIcon,
+} from "lucide-react";
+import { useCalendarData } from "@/hooks/useCalendarData";
+
+// Smooth Intro Animations
+const containerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1, delayChildren: 0.05 },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: { type: "spring", stiffness: 350, damping: 25 },
+  },
+};
 
 const CalendarDay = memo(
   ({ item, onClick }: { item: any; onClick: (date: Date) => void }) => {
@@ -101,263 +125,32 @@ const CalendarDay = memo(
 );
 CalendarDay.displayName = "CalendarDay";
 
-const MinimalCalendar = () => {
-  const [calendarData, setCalendarData] = useState<any[]>([]);
-  const [viewMonth, setViewMonth] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState(new Date());
+const MinimalCalendar = ({ data, academia }: any) => {
+  const [mounted, setMounted] = useState(false);
+  const activeData = academia?.calendarData || data?.calendarData || [];
+
+  const {
+    theme,
+    display,
+    monthTitle,
+    handlePrevMonth,
+    handleNextMonth,
+    goToToday,
+    gridData,
+    handleDateClick,
+  } = useCalendarData(activeData);
 
   useEffect(() => {
-    const buildDummyData = () => {
-      const data = [];
-      const today = new Date();
-      const year = today.getFullYear();
-      const month = today.getMonth();
-      let doCounter = 1;
-
-      for (let m = month - 1; m <= month + 1; m++) {
-        const daysInM = new Date(year, m + 1, 0).getDate();
-        for (let d = 1; d <= daysInM; d++) {
-          const dateObj = new Date(year, m, d);
-          const dateStr = dateObj.toDateString();
-          const isWeekend = dateObj.getDay() === 0 || dateObj.getDay() === 6;
-
-          if (m === month && d === 12) {
-            data.push({
-              dateStr,
-              order: String(doCounter),
-              type: "exam",
-              description: "CT-1: Machine Learning",
-            });
-            doCounter = doCounter === 5 ? 1 : doCounter + 1;
-          } else if (m === month && d === 15) {
-            data.push({
-              dateStr,
-              order: String(doCounter),
-              type: "exam",
-              description: "CT-1: Operating Systems",
-            });
-            doCounter = doCounter === 5 ? 1 : doCounter + 1;
-          } else if (m === month && d === 20) {
-            data.push({
-              dateStr,
-              order: "-",
-              type: "holiday",
-              description: "Public Holiday",
-            });
-          } else if (!isWeekend) {
-            data.push({
-              dateStr,
-              order: String(doCounter),
-              type: "regular",
-              description: "Regular Classes",
-            });
-            doCounter = doCounter === 5 ? 1 : doCounter + 1;
-          }
-        }
-      }
-      return data;
-    };
-
-    setCalendarData(buildDummyData());
+    setMounted(true);
   }, []);
 
-  const handleDateClick = useCallback((date: Date) => {
-    setSelectedDate(date);
-    if (navigator.vibrate) navigator.vibrate(2);
-  }, []);
-
-  const eventsMap = useMemo(() => {
-    const map: any = {};
-    calendarData.forEach((item: any) => {
-      map[item.dateStr] = item;
-    });
-    return map;
-  }, [calendarData]);
-
-  const getDaysInMonth = (year: number, month: number) =>
-    new Date(year, month + 1, 0).getDate();
-  const getFirstDayOfMonth = (year: number, month: number) => {
-    const day = new Date(year, month, 1).getDay();
-    return day === 0 ? 6 : day - 1;
-  };
-
-  const handlePrevMonth = () =>
-    setViewMonth(
-      new Date(viewMonth.getFullYear(), viewMonth.getMonth() - 1, 1),
-    );
-  const handleNextMonth = () =>
-    setViewMonth(
-      new Date(viewMonth.getFullYear(), viewMonth.getMonth() + 1, 1),
-    );
-
-  const goToToday = () => {
-    const now = new Date();
-    setViewMonth(now);
-    setSelectedDate(now);
-  };
-
-  const viewYear = viewMonth.getFullYear();
-  const viewMonthIndex = viewMonth.getMonth();
-  const todayZero = new Date();
-  todayZero.setHours(0, 0, 0, 0);
-
-  const currentEvent: any = useMemo(
-    () => eventsMap[selectedDate.toDateString()],
-    [selectedDate, eventsMap],
-  );
-
-  const hasOrder =
-    currentEvent?.order &&
-    currentEvent.order !== "-" &&
-    currentEvent.order !== "";
-  const isExam =
-    currentEvent?.type === "exam" ||
-    currentEvent?.description?.toLowerCase().includes("test");
-
-  const dayOfWeek = selectedDate.getDay();
-  const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-  const isHoliday =
-    currentEvent?.type === "holiday" || (isWeekend && !hasOrder);
-
-  const theme = useMemo(() => {
-    if (isExam)
-      return {
-        bg: "#8b5cf6",
-        text: "text-white",
-        border: "border-transparent",
-        accent: "bg-white/20 text-white",
-      };
-    if (isHoliday)
-      return {
-        bg: "#FF4D4D",
-        text: "text-white",
-        border: "border-transparent",
-        accent: "bg-white/20 text-white",
-      };
-    if (hasOrder)
-      return {
-        bg: "#ceff1c",
-        text: "text-[#111111]",
-        border: "border-transparent",
-        accent: "bg-[#111111]/10 text-[#111111]",
-      };
-    return {
-      bg: "#ffffff",
-      text: "text-[#111111]",
-      border: "border-[#111111]/10",
-      accent: "bg-[#F7F7F7] text-[#111111]",
-    };
-  }, [hasOrder, isHoliday, isExam]);
-
-  const display = useMemo(() => {
-    const dayNum = String(selectedDate.getDate()).padStart(2, "0");
-    const weekday = selectedDate
-      .toLocaleString("en-US", { weekday: "long" })
-      .toLowerCase();
-    const month = selectedDate
-      .toLocaleString("en-US", { month: "short" })
-      .toLowerCase();
-    const dateStr = `${month} ${dayNum}`;
-
-    if (hasOrder) {
-      if (isExam) {
-        const parts = (currentEvent.description || "Test Scheduled").split(":");
-        return {
-          pill: weekday,
-          label: "day order • exam",
-          bigText: String(currentEvent.order).padStart(2, "0"),
-          infoMain: parts[0]?.trim() || "Test",
-          infoSub: parts[1]?.trim() || dateStr,
-        };
-      }
-      return {
-        pill: weekday,
-        label: "day order",
-        bigText: String(currentEvent.order).padStart(2, "0"),
-        infoMain: dateStr,
-        infoSub: currentEvent.description || "Regular Classes",
-      };
-    } else if (isExam) {
-      const parts = (currentEvent.description || "Test Scheduled").split(":");
-      return {
-        pill: weekday,
-        label: "examination",
-        bigText: dayNum,
-        infoMain: parts[0]?.trim() || "Test",
-        infoSub: parts[1]?.trim() || dateStr,
-      };
-    } else if (isHoliday) {
-      return {
-        pill: weekday,
-        label: "holiday",
-        bigText: dayNum,
-        infoMain: dateStr,
-        infoSub: currentEvent?.description || "Take a break",
-      };
-    } else {
-      return {
-        pill: weekday,
-        label: "date",
-        bigText: dayNum,
-        infoMain: dateStr,
-        infoSub: "No schedule",
-      };
-    }
-  }, [selectedDate, hasOrder, isHoliday, isExam, currentEvent]);
-
-  const gridData = useMemo(() => {
-    const daysInMonth = getDaysInMonth(viewYear, viewMonthIndex);
-    const startOffset = getFirstDayOfMonth(viewYear, viewMonthIndex);
-    const slots = [];
-
-    for (let i = 0; i < startOffset; i++)
-      slots.push({ type: "padding", key: `prev-${i}` });
-
-    for (let d = 1; d <= daysInMonth; d++) {
-      const currentDayDate = new Date(viewYear, viewMonthIndex, d);
-      const event = eventsMap[currentDayDate.toDateString()];
-      const isSelected =
-        currentDayDate.toDateString() === selectedDate.toDateString();
-      const isToday =
-        currentDayDate.toDateString() === new Date().toDateString();
-      const isPast = currentDayDate < todayZero;
-      const dDayOfWeek = currentDayDate.getDay();
-      const dIsWeekend = dDayOfWeek === 0 || dDayOfWeek === 6;
-      const dayOrder = event?.order && event.order !== "-" ? event.order : null;
-      const isDayHoliday =
-        event?.type === "holiday" || (dIsWeekend && !dayOrder);
-      const isDayExam =
-        event?.type === "exam" ||
-        event?.description?.toLowerCase().includes("test");
-
-      slots.push({
-        type: "day",
-        day: d,
-        key: `day-${d}`,
-        dateObj: currentDayDate,
-        isSelected,
-        isToday,
-        isPast,
-        isDayHoliday,
-        dayOrder,
-        isDayExam,
-      });
-    }
-    return slots;
-  }, [viewMonth, viewMonthIndex, viewYear, eventsMap, selectedDate, todayZero]);
-
-  const monthTitle = useMemo(() => {
-    const m = viewMonth.toLocaleString("default", { month: "long" });
-    return `${m} ${viewYear}`;
-  }, [viewMonth, viewYear]);
+  if (!mounted) return null;
 
   return (
     <>
       <style
         dangerouslySetInnerHTML={{
           __html: `
-          @import url('https://fonts.googleapis.com/css2?family=Afacad:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700;800;900&display=swap');
-
           .no-scrollbar::-webkit-scrollbar { display: none; }
           .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         `,
@@ -365,8 +158,14 @@ const MinimalCalendar = () => {
       />
 
       <div className="absolute inset-0 bg-[#F7F7F7] overflow-hidden flex flex-col">
-        <div className="h-full w-full overflow-y-auto no-scrollbar px-5 pt-8 pb-[100px] flex flex-col gap-6 relative z-10">
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate="show"
+          className="h-full w-full overflow-y-auto no-scrollbar px-5 pt-8 pb-[100px] flex flex-col gap-6 relative z-10"
+        >
           <motion.div
+            variants={itemVariants}
             animate={{ backgroundColor: theme.bg }}
             transition={{ duration: 0.4, ease: "easeOut" }}
             className={`w-full rounded-[32px] p-6 flex flex-col shadow-sm shrink-0 border-[1.5px] ${theme.border} justify-between`}
@@ -375,7 +174,7 @@ const MinimalCalendar = () => {
               <div
                 className={`px-4 py-2 rounded-full flex items-center gap-2 ${theme.accent}`}
               >
-                <Calendar size={16} className={theme.text} />
+                <CalendarIcon size={16} className={theme.text} />
                 <span
                   className={`text-[14px] font-bold uppercase tracking-widest ${theme.text}`}
                   style={{ fontFamily: "'Afacad', sans-serif" }}
@@ -405,22 +204,37 @@ const MinimalCalendar = () => {
 
               <div className="flex flex-col justify-end pb-1.5 flex-1 min-w-0 pl-2">
                 <span
-                  className={`text-[32px] font-black uppercase tracking-widest leading-none mb-2 ${theme.text} break-words`}
+                  className={`text-[32px] font-black uppercase tracking-widest leading-none mb-3 ${theme.text} break-words`}
                   style={{ fontFamily: "'Montserrat', sans-serif" }}
                 >
                   {display.infoMain}
                 </span>
-                <span
-                  className={`text-[20px] font-bold lowercase tracking-wide leading-snug ${theme.text} opacity-90`}
-                  style={{ fontFamily: "'Afacad', sans-serif" }}
-                >
-                  {display.infoSub}
-                </span>
+
+                {/* Dynamically split subjects separated by ' / ' onto different lines with bullets */}
+                <div className="flex flex-col gap-1.5">
+                  {display.infoSub
+                    .split(" / ")
+                    .map((sub: string, idx: number) => (
+                      <span
+                        key={idx}
+                        className={`text-[16px] font-bold lowercase tracking-wide leading-snug ${theme.text} opacity-90 flex items-start gap-2`}
+                        style={{ fontFamily: "'Afacad', sans-serif" }}
+                      >
+                        {display.infoSub.includes("/") && (
+                          <span className="mt-2 w-1 h-1 rounded-full bg-current opacity-50 shrink-0" />
+                        )}
+                        {sub.trim()}
+                      </span>
+                    ))}
+                </div>
               </div>
             </div>
           </motion.div>
 
-          <div className="flex-1 bg-white border-[1.5px] border-[#111111]/10 rounded-[32px] p-5 flex flex-col shadow-sm shrink-0">
+          <motion.div
+            variants={itemVariants}
+            className="flex-1 bg-white border-[1.5px] border-[#111111]/10 rounded-[32px] p-5 flex flex-col shadow-sm shrink-0"
+          >
             <div className="flex justify-between items-center mb-6 w-full shrink-0">
               <span
                 className="text-[20px] font-black uppercase tracking-widest text-[#111111] ml-2"
@@ -477,8 +291,8 @@ const MinimalCalendar = () => {
                 );
               })}
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
 
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-[#F7F7F7] via-[#F7F7F7] to-transparent px-6 pt-24 pb-[30px] z-0 flex justify-between items-end pointer-events-none">
           {"calendar".split("").map((char, i) => (

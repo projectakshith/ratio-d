@@ -1,33 +1,45 @@
+@import url("https://fonts.googleapis.com/css2?family=Afacad:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600;700;800;900&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-@font-face { font-family: 'Akira'; src: url('../fonts/Akira.otf'); }
-@font-face { font-family: 'Aonic'; src: url('../fonts/Aonic.ttf'); }
-@font-face { font-family: 'Urbanosta'; src: url('../fonts/Urbanosta.otf'); }
+@font-face {
+    font-family: "Akira";
+    src: url("../fonts/Akira.otf");
+}
+@font-face {
+    font-family: "Aonic";
+    src: url("../fonts/Aonic.ttf");
+}
+@font-face {
+    font-family: "Urbanosta";
+    src: url("../fonts/Urbanosta.otf");
+}
 body {
-  background-color: #F2F2F2;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+    background-color: #f2f2f2;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 /* Tracking for that Awwwards look */
-h1, h2 {
-  letter-spacing: -0.04em;
+h1,
+h2 {
+    letter-spacing: -0.04em;
 }
 input:focus {
-  color: #f5f6fc !important;
+    color: #f5f6fc !important;
 }
 
 ::selection {
-  background: #ceff1c;
-  color: #0c30ff;
+    background: #ceff1c;
+    color: #0c30ff;
 }
 
 input:-webkit-autofill {
-  -webkit-text-fill-color: #ffffff;
-  -webkit-box-shadow: 0 0 0px 1000px #0c30ff inset;
+    -webkit-text-fill-color: #ffffff;
+    -webkit-box-shadow: 0 0 0px 1000px #0c30ff inset;
 }
 .stroke-text-black {
-  -webkit-text-stroke: 1px #050505;
-  color: transparent;
+    -webkit-text-stroke: 1px #050505;
+    color: transparent;
 }
