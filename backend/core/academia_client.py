@@ -32,7 +32,7 @@ class AcademiaClient:
         return self.get_page("attendance")
 
     def get_grid_html(self, batch):
-        return self.get_page("grid_base", f"_batch_{batch}")
+        return self.get_page("grid_base", f"_{batch}")
 
     def get_planner_html(self):
         return self.get_page("planner")

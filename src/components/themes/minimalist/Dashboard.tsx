@@ -21,23 +21,9 @@ import { processAndSortMarks, buildCourseMap } from "@/utils/marksLogic";
 import { getAcronym, processSchedule } from "@/utils/timetableLogic";
 import calendarDataJson from "@/data/calendar_data.json";
 
-const containerVariants = {
-  hidden: { opacity: 0, scale: 0.98, filter: "blur(4px)" },
-  show: {
-    opacity: 1,
-    scale: 1,
-    filter: "blur(0px)",
-    transition: { duration: 0.4, ease: "easeOut", staggerChildren: 0.03 },
-  },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, x: 20 },
-  show: {
-    opacity: 1,
-    x: 0,
-    transition: { type: "spring", stiffness: 350, damping: 30 },
-  },
+const sectionFade = {
+  hidden: { opacity: 0, y: 10 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.3 } },
 };
 
 export default function MinimalHomepage({
@@ -65,30 +51,76 @@ export default function MinimalHomepage({
 
   const currentDayOrder = academia?.effectiveDayOrder || data?.dayOrder || "1";
 
+  // Detect if today is officially a holiday based on the API day order string
+  const isHoliday =
+    !currentDayOrder ||
+    currentDayOrder === "-" ||
+    currentDayOrder === "0" ||
+    isNaN(parseInt(currentDayOrder));
+
   const [selectedDay, setSelectedDay] = useState(1);
   const [customClasses, setCustomClasses] = useState<Record<number, any[]>>({});
 
-  useEffect(() => {
-    const order = parseInt(currentDayOrder) || 1;
-    const scheduleData =
-      academia?.effectiveSchedule || data?.timetable || data?.schedule || {};
-    const todayData = scheduleData[`Day ${order}`] || {};
+  // Scan the calendar data to find the exact next working day's Day Order
+  const nextWorkingDayOrder = useMemo(() => {
+    const calData = academia?.calendarData || calendarDataJson || [];
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
 
-    let lastEnd = 0;
-    Object.values(todayData).forEach((timeStr: any) => {
-      const endStr = timeStr?.time?.split("-")[1] || timeStr?.split("-")[1];
-      if (endStr) {
-        const endMins = parseTimeValues(endStr);
-        if (endMins > lastEnd) lastEnd = endMins;
+    // Filter future days and sort chronologically
+    const futureDays = calData
+      .filter((ev: any) => {
+        const evDate = new Date(ev.date);
+        evDate.setHours(0, 0, 0, 0);
+        return evDate > now;
+      })
+      .sort(
+        (a: any, b: any) =>
+          new Date(a.date).getTime() - new Date(b.date).getTime(),
+      );
+
+    for (const ev of futureDays) {
+      // Look for a valid day order mapping in the calendar
+      const dOrder = parseInt(ev.dayOrder || ev.day_order || ev.order);
+      if (!isNaN(dOrder) && dOrder >= 1 && dOrder <= 5) {
+        return dOrder;
       }
-    });
-
-    const nowMins = new Date().getHours() * 60 + new Date().getMinutes();
-    if (lastEnd > 0 && nowMins >= lastEnd) {
-      setSelectedDay(order < 5 ? order + 1 : 1);
-    } else {
-      setSelectedDay(order);
     }
+    return null;
+  }, [academia?.calendarData]);
+
+  useEffect(() => {
+    const parsedOrder = parseInt(currentDayOrder);
+
+    // If today is a holiday, instantly jump to the calendar's next working day
+    if (isHoliday) {
+      setSelectedDay(nextWorkingDayOrder || 1);
+    } else {
+      // It's a normal working day. Check if all classes are over.
+      const order = isNaN(parsedOrder) ? 1 : parsedOrder;
+      const scheduleData =
+        academia?.effectiveSchedule || data?.timetable || data?.schedule || {};
+      const todayData = scheduleData[`Day ${order}`] || {};
+
+      let lastEnd = 0;
+      Object.values(todayData).forEach((timeStr: any) => {
+        const endStr = timeStr?.time?.split("-")[1] || timeStr?.split("-")[1];
+        if (endStr) {
+          const endMins = parseTimeValues(endStr);
+          if (endMins > lastEnd) lastEnd = endMins;
+        }
+      });
+
+      const nowMins = new Date().getHours() * 60 + new Date().getMinutes();
+
+      // If classes are done for today, jump to the exact next working day from the calendar
+      if (lastEnd > 0 && nowMins >= lastEnd) {
+        setSelectedDay(nextWorkingDayOrder || (order < 5 ? order + 1 : 1));
+      } else {
+        setSelectedDay(order);
+      }
+    }
+
     setMounted(true);
 
     const fetchCustoms = () => {
@@ -103,7 +135,12 @@ export default function MinimalHomepage({
     window.addEventListener("custom_classes_updated", fetchCustoms);
     return () =>
       window.removeEventListener("custom_classes_updated", fetchCustoms);
-  }, [currentDayOrder, academia?.effectiveSchedule]);
+  }, [
+    currentDayOrder,
+    isHoliday,
+    nextWorkingDayOrder,
+    academia?.effectiveSchedule,
+  ]);
 
   const handleDaySwitch = (dir: "prev" | "next") => {
     setSelectedDay((prev) =>
@@ -121,7 +158,7 @@ export default function MinimalHomepage({
       scheduleData,
       customClasses,
       selectedDay,
-      parseInt(currentDayOrder),
+      parseInt(currentDayOrder) || 1,
       courseMap,
     );
 
@@ -166,6 +203,9 @@ export default function MinimalHomepage({
     return { standardGrid: std, extraGrid: ext };
   }, [data, academia, selectedDay, currentDayOrder, customClasses, courseMap]);
 
+  const isViewingToday =
+    String(selectedDay) === String(currentDayOrder) && !isHoliday;
+
   const { currentClass, nextClass } = useMemo(() => {
     const scheduleData =
       academia?.effectiveSchedule || data?.timetable || data?.schedule || {};
@@ -173,16 +213,15 @@ export default function MinimalHomepage({
       scheduleData,
       customClasses,
       selectedDay,
-      parseInt(currentDayOrder),
+      parseInt(currentDayOrder) || 1,
       courseMap,
     );
     const nowMins = new Date().getHours() * 60 + new Date().getMinutes();
-    const isToday = String(selectedDay) === String(currentDayOrder);
 
     let curr = null;
     let nxt = null;
 
-    if (isToday) {
+    if (isViewingToday) {
       for (const cls of processedDay) {
         if (cls.type === "break") continue;
         if (nowMins >= cls.minutesStart && nowMins < cls.minutesEnd) {
@@ -192,6 +231,7 @@ export default function MinimalHomepage({
         }
       }
     } else {
+      // If we are viewing an upcoming day (tomorrow or later), set the first class as "next"
       const activeClasses = processedDay.filter((c: any) => c.type !== "break");
       if (activeClasses.length > 0) {
         nxt = activeClasses[0];
@@ -199,16 +239,33 @@ export default function MinimalHomepage({
     }
 
     return { currentClass: curr, nextClass: nxt };
-  }, [data, academia, selectedDay, currentDayOrder, customClasses, courseMap]);
+  }, [
+    data,
+    academia,
+    selectedDay,
+    currentDayOrder,
+    customClasses,
+    courseMap,
+    isViewingToday,
+  ]);
+
+  const isLastClassActive = currentClass && !nextClass && isViewingToday;
+  const focusClass = isLastClassActive ? currentClass : nextClass || null;
+
+  // Smart focus labels depending on what day is currently being viewed
+  let focusLabel = "next up";
+  if (isViewingToday && isLastClassActive) focusLabel = "happening now";
+  if (!isViewingToday) focusLabel = "first class";
 
   const displayCourse = (
-    nextClass?.name ||
-    nextClass?.courseTitle ||
-    nextClass?.course ||
-    "free time"
+    focusClass?.name ||
+    focusClass?.courseTitle ||
+    focusClass?.course ||
+    (isViewingToday ? "done for the day" : "free time")
   ).toLowerCase();
+
   const displayCourseWords = displayCourse.split(" ");
-  const displayTiming = nextClass?.time?.split("-")[0].trim() || "--:--";
+  const displayTiming = focusClass?.time || "--:--";
 
   const { alertName, alertPctNum, alertPct, alertMargin, alertLabel } =
     useMemo(() => {
@@ -352,8 +409,7 @@ export default function MinimalHomepage({
   const renderSlot = (slot: any, index: number) => {
     if (!slot.active) {
       return (
-        <motion.div
-          variants={itemVariants}
+        <div
           key={slot.id}
           className="aspect-square bg-[#EFEFEF]/50 custom-dotted"
         />
@@ -365,7 +421,8 @@ export default function MinimalHomepage({
     let midText = "text-[#111111]";
     let botText = "text-[#111111]/70";
 
-    if (slot.isCurrent) {
+    // Only apply current pulse state if we are actually viewing today's timetable
+    if (slot.isCurrent && isViewingToday) {
       boxClass =
         "bg-[#111111] border-[#111111] shadow-[0_6px_16px_rgba(0,0,0,0.2)] scale-105 z-10";
       topText = "text-white/80";
@@ -379,8 +436,7 @@ export default function MinimalHomepage({
     }
 
     return (
-      <motion.div
-        variants={itemVariants}
+      <div
         key={`${slot.id}-${index}`}
         className={`aspect-square rounded-[14px] border-[1.5px] flex flex-col items-center justify-center gap-[4px] p-1 transition-all ${boxClass}`}
       >
@@ -402,7 +458,7 @@ export default function MinimalHomepage({
         >
           {slot.time}
         </span>
-      </motion.div>
+      </div>
     );
   };
 
@@ -429,9 +485,9 @@ export default function MinimalHomepage({
 
       <div className="min-h-screen w-full flex flex-col bg-[#F7F7F7] text-[#111111] px-6 pt-6 pb-24 overflow-x-hidden">
         <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
+          variants={sectionFade}
+          initial="hidden"
+          animate="show"
           className="flex justify-between items-center mb-6 shrink-0"
         >
           <button
@@ -460,20 +516,42 @@ export default function MinimalHomepage({
           </div>
         </motion.div>
 
+        {isHoliday && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            className="w-full bg-[#85a818]/10 border-[1.5px] border-[#85a818]/30 rounded-[16px] p-3 mb-4 flex items-center gap-3 shrink-0"
+          >
+            <span className="text-xl">🌴</span>
+            <span
+              className="text-[13px] font-bold text-[#4d6600] lowercase tracking-wide"
+              style={{ fontFamily: "'Afacad', sans-serif" }}
+            >
+              holiday today! viewing upcoming classes.
+            </span>
+          </motion.div>
+        )}
+
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="flex items-center justify-between mb-3 px-1"
+          variants={sectionFade}
+          initial="hidden"
+          animate="show"
+          className="flex items-center justify-between mb-3 px-1 shrink-0"
         >
           <div className="flex items-center gap-3">
             <span
-              className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#111111]/40"
+              className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#111111]/40 flex items-center gap-1.5"
               style={{ fontFamily: "'Montserrat', sans-serif" }}
             >
-              Day Order {selectedDay}{" "}
-              {String(selectedDay) === String(currentDayOrder)
-                ? "• today"
-                : "• upcoming"}
+              Day Order {selectedDay}
+              {isViewingToday ? (
+                <span>• today</span>
+              ) : (
+                <span className="text-[#85a818] font-black tracking-widest">
+                  {" "}
+                  • upcoming
+                </span>
+              )}
             </span>
             {extraGrid.length > 0 && (
               <button
@@ -501,21 +579,13 @@ export default function MinimalHomepage({
           </div>
         </motion.div>
 
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={selectedDay}
-            variants={containerVariants}
-            initial="hidden"
-            animate="show"
-            exit="hidden"
-            className="grid grid-cols-5 gap-[8px] mb-8 shrink-0 transition-all"
-          >
-            {displayGrid.map((slot, i) => renderSlot(slot, i))}
-          </motion.div>
-        </AnimatePresence>
+        {/* Instantly maps the slots with no weird staggering delays */}
+        <div className="grid grid-cols-5 gap-[8px] mb-8 shrink-0 transition-all">
+          {displayGrid.map((slot, i) => renderSlot(slot, i))}
+        </div>
 
         <motion.div
-          variants={itemVariants}
+          variants={sectionFade}
           initial="hidden"
           animate="show"
           className="flex flex-col mb-8 shrink-0 w-full"
@@ -525,7 +595,7 @@ export default function MinimalHomepage({
               className="text-[14px] font-bold lowercase tracking-[0.25em] text-[#111111]/50 whitespace-nowrap"
               style={{ fontFamily: "'Montserrat', sans-serif" }}
             >
-              next up
+              {focusLabel}
             </span>
             <div className="flex-1 h-[1.5px] bg-[#111111]/15 rounded-full" />
             <span
@@ -548,8 +618,7 @@ export default function MinimalHomepage({
                 className="text-[4.5rem] leading-[0.85] font-black tracking-tighter lowercase text-[#111111] truncate flex-1 min-w-0"
                 style={{ fontFamily: "'Montserrat', sans-serif" }}
               >
-                {displayCourseWords.slice(1).join(" ") ||
-                  (nextClass ? "" : "relax")}
+                {displayCourseWords.slice(1).join(" ")}
               </span>
               <span
                 className="text-[1.25rem] font-bold uppercase tracking-widest text-[#111111]/40 shrink-0"
@@ -563,20 +632,22 @@ export default function MinimalHomepage({
           <div className="flex items-center justify-between mt-3 w-full bg-white px-4 py-3 rounded-full border-[1.5px] border-[#111111]/10 shadow-sm min-w-0">
             <div className="flex items-center gap-3 min-w-0">
               <span
-                className={`w-2.5 h-2.5 rounded-full bg-[#111111] shrink-0 ${currentClass ? "animate-pulse" : ""}`}
+                className={`w-2.5 h-2.5 rounded-full shrink-0 ${isViewingToday && currentClass ? "bg-[#111111] animate-pulse" : "bg-[#111111]/20"}`}
               />
               <span
                 className="text-[14px] font-bold lowercase text-[#111111]/70 truncate"
                 style={{ fontFamily: "'Afacad', sans-serif" }}
               >
-                current class •{" "}
+                {isViewingToday && currentClass
+                  ? "current class • "
+                  : "first class • "}
                 <strong className="text-[#111111] font-black uppercase tracking-widest">
-                  {currentClass
+                  {focusClass
                     ? getAcronym(
-                        currentClass.name ||
-                          currentClass.courseTitle ||
-                          currentClass.course ||
-                          currentClass.code,
+                        focusClass.name ||
+                          focusClass.courseTitle ||
+                          focusClass.course ||
+                          focusClass.code,
                       ).toUpperCase()
                     : "FREE"}
                 </strong>
@@ -586,21 +657,22 @@ export default function MinimalHomepage({
               className="text-[12px] font-bold lowercase text-[#111111]/40 shrink-0 ml-2"
               style={{ fontFamily: "'Afacad', sans-serif" }}
             >
-              {currentClass
-                ? `ends at ${currentClass.time.split("-")[1].trim()}`
+              {focusClass
+                ? isViewingToday && currentClass
+                  ? `ends at ${focusClass.time.split("-")[1].trim()}`
+                  : `starts at ${focusClass.time.split("-")[0].trim()}`
                 : "check back later"}
             </span>
           </div>
         </motion.div>
 
         <motion.div
-          variants={containerVariants}
+          variants={sectionFade}
           initial="hidden"
           animate="show"
           className="flex flex-col gap-3 shrink-0 w-full"
         >
-          <motion.div
-            variants={itemVariants}
+          <div
             onClick={() => setActiveTab && setActiveTab("attendance")}
             className={`w-full border-[1.5px] rounded-[24px] p-2 pr-5 flex items-center gap-4 shadow-sm transition-all active:scale-[0.98] cursor-pointer ${attStyles.bg} ${attStyles.border}`}
           >
@@ -632,10 +704,9 @@ export default function MinimalHomepage({
               strokeWidth={2}
               className={`shrink-0 ${attStyles.arrow}`}
             />
-          </motion.div>
+          </div>
 
-          <motion.div
-            variants={itemVariants}
+          <div
             onClick={() => setIsAlertsOpen(true)}
             className="w-full bg-[#111111] text-white border-[1.5px] border-[#111111] rounded-[24px] p-2 pr-5 flex items-center gap-4 shadow-md active:scale-[0.98] transition-transform cursor-pointer"
           >
@@ -665,10 +736,9 @@ export default function MinimalHomepage({
               strokeWidth={2}
               className="text-white/30 shrink-0"
             />
-          </motion.div>
+          </div>
 
-          <motion.div
-            variants={itemVariants}
+          <div
             onClick={() => setActiveTab && setActiveTab("marks")}
             className="w-full bg-white border-[1.5px] border-[#111111]/10 rounded-[24px] p-2 pr-5 flex items-center gap-4 shadow-sm active:scale-[0.98] transition-transform cursor-pointer"
           >
@@ -700,7 +770,7 @@ export default function MinimalHomepage({
               strokeWidth={2}
               className="text-[#111111]/30 shrink-0"
             />
-          </motion.div>
+          </div>
         </motion.div>
       </div>
 

@@ -47,3 +47,7 @@ firestore-debug.log
 public/sw.js
 public/sw.js.map
 public/workbox-*.js
+
+#python
+**/__pycache__/
+*.pyc

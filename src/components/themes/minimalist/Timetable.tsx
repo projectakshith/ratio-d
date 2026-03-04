@@ -8,6 +8,7 @@ import {
   getDayOverview,
   parseTimetableTime,
 } from "@/utils/timetableLogic";
+import calendarDataJson from "@/data/calendar_data.json";
 
 const listVariants = {
   hidden: { opacity: 0 },
@@ -32,7 +33,15 @@ const itemVariants = {
 export default function MinimalTimetable({ data, academia }: any) {
   const [mounted, setMounted] = useState(false);
   const schedule = academia?.effectiveSchedule || {};
-  const dayOrder = parseInt(String(academia?.effectiveDayOrder)) || 1;
+  const dayOrderStr = academia?.effectiveDayOrder || data?.dayOrder || "1";
+  const dayOrder = parseInt(String(dayOrderStr)) || 1;
+
+  // Detect if today is officially a holiday based on the API day order string
+  const isHoliday =
+    !dayOrderStr ||
+    dayOrderStr === "-" ||
+    dayOrderStr === "0" ||
+    isNaN(parseInt(String(dayOrderStr)));
 
   const [activeDay, setActiveDay] = useState<number>(1);
   const [isAddingClass, setIsAddingClass] = useState(false);
@@ -46,9 +55,38 @@ export default function MinimalTimetable({ data, academia }: any) {
 
   const [customClasses, setCustomClasses] = useState<Record<number, any[]>>({});
 
+  // Scan the calendar data to find the exact next working day's Day Order
+  const nextWorkingDayOrder = useMemo(() => {
+    const calData = academia?.calendarData || calendarDataJson || [];
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+
+    const futureDays = calData
+      .filter((ev: any) => {
+        const evDate = new Date(ev.date);
+        evDate.setHours(0, 0, 0, 0);
+        return evDate > now;
+      })
+      .sort(
+        (a: any, b: any) =>
+          new Date(a.date).getTime() - new Date(b.date).getTime(),
+      );
+
+    for (const ev of futureDays) {
+      const dOrder = parseInt(ev.dayOrder || ev.day_order || ev.order);
+      if (!isNaN(dOrder) && dOrder >= 1 && dOrder <= 5) {
+        return dOrder;
+      }
+    }
+    return null;
+  }, [academia?.calendarData]);
+
   useEffect(() => {
     setMounted(true);
-    if (!isNaN(dayOrder) && dayOrder >= 1 && dayOrder <= 5) {
+
+    if (isHoliday) {
+      setActiveDay(nextWorkingDayOrder || 1);
+    } else if (!isNaN(dayOrder) && dayOrder >= 1 && dayOrder <= 5) {
       const todayData = schedule[`Day ${dayOrder}`] || {};
       let lastEnd = 0;
       Object.keys(todayData).forEach((time) => {
@@ -60,12 +98,15 @@ export default function MinimalTimetable({ data, academia }: any) {
       });
 
       const nowMins = new Date().getHours() * 60 + new Date().getMinutes();
+
+      // If classes are done for today, jump to the exact next working day
       if (lastEnd > 0 && nowMins >= lastEnd) {
-        setActiveDay(dayOrder < 5 ? dayOrder + 1 : 1);
+        setActiveDay(nextWorkingDayOrder || (dayOrder < 5 ? dayOrder + 1 : 1));
       } else {
         setActiveDay(dayOrder);
       }
     }
+
     const updateCustomClasses = () => {
       const stored = localStorage.getItem("ratio_custom_classes");
       if (stored) {
@@ -78,7 +119,7 @@ export default function MinimalTimetable({ data, academia }: any) {
     window.addEventListener("custom_classes_updated", updateCustomClasses);
     return () =>
       window.removeEventListener("custom_classes_updated", updateCustomClasses);
-  }, [dayOrder, schedule]);
+  }, [dayOrder, schedule, isHoliday, nextWorkingDayOrder]);
 
   const courseMap = useMemo(() => buildCourseMap(data), [data]);
 
@@ -143,8 +184,10 @@ export default function MinimalTimetable({ data, academia }: any) {
     );
   }, [schedule, customClasses, activeDay, dayOrder, courseMap]);
 
+  const isViewingToday = String(activeDay) === String(dayOrder) && !isHoliday;
+
   useEffect(() => {
-    if (mounted) {
+    if (mounted && isViewingToday) {
       const timer = setTimeout(() => {
         const currentClassElement = document.getElementById(
           "active-class-indicator",
@@ -158,7 +201,7 @@ export default function MinimalTimetable({ data, academia }: any) {
       }, 400);
       return () => clearTimeout(timer);
     }
-  }, [mounted, activeDay]);
+  }, [mounted, activeDay, isViewingToday]);
 
   if (!mounted) return null;
   const overview = getDayOverview(currentSchedule);
@@ -183,6 +226,18 @@ export default function MinimalTimetable({ data, academia }: any) {
           ref={scrollContainerRef}
           className="h-full w-full overflow-y-auto no-scrollbar px-6 pt-10 pb-[280px] flex flex-col relative z-10"
         >
+          {isHoliday && (
+            <div className="w-full bg-[#85a818]/10 border-[1.5px] border-[#85a818]/30 rounded-[16px] p-3 mb-6 flex items-center justify-center gap-2 shrink-0">
+              <span className="text-xl">🌴</span>
+              <span
+                className="text-[13px] font-bold text-[#4d6600] lowercase tracking-wide"
+                style={{ fontFamily: "'Afacad', sans-serif" }}
+              >
+                holiday today!
+              </span>
+            </div>
+          )}
+
           <div className="w-full flex flex-col items-center mt-2 mb-8 shrink-0 relative">
             <span
               className="text-[12px] font-bold lowercase tracking-[0.3em] text-[#111111]/40 mb-3 text-center"
@@ -197,9 +252,9 @@ export default function MinimalTimetable({ data, academia }: any) {
               >
                 {String(activeDay).padStart(2, "0")}
               </span>
-              {activeDay !== dayOrder && (
+              {!isViewingToday && (
                 <span
-                  className="text-[14px] font-bold text-[#111111]/40 lowercase tracking-widest"
+                  className="text-[14px] font-black text-[#85a818] lowercase tracking-widest"
                   style={{ fontFamily: "'Afacad', sans-serif" }}
                 >
                   • upcoming
@@ -319,15 +374,16 @@ export default function MinimalTimetable({ data, academia }: any) {
                   const labTheme = isLab
                     ? "border-[#0EA5E9]/20 bg-[#E0F2FE]/50"
                     : "border-[#111111]/10 bg-white";
-                  const currentTheme = item.isCurrent
+                  // Ensure we only show 'isCurrent' styling if we are actually viewing today's schedule
+                  const isActuallyCurrent = item.isCurrent && isViewingToday;
+
+                  const currentTheme = isActuallyCurrent
                     ? "bg-[#111111] border-transparent shadow-lg scale-[1.02] transform-gpu"
                     : labTheme;
-                  const textTheme = item.isCurrent
+                  const textTheme = isActuallyCurrent
                     ? "text-white"
-                    : isLab
-                      ? "text-[#111111]"
-                      : "text-[#111111]";
-                  const subTextTheme = item.isCurrent
+                    : "text-[#111111]";
+                  const subTextTheme = isActuallyCurrent
                     ? "text-white/60"
                     : isLab
                       ? "text-[#111111]/60"
@@ -337,20 +393,22 @@ export default function MinimalTimetable({ data, academia }: any) {
                     <motion.div
                       variants={itemVariants}
                       key={item.id}
-                      id={item.isCurrent ? "active-class-indicator" : undefined}
+                      id={
+                        isActuallyCurrent ? "active-class-indicator" : undefined
+                      }
                       className="flex items-stretch gap-4 w-full z-10 relative"
                     >
                       <div className="w-12 flex justify-center pt-6 shrink-0 relative">
                         <div
-                          className={`w-3.5 h-3.5 rounded-full ring-4 ring-[#F7F7F7] z-10 ${item.isCurrent ? "bg-[#85a818] animate-pulse shadow-[0_0_12px_rgba(133,168,24,0.8)]" : isLab ? "bg-[#0EA5E9]" : "bg-[#111111]"}`}
+                          className={`w-3.5 h-3.5 rounded-full ring-4 ring-[#F7F7F7] z-10 ${isActuallyCurrent ? "bg-[#85a818] animate-pulse shadow-[0_0_12px_rgba(133,168,24,0.8)]" : isLab ? "bg-[#0EA5E9]" : "bg-[#111111]"}`}
                         />
-                        {item.isCurrent && (
+                        {isActuallyCurrent && (
                           <div className="absolute top-6 w-3.5 h-3.5 rounded-full bg-[#85a818] animate-ping opacity-50" />
                         )}
                       </div>
 
                       <div
-                        className={`flex-1 border-[1.5px] rounded-[24px] p-5 flex flex-col transition-all relative ${currentTheme} ${!item.isCurrent && "shadow-sm"}`}
+                        className={`flex-1 border-[1.5px] rounded-[24px] p-5 flex flex-col transition-all relative ${currentTheme} ${!isActuallyCurrent && "shadow-sm"}`}
                       >
                         {item.isCustom && (
                           <button
@@ -365,12 +423,12 @@ export default function MinimalTimetable({ data, academia }: any) {
 
                         <div className="flex justify-between items-start mb-4 pr-10">
                           <div
-                            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-[10px] ${item.isCurrent ? "bg-white/10" : isLab ? "bg-[#0EA5E9]/10" : "bg-[#F7F7F7]"}`}
+                            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-[10px] ${isActuallyCurrent ? "bg-white/10" : isLab ? "bg-[#0EA5E9]/10" : "bg-[#F7F7F7]"}`}
                           >
                             <Clock
                               size={12}
                               className={
-                                item.isCurrent
+                                isActuallyCurrent
                                   ? "text-[#85a818]"
                                   : isLab
                                     ? "text-[#0EA5E9]"
@@ -385,18 +443,18 @@ export default function MinimalTimetable({ data, academia }: any) {
                             </span>
                           </div>
 
-                          <div className="flex items-center gap-2">
-                            {isLab && !item.isCurrent && (
+                          <div className="flex items-center gap-2 ml-auto">
+                            {isLab && !isActuallyCurrent && (
                               <span
-                                className="text-[9px] font-bold uppercase tracking-[0.25em] text-[#0EA5E9] bg-[#0EA5E9]/10 px-2 py-1 rounded-md shrink-0 ml-2"
+                                className="text-[9px] font-bold uppercase tracking-[0.25em] text-[#0EA5E9] bg-[#0EA5E9]/10 px-2 py-1 rounded-md shrink-0"
                                 style={{ fontFamily: "'Afacad', sans-serif" }}
                               >
                                 practical
                               </span>
                             )}
-                            {item.isCurrent && (
+                            {isActuallyCurrent && (
                               <span
-                                className="text-[9px] font-bold uppercase tracking-[0.25em] text-white bg-[#85a818] px-2 py-1 rounded-md shrink-0 ml-2"
+                                className="text-[9px] font-bold uppercase tracking-[0.25em] text-white bg-[#85a818] px-2 py-1 rounded-md shrink-0"
                                 style={{ fontFamily: "'Afacad', sans-serif" }}
                               >
                                 live
@@ -419,14 +477,14 @@ export default function MinimalTimetable({ data, academia }: any) {
                         </span>
 
                         <div
-                          className={`flex items-center justify-between pt-4 mt-auto border-t ${item.isCurrent ? "border-white/10" : isLab ? "border-[#0EA5E9]/20" : "border-[#111111]/5"}`}
+                          className={`flex items-center justify-between pt-4 mt-auto border-t ${isActuallyCurrent ? "border-white/10" : isLab ? "border-[#0EA5E9]/20" : "border-[#111111]/5"}`}
                         >
                           <div className="flex items-center gap-3 flex-wrap">
                             <div className="flex items-center gap-1.5">
                               <MapPin
                                 size={12}
                                 className={
-                                  item.isCurrent
+                                  isActuallyCurrent
                                     ? "text-white/40"
                                     : isLab
                                       ? "text-[#0EA5E9]/50"
@@ -443,13 +501,13 @@ export default function MinimalTimetable({ data, academia }: any) {
                               </span>
                             </div>
                             <div
-                              className={`w-1 h-1 rounded-full ${item.isCurrent ? "bg-white/20" : isLab ? "bg-[#0EA5E9]/30" : "bg-[#111111]/20"}`}
+                              className={`w-1 h-1 rounded-full ${isActuallyCurrent ? "bg-white/20" : isLab ? "bg-[#0EA5E9]/30" : "bg-[#111111]/20"}`}
                             />
                             <div className="flex items-center gap-1.5">
                               <User
                                 size={12}
                                 className={
-                                  item.isCurrent
+                                  isActuallyCurrent
                                     ? "text-white/40"
                                     : isLab
                                       ? "text-[#0EA5E9]/50"
@@ -457,7 +515,7 @@ export default function MinimalTimetable({ data, academia }: any) {
                                 }
                               />
                               <span
-                                className={`text-[11px] font-bold lowercase tracking-wider ${item.isCurrent ? "text-white/80" : isLab ? "text-[#111111]" : "text-[#111111]/70"}`}
+                                className={`text-[11px] font-bold lowercase tracking-wider ${isActuallyCurrent ? "text-white/80" : isLab ? "text-[#111111]" : "text-[#111111]/70"}`}
                                 style={{ fontFamily: "'Afacad', sans-serif" }}
                               >
                                 {item.faculty}
@@ -502,7 +560,6 @@ export default function MinimalTimetable({ data, academia }: any) {
           ))}
         </div>
 
-        {/* RESTORED EXACT WATERMARK OPACITY TO 100% and z-index 20 to sit beautifully behind items */}
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-[#F7F7F7] via-[#F7F7F7]/95 to-transparent px-6 pt-24 pb-[30px] z-20 flex justify-between items-end pointer-events-none">
           {"timetable".split("").map((char, i) => (
             <span
