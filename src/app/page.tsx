@@ -12,6 +12,7 @@ export default function Home() {
   const [customDisplayName, setCustomDisplayName] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
   const [view, setView] = useState("loading");
+  const [showSplash, setShowSplash] = useState(true);
 
   const [isOffline, setIsOffline] = useState(false);
   const [showBigOffline, setShowBigOffline] = useState(false);
@@ -24,16 +25,15 @@ export default function Home() {
     const cachedName = localStorage.getItem("ratiod_custom_name");
     if (cachedName) setCustomDisplayName(cachedName);
 
-    let nextView = "loading";
     if (cachedData) {
       setUserData(JSON.parse(cachedData));
-      nextView = isStandalone ? "app" : "onboarding";
+      setView(isStandalone ? "app" : "onboarding");
     } else {
-      nextView = isStandalone ? "login" : "onboarding";
+      setView(isStandalone ? "login" : "onboarding");
     }
 
     const timer = setTimeout(() => {
-      setView(nextView);
+      setShowSplash(false);
     }, 1000);
 
     return () => clearTimeout(timer);
@@ -132,13 +132,9 @@ export default function Home() {
         )}
       </AnimatePresence>
 
-      <AnimatePresence mode="wait">
-        {view === "loading" ? (
-          <motion.div key="splash" initial={{ opacity: 1 }} exit={{ y: "-100%" }} transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }} className="fixed inset-0 bg-[#0c30ff] flex items-center justify-center z-[100]">
-            <motion.h1 initial={{ opacity: 0, scale: 0.8, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }} className="text-5xl md:text-7xl lowercase tracking-tighter text-[#ceff1c]" style={{ fontFamily: "Urbanosta, sans-serif" }}>ratio'd</motion.h1>
-          </motion.div>
-        ) : (
-          <motion.div key="content" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }} className="w-full h-full">
+      <div className="w-full h-full">
+        {view !== "loading" && (
+          <>
             {view === "onboarding" && (
               <>
                 <button onClick={handleDevBypass} className="absolute top-0 right-0 w-24 h-24 z-[99] opacity-0" aria-label="Developer Bypass" />
@@ -147,6 +143,28 @@ export default function Home() {
             )}
             {view === "login" && <LoginPage onLogin={(data) => { setUserData(data); setView("app"); localStorage.setItem("ratio_data", JSON.stringify(data)); }} />}
             {view === "app" && <AcademiaApp data={userData} onLogout={handleLogout} customDisplayName={customDisplayName} onUpdateName={handleUpdateName} isUpdating={isUpdating} />}
+          </>
+        )}
+      </div>
+
+      <AnimatePresence>
+        {showSplash && (
+          <motion.div 
+            key="splash" 
+            initial={{ opacity: 1 }} 
+            exit={{ y: "-100%" }} 
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }} 
+            className="fixed inset-0 bg-[#0c30ff] flex items-center justify-center z-[100]"
+          >
+            <motion.h1 
+              initial={{ opacity: 0, scale: 0.8, y: 20 }} 
+              animate={{ opacity: 1, scale: 1, y: 0 }} 
+              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }} 
+              className="text-5xl md:text-7xl lowercase tracking-tighter text-[#ceff1c]" 
+              style={{ fontFamily: "Urbanosta, sans-serif" }}
+            >
+              ratio'd
+            </motion.h1>
           </motion.div>
         )}
       </AnimatePresence>

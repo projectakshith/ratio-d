@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/react";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Afacad, Montserrat } from "next/font/google";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -12,6 +12,18 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+const afacad = Afacad({
+  variable: "--font-afacad",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+});
+
+const montserrat = Montserrat({
+  variable: "--font-montserrat",
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700", "800", "900"],
 });
 
 export const metadata: Metadata = {
@@ -60,6 +72,8 @@ export default function RootLayout({
         className={`
           ${geistSans.variable}
           ${geistMono.variable}
+          ${afacad.variable}
+          ${montserrat.variable}
           antialiased
           bg-[#F7F7F7]
           overflow-hidden

@@ -1,8 +1,7 @@
-@import url("https://fonts.googleapis.com/css2?family=Afacad:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600;700;800;900&display=swap");
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
 @font-face {
     font-family: "Akira";
     src: url("/fonts/Akira.otf");
@@ -15,17 +14,28 @@
     font-family: "Urbanosta";
     src: url("/fonts/Urbanosta.otf");
 }
-body {
-    background-color: #f2f2f2;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+
+:root {
+    --font-afacad: var(--font-afacad);
+    --font-montserrat: var(--font-montserrat);
 }
 
-/* Tracking for that Awwwards look */
-h1,
-h2 {
-    letter-spacing: -0.04em;
+body {
+    background-color: #F7F7F7;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-family: var(--font-afacad), sans-serif;
 }
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: var(--font-montserrat), sans-serif;
+}
+
 input:focus {
     color: #f5f6fc !important;
 }
@@ -39,6 +49,7 @@ input:-webkit-autofill {
     -webkit-text-fill-color: #ffffff;
     -webkit-box-shadow: 0 0 0px 1000px #0c30ff inset;
 }
+
 .stroke-text-black {
     -webkit-text-stroke: 1px #050505;
     color: transparent;
