@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import Dashboard from "./Dashboard";
 import MinimalAttendance from "./Attendance";
@@ -15,6 +15,11 @@ export default function MinimalTheme(props: any) {
 
   const tabs = ["marks", "attendance", "home", "timetable", "calendar"];
 
+  const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(
+    null,
+  );
+  const [isScrollingVertical, setIsScrollingVertical] = useState(false);
+
   const handleTabChange = (newTab: string) => {
     const currentIndex = tabs.indexOf(activeTab);
     const newIndex = tabs.indexOf(newTab);
@@ -24,31 +29,43 @@ export default function MinimalTheme(props: any) {
     });
   };
 
-  const [touchStart, setTouchStart] = useState<number | null>(null);
-  const [touchEnd, setTouchEnd] = useState<number | null>(null);
-
   const handleTouchStart = (e: React.TouchEvent) => {
-    setTouchEnd(null);
-    setTouchStart(e.targetTouches[0].clientX);
+    setIsScrollingVertical(false);
+    setTouchStart({
+      x: e.targetTouches[0].clientX,
+      y: e.targetTouches[0].clientY,
+    });
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    setTouchEnd(e.targetTouches[0].clientX);
+    if (!touchStart || isScrollingVertical) return;
+
+    const touchX = e.targetTouches[0].clientX;
+    const touchY = e.targetTouches[0].clientY;
+
+    const dx = Math.abs(touchX - touchStart.x);
+    const dy = Math.abs(touchY - touchStart.y);
+
+    if (dy > dx && dy > 10) {
+      setIsScrollingVertical(true);
+      return;
+    }
+
+    if (dx > 70) {
+      const currentIndex = tabs.indexOf(activeTab);
+      if (touchX < touchStart.x && currentIndex < tabs.length - 1) {
+        handleTabChange(tabs[currentIndex + 1]);
+        setTouchStart(null);
+      } else if (touchX > touchStart.x && currentIndex > 0) {
+        handleTabChange(tabs[currentIndex - 1]);
+        setTouchStart(null);
+      }
+    }
   };
 
   const handleTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
-    const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > 50;
-    const isRightSwipe = distance < -50;
-    const currentIndex = tabs.indexOf(activeTab);
-
-    if (isLeftSwipe && currentIndex < tabs.length - 1) {
-      handleTabChange(tabs[currentIndex + 1]);
-    }
-    if (isRightSwipe && currentIndex > 0) {
-      handleTabChange(tabs[currentIndex - 1]);
-    }
+    setTouchStart(null);
+    setIsScrollingVertical(false);
   };
 
   const variants = {
@@ -72,12 +89,14 @@ export default function MinimalTheme(props: any) {
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
-      style={{ transform: "translateZ(0)" }}
+      style={{ transform: "translateZ(0)", touchAction: "pan-y" }}
     >
       <style
         dangerouslySetInnerHTML={{
           __html: `
           @import url('https://fonts.googleapis.com/css2?family=Afacad:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600;700;800;900&display=swap');
+          .no-scrollbar::-webkit-scrollbar { display: none; }
+          .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         `,
         }}
       />

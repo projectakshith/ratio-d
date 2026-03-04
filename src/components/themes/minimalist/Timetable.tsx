@@ -36,7 +36,6 @@ export default function MinimalTimetable({ data, academia }: any) {
   const dayOrderStr = academia?.effectiveDayOrder || data?.dayOrder || "1";
   const dayOrder = parseInt(String(dayOrderStr)) || 1;
 
-  // Detect if today is officially a holiday based on the API day order string
   const isHoliday =
     !dayOrderStr ||
     dayOrderStr === "-" ||
@@ -55,7 +54,6 @@ export default function MinimalTimetable({ data, academia }: any) {
 
   const [customClasses, setCustomClasses] = useState<Record<number, any[]>>({});
 
-  // Scan the calendar data to find the exact next working day's Day Order
   const nextWorkingDayOrder = useMemo(() => {
     const calData = academia?.calendarData || calendarDataJson || [];
     const now = new Date();
@@ -99,7 +97,6 @@ export default function MinimalTimetable({ data, academia }: any) {
 
       const nowMins = new Date().getHours() * 60 + new Date().getMinutes();
 
-      // If classes are done for today, jump to the exact next working day
       if (lastEnd > 0 && nowMins >= lastEnd) {
         setActiveDay(nextWorkingDayOrder || (dayOrder < 5 ? dayOrder + 1 : 1));
       } else {
@@ -240,10 +237,10 @@ export default function MinimalTimetable({ data, academia }: any) {
 
           <div className="w-full flex flex-col items-center mt-2 mb-8 shrink-0 relative">
             <span
-              className="text-[12px] font-bold lowercase tracking-[0.3em] text-[#111111]/40 mb-3 text-center"
+              className={`text-[12px] font-bold lowercase tracking-[0.3em] mb-3 text-center transition-colors ${isViewingToday ? "text-[#111111]/40" : "text-[#85a818]"}`}
               style={{ fontFamily: "'Montserrat', sans-serif" }}
             >
-              current day order
+              {isViewingToday ? "current day order" : "upcoming day order"}
             </span>
             <div className="flex items-baseline gap-2">
               <span
@@ -252,14 +249,6 @@ export default function MinimalTimetable({ data, academia }: any) {
               >
                 {String(activeDay).padStart(2, "0")}
               </span>
-              {!isViewingToday && (
-                <span
-                  className="text-[14px] font-black text-[#85a818] lowercase tracking-widest"
-                  style={{ fontFamily: "'Afacad', sans-serif" }}
-                >
-                  • upcoming
-                </span>
-              )}
             </div>
           </div>
 
@@ -374,7 +363,6 @@ export default function MinimalTimetable({ data, academia }: any) {
                   const labTheme = isLab
                     ? "border-[#0EA5E9]/20 bg-[#E0F2FE]/50"
                     : "border-[#111111]/10 bg-white";
-                  // Ensure we only show 'isCurrent' styling if we are actually viewing today's schedule
                   const isActuallyCurrent = item.isCurrent && isViewingToday;
 
                   const currentTheme = isActuallyCurrent
