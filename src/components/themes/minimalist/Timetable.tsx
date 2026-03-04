@@ -10,24 +10,25 @@ import {
 } from "@/utils/timetableLogic";
 import calendarDataJson from "@/data/calendar_data.json";
 
-const listVariants = {
+const containerVariants = {
   hidden: { opacity: 0 },
   show: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.05,
-    },
-  },
+      staggerChildren: 0.04,
+      delayChildren: 0.1
+    }
+  }
 };
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 40, scale: 0.95 },
+  hidden: { opacity: 0, y: 20, scale: 0.96 },
   show: {
     opacity: 1,
     y: 0,
     scale: 1,
-    transition: { type: "tween", ease: [0.25, 1, 0.5, 1], duration: 0.3 },
-  },
+    transition: { type: "spring", stiffness: 400, damping: 30 }
+  }
 };
 
 export default function MinimalTimetable({
@@ -200,12 +201,15 @@ export default function MinimalTimetable({
       />
 
       <div className="absolute inset-0 bg-[#F7F7F7]">
-        <div
+        <motion.div
           ref={scrollContainerRef}
+          variants={containerVariants}
+          initial="hidden"
+          animate="show"
           className="h-full w-full overflow-y-auto no-scrollbar px-6 pt-10 pb-[280px] flex flex-col relative z-10"
         >
           {isHoliday && (
-            <div className="w-full bg-[#85a818]/10 border-[1.5px] border-[#85a818]/30 rounded-[16px] p-3 mb-6 flex items-center justify-center gap-2 shrink-0">
+            <motion.div variants={itemVariants} className="w-full bg-[#85a818]/10 border-[1.5px] border-[#85a818]/30 rounded-[16px] p-3 mb-6 flex items-center justify-center gap-2 shrink-0">
               <span className="text-xl">🌴</span>
               <span
                 className="text-[13px] font-bold text-[#4d6600] lowercase tracking-wide"
@@ -213,10 +217,10 @@ export default function MinimalTimetable({
               >
                 holiday today!
               </span>
-            </div>
+            </motion.div>
           )}
 
-          <div className="w-full flex flex-col items-center mt-2 mb-8 shrink-0 relative">
+          <motion.div variants={itemVariants} className="w-full flex flex-col items-center mt-2 mb-8 shrink-0 relative">
             <span
               className={`text-[12px] font-bold lowercase tracking-[0.3em] mb-3 text-center transition-colors ${isViewingToday ? "text-[#111111]/40" : "text-[#85a818]"}`}
               style={{ fontFamily: "'Montserrat', sans-serif" }}
@@ -231,9 +235,9 @@ export default function MinimalTimetable({
                 {String(activeDay).padStart(2, "0")}
               </span>
             </div>
-          </div>
+          </motion.div>
 
-          <div className="flex flex-col mb-8 w-full shrink-0">
+          <motion.div variants={itemVariants} className="flex flex-col mb-8 w-full shrink-0">
             <button
               onClick={() => setIsAddingClass(true)}
               className="w-full relative group active:scale-[0.98] transition-all duration-200"
@@ -264,15 +268,14 @@ export default function MinimalTimetable({
                 </div>
               </div>
             </button>
-          </div>
+          </motion.div>
 
           <AnimatePresence mode="wait">
             <motion.div
               key={activeDay}
-              variants={listVariants}
-              initial="hidden"
-              animate="show"
-              exit="hidden"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
               className="flex flex-col w-full"
             >
               <motion.div
@@ -419,9 +422,14 @@ export default function MinimalTimetable({
               </LayoutGroup>
             </motion.div>
           </AnimatePresence>
-        </div>
+        </motion.div>
 
-        <div className="fixed bottom-[85px] left-1/2 -translate-x-1/2 bg-[#111111]/95 backdrop-blur-md p-1.5 pr-2 rounded-full flex items-center gap-1 z-40 shadow-[0_8px_32px_rgba(17,17,17,0.3)] border border-white/10">
+        <motion.div 
+          initial={{ y: 50, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.4, type: "spring", stiffness: 400, damping: 30 }}
+          className="fixed bottom-[85px] left-1/2 -translate-x-1/2 bg-[#111111]/95 backdrop-blur-md p-1.5 pr-2 rounded-full flex items-center gap-1 z-40 shadow-[0_8px_32px_rgba(17,17,17,0.3)] border border-white/10"
+        >
           <span className="text-[11px] font-bold text-white/40 ml-3 mr-1 tracking-widest" style={{ fontFamily: "'Montserrat', sans-serif" }}>DO</span>
           <div className="w-[1.5px] h-5 bg-white/20 mx-1 rounded-full" />
           {[1, 2, 3, 4, 5].map((day) => (
@@ -429,7 +437,7 @@ export default function MinimalTimetable({
               <span className="text-[16px] font-black" style={{ fontFamily: "'Montserrat', sans-serif" }}>{day}</span>
             </button>
           ))}
-        </div>
+        </motion.div>
 
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-[#F7F7F7] via-[#F7F7F7]/95 to-transparent px-6 pt-24 pb-[30px] z-20 flex justify-between items-end pointer-events-none">
           {"timetable".split("").map((char, i) => (

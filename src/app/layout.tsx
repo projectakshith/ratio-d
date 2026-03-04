@@ -18,10 +18,10 @@ export const metadata: Metadata = {
   title: "Ratio'd",
   description: "cool looking and simple academia dashboard",
   manifest: "/manifest.json",
-  themeColor: "#ffffff",
+  themeColor: "#F7F7F7",
   appleWebApp: {
     capable: true,
-    statusBarStyle: "black-translucent",
+    statusBarStyle: "default",
     title: "Ratio'd",
   },
   icons: {
@@ -49,9 +49,10 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta
           name="apple-mobile-web-app-status-bar-style"
-          content="black-translucent"
+          content="default"
         />
         <meta name="apple-mobile-web-app-title" content="Ratio'd" />
+        <meta name="theme-color" content="#F7F7F7" />
         <meta name="format-detection" content="telephone=no" />
       </head>
 
@@ -60,7 +61,7 @@ export default function RootLayout({
           ${geistSans.variable}
           ${geistMono.variable}
           antialiased
-          bg-black
+          bg-[#F7F7F7]
           overflow-hidden
           h-full
         `}

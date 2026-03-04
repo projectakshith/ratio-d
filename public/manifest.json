@@ -1,12 +1,12 @@
 {
-  "name": "Ratio'd-dev",
-  "short_name": "Ratio'd-dev",
+  "name": "Ratio'd",
+  "short_name": "Ratio'd",
   "description": "cool looking and simple academia dashboard",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#000000",
-  "theme_color": "#000000",
+  "background_color": "#F7F7F7",
+  "theme_color": "#F7F7F7",
   "icons": [
     {
       "src": "/icon-192x192.png",

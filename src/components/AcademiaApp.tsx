@@ -57,7 +57,7 @@ export default function AcademiaApp({
   };
 
   if (!mounted) {
-    return <main className="h-[100dvh] w-full bg-black" />;
+    return <main className="h-[100dvh] w-full bg-[#F7F7F7]" />;
   }
 
   const sharedProps = {
@@ -70,7 +70,7 @@ export default function AcademiaApp({
   };
 
   return (
-    <main className="h-[100dvh] w-full bg-black overflow-hidden relative">
+    <main className="h-[100dvh] w-full bg-[#F7F7F7] overflow-hidden relative">
       {theme === "brutalist" ? (
         <BrutalistTheme {...sharedProps} />
       ) : (

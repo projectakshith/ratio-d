@@ -21,9 +21,25 @@ import { processAndSortMarks, buildCourseMap } from "@/utils/marksLogic";
 import { getAcronym, processSchedule } from "@/utils/timetableLogic";
 import calendarDataJson from "@/data/calendar_data.json";
 
-const sectionFade = {
-  hidden: { opacity: 0, y: 10 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.3 } },
+const containerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.06,
+      delayChildren: 0.1
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 15, scale: 0.98 },
+  show: { 
+    opacity: 1, 
+    y: 0, 
+    scale: 1,
+    transition: { type: "spring", stiffness: 400, damping: 30 } 
+  }
 };
 
 export default function MinimalHomepage({
@@ -325,16 +341,21 @@ export default function MinimalHomepage({
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: `.custom-dotted { background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='14' ry='14' stroke='%2311111150' stroke-width='2' stroke-dasharray='4%2c 8' stroke-dashoffset='0' stroke-linecap='round'/%3e%3c/svg%3e"); border-radius: 14px; } .no-scrollbar::-webkit-scrollbar { display: none; } .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }` }} />
-      <div className="min-h-screen w-full flex flex-col bg-[#F7F7F7] text-[#111111] px-6 pt-6 pb-24 overflow-x-hidden">
-        <motion.div variants={sectionFade} initial="hidden" animate="show" className="flex justify-between items-center mb-6 shrink-0">
+      <motion.div 
+        variants={containerVariants}
+        initial="hidden"
+        animate="show"
+        className="min-h-screen w-full flex flex-col bg-[#F7F7F7] text-[#111111] px-6 pt-6 pb-24 overflow-x-hidden"
+      >
+        <motion.div variants={itemVariants} className="flex justify-between items-center mb-6 shrink-0">
           <button onClick={onOpenSettings} className="w-[50px] h-[50px] rounded-[16px] bg-transparent flex items-center justify-center overflow-hidden active:scale-95 transition-transform"><img src="/image.png" alt="Profile" className="w-full h-full object-cover" /></button>
           <div className="flex flex-col items-end">
             <span className="text-[16px] font-semibold lowercase tracking-widest text-[#111111]/50 mb-[-4px]" style={{ fontFamily: "'Afacad', sans-serif" }}>sup!</span>
             <span className="text-[25px] leading-none font-medium lowercase tracking-tight text-[#111111]" style={{ fontFamily: "'Montserrat', sans-serif" }}>{userName}</span>
           </div>
         </motion.div>
-        {isHoliday && <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="w-full bg-[#85a818]/10 border-[1.5px] border-[#85a818]/30 rounded-[16px] p-3 mb-4 flex items-center gap-3 shrink-0"><span className="text-xl">🌴</span><span className="text-[13px] font-bold text-[#4d6600] lowercase tracking-wide" style={{ fontFamily: "'Afacad', sans-serif" }}>holiday today! viewing upcoming classes.</span></motion.div>}
-        <motion.div variants={sectionFade} initial="hidden" animate="show" className="flex items-center justify-between mb-3 px-1 shrink-0">
+        {isHoliday && <motion.div variants={itemVariants} className="w-full bg-[#85a818]/10 border-[1.5px] border-[#85a818]/30 rounded-[16px] p-3 mb-4 flex items-center gap-3 shrink-0"><span className="text-xl">🌴</span><span className="text-[13px] font-bold text-[#4d6600] lowercase tracking-wide" style={{ fontFamily: "'Afacad', sans-serif" }}>holiday today! viewing upcoming classes.</span></motion.div>}
+        <motion.div variants={itemVariants} className="flex items-center justify-between mb-3 px-1 shrink-0">
           <div className="flex items-center gap-3">
             <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#111111]/40 flex items-center gap-1.5" style={{ fontFamily: "'Montserrat', sans-serif" }}>Day Order {selectedDay}{isViewingToday ? <span>• today</span> : <span className="text-[#85a818] font-black tracking-widest"> • upcoming</span>}</span>
             {extraGrid.length > 0 && <button onClick={() => setShowExtraSlots(!showExtraSlots)} className="bg-[#111111]/5 px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest text-[#111111]/50 active:scale-95 transition-all" style={{ fontFamily: "'Afacad', sans-serif" }}>{showExtraSlots ? "hide extra" : `+${extraGrid.length} extra`}</button>}
@@ -344,8 +365,8 @@ export default function MinimalHomepage({
             <button onClick={() => handleDaySwitch("next")} className="active:scale-75 transition-transform"><ChevronRight size={18} className="text-[#111111]/40" /></button>
           </div>
         </motion.div>
-        <div className="grid grid-cols-5 gap-[8px] mb-8 shrink-0 transition-all">{standardGrid.map((slot, i) => renderSlot(slot, i))}</div>
-        <motion.div variants={sectionFade} initial="hidden" animate="show" className="flex flex-col mb-8 shrink-0 w-full">
+        <motion.div variants={itemVariants} className="grid grid-cols-5 gap-[8px] mb-8 shrink-0 transition-all">{standardGrid.map((slot, i) => renderSlot(slot, i))}</motion.div>
+        <motion.div variants={itemVariants} className="flex flex-col mb-8 shrink-0 w-full">
           <div className="flex items-center gap-3 mb-2 w-full">
             <span className="text-[14px] font-bold lowercase tracking-[0.25em] text-[#111111]/50 whitespace-nowrap" style={{ fontFamily: "'Montserrat', sans-serif" }}>{focusLabel}</span>
             <div className="flex-1 h-[1.5px] bg-[#111111]/15 rounded-full" />
@@ -366,7 +387,7 @@ export default function MinimalHomepage({
             <span className="text-[12px] font-bold lowercase text-[#111111]/40 shrink-0 ml-2" style={{ fontFamily: "'Afacad', sans-serif" }}>{focusClass ? (isViewingToday && currentClass ? `ends at ${focusClass.time.split("-")[1].trim()}` : `starts at ${focusClass.time.split("-")[0].trim()}`) : "check back later"}</span>
           </div>
         </motion.div>
-        <motion.div variants={sectionFade} initial="hidden" animate="show" className="flex flex-col gap-3 shrink-0 w-full">
+        <motion.div variants={itemVariants} className="flex flex-col gap-3 shrink-0 w-full">
           <div onClick={() => setActiveTab && setActiveTab("attendance")} className={`w-full border-[1.5px] rounded-[24px] p-2 pr-5 flex items-center gap-4 shadow-sm transition-all active:scale-[0.98] cursor-pointer ${attStyles.bg} ${attStyles.border}`}>
             <div className={`w-[50px] h-[50px] rounded-[18px] flex items-center justify-center shrink-0 ${attStyles.iconBg}`}><CheckCircle size={20} strokeWidth={2.5} className={attStyles.text} /></div>
             <div className="flex-1 flex flex-col justify-center min-w-0 py-0.5">
@@ -392,7 +413,7 @@ export default function MinimalHomepage({
             <ChevronRight size={22} strokeWidth={2} className="text-[#111111]/30 shrink-0" />
           </div>
         </motion.div>
-      </div>
+      </motion.div>
       <AnimatePresence>
         {isAlertsOpen && (
           <motion.div initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }} transition={{ duration: 0.4, ease: [0.25, 1, 0.5, 1] }} drag="y" dragDirectionLock dragConstraints={{ top: 0, bottom: 500 }} dragElastic={{ top: 0, bottom: 0.8 }} onDragEnd={(e, info) => { if (info.offset.y > 100 || info.velocity.y > 500) setIsAlertsOpen(false); }} className="fixed inset-0 bg-[#111111] z-[60] flex flex-col px-6 pt-10 pb-6 overflow-hidden">
