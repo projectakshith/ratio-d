@@ -10,7 +10,6 @@ import {
   X,
   Plus,
   Lock,
-  Users,
 } from "lucide-react";
 import {
   calculateOverallAttendance,
@@ -43,7 +42,6 @@ export default function MinimalHomepage({
     }
   }, [isAlertsOpen, setIsSwipeDisabled]);
   const [newNote, setNewNote] = useState("");
-  const [isPublicMode, setIsPublicMode] = useState(false);
   const [showExtraSlots, setShowExtraSlots] = useState(false);
 
   const globalAlias =
@@ -58,7 +56,6 @@ export default function MinimalHomepage({
 
   const currentDayOrder = academia?.effectiveDayOrder || data?.dayOrder || "1";
 
-  // Detect if today is officially a holiday based on the API day order string
   const isHoliday =
     !currentDayOrder ||
     currentDayOrder === "-" ||
@@ -68,13 +65,11 @@ export default function MinimalHomepage({
   const [selectedDay, setSelectedDay] = useState(1);
   const [customClasses, setCustomClasses] = useState<Record<number, any[]>>({});
 
-  // Scan the calendar data to find the exact next working day's Day Order
   const nextWorkingDayOrder = useMemo(() => {
     const calData = academia?.calendarData || calendarDataJson || [];
     const now = new Date();
     now.setHours(0, 0, 0, 0);
 
-    // Filter future days and sort chronologically
     const futureDays = calData
       .filter((ev: any) => {
         const evDate = new Date(ev.date);
@@ -87,7 +82,6 @@ export default function MinimalHomepage({
       );
 
     for (const ev of futureDays) {
-      // Look for a valid day order mapping in the calendar
       const dOrder = parseInt(ev.dayOrder || ev.day_order || ev.order);
       if (!isNaN(dOrder) && dOrder >= 1 && dOrder <= 5) {
         return dOrder;
@@ -99,11 +93,9 @@ export default function MinimalHomepage({
   useEffect(() => {
     const parsedOrder = parseInt(currentDayOrder);
 
-    // If today is a holiday, instantly jump to the calendar's next working day
     if (isHoliday) {
       setSelectedDay(nextWorkingDayOrder || 1);
     } else {
-      // It's a normal working day. Check if all classes are over.
       const order = isNaN(parsedOrder) ? 1 : parsedOrder;
       const scheduleData =
         academia?.effectiveSchedule || data?.timetable || data?.schedule || {};
@@ -120,7 +112,6 @@ export default function MinimalHomepage({
 
       const nowMins = new Date().getHours() * 60 + new Date().getMinutes();
 
-      // If classes are done for today, jump to the exact next working day from the calendar
       if (lastEnd > 0 && nowMins >= lastEnd) {
         setSelectedDay(nextWorkingDayOrder || (order < 5 ? order + 1 : 1));
       } else {
@@ -238,7 +229,6 @@ export default function MinimalHomepage({
         }
       }
     } else {
-      // If we are viewing an upcoming day (tomorrow or later), set the first class as "next"
       const activeClasses = processedDay.filter((c: any) => c.type !== "break");
       if (activeClasses.length > 0) {
         nxt = activeClasses[0];
@@ -259,7 +249,6 @@ export default function MinimalHomepage({
   const isLastClassActive = currentClass && !nextClass && isViewingToday;
   const focusClass = isLastClassActive ? currentClass : nextClass || null;
 
-  // Smart focus labels depending on what day is currently being viewed
   let focusLabel = "next up";
   if (isViewingToday && isLastClassActive) focusLabel = "happening now";
   if (!isViewingToday) focusLabel = "first class";
@@ -386,30 +375,23 @@ export default function MinimalHomepage({
       }));
   }, [academia?.calendarData]);
 
-  const [classNotes, setClassNotes] = useState<any[]>([]);
   const [personalNotes, setPersonalNotes] = useState<any[]>([]);
 
   useEffect(() => {
-    const savedNotes = localStorage.getItem("ratio_private_notes");
-    if (savedNotes) {
+    const savedPrivate = localStorage.getItem("ratio_private_notes");
+    if (savedPrivate) {
       try {
-        setPersonalNotes(JSON.parse(savedNotes));
+        setPersonalNotes(JSON.parse(savedPrivate));
       } catch (e) {}
     }
   }, []);
 
   const handleAddNote = () => {
     if (!newNote.trim()) return;
-
     const newNoteObj = { id: Date.now(), text: newNote, date: "just now" };
-
-    if (isPublicMode) {
-      setClassNotes([{ ...newNoteObj, author: userName }, ...classNotes]);
-    } else {
-      const updatedNotes = [newNoteObj, ...personalNotes];
-      setPersonalNotes(updatedNotes);
-      localStorage.setItem("ratio_private_notes", JSON.stringify(updatedNotes));
-    }
+    const updatedNotes = [newNoteObj, ...personalNotes];
+    setPersonalNotes(updatedNotes);
+    localStorage.setItem("ratio_private_notes", JSON.stringify(updatedNotes));
     setNewNote("");
   };
 
@@ -428,7 +410,6 @@ export default function MinimalHomepage({
     let midText = "text-[#111111]";
     let botText = "text-[#111111]/70";
 
-    // Only apply current pulse state if we are actually viewing today's timetable
     if (slot.isCurrent && isViewingToday) {
       boxClass =
         "bg-[#111111] border-[#111111] shadow-[0_6px_16px_rgba(0,0,0,0.2)] scale-105 z-10";
@@ -586,7 +567,6 @@ export default function MinimalHomepage({
           </div>
         </motion.div>
 
-        {/* Instantly maps the slots with no weird staggering delays */}
         <div className="grid grid-cols-5 gap-[8px] mb-8 shrink-0 transition-all">
           {displayGrid.map((slot, i) => renderSlot(slot, i))}
         </div>
@@ -811,7 +791,7 @@ export default function MinimalHomepage({
                   className="text-[10px] font-bold lowercase tracking-[0.2em] text-[#85a818] mt-1.5"
                   style={{ fontFamily: "'Afacad', sans-serif" }}
                 >
-                  class feed & personal
+                  official & personal
                 </span>
               </div>
               <button
@@ -824,6 +804,46 @@ export default function MinimalHomepage({
 
             <div className="flex-1 overflow-y-auto no-scrollbar flex flex-col gap-10 pb-4">
               <div className="flex flex-col gap-3 mt-4">
+                <div className="flex items-center gap-3 w-full">
+                  <span
+                    className="text-[11px] font-bold lowercase tracking-[0.2em] text-[#85a818] whitespace-nowrap"
+                    style={{ fontFamily: "'Montserrat', sans-serif" }}
+                  >
+                    my private notes
+                  </span>
+                  <div className="flex-1 h-[1.5px] bg-[#85a818]/20 rounded-full" />
+                </div>
+
+                {personalNotes.length === 0 ? (
+                  <div className="w-full flex flex-col items-center justify-center py-6 gap-2 opacity-30">
+                    <div className="w-full h-px bg-white/20 rounded-full" />
+                    <div className="w-3/4 h-px bg-white/20 rounded-full" />
+                    <div className="w-1/2 h-px bg-white/20 rounded-full" />
+                  </div>
+                ) : (
+                  personalNotes.map((note) => (
+                    <div
+                      key={note.id}
+                      className="bg-white/5 border-[1.5px] border-white/10 rounded-[20px] p-4 flex flex-col"
+                    >
+                      <span
+                        className="text-[15px] font-bold text-white/80 lowercase leading-snug mb-3"
+                        style={{ fontFamily: "'Afacad', sans-serif" }}
+                      >
+                        {note.text}
+                      </span>
+                      <span
+                        className="text-[10px] font-bold tracking-widest uppercase text-white/30"
+                        style={{ fontFamily: "'Montserrat', sans-serif" }}
+                      >
+                        {note.date}
+                      </span>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              <div className="flex flex-col gap-3">
                 <div className="flex items-center gap-3 w-full">
                   <span
                     className="text-[11px] font-bold lowercase tracking-[0.25em] text-white/40 whitespace-nowrap"
@@ -898,140 +918,27 @@ export default function MinimalHomepage({
                   ))
                 )}
               </div>
-
-              <div className="flex flex-col gap-3">
-                <div className="flex items-center gap-3 w-full">
-                  <span
-                    className="text-[11px] font-bold lowercase tracking-[0.25em] text-[#85a818] whitespace-nowrap"
-                    style={{ fontFamily: "'Montserrat', sans-serif" }}
-                  >
-                    class feed
-                  </span>
-                  <div className="flex-1 h-[1.5px] bg-[#85a818]/20 rounded-full" />
-                </div>
-
-                {classNotes.length === 0 ? (
-                  <div className="w-full flex flex-col items-center justify-center py-6 gap-2 opacity-30">
-                    <div className="w-full h-px bg-white/20 rounded-full" />
-                    <div className="w-3/4 h-px bg-white/20 rounded-full" />
-                    <div className="w-1/2 h-px bg-white/20 rounded-full" />
-                  </div>
-                ) : (
-                  classNotes.map((note) => (
-                    <div
-                      key={note.id}
-                      className="bg-[#85a818]/5 border-[1.5px] border-[#85a818]/20 rounded-[20px] p-4 flex flex-col relative overflow-hidden"
-                    >
-                      <div className="absolute top-0 right-0 w-16 h-16 bg-[#85a818]/10 rounded-bl-[100px] pointer-events-none" />
-                      <span
-                        className="text-[15px] font-bold text-white lowercase leading-snug mb-3 pr-4"
-                        style={{ fontFamily: "'Afacad', sans-serif" }}
-                      >
-                        "{note.text}"
-                      </span>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-[#85a818]" />
-                          <span
-                            className="text-[10px] font-bold uppercase tracking-widest text-[#85a818]"
-                            style={{ fontFamily: "'Montserrat', sans-serif" }}
-                          >
-                            {note.author}
-                          </span>
-                        </div>
-                        <span
-                          className="text-[10px] font-bold tracking-widest uppercase text-white/30"
-                          style={{ fontFamily: "'Montserrat', sans-serif" }}
-                        >
-                          {note.date}
-                        </span>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-
-              <div className="flex flex-col gap-3">
-                <div className="flex items-center gap-3 w-full">
-                  <span
-                    className="text-[11px] font-bold lowercase tracking-[0.2em] text-white/40 whitespace-nowrap"
-                    style={{ fontFamily: "'Montserrat', sans-serif" }}
-                  >
-                    my private notes
-                  </span>
-                  <div className="flex-1 h-[1.5px] bg-white/10 rounded-full" />
-                </div>
-
-                {personalNotes.length === 0 ? (
-                  <div className="w-full flex flex-col items-center justify-center py-6 gap-2 opacity-30">
-                    <div className="w-full h-px bg-white/20 rounded-full" />
-                    <div className="w-3/4 h-px bg-white/20 rounded-full" />
-                    <div className="w-1/2 h-px bg-white/20 rounded-full" />
-                  </div>
-                ) : (
-                  personalNotes.map((note) => (
-                    <div
-                      key={note.id}
-                      className="bg-white/5 border-[1.5px] border-white/10 rounded-[20px] p-4 flex flex-col"
-                    >
-                      <span
-                        className="text-[15px] font-bold text-white/80 lowercase leading-snug mb-3"
-                        style={{ fontFamily: "'Afacad', sans-serif" }}
-                      >
-                        {note.text}
-                      </span>
-                      <span
-                        className="text-[10px] font-bold tracking-widest uppercase text-white/30"
-                        style={{ fontFamily: "'Montserrat', sans-serif" }}
-                      >
-                        {note.date}
-                      </span>
-                    </div>
-                  ))
-                )}
-              </div>
             </div>
 
             <div className="mt-auto shrink-0 pt-4 bg-[#111111]">
-              <div
-                className={`flex items-center gap-2 p-1.5 rounded-[20px] border-[1.5px] transition-colors ${isPublicMode ? "bg-[#85a818]/5 border-[#85a818]/30" : "bg-white/10 border-transparent"}`}
-              >
-                <button
-                  onClick={() => setIsPublicMode(!isPublicMode)}
-                  className={`w-10 h-10 rounded-[14px] flex items-center justify-center transition-all shrink-0 ${
-                    isPublicMode
-                      ? "bg-[#85a818] text-white"
-                      : "bg-white/10 text-white/60 hover:text-white"
-                  }`}
-                >
-                  {isPublicMode ? (
-                    <Users size={18} strokeWidth={2.5} />
-                  ) : (
-                    <Lock size={18} strokeWidth={2.5} />
-                  )}
-                </button>
+              <div className="flex items-center gap-2 p-1.5 rounded-[20px] border-[1.5px] bg-white/10 border-transparent transition-colors">
+                <div className="w-10 h-10 rounded-[14px] flex items-center justify-center bg-white/10 text-white/60 shrink-0">
+                  <Lock size={18} strokeWidth={2.5} />
+                </div>
 
                 <input
                   type="text"
                   value={newNote}
                   onChange={(e) => setNewNote(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleAddNote()}
-                  placeholder={
-                    isPublicMode
-                      ? "broadcast to class..."
-                      : "add a private note..."
-                  }
+                  placeholder="add a private note..."
                   className="flex-1 bg-transparent text-white outline-none px-2 text-[14px] font-bold placeholder:font-medium placeholder:text-white/30 lowercase"
                   style={{ fontFamily: "'Afacad', sans-serif" }}
                 />
 
                 <button
                   onClick={handleAddNote}
-                  className={`w-10 h-10 rounded-[14px] flex items-center justify-center active:scale-95 transition-all shrink-0 ${
-                    isPublicMode
-                      ? "bg-[#85a818] text-white"
-                      : "bg-white text-[#111111]"
-                  }`}
+                  className="w-10 h-10 rounded-[14px] flex items-center justify-center active:scale-95 transition-all shrink-0 bg-white text-[#111111]"
                 >
                   <Plus size={20} strokeWidth={3} />
                 </button>
@@ -1041,9 +948,7 @@ export default function MinimalHomepage({
                   className="text-[10px] font-bold tracking-[0.1em] lowercase text-white/30"
                   style={{ fontFamily: "'Afacad', sans-serif" }}
                 >
-                  {isPublicMode
-                    ? "note will be visible to everyone in class"
-                    : "note will only be visible to you"}
+                  note will only be visible to you
                 </span>
               </div>
             </div>
