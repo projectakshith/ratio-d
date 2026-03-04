@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Calculator, X } from "lucide-react";
+import { Calculator, X, ChevronRight } from "lucide-react";
 import { processAndSortMarks, buildCourseMap } from "@/utils/marksLogic";
 
 export default function MinimalMarks({ data, setIsSwipeDisabled }: any) {
@@ -27,17 +27,7 @@ export default function MinimalMarks({ data, setIsSwipeDisabled }: any) {
     if (lowerName.includes("internet of things")) return "iot";
     if (lowerName.includes("design thinking")) return "dtm";
 
-    const skipWords = [
-      "and",
-      "of",
-      "to",
-      "in",
-      "for",
-      "with",
-      "a",
-      "an",
-      "the",
-    ];
+    const skipWords = ["and", "of", "to", "in", "for", "with", "a", "an", "the"];
     const parts = lowerName.split(/\s+/).filter((w) => !skipWords.includes(w));
     if (parts.length === 1 && parts[0].length <= 5) return parts[0];
     return parts.map((w) => w[0]).join("");
@@ -143,11 +133,19 @@ export default function MinimalMarks({ data, setIsSwipeDisabled }: any) {
         recent = { test: recTitle, text: "updated" };
       }
 
+      const isPrac = (sub.type || "").toLowerCase() === "practical" || 
+                     (sub.type || "").toLowerCase() === "lab" ||
+                     sub.title.toLowerCase().includes("practical") || 
+                     sub.title.toLowerCase().includes("lab") ||
+                     (sub.slot || "").toUpperCase().includes("LAB") ||
+                     (sub.slot || "").toUpperCase().includes("P");
+
       return {
         ...sub,
         displayCode: getAcronym(sub.title) || sub.code,
         displayName: sub.title.toLowerCase(),
         recent,
+        isPractical: isPrac,
         theme: getTheme(sub.percentage, sub.totalMax),
       };
     });
@@ -196,13 +194,17 @@ export default function MinimalMarks({ data, setIsSwipeDisabled }: any) {
   const currentInternals = activePredSub.totalGot || 0;
   const maxPossibleExpected = Math.max(0, 60 - currentInternals);
   const projectedInternals = currentInternals + expectedMarks;
-  const semRequired = targetGrade - projectedInternals;
+  
+  const semNeededPercentage = Math.max(0, targetGrade - projectedInternals);
+  const semRequiredOutOf75 = Math.ceil((semNeededPercentage / 40) * 75);
 
   const grades = [
     { label: "O", min: 91 },
     { label: "A+", min: 81 },
     { label: "A", min: 71 },
     { label: "B+", min: 61 },
+    { label: "B", min: 51 },
+    { label: "C", min: 41 },
   ];
 
   const baseGpa = data?.profile?.cgpa ? parseFloat(data.profile.cgpa) : 8.74;
@@ -211,22 +213,16 @@ export default function MinimalMarks({ data, setIsSwipeDisabled }: any) {
   else if (targetGrade === 81) gpaOffset = 0.04;
   else if (targetGrade === 71) gpaOffset = -0.02;
   else if (targetGrade === 61) gpaOffset = -0.08;
+  else if (targetGrade === 51) gpaOffset = -0.15;
+  else if (targetGrade === 41) gpaOffset = -0.25;
 
   const predictedGpa = (baseGpa + gpaOffset).toFixed(2);
   const gpaColor =
     targetGrade >= 91
-      ? "text-[#ceff1c]"
-      : targetGrade <= 71
+      ? "text-[#85a818]"
+      : targetGrade <= 61
         ? "text-[#FF4D4D]"
-        : "text-white";
-
-  const recentOverallPct =
-    recentlyUpdated.length > 0
-      ? recentlyUpdated.reduce((acc: number, s: any) => acc + s.percentage, 0) /
-        recentlyUpdated.length
-      : 0;
-
-  const recentBgTheme = getTheme(recentOverallPct, 100);
+        : "text-[#F97316]";
 
   const gpaFlavorText =
     baseGpa >= 9.0
@@ -252,12 +248,13 @@ export default function MinimalMarks({ data, setIsSwipeDisabled }: any) {
           .safe-dotted { background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='24' ry='24' stroke='%2385a818' stroke-opacity='0.4' stroke-width='3' stroke-dasharray='6%2c 10' stroke-dashoffset='0' stroke-linecap='round'/%3e%3c/svg%3e"); border-radius: 24px; }
           .danger-dotted { background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='24' ry='24' stroke='%23F97316' stroke-opacity='0.4' stroke-width='3' stroke-dasharray='6%2c 10' stroke-dashoffset='0' stroke-linecap='round'/%3e%3c/svg%3e"); border-radius: 24px; }
           .neutral-dotted { background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='24' ry='24' stroke='%23111111' stroke-opacity='0.15' stroke-width='3' stroke-dasharray='6%2c 10' stroke-dashoffset='0' stroke-linecap='round'/%3e%3c/svg%3e"); border-radius: 24px; }
+          .affected-dotted-rect { background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='24' ry='14' stroke='%230EA5E9' stroke-width='3' stroke-dasharray='6%2c 10' stroke-dashoffset='0' stroke-linecap='round'/%3e%3c/svg%3e"); border-radius: 24px; }
         `,
         }}
       />
 
       <div className="absolute inset-0 bg-[#F7F7F7]">
-        <div className="h-full w-full overflow-y-auto no-scrollbar px-6 pt-10 pb-[220px] flex flex-col">
+        <div className="h-full w-full overflow-y-auto no-scrollbar px-6 pt-10 pb-[220px] flex flex-col relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -299,22 +296,41 @@ export default function MinimalMarks({ data, setIsSwipeDisabled }: any) {
                 setPredictMode(true);
                 setExpectedMarks(0);
               }}
-              className="w-full border-[1.5px] border-[#111111] rounded-[24px] p-4 flex items-center justify-between bg-white shadow-sm active:scale-95 transition-all"
+              className="w-full relative group active:scale-[0.98] transition-all duration-200"
             >
-              <div className="flex items-center gap-3">
-                <div className="w-2 h-2 rounded-full bg-[#111111]" />
-                <span
-                  className="text-[14px] font-bold lowercase tracking-widest text-[#111111]"
-                  style={{ fontFamily: "'Montserrat', sans-serif" }}
-                >
-                  target
-                </span>
+              <div className="absolute inset-0 bg-[#111111] rounded-[24px] translate-y-1.5 transition-transform group-hover:translate-y-2" />
+              <div className="relative w-full border-[1.5px] border-[#111111] rounded-[24px] p-4 flex items-center justify-between bg-white transition-transform group-hover:-translate-y-0.5 group-active:translate-y-1">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-[#111111]/5 flex items-center justify-center">
+                    <Calculator
+                      size={20}
+                      strokeWidth={2.5}
+                      className="text-[#111111]"
+                    />
+                  </div>
+                  <div className="flex flex-col items-start">
+                    <span
+                      className="text-[14px] font-black uppercase tracking-widest text-[#111111] leading-none"
+                      style={{ fontFamily: "'Montserrat', sans-serif" }}
+                    >
+                      TARGET
+                    </span>
+                    <span
+                      className="text-[10px] font-bold lowercase tracking-wider text-[#111111]/40 mt-1"
+                      style={{ fontFamily: "'Afacad', sans-serif" }}
+                    >
+                      predict your future grade
+                    </span>
+                  </div>
+                </div>
+                <div className="w-9 h-9 rounded-full bg-[#F7F7F7] border border-[#111111] flex items-center justify-center shadow-[2px_2px_0px_#111111]">
+                  <ChevronRight
+                    size={20}
+                    strokeWidth={3}
+                    className="text-[#111111]"
+                  />
+                </div>
               </div>
-              <Calculator
-                size={20}
-                strokeWidth={2.5}
-                className="text-[#111111]"
-              />
             </button>
           </motion.div>
 
@@ -323,139 +339,146 @@ export default function MinimalMarks({ data, setIsSwipeDisabled }: any) {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.2 }}
-              className={`w-full ${recentBgTheme.dottedClass} p-5 flex flex-col gap-4 mb-8 shrink-0 ${recentBgTheme.wrapperBg}`}
+              className={`w-full ${recentlyUpdated.some((s:any) => s.isPractical) ? 'affected-dotted-rect' : recentlyUpdated[0].theme.dottedClass} p-5 flex flex-col gap-4 mb-8 shrink-0 ${recentlyUpdated.some((s:any) => s.isPractical) ? 'bg-[#E0F2FE]/30' : recentlyUpdated[0].theme.wrapperBg}`}
             >
               <div className="flex items-center gap-3 w-full">
                 <span
-                  className={`text-[12px] font-bold lowercase tracking-[0.25em] whitespace-nowrap ${recentBgTheme.text}`}
+                  className={`text-[12px] font-bold lowercase tracking-[0.25em] whitespace-nowrap ${recentlyUpdated.some((s:any) => s.isPractical) ? 'text-[#0EA5E9]' : recentlyUpdated[0].theme.text}`}
                   style={{ fontFamily: "'Montserrat', sans-serif" }}
                 >
                   recently updated
                 </span>
                 <div
-                  className={`flex-1 h-[1.5px] rounded-full opacity-40 bg-current ${recentBgTheme.text}`}
+                  className={`flex-1 h-[1.5px] rounded-full opacity-40 bg-current ${recentlyUpdated.some((s:any) => s.isPractical) ? 'text-[#0EA5E9]' : recentlyUpdated[0].theme.text}`}
                 />
               </div>
 
-              {recentlyUpdated.map((sub: any) => (
-                <div
-                  key={sub.id}
-                  className={`w-full border-[1.5px] rounded-[24px] p-4 flex flex-col shadow-sm transition-all gap-4 ${sub.theme.cardBg} ${sub.theme.border}`}
-                >
-                  <div className="flex justify-between items-center w-full">
-                    <div className="flex flex-col items-center justify-center min-w-[85px] shrink-0 px-1">
-                      <span
-                        className={`text-[3.2rem] leading-[0.8] font-black tracking-tighter ${sub.theme.text}`}
-                        style={{ fontFamily: "'Montserrat', sans-serif" }}
-                      >
-                        {Number.isInteger(sub.totalGot)
-                          ? sub.totalGot
-                          : sub.totalGot.toFixed(1)}
-                      </span>
-                      <span
-                        className={`text-[10px] font-bold uppercase tracking-widest mt-1 text-center ${sub.theme.subText}`}
-                        style={{ fontFamily: "'Afacad', sans-serif" }}
-                      >
-                        out of {sub.totalMax}
-                      </span>
-                    </div>
+              {recentlyUpdated.map((sub: any) => {
+                const isPrac = sub.isPractical;
+                const activeAssessments = sub.assessments.slice(-3);
+                const fillerCount = Math.max(0, 3 - activeAssessments.length);
+                const fillers = Array.from({ length: fillerCount });
 
-                    <div className="flex-1 flex flex-col items-end text-right min-w-0 ml-4">
-                      <span
-                        className={`text-[16px] font-black uppercase tracking-widest leading-[1.1] truncate w-full ${sub.theme.text}`}
-                        style={{ fontFamily: "'Montserrat', sans-serif" }}
-                      >
-                        {sub.displayCode}
-                      </span>
-                      <span
-                        className={`text-[13px] font-medium lowercase tracking-wide leading-[1.1] mt-0.5 truncate w-full ${sub.theme.subText}`}
-                        style={{ fontFamily: "'Afacad', sans-serif" }}
-                      >
-                        {sub.displayName}
-                      </span>
-                      {sub.recent && (
-                        <div
-                          className={`border-[1px] px-3 py-1.5 rounded-full mt-2 flex items-center justify-center ${sub.theme.boxBg} ${sub.theme.border}`}
-                        >
-                          <span
-                            className={`text-[9px] uppercase tracking-widest ${sub.theme.text}`}
-                            style={{ fontFamily: "'Afacad', sans-serif" }}
-                          >
-                            <strong className="font-black">
-                              {sub.recent.test}
-                            </strong>{" "}
-                            <span className="opacity-70">
-                              {sub.recent.text}
-                            </span>
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex gap-2 w-full mt-1 overflow-x-auto no-scrollbar pb-1">
-                    {sub.assessments.slice(-3).map((box: any, idx: number) => {
-                      const boxTheme = getBoxTheme(box.got, box.max);
-                      return (
-                        <div
-                          key={idx}
-                          className={`min-w-[65px] flex-1 rounded-[12px] p-2 flex flex-col items-center justify-center border-[1px] ${boxTheme.boxBg} ${boxTheme.border}`}
-                        >
-                          <span
-                            className={`text-[12px] font-bold uppercase tracking-widest mb-0.5 ${boxTheme.subText}`}
-                            style={{ fontFamily: "'Afacad', sans-serif" }}
-                          >
-                            {box.title}
-                          </span>
-                          <div className="flex items-baseline justify-center gap-0.5 w-full">
-                            <span
-                              className={`text-[18px] font-black leading-none tracking-tighter ${boxTheme.text}`}
-                              style={{ fontFamily: "'Montserrat', sans-serif" }}
-                            >
-                              {Number.isInteger(box.got)
-                                ? box.got
-                                : box.got.toFixed(1)}
-                            </span>
-                            <span
-                              className={`text-[10px] font-bold ${boxTheme.subText}`}
-                              style={{ fontFamily: "'Montserrat', sans-serif" }}
-                            >
-                              /{box.max}
-                            </span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                    {Array.from({
-                      length: Math.max(0, 3 - sub.assessments.length),
-                    }).map((_, idx) => (
-                      <div
-                        key={`empty-${idx}`}
-                        className={`min-w-[65px] flex-1 rounded-[12px] p-2 flex flex-col items-center justify-center border-[1px] opacity-40 bg-[#F7F7F7] border-[#111111]/5`}
-                      >
+                return (
+                  <div
+                    key={sub.id}
+                    className={`w-full border-[1.5px] rounded-[24px] p-4 flex flex-col shadow-sm transition-all gap-4 bg-white ${isPrac ? 'border-[#0EA5E9]/30' : sub.theme.border}`}
+                  >
+                    <div className="flex justify-between items-center w-full">
+                      <div className="flex flex-col items-center justify-center min-w-[85px] shrink-0 px-1">
                         <span
-                          className={`text-[12px] font-bold uppercase tracking-widest mb-0.5 text-[#111111]/50`}
+                          className="text-[3.2rem] leading-[0.8] font-black tracking-tighter"
+                          style={{ fontFamily: "'Montserrat', sans-serif", color: isPrac ? '#0EA5E9' : undefined }}
+                        >
+                          {Number.isInteger(sub.totalGot)
+                            ? sub.totalGot
+                            : sub.totalGot.toFixed(1)}
+                        </span>
+                        <span
+                          className={`text-[10px] font-bold uppercase tracking-widest mt-1 text-center ${sub.theme.subText}`}
                           style={{ fontFamily: "'Afacad', sans-serif" }}
                         >
-                          --
+                          out of {sub.totalMax}
                         </span>
-                        <div className="flex items-baseline justify-center gap-0.5 w-full">
+                      </div>
+
+                      <div className="flex-1 flex flex-col items-end text-right min-w-0 ml-4">
+                        <div className="flex items-center gap-2 mb-1">
+                          {isPrac && (
+                            <span
+                              className="text-[9px] font-bold uppercase tracking-[0.25em] text-[#0EA5E9] bg-[#0EA5E9]/10 px-2 py-0.5 rounded-md"
+                              style={{ fontFamily: "'Afacad', sans-serif" }}
+                            >
+                              practical
+                            </span>
+                          )}
                           <span
-                            className={`text-[18px] font-black leading-none tracking-tighter text-[#111111]/50`}
-                            style={{ fontFamily: "'Montserrat', sans-serif" }}
+                            className="text-[16px] font-black uppercase tracking-widest leading-[1.1] truncate w-full"
+                            style={{ fontFamily: "'Montserrat', sans-serif", color: isPrac ? '#0EA5E9' : undefined }}
                           >
-                            -
+                            {sub.displayCode}
                           </span>
                         </div>
+                        <span
+                          className={`text-[13px] font-medium lowercase tracking-wide leading-[1.1] mt-0.5 truncate w-full ${sub.theme.subText}`}
+                          style={{ fontFamily: "'Afacad', sans-serif" }}
+                        >
+                          {sub.displayName}
+                        </span>
+                        {sub.recent && (
+                          <div
+                            className={`border-[1px] px-3 py-1.5 rounded-full mt-2 flex items-center justify-center ${sub.theme.boxBg} ${isPrac ? 'border-[#0EA5E9]/20' : sub.theme.border}`}
+                          >
+                            <span
+                              className="text-[9px] uppercase tracking-widest"
+                              style={{ fontFamily: "'Afacad', sans-serif", color: isPrac ? '#0EA5E9' : undefined }}
+                            >
+                              <strong className="font-black">
+                                {sub.recent.test}
+                              </strong>{" "}
+                              <span className="opacity-70">
+                                {sub.recent.text}
+                              </span>
+                            </span>
+                          </div>
+                        )}
                       </div>
-                    ))}
+                    </div>
+
+                    <div className="flex gap-2 w-full mt-1 overflow-x-auto no-scrollbar pb-1">
+                      {activeAssessments.map((box: any, idx: number) => {
+                        const boxTheme = getBoxTheme(box.got, box.max);
+                        return (
+                          <div
+                            key={idx}
+                            className={`min-w-[65px] flex-1 rounded-[12px] p-2 flex flex-col items-center justify-center border-[1px] ${boxTheme.boxBg} ${isPrac ? 'border-[#0EA5E9]/10' : boxTheme.border}`}
+                          >
+                            <span
+                              className={`text-[12px] font-bold uppercase tracking-widest mb-0.5 ${boxTheme.subText}`}
+                              style={{ fontFamily: "'Afacad', sans-serif" }}
+                            >
+                              {box.title}
+                            </span>
+                            <div className="flex items-baseline justify-center gap-0.5 w-full">
+                              <span
+                                className={`text-[18px] font-black leading-none tracking-tighter ${isPrac ? 'text-[#0EA5E9]' : boxTheme.text}`}
+                                style={{ fontFamily: "'Montserrat', sans-serif" }}
+                              >
+                                {Number.isInteger(box.got)
+                                  ? box.got
+                                  : box.got.toFixed(1)}
+                              </span>
+                              <span
+                                className={`text-[10px] font-bold ${boxTheme.subText}`}
+                                style={{ fontFamily: "'Montserrat', sans-serif" }}
+                              >
+                                /{box.max}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                      {fillers.map((_, idx) => (
+                        <div
+                          key={`fill-${idx}`}
+                          className={`min-w-[65px] flex-1 rounded-[12px] p-2 flex flex-col items-center justify-center border-[1px] border-dashed border-[#111111]/5 bg-[#F7F7F7]/30`}
+                        >
+                          <span
+                            className="text-[10px] font-bold text-[#111111]/10 uppercase tracking-widest"
+                            style={{ fontFamily: "'Afacad', sans-serif" }}
+                          >
+                            tba
+                          </span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
 
               <div className="w-full flex justify-center mt-1">
                 <span
-                  className={`text-[11px] font-bold lowercase tracking-widest ${recentBgTheme.text}`}
+                  className={`text-[11px] font-bold lowercase tracking-widest ${recentlyUpdated.some((s:any) => s.isPractical) ? 'text-[#0EA5E9]' : recentlyUpdated[0].theme.text}`}
                   style={{ fontFamily: "'Afacad', sans-serif" }}
                 >
                   {gpaFlavorText}
@@ -471,7 +494,7 @@ export default function MinimalMarks({ data, setIsSwipeDisabled }: any) {
               transition={{ duration: 0.4, delay: 0.3 }}
               className="flex flex-col gap-3.5 w-full shrink-0"
             >
-              <div className="flex items-center gap-3 mb-2 w-full">
+              <div className="flex items-center gap-3 mb-2 w-full px-1">
                 <span
                   className="text-[12px] font-bold lowercase tracking-[0.25em] text-[#111111]/40 whitespace-nowrap"
                   style={{ fontFamily: "'Montserrat', sans-serif" }}
@@ -481,104 +504,111 @@ export default function MinimalMarks({ data, setIsSwipeDisabled }: any) {
                 <div className="flex-1 h-[1.5px] bg-[#111111]/10 rounded-full" />
               </div>
 
-              {allMarks.map((sub: any) => (
-                <div
-                  key={sub.id}
-                  className="w-full border-[1.5px] rounded-[24px] p-4 flex flex-col shadow-sm gap-4 transition-all bg-white border-[#111111]/10"
-                >
-                  <div className="flex justify-between items-center w-full">
-                    <div className="flex flex-col items-center justify-center min-w-[85px] shrink-0 px-1">
-                      <span
-                        className="text-[3.2rem] leading-[0.8] font-black tracking-tighter text-[#111111]"
-                        style={{ fontFamily: "'Montserrat', sans-serif" }}
-                      >
-                        {Number.isInteger(sub.totalGot)
-                          ? sub.totalGot
-                          : sub.totalGot.toFixed(1)}
-                      </span>
-                      <span
-                        className="text-[10px] font-bold uppercase tracking-widest mt-1 text-center text-[#111111]/40"
-                        style={{ fontFamily: "'Afacad', sans-serif" }}
-                      >
-                        out of {sub.totalMax}
-                      </span>
-                    </div>
+              {allMarks.map((sub: any) => {
+                const isPrac = sub.isPractical;
+                const activeAssessments = sub.assessments.slice(-3);
+                const fillerCount = Math.max(0, 3 - activeAssessments.length);
+                const fillers = Array.from({ length: fillerCount });
 
-                    <div className="flex-1 flex flex-col items-end text-right min-w-0 ml-4">
-                      <span
-                        className="text-[16px] font-black uppercase tracking-widest leading-[1.1] truncate w-full text-[#111111]"
-                        style={{ fontFamily: "'Montserrat', sans-serif" }}
-                      >
-                        {sub.displayCode}
-                      </span>
-                      <span
-                        className="text-[13px] font-medium lowercase tracking-wide leading-[1.1] mt-0.5 truncate w-full text-[#111111]/50"
-                        style={{ fontFamily: "'Afacad', sans-serif" }}
-                      >
-                        {sub.displayName}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-2 w-full mt-1 overflow-x-auto no-scrollbar pb-1">
-                    {sub.assessments.slice(-3).map((box: any, idx: number) => {
-                      const boxTheme = getBoxTheme(box.got, box.max);
-                      return (
-                        <div
-                          key={idx}
-                          className={`min-w-[65px] flex-1 rounded-[12px] p-2 flex flex-col items-center justify-center border-[1px] ${boxTheme.boxBg} ${boxTheme.border}`}
-                        >
-                          <span
-                            className={`text-[12px] font-bold uppercase tracking-widest mb-0.5 ${boxTheme.subText}`}
-                            style={{ fontFamily: "'Afacad', sans-serif" }}
-                          >
-                            {box.title}
-                          </span>
-                          <div className="flex items-baseline justify-center gap-0.5 w-full">
-                            <span
-                              className={`text-[18px] font-black leading-none tracking-tighter ${boxTheme.text}`}
-                              style={{ fontFamily: "'Montserrat', sans-serif" }}
-                            >
-                              {Number.isInteger(box.got)
-                                ? box.got
-                                : box.got.toFixed(1)}
-                            </span>
-                            <span
-                              className={`text-[10px] font-bold ${boxTheme.subText}`}
-                              style={{ fontFamily: "'Montserrat', sans-serif" }}
-                            >
-                              /{box.max}
-                            </span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                    {Array.from({
-                      length: Math.max(0, 3 - sub.assessments.length),
-                    }).map((_, idx) => (
-                      <div
-                        key={`empty-${idx}`}
-                        className="min-w-[65px] flex-1 rounded-[12px] p-2 flex flex-col items-center justify-center border-[1px] opacity-40 bg-[#F7F7F7] border-[#111111]/5"
-                      >
+                return (
+                  <div
+                    key={sub.id}
+                    className={`w-full border-[1.5px] rounded-[24px] p-4 flex flex-col shadow-sm gap-4 transition-all bg-white ${isPrac ? 'border-[#0EA5E9]/20 bg-[#E0F2FE]/10' : 'border-[#111111]/10'}`}
+                  >
+                    <div className="flex justify-between items-center w-full">
+                      <div className="flex flex-col items-center justify-center min-w-[85px] shrink-0 px-1">
                         <span
-                          className="text-[12px] font-bold uppercase tracking-widest mb-0.5 text-[#111111]/50"
+                          className="text-[3.2rem] leading-[0.8] font-black tracking-tighter"
+                          style={{ fontFamily: "'Montserrat', sans-serif", color: isPrac ? '#0EA5E9' : '#111111' }}
+                        >
+                          {Number.isInteger(sub.totalGot)
+                            ? sub.totalGot
+                            : sub.totalGot.toFixed(1)}
+                        </span>
+                        <span
+                          className={`text-[10px] font-bold uppercase tracking-widest mt-1 text-center ${isPrac ? 'text-[#0EA5E9]/50' : 'text-[#111111]/40'}`}
                           style={{ fontFamily: "'Afacad', sans-serif" }}
                         >
-                          --
+                          out of {sub.totalMax}
                         </span>
-                        <div className="flex items-baseline justify-center gap-0.5 w-full">
+                      </div>
+
+                      <div className="flex-1 flex flex-col items-end text-right min-w-0 ml-4">
+                        <div className="flex items-center gap-2 mb-1">
+                          {isPrac && (
+                            <span
+                              className="text-[9px] font-bold uppercase tracking-[0.25em] text-[#0EA5E9] bg-[#0EA5E9]/10 px-2 py-0.5 rounded-md"
+                              style={{ fontFamily: "'Afacad', sans-serif" }}
+                            >
+                              practical
+                            </span>
+                          )}
                           <span
-                            className="text-[18px] font-black leading-none tracking-tighter text-[#111111]/50"
-                            style={{ fontFamily: "'Montserrat', sans-serif" }}
+                            className="text-[16px] font-black uppercase tracking-widest leading-[1.1] truncate"
+                            style={{ fontFamily: "'Montserrat', sans-serif", color: isPrac ? '#0EA5E9' : '#111111' }}
                           >
-                            -
+                            {sub.displayCode}
                           </span>
                         </div>
+                        <span
+                          className={`text-[13px] font-medium lowercase tracking-wide leading-[1.1] mt-0.5 truncate w-full ${isPrac ? 'text-[#0EA5E9]/60' : 'text-[#111111]/50'}`}
+                          style={{ fontFamily: "'Afacad', sans-serif" }}
+                        >
+                          {sub.displayName}
+                        </span>
                       </div>
-                    ))}
+                    </div>
+
+                    <div className="flex gap-2 w-full mt-1 overflow-x-auto no-scrollbar pb-1">
+                      {activeAssessments.map((box: any, idx: number) => {
+                        const boxTheme = getBoxTheme(box.got, box.max);
+                        return (
+                          <div
+                            key={idx}
+                            className={`min-w-[65px] flex-1 rounded-[12px] p-2 flex flex-col items-center justify-center border-[1px] ${isPrac ? 'bg-[#E0F2FE]/40 border-[#0EA5E9]/10' : boxTheme.boxBg + ' ' + boxTheme.border}`}
+                          >
+                            <span
+                              className={`text-[12px] font-bold uppercase tracking-widest mb-0.5 ${isPrac ? 'text-[#0EA5E9]/60' : boxTheme.subText}`}
+                              style={{ fontFamily: "'Afacad', sans-serif" }}
+                            >
+                              {box.title}
+                            </span>
+                            <div className="flex items-baseline justify-center gap-0.5 w-full">
+                              <span
+                                className={`text-[18px] font-black leading-none tracking-tighter ${isPrac ? 'text-[#0EA5E9]' : boxTheme.text}`}
+                                style={{ fontFamily: "'Montserrat', sans-serif" }}
+                              >
+                                {Number.isInteger(box.got)
+                                  ? box.got
+                                  : box.got.toFixed(1)}
+                              </span>
+                              <span
+                                className={`text-[10px] font-bold ${isPrac ? 'text-[#0EA5E9]/40' : boxTheme.subText}`}
+                                style={{ fontFamily: "'Montserrat', sans-serif" }}
+                              >
+                                /{box.max}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                      {fillers.map((_, idx) => (
+                        <div
+                          key={`fill-${idx}`}
+                          className={`min-w-[65px] flex-1 rounded-[12px] p-2 flex flex-col items-center justify-center border-[1px] border-dashed border-[#111111]/5 bg-[#F7F7F7]/30`}
+                        >
+                          <span
+                            className="text-[10px] font-bold text-[#111111]/10 uppercase tracking-widest"
+                            style={{ fontFamily: "'Afacad', sans-serif" }}
+                          >
+                            tba
+                          </span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </motion.div>
           )}
         </div>
@@ -622,7 +652,7 @@ export default function MinimalMarks({ data, setIsSwipeDisabled }: any) {
                   TARGET
                 </span>
                 <span
-                  className="text-[10px] font-bold lowercase tracking-[0.2em] text-white/40 mt-1.5"
+                  className="text-[10px] font-bold lowercase tracking-[0.2em] text-[#85a818] mt-1.5"
                   style={{ fontFamily: "'Afacad', sans-serif" }}
                 >
                   predict grade
@@ -636,7 +666,7 @@ export default function MinimalMarks({ data, setIsSwipeDisabled }: any) {
               </button>
             </div>
 
-            <div className="flex flex-col flex-1 justify-between mt-5 w-full">
+            <div className="flex flex-col flex-1 justify-between mt-5 w-full overflow-y-auto no-scrollbar">
               <div className="w-full bg-white/5 border border-white/10 rounded-[16px] px-4 py-3.5 flex items-center gap-3 shrink-0">
                 <span
                   className="text-[16px] font-black uppercase tracking-widest text-white/90 shrink-0"
@@ -677,21 +707,21 @@ export default function MinimalMarks({ data, setIsSwipeDisabled }: any) {
                 </span>
                 <div className="flex items-baseline gap-1">
                   <span
-                    className={`leading-[0.85] font-black tracking-tighter text-center ${semRequired > 40 ? "text-[4rem] text-[#FF4D4D]" : "text-[5rem] text-[#ceff1c]"}`}
+                    className={`leading-[0.85] font-black tracking-tighter text-center ${semRequiredOutOf75 > 75 ? "text-[4rem] text-[#FF4D4D]" : "text-[5rem] text-[#85a818]"}`}
                     style={{ fontFamily: "'Montserrat', sans-serif" }}
                   >
-                    {semRequired > 40
+                    {semRequiredOutOf75 > 75
                       ? "cooked."
-                      : semRequired <= 0
+                      : semRequiredOutOf75 <= 0
                         ? "0"
-                        : semRequired}
+                        : semRequiredOutOf75}
                   </span>
-                  {semRequired > 0 && semRequired <= 40 && (
+                  {semRequiredOutOf75 > 0 && semRequiredOutOf75 <= 75 && (
                     <span
                       className="text-[20px] font-bold text-white/30"
                       style={{ fontFamily: "'Montserrat', sans-serif" }}
                     >
-                      /40
+                      /75
                     </span>
                   )}
                 </div>
@@ -761,6 +791,7 @@ export default function MinimalMarks({ data, setIsSwipeDisabled }: any) {
                       +
                     </button>
                   </div>
+                  <span className="text-[9px] font-bold text-white/20 mt-1 uppercase tracking-widest" style={{ fontFamily: "'Afacad', sans-serif" }}>out of {maxPossibleExpected}</span>
                 </div>
               </div>
 
@@ -771,14 +802,14 @@ export default function MinimalMarks({ data, setIsSwipeDisabled }: any) {
                 >
                   target grade
                 </span>
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid grid-cols-3 gap-2">
                   {grades.map((g) => (
                     <button
                       key={g.label}
                       onClick={() => setTargetGrade(g.min)}
                       className={`py-3 rounded-[16px] flex flex-col items-center justify-center transition-all ${
                         targetGrade === g.min
-                          ? "bg-[#ceff1c] text-[#111111]"
+                          ? "bg-white text-[#111111]"
                           : "bg-white/10 text-white/60 hover:bg-white/20"
                       }`}
                     >
@@ -799,7 +830,7 @@ export default function MinimalMarks({ data, setIsSwipeDisabled }: any) {
                 </div>
               </div>
 
-              <div className="flex flex-col w-full overflow-hidden mt-2 pb-2">
+              <div className="flex flex-col w-full shrink-0 mt-2 pb-2">
                 <span
                   className="text-[10px] font-bold lowercase tracking-[0.2em] text-white/50 mb-2 px-2"
                   style={{ fontFamily: "'Montserrat', sans-serif" }}
@@ -808,7 +839,6 @@ export default function MinimalMarks({ data, setIsSwipeDisabled }: any) {
                 </span>
                 <div
                   className="flex gap-2 overflow-x-auto no-scrollbar w-full px-2"
-                  onPointerDownCapture={(e) => e.stopPropagation()}
                 >
                   {subjects.map((sub: any) => (
                     <button
@@ -819,7 +849,7 @@ export default function MinimalMarks({ data, setIsSwipeDisabled }: any) {
                       }}
                       className={`px-4 py-2.5 rounded-[12px] text-[12px] font-bold uppercase tracking-widest transition-all whitespace-nowrap shrink-0 ${
                         predSubjectId === sub.id
-                          ? "bg-white text-[#111111]"
+                          ? "bg-[#85a818] text-white"
                           : "bg-white/10 text-white hover:bg-white/20"
                       }`}
                       style={{ fontFamily: "'Afacad', sans-serif" }}
