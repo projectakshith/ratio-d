@@ -8,7 +8,7 @@ import { useAcademiaData } from "@/hooks/useAcademiaData";
 const BrutalistTheme = dynamic(
   () => import("./themes/brutalist/BrutalistTheme"),
   {
-    loading: () => <div className="h-[100dvh] w-full bg-black" />,
+    loading: () => <div className="h-[100dvh] w-full bg-[#F7F7F7]" />,
   },
 );
 

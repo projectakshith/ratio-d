@@ -35,6 +35,7 @@ export default function Home() {
 
     const timer = setTimeout(() => {
       setShowSplash(false);
+      setStartEntrance(true);
     }, 700);
 
     return () => clearTimeout(timer);
@@ -133,22 +134,18 @@ export default function Home() {
         )}
       </AnimatePresence>
 
-      <div className="w-full h-full">
-        {view !== "loading" && (
+      <div className={`w-full h-full ${view === "loading" ? "opacity-0" : "opacity-100"}`}>
+        {view === "onboarding" && (
           <>
-            {view === "onboarding" && (
-              <>
-                <button onClick={handleDevBypass} className="absolute top-0 right-0 w-24 h-24 z-[99] opacity-0" aria-label="Developer Bypass" />
-                <OnboardingPage />
-              </>
-            )}
-            {view === "login" && <LoginPage onLogin={(data) => { setUserData(data); setView("app"); localStorage.setItem("ratio_data", JSON.stringify(data)); }} />}
-            {view === "app" && <AcademiaApp data={userData} onLogout={handleLogout} customDisplayName={customDisplayName} onUpdateName={handleUpdateName} isUpdating={isUpdating} startEntrance={startEntrance} />}
+            <button onClick={handleDevBypass} className="absolute top-0 right-0 w-24 h-24 z-[99] opacity-0" aria-label="Developer Bypass" />
+            <OnboardingPage />
           </>
         )}
+        {view === "login" && <LoginPage onLogin={(data) => { setUserData(data); setView("app"); localStorage.setItem("ratio_data", JSON.stringify(data)); }} />}
+        {view === "app" && <AcademiaApp data={userData} onLogout={handleLogout} customDisplayName={customDisplayName} onUpdateName={handleUpdateName} isUpdating={isUpdating} startEntrance={startEntrance} />}
       </div>
 
-      <AnimatePresence onExitComplete={() => setStartEntrance(true)}>
+      <AnimatePresence>
         {showSplash && (
           <motion.div 
             key="splash" 

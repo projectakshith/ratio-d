@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/react";
 import { Geist, Geist_Mono, Afacad, Montserrat } from "next/font/google";
@@ -26,11 +26,19 @@ const montserrat = Montserrat({
   weight: ["300", "400", "500", "600", "700", "800", "900"],
 });
 
+export const viewport: Viewport = {
+  themeColor: "#F7F7F7",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: "cover",
+};
+
 export const metadata: Metadata = {
   title: "Ratio'd",
   description: "cool looking and simple academia dashboard",
   manifest: "/manifest.json",
-  themeColor: "#F7F7F7",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -38,10 +46,10 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
-      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
     ],
-    apple: "/icons/icon-192.png",
+    apple: "/icon-192.png",
   },
 };
 
@@ -51,21 +59,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" style={{ colorScheme: "light" }}>
       <head>
-        <meta
-          name="viewport"
-          content="width=device-width, initial-scale=1, viewport-fit=cover"
-        />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta
-          name="apple-mobile-web-app-status-bar-style"
-          content="default"
-        />
-        <meta name="apple-mobile-web-app-title" content="Ratio'd" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="theme-color" content="#F7F7F7" />
-        <meta name="format-detection" content="telephone=no" />
       </head>
 
       <body
