@@ -1,12 +1,11 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import calendarDataJson from "@/data/calendar_data.json";
 
-export const useCalendarData = (calendarDataProp?: any[]) => {
+export const useCalendarData = (calendarDataProp?: any[], isTargetAudience: boolean = false) => {
   const [viewMonth, setViewMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [introMode, setIntroMode] = useState(true);
 
-  // Safely fallback to the JSON file
   const calendarData =
     (calendarDataProp?.length ? calendarDataProp : calendarDataJson) || [];
 
@@ -24,10 +23,16 @@ export const useCalendarData = (calendarDataProp?: any[]) => {
     const map: Record<string, any> = {};
     calendarData.forEach((item: any) => {
       const dateObj = new Date(item.date);
-      if (!isNaN(dateObj.getTime())) map[dateObj.toDateString()] = item;
+      if (!isNaN(dateObj.getTime())) {
+        if (item.type === "exam" && !isTargetAudience) {
+          map[dateObj.toDateString()] = { ...item, type: "regular" };
+        } else {
+          map[dateObj.toDateString()] = item;
+        }
+      }
     });
     return map;
-  }, [calendarData]);
+  }, [calendarData, isTargetAudience]);
 
   const getDaysInMonth = (year: number, month: number) =>
     new Date(year, month + 1, 0).getDate();

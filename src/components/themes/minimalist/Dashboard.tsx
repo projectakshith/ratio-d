@@ -54,6 +54,11 @@ export default function MinimalHomepage({
     "student"
   ).toLowerCase();
 
+  const profile = data?.profile || {};
+  const isTargetAudience = 
+    (profile.dept || "").toLowerCase().includes("computer science and engineering") && 
+    (String(profile.semester) === "4");
+
   const currentDayOrder = academia?.effectiveDayOrder || data?.dayOrder || "1";
 
   const isHoliday =
@@ -347,7 +352,7 @@ export default function MinimalHomepage({
   const sortedMarks = processAndSortMarks(data?.marks || [], courseMap);
   const latestMark = sortedMarks.length > 0 ? sortedMarks[0] : null;
 
-  const officialAlerts = useMemo(() => {
+  const exams = useMemo(() => {
     const calData = academia?.calendarData || calendarDataJson || [];
     const now = new Date();
     now.setHours(0, 0, 0, 0);
@@ -355,25 +360,53 @@ export default function MinimalHomepage({
     return calData
       .filter((ev: any) => {
         const d = new Date(ev.date);
-        return (
-          d >= now &&
-          (ev.type === "exam" ||
-            ev.description.toLowerCase().includes("holiday"))
-        );
+        d.setHours(0, 0, 0, 0);
+        return d >= now && ev.type === "exam" && isTargetAudience;
       })
-      .sort(
-        (a: any, b: any) =>
-          new Date(a.date).getTime() - new Date(b.date).getTime(),
-      )
-      .slice(0, 3)
+      .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      .slice(0, 2)
       .map((ev: any, i: number) => ({
-        id: i,
-        title: ev.type === "exam" ? "Assessment" : "Upcoming Break",
+        id: `exam-${i}`,
+        title: "Assessment",
         desc: ev.description,
-        type: ev.type === "exam" ? "exam" : "holiday",
+        type: "exam",
+        date: ev.date,
+      }));
+  }, [academia?.calendarData, isTargetAudience]);
+
+  const upcomingBreaks = useMemo(() => {
+    const calData = academia?.calendarData || calendarDataJson || [];
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+
+    return calData
+      .filter((ev: any) => {
+        const d = new Date(ev.date);
+        d.setHours(0, 0, 0, 0);
+        return d.getTime() > now.getTime() && ev.description.toLowerCase().includes("holiday");
+      })
+      .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      .slice(0, 2)
+      .map((ev: any, i: number) => ({
+        id: `holiday-${i}`,
+        title: "Upcoming Break",
+        desc: ev.description,
+        type: "holiday",
         date: ev.date,
       }));
   }, [academia?.calendarData]);
+
+  const allAlerts = useMemo(() => [...exams, ...upcomingBreaks], [exams, upcomingBreaks]);
+
+  const [currentAlertIndex, setCurrentAlertIndex] = useState(0);
+
+  useEffect(() => {
+    if (allAlerts.length <= 1) return;
+    const interval = setInterval(() => {
+      setCurrentAlertIndex((prev) => (prev + 1) % allAlerts.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [allAlerts]);
 
   const [personalNotes, setPersonalNotes] = useState<any[]>([]);
 
@@ -455,6 +488,8 @@ export default function MinimalHomepage({
   const displayGrid = showExtraSlots
     ? [...standardGrid, ...extraGrid]
     : standardGrid;
+
+  const currentAlert = allAlerts[currentAlertIndex];
 
   return (
     <>
@@ -707,16 +742,22 @@ export default function MinimalHomepage({
               >
                 academic alerts
               </span>
-              <span
-                className="text-[13px] font-medium lowercase text-white/70 truncate"
-                style={{ fontFamily: "'Afacad', sans-serif" }}
-              >
-                {officialAlerts.length > 0
-                  ? `${officialAlerts[0].title} coming up.`
-                  : overallPct < 75
-                    ? "attendance might be cooked."
-                    : "stats looking solid."}
-              </span>
+              <AnimatePresence mode="wait">
+                <motion.span
+                  key={currentAlertIndex}
+                  initial={{ opacity: 0, x: 5 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -5 }}
+                  className="text-[13px] font-medium lowercase text-white/70 truncate"
+                  style={{ fontFamily: "'Afacad', sans-serif" }}
+                >
+                  {currentAlert
+                    ? `${currentAlert.title}: ${currentAlert.desc.split(' / ')[0].substring(0, 20)}...`
+                    : overallPct < 75
+                      ? "attendance might be cooked."
+                      : "stats looking solid."}
+                </motion.span>
+              </AnimatePresence>
             </div>
             <ChevronRight
               size={22}
@@ -769,6 +810,7 @@ export default function MinimalHomepage({
             exit={{ y: "100%" }}
             transition={{ duration: 0.4, ease: [0.25, 1, 0.5, 1] }}
             drag="y"
+            dragDirectionLock
             dragConstraints={{ top: 0, bottom: 500 }}
             dragElastic={{ top: 0, bottom: 0.8 }}
             onDragEnd={(e, info) => {
@@ -846,73 +888,81 @@ export default function MinimalHomepage({
               <div className="flex flex-col gap-3">
                 <div className="flex items-center gap-3 w-full">
                   <span
-                    className="text-[11px] font-bold lowercase tracking-[0.25em] text-white/40 whitespace-nowrap"
+                    className="text-[11px] font-bold lowercase tracking-[0.25em] text-[#8b5cf6] whitespace-nowrap"
                     style={{ fontFamily: "'Montserrat', sans-serif" }}
                   >
-                    official
+                    assessments
                   </span>
-                  <div className="flex-1 h-[1.5px] bg-white/10 rounded-full" />
+                  <div className="flex-1 h-[1.5px] bg-[#8b5cf6]/20 rounded-full" />
                 </div>
 
-                {officialAlerts.length === 0 ? (
+                {exams.length === 0 ? (
                   <div className="w-full flex flex-col items-center justify-center py-6 gap-2 opacity-30">
                     <div className="w-full h-px bg-white/20 rounded-full" />
                     <div className="w-3/4 h-px bg-white/20 rounded-full" />
                     <div className="w-1/2 h-px bg-white/20 rounded-full" />
                   </div>
                 ) : (
-                  officialAlerts.map((alert) => (
+                  exams.map((alert) => (
                     <div
                       key={alert.id}
-                      className="bg-[#1a1a1a] border border-white/10 rounded-[20px] p-5 flex flex-col relative overflow-hidden"
+                      className="bg-[#8b5cf6]/5 border border-[#8b5cf6]/30 rounded-[20px] p-5 flex flex-col relative overflow-hidden"
                     >
-                      <div
-                        className={`absolute top-0 right-0 w-24 h-24 rounded-bl-[100px] pointer-events-none ${alert.type === "exam" ? "bg-[#8b5cf6]/10" : "bg-[#FF4D4D]/10"}`}
-                      />
-
+                      <div className="absolute top-0 right-0 w-24 h-24 rounded-bl-[100px] bg-[#8b5cf6]/10 pointer-events-none" />
                       <div className="flex items-center gap-3 mb-4 z-10">
-                        <span
-                          className={`text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full shrink-0 ${alert.type === "exam" ? "bg-[#8b5cf6] text-white" : "bg-[#FF4D4D] text-white"}`}
-                          style={{ fontFamily: "'Afacad', sans-serif" }}
-                        >
-                          {alert.type}
-                        </span>
-                        <span
-                          className="text-[12px] font-bold text-white/50 tracking-wider uppercase"
-                          style={{ fontFamily: "'Montserrat', sans-serif" }}
-                        >
-                          {alert.date}
-                        </span>
+                        <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full shrink-0 bg-[#8b5cf6] text-white" style={{ fontFamily: "'Afacad', sans-serif" }}>exam</span>
+                        <span className="text-[12px] font-bold text-white/50 tracking-wider uppercase" style={{ fontFamily: "'Montserrat', sans-serif" }}>{alert.date}</span>
                       </div>
-
-                      <span
-                        className="text-[20px] font-black tracking-wide text-white leading-tight mb-4 z-10"
-                        style={{ fontFamily: "'Montserrat', sans-serif" }}
-                      >
-                        {alert.title}
-                      </span>
-
+                      <span className="text-[20px] font-black tracking-wide text-white leading-tight mb-4 z-10" style={{ fontFamily: "'Montserrat', sans-serif" }}>{alert.title}</span>
                       <div className="flex flex-col gap-2.5 z-10">
-                        {alert.desc
-                          .split(" / ")
-                          .map((sub: string, idx: number) => (
-                            <div
-                              key={idx}
-                              className="flex items-start gap-3 bg-white/5 rounded-xl p-3 border border-white/5"
-                            >
-                              {alert.desc.includes("/") && (
-                                <div
-                                  className={`mt-1.5 w-1.5 h-1.5 rounded-full shrink-0 ${alert.type === "exam" ? "bg-[#8b5cf6]" : "bg-[#FF4D4D]"}`}
-                                />
-                              )}
-                              <span
-                                className="text-[15px] font-bold text-white/90 lowercase leading-snug"
-                                style={{ fontFamily: "'Afacad', sans-serif" }}
-                              >
-                                {sub.trim()}
-                              </span>
-                            </div>
-                          ))}
+                        {alert.desc.split(" / ").map((sub: string, idx: number) => (
+                          <div key={idx} className="flex items-start gap-3 bg-white/5 rounded-xl p-3 border border-white/5">
+                            {alert.desc.includes("/") && <div className="mt-1.5 w-1.5 h-1.5 rounded-full shrink-0 bg-[#8b5cf6]" />}
+                            <span className="text-[15px] font-bold text-white/90 lowercase leading-snug" style={{ fontFamily: "'Afacad', sans-serif" }}>{sub.trim()}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center gap-3 w-full">
+                  <span
+                    className="text-[11px] font-bold lowercase tracking-[0.25em] text-[#FF4D4D] whitespace-nowrap"
+                    style={{ fontFamily: "'Montserrat', sans-serif" }}
+                  >
+                    upcoming breaks
+                  </span>
+                  <div className="flex-1 h-[1.5px] bg-[#FF4D4D]/20 rounded-full" />
+                </div>
+
+                {upcomingBreaks.length === 0 ? (
+                  <div className="w-full flex flex-col items-center justify-center py-6 gap-2 opacity-30">
+                    <div className="w-full h-px bg-white/20 rounded-full" />
+                    <div className="w-3/4 h-px bg-white/20 rounded-full" />
+                    <div className="w-1/2 h-px bg-white/20 rounded-full" />
+                  </div>
+                ) : (
+                  upcomingBreaks.map((alert) => (
+                    <div
+                      key={alert.id}
+                      className="bg-[#FF4D4D]/5 border border-[#FF4D4D]/30 rounded-[20px] p-5 flex flex-col relative overflow-hidden"
+                    >
+                      <div className="absolute top-0 right-0 w-24 h-24 rounded-bl-[100px] bg-[#FF4D4D]/10 pointer-events-none" />
+                      <div className="flex items-center gap-3 mb-4 z-10">
+                        <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full shrink-0 bg-[#FF4D4D] text-white" style={{ fontFamily: "'Afacad', sans-serif" }}>holiday</span>
+                        <span className="text-[12px] font-bold text-white/50 tracking-wider uppercase" style={{ fontFamily: "'Montserrat', sans-serif" }}>{alert.date}</span>
+                      </div>
+                      <span className="text-[20px] font-black tracking-wide text-white leading-tight mb-4 z-10" style={{ fontFamily: "'Montserrat', sans-serif" }}>{alert.title}</span>
+                      <div className="flex flex-col gap-2.5 z-10">
+                        {alert.desc.split(" / ").map((sub: string, idx: number) => (
+                          <div key={idx} className="flex items-start gap-3 bg-white/5 rounded-xl p-3 border border-white/5">
+                            {alert.desc.includes("/") && <div className="mt-1.5 w-1.5 h-1.5 rounded-full shrink-0 bg-[#FF4D4D]" />}
+                            <span className="text-[15px] font-bold text-white/90 lowercase leading-snug" style={{ fontFamily: "'Afacad', sans-serif" }}>{sub.trim()}</span>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   ))

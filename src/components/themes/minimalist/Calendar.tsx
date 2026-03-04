@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, memo } from "react";
+import React, { useState, useEffect, memo, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ChevronLeft,
@@ -9,7 +9,6 @@ import {
 } from "lucide-react";
 import { useCalendarData } from "@/hooks/useCalendarData";
 
-// Smooth Intro Animations
 const containerVariants = {
   hidden: { opacity: 0 },
   show: {
@@ -129,6 +128,12 @@ const MinimalCalendar = ({ data, academia }: any) => {
   const [mounted, setMounted] = useState(false);
   const activeData = academia?.calendarData || data?.calendarData || [];
 
+  const profile = data?.profile || {};
+  const isTargetAudience = useMemo(() => {
+    return (profile.dept || "").toLowerCase().includes("computer science and engineering") && 
+           (String(profile.semester) === "4");
+  }, [profile]);
+
   const {
     theme,
     display,
@@ -138,7 +143,7 @@ const MinimalCalendar = ({ data, academia }: any) => {
     goToToday,
     gridData,
     handleDateClick,
-  } = useCalendarData(activeData);
+  } = useCalendarData(activeData, isTargetAudience);
 
   useEffect(() => {
     setMounted(true);
@@ -210,7 +215,6 @@ const MinimalCalendar = ({ data, academia }: any) => {
                   {display.infoMain}
                 </span>
 
-                {/* Dynamically split subjects separated by ' / ' onto different lines with bullets */}
                 <div className="flex flex-col gap-1.5">
                   {display.infoSub
                     .split(" / ")
