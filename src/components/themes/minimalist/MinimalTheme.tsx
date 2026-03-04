@@ -93,16 +93,6 @@ export default function MinimalTheme(props: any) {
       onTouchEnd={handleTouchEnd}
       style={{ transform: "translateZ(0)", touchAction: "pan-y" }}
     >
-      <style
-        dangerouslySetInnerHTML={{
-          __html: `
-          @import url('https://fonts.googleapis.com/css2?family=Afacad:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600;700;800;900&display=swap');
-          .no-scrollbar::-webkit-scrollbar { display: none; }
-          .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        `,
-        }}
-      />
-
       <div className="flex-1 relative overflow-hidden">
         <AnimatePresence mode="popLayout" custom={direction} initial={false}>
           <motion.div
@@ -145,6 +135,7 @@ export default function MinimalTheme(props: any) {
                   isAlertsOpen={isAlertsOpen}
                   setIsAlertsOpen={setIsAlertsOpen}
                   setIsSwipeDisabled={setIsSwipeDisabled}
+                  startEntrance={props.startEntrance}
                 />
               </div>
             )}
@@ -153,6 +144,7 @@ export default function MinimalTheme(props: any) {
                 data={props.data}
                 academia={props.academia}
                 setIsSwipeDisabled={setIsSwipeDisabled}
+                startEntrance={props.startEntrance}
               />
             )}
             {activeTab === "calendar" && (

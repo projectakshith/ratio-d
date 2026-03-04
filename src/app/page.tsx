@@ -13,6 +13,7 @@ export default function Home() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [view, setView] = useState("loading");
   const [showSplash, setShowSplash] = useState(true);
+  const [startEntrance, setStartEntrance] = useState(false);
 
   const [isOffline, setIsOffline] = useState(false);
   const [showBigOffline, setShowBigOffline] = useState(false);
@@ -34,7 +35,7 @@ export default function Home() {
 
     const timer = setTimeout(() => {
       setShowSplash(false);
-    }, 1000);
+    }, 700);
 
     return () => clearTimeout(timer);
   }, []);
@@ -142,12 +143,12 @@ export default function Home() {
               </>
             )}
             {view === "login" && <LoginPage onLogin={(data) => { setUserData(data); setView("app"); localStorage.setItem("ratio_data", JSON.stringify(data)); }} />}
-            {view === "app" && <AcademiaApp data={userData} onLogout={handleLogout} customDisplayName={customDisplayName} onUpdateName={handleUpdateName} isUpdating={isUpdating} />}
+            {view === "app" && <AcademiaApp data={userData} onLogout={handleLogout} customDisplayName={customDisplayName} onUpdateName={handleUpdateName} isUpdating={isUpdating} startEntrance={startEntrance} />}
           </>
         )}
       </div>
 
-      <AnimatePresence>
+      <AnimatePresence onExitComplete={() => setStartEntrance(true)}>
         {showSplash && (
           <motion.div 
             key="splash" 

@@ -26,19 +26,19 @@ const containerVariants = {
   show: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.06,
-      delayChildren: 0.1
+      staggerChildren: 0.05,
+      delayChildren: 0.02
     }
   }
 };
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 15, scale: 0.98 },
+  hidden: { opacity: 0, y: -20, scale: 0.98 },
   show: { 
     opacity: 1, 
     y: 0, 
     scale: 1,
-    transition: { type: "spring", stiffness: 400, damping: 30 } 
+    transition: { type: "spring", stiffness: 450, damping: 30 } 
   }
 };
 
@@ -50,6 +50,7 @@ export default function MinimalHomepage({
   isAlertsOpen,
   setIsAlertsOpen,
   setIsSwipeDisabled,
+  startEntrance,
 }: any) {
   const [mounted, setMounted] = useState(false);
   const [personalNotes, setPersonalNotes] = useState<any[]>([]);
@@ -318,7 +319,7 @@ export default function MinimalHomepage({
   const currentAlert = allAlerts[currentAlertIndex];
 
   const renderSlot = (slot: any, index: number) => {
-    if (!slot.active) return <div key={slot.id} className="aspect-square bg-[#EFEFEF]/50 custom-dotted" />;
+    if (!slot.active) return <motion.div key={slot.id} variants={itemVariants} className="aspect-square bg-[#EFEFEF]/50 custom-dotted" />;
     let boxClass = "bg-white border-[#111111]/20";
     let topText = "text-[#111111]/50", midText = "text-[#111111]", botText = "text-[#111111]/70";
     if (slot.isCurrent && isViewingToday) {
@@ -328,11 +329,11 @@ export default function MinimalHomepage({
       boxClass = "bg-[#e0f2fe] border-[#bae6fd]";
     }
     return (
-      <div key={`${slot.id}-${index}`} className={`aspect-square rounded-[14px] border-[1.5px] flex flex-col items-center justify-center gap-[4px] p-1 transition-all ${boxClass}`}>
+      <motion.div key={`${slot.id}-${index}`} variants={itemVariants} className={`aspect-square rounded-[14px] border-[1.5px] flex flex-col items-center justify-center gap-[4px] p-1 transition-all ${boxClass}`}>
         <span className={`text-[10px] font-bold uppercase tracking-widest leading-none text-center ${topText}`} style={{ fontFamily: "'Afacad', sans-serif" }}>{slot.room}</span>
         <span className={`text-[17px] font-black uppercase tracking-wider leading-none ${midText}`} style={{ fontFamily: "'Montserrat', sans-serif" }}>{slot.sub}</span>
         <span className={`text-[10.5px] font-bold tracking-tight leading-none text-center ${botText}`} style={{ fontFamily: "'Afacad', sans-serif" }}>{slot.time}</span>
-      </div>
+      </motion.div>
     );
   };
 
@@ -344,7 +345,7 @@ export default function MinimalHomepage({
       <motion.div 
         variants={containerVariants}
         initial="hidden"
-        animate="show"
+        animate={startEntrance ? "show" : "hidden"}
         className="min-h-screen w-full flex flex-col bg-[#F7F7F7] text-[#111111] px-6 pt-6 pb-24 overflow-x-hidden"
       >
         <motion.div variants={itemVariants} className="flex justify-between items-center mb-6 shrink-0">
@@ -365,7 +366,7 @@ export default function MinimalHomepage({
             <button onClick={() => handleDaySwitch("next")} className="active:scale-75 transition-transform"><ChevronRight size={18} className="text-[#111111]/40" /></button>
           </div>
         </motion.div>
-        <motion.div variants={itemVariants} className="grid grid-cols-5 gap-[8px] mb-8 shrink-0 transition-all">{standardGrid.map((slot, i) => renderSlot(slot, i))}</motion.div>
+        <motion.div variants={containerVariants} className="grid grid-cols-5 gap-[8px] mb-8 shrink-0 transition-all">{standardGrid.map((slot, i) => renderSlot(slot, i))}</motion.div>
         <motion.div variants={itemVariants} className="flex flex-col mb-8 shrink-0 w-full">
           <div className="flex items-center gap-3 mb-2 w-full">
             <span className="text-[14px] font-bold lowercase tracking-[0.25em] text-[#111111]/50 whitespace-nowrap" style={{ fontFamily: "'Montserrat', sans-serif" }}>{focusLabel}</span>
@@ -373,9 +374,9 @@ export default function MinimalHomepage({
             <span className="text-[13px] font-black uppercase tracking-[0.2em] text-[#111111] whitespace-nowrap" style={{ fontFamily: "'Afacad', sans-serif" }}>DO {String(selectedDay).padStart(2, "0")}</span>
           </div>
           <div className="flex flex-col max-w-full">
-            <span className="text-[4.5rem] leading-[0.85] font-black tracking-tighter lowercase text-[#111111] truncate pt-3" style={{ fontFamily: "'Montserrat', sans-serif" }}>{displayCourseWords[0]}</span>
+            <span className="text-[4.5rem] font-black tracking-tighter lowercase text-[#111111] truncate pt-3" style={{ fontFamily: "'Montserrat', sans-serif", lineHeight: 0.85 }}>{displayCourseWords[0]}</span>
             <div className="flex items-baseline gap-3 w-full pb-3">
-              <span className="text-[4.5rem] leading-[0.85] font-black tracking-tighter lowercase text-[#111111] truncate flex-1 min-w-0" style={{ fontFamily: "'Montserrat', sans-serif" }}>{displayCourseWords.slice(1).join(" ")}</span>
+              <span className="text-[4.5rem] font-black tracking-tighter lowercase text-[#111111] truncate flex-1 min-w-0" style={{ fontFamily: "'Montserrat', sans-serif", lineHeight: 0.85 }}>{displayCourseWords.slice(1).join(" ")}</span>
               <span className="text-[1.25rem] font-bold uppercase tracking-widest text-[#111111]/40 shrink-0" style={{ fontFamily: "'Afacad', sans-serif" }}>{displayTiming}</span>
             </div>
           </div>

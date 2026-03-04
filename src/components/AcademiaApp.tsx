@@ -24,6 +24,7 @@ export default function AcademiaApp({
   onLogout,
   customDisplayName,
   onUpdateName,
+  startEntrance,
 }: any) {
   const [theme, setTheme] = useState<"brutalist" | "minimalist">("minimalist");
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -66,6 +67,7 @@ export default function AcademiaApp({
     onLogout,
     customDisplayName,
     onUpdateName,
+    startEntrance,
     onOpenSettings: () => setIsSettingsOpen(true),
   };
 

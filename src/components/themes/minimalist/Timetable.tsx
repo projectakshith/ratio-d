@@ -15,19 +15,19 @@ const containerVariants = {
   show: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.04,
-      delayChildren: 0.1
+      staggerChildren: 0.06,
+      delayChildren: 0.02
     }
   }
 };
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 20, scale: 0.96 },
+  hidden: { opacity: 0, y: -40, scale: 0.98 },
   show: {
     opacity: 1,
     y: 0,
     scale: 1,
-    transition: { type: "spring", stiffness: 400, damping: 30 }
+    transition: { type: "spring", stiffness: 350, damping: 28, mass: 0.8 }
   }
 };
 
@@ -35,6 +35,7 @@ export default function MinimalTimetable({
   data,
   academia,
   setIsSwipeDisabled,
+  startEntrance,
 }: any) {
   const [mounted, setMounted] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -205,7 +206,7 @@ export default function MinimalTimetable({
           ref={scrollContainerRef}
           variants={containerVariants}
           initial="hidden"
-          animate="show"
+          animate={startEntrance ? "show" : "hidden"}
           className="h-full w-full overflow-y-auto no-scrollbar px-6 pt-10 pb-[280px] flex flex-col relative z-10"
         >
           {isHoliday && (
@@ -425,10 +426,10 @@ export default function MinimalTimetable({
         </motion.div>
 
         <motion.div 
-          initial={{ y: 50, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
+          initial={{ x: "-50%", y: 50, opacity: 0 }}
+          animate={startEntrance ? { x: "-50%", y: 0, opacity: 1 } : { x: "-50%", y: 50, opacity: 0 }}
           transition={{ delay: 0.4, type: "spring", stiffness: 400, damping: 30 }}
-          className="fixed bottom-[85px] left-1/2 -translate-x-1/2 bg-[#111111]/95 backdrop-blur-md p-1.5 pr-2 rounded-full flex items-center gap-1 z-40 shadow-[0_8px_32px_rgba(17,17,17,0.3)] border border-white/10"
+          className="fixed bottom-[85px] left-1/2 bg-[#111111]/95 backdrop-blur-md p-1.5 pr-2 rounded-full flex items-center gap-1 z-[45] shadow-[0_8px_32px_rgba(17,17,17,0.3)] border border-white/10"
         >
           <span className="text-[11px] font-bold text-white/40 ml-3 mr-1 tracking-widest" style={{ fontFamily: "'Montserrat', sans-serif" }}>DO</span>
           <div className="w-[1.5px] h-5 bg-white/20 mx-1 rounded-full" />
