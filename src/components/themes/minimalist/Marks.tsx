@@ -4,9 +4,15 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Calculator, X } from "lucide-react";
 import { processAndSortMarks, buildCourseMap } from "@/utils/marksLogic";
 
-export default function MinimalMarks({ data }: any) {
+export default function MinimalMarks({ data, setIsSwipeDisabled }: any) {
   const [mounted, setMounted] = useState(false);
   const [predictMode, setPredictMode] = useState(false);
+
+  useEffect(() => {
+    if (setIsSwipeDisabled) {
+      setIsSwipeDisabled(predictMode);
+    }
+  }, [predictMode, setIsSwipeDisabled]);
   const [predSubjectId, setPredSubjectId] = useState<number | null>(null);
   const [expectedMarks, setExpectedMarks] = useState<number>(0);
   const [targetGrade, setTargetGrade] = useState<number>(91);
@@ -598,7 +604,7 @@ export default function MinimalMarks({ data }: any) {
             exit={{ y: "100%" }}
             transition={{ duration: 0.4, ease: [0.25, 1, 0.5, 1] }}
             drag="y"
-            dragConstraints={{ top: 0, bottom: 0 }}
+            dragConstraints={{ top: 0, bottom: 500 }}
             dragElastic={{ top: 0, bottom: 0.8 }}
             onDragEnd={(e, info) => {
               if (info.offset.y > 100 || info.velocity.y > 500) {

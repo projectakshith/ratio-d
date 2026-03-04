@@ -30,7 +30,11 @@ const itemVariants = {
   },
 };
 
-export default function MinimalTimetable({ data, academia }: any) {
+export default function MinimalTimetable({
+  data,
+  academia,
+  setIsSwipeDisabled,
+}: any) {
   const [mounted, setMounted] = useState(false);
   const schedule = academia?.effectiveSchedule || {};
   const dayOrderStr = academia?.effectiveDayOrder || data?.dayOrder || "1";
@@ -44,6 +48,13 @@ export default function MinimalTimetable({ data, academia }: any) {
 
   const [activeDay, setActiveDay] = useState<number>(1);
   const [isAddingClass, setIsAddingClass] = useState(false);
+
+  useEffect(() => {
+    if (setIsSwipeDisabled) {
+      setIsSwipeDisabled(isAddingClass);
+    }
+  }, [isAddingClass, setIsSwipeDisabled]);
+
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const [newSub, setNewSub] = useState("");

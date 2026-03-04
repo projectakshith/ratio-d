@@ -11,6 +11,7 @@ import Navbar from "./Navbar";
 export default function MinimalTheme(props: any) {
   const [tabState, setTabState] = useState({ activeTab: "home", direction: 0 });
   const [isAlertsOpen, setIsAlertsOpen] = useState(false);
+  const [isSwipeDisabled, setIsSwipeDisabled] = useState(false);
   const { activeTab, direction } = tabState;
 
   const tabs = ["marks", "attendance", "home", "timetable", "calendar"];
@@ -30,6 +31,7 @@ export default function MinimalTheme(props: any) {
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
+    if (isSwipeDisabled) return;
     setIsScrollingVertical(false);
     setTouchStart({
       x: e.targetTouches[0].clientX,
@@ -38,7 +40,7 @@ export default function MinimalTheme(props: any) {
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    if (!touchStart || isScrollingVertical) return;
+    if (isSwipeDisabled || !touchStart || isScrollingVertical) return;
 
     const touchX = e.targetTouches[0].clientX;
     const touchY = e.targetTouches[0].clientY;
@@ -118,10 +120,18 @@ export default function MinimalTheme(props: any) {
             style={{ willChange: "transform, opacity" }}
           >
             {activeTab === "marks" && (
-              <MinimalMarks data={props.data} academia={props.academia} />
+              <MinimalMarks
+                data={props.data}
+                academia={props.academia}
+                setIsSwipeDisabled={setIsSwipeDisabled}
+              />
             )}
             {activeTab === "attendance" && (
-              <MinimalAttendance data={props.data} academia={props.academia} />
+              <MinimalAttendance
+                data={props.data}
+                academia={props.academia}
+                setIsSwipeDisabled={setIsSwipeDisabled}
+              />
             )}
             {activeTab === "home" && (
               <div className="h-full w-full overflow-y-auto no-scrollbar">
@@ -134,14 +144,23 @@ export default function MinimalTheme(props: any) {
                   onOpenSettings={props.onOpenSettings}
                   isAlertsOpen={isAlertsOpen}
                   setIsAlertsOpen={setIsAlertsOpen}
+                  setIsSwipeDisabled={setIsSwipeDisabled}
                 />
               </div>
             )}
             {activeTab === "timetable" && (
-              <MinimalTimetable data={props.data} academia={props.academia} />
+              <MinimalTimetable
+                data={props.data}
+                academia={props.academia}
+                setIsSwipeDisabled={setIsSwipeDisabled}
+              />
             )}
             {activeTab === "calendar" && (
-              <MinimalCalendar data={props.data} academia={props.academia} />
+              <MinimalCalendar
+                data={props.data}
+                academia={props.academia}
+                setIsSwipeDisabled={setIsSwipeDisabled}
+              />
             )}
           </motion.div>
         </AnimatePresence>

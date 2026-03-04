@@ -33,8 +33,15 @@ export default function MinimalHomepage({
   onOpenSettings,
   isAlertsOpen,
   setIsAlertsOpen,
+  setIsSwipeDisabled,
 }: any) {
   const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    if (setIsSwipeDisabled) {
+      setIsSwipeDisabled(isAlertsOpen);
+    }
+  }, [isAlertsOpen, setIsSwipeDisabled]);
   const [newNote, setNewNote] = useState("");
   const [isPublicMode, setIsPublicMode] = useState(false);
   const [showExtraSlots, setShowExtraSlots] = useState(false);
@@ -782,7 +789,7 @@ export default function MinimalHomepage({
             exit={{ y: "100%" }}
             transition={{ duration: 0.4, ease: [0.25, 1, 0.5, 1] }}
             drag="y"
-            dragConstraints={{ top: 0, bottom: 0 }}
+            dragConstraints={{ top: 0, bottom: 500 }}
             dragElastic={{ top: 0, bottom: 0.8 }}
             onDragEnd={(e, info) => {
               if (info.offset.y > 100 || info.velocity.y > 500) {
