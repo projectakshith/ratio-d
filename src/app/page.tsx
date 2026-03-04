@@ -30,12 +30,19 @@ export default function Home() {
 
     if (cachedName) setCustomDisplayName(cachedName);
 
+    let nextView = "loading";
     if (cachedData) {
       setUserData(JSON.parse(cachedData));
-      setView(isStandalone ? "app" : "onboarding");
+      nextView = isStandalone ? "app" : "onboarding";
     } else {
-      setView(isStandalone ? "login" : "onboarding");
+      nextView = isStandalone ? "login" : "onboarding";
     }
+
+    const timer = setTimeout(() => {
+      setView(nextView);
+    }, 1000);
+
+    return () => clearTimeout(timer);
   }, []);
 
   const performLogin = async (username: string, password: string) => {
@@ -269,16 +276,27 @@ export default function Home() {
         )}
       </AnimatePresence>
 
-      {view === "loading" && (
-        <div className="absolute inset-0 bg-[#0c30ff] flex items-center justify-center z-50">
-          <h1
-            className="text-5xl md:text-7xl lowercase tracking-tighter text-[#ceff1c] animate-pulse"
-            style={{ fontFamily: "Urbanosta, sans-serif" }}
+      <AnimatePresence>
+        {view === "loading" && (
+          <motion.div
+            key="splash"
+            initial={{ opacity: 1 }}
+            exit={{ y: "-100%" }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            className="absolute inset-0 bg-[#0c30ff] flex items-center justify-center z-50"
           >
-            ratio'd
-          </h1>
-        </div>
-      )}
+            <motion.h1
+              initial={{ opacity: 0, scale: 0.8, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+              className="text-5xl md:text-7xl lowercase tracking-tighter text-[#ceff1c]"
+              style={{ fontFamily: "Urbanosta, sans-serif" }}
+            >
+              ratio'd
+            </motion.h1>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {view === "onboarding" && (
         <>

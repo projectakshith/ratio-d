@@ -44,7 +44,7 @@ export const buildCourseMap = (data: any) => {
 
 export const processSchedule = (
   schedule: any,
-  customClasses: Record<number, any[]>,
+  _unusedCustomClasses: any,
   activeDay: number,
   dayOrder: number,
   courseMap: any,
@@ -53,8 +53,7 @@ export const processSchedule = (
     ? Object.values(schedule[`Day ${activeDay}`])
     : [];
 
-  const cClasses = customClasses[activeDay] || [];
-  const combined = [...dayClasses, ...cClasses].filter((c: any) => c && c.time);
+  const combined = dayClasses.filter((c: any) => c && c.time);
 
   const rawItems = combined
     .map((details: any, idx: number) => {
@@ -77,7 +76,7 @@ export const processSchedule = (
       return {
         id:
           details.id ||
-          `sch-${activeDay}-${idx}-${cleanCode}-${Math.random().toString(36).substring(2, 9)}`,
+          `sch-${activeDay}-${idx}-${cleanCode}`,
         code: getAcronym(fullName) || cleanCode,
         name: fullName.toLowerCase(),
         time: details.time,
@@ -111,7 +110,7 @@ export const processSchedule = (
         if (gapDuration >= 40) breakTitle = "lunch break";
 
         finalWithBreaks.push({
-          id: `break-${activeDay}-${i}-${Math.random().toString(36).substring(2, 9)}`,
+          id: `break-${activeDay}-${current.end}-${next.start}`,
           type: "break",
           title: breakTitle,
           time: `${current.end} - ${next.start}`,
