@@ -91,12 +91,6 @@ const OnboardingPage = () => {
         >
           ratio'd
         </h1>
-
-        {!isMobile && (
-          <div className="w-10 h-10 bg-black/80 rounded-full flex items-center justify-center text-xs font-bold">
-            N
-          </div>
-        )}
       </header>
 
       <main className="w-full max-w-3xl mt-auto pb-16 md:pb-24">
