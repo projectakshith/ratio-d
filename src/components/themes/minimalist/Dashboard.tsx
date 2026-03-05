@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ChevronRight,
@@ -11,6 +11,7 @@ import {
   Plus,
   Lock,
   Trash2,
+  Loader,  
 } from "lucide-react";
 import {
   calculateOverallAttendance,
@@ -57,6 +58,14 @@ export default function MinimalHomepage({
   const [newNote, setNewNote] = useState("");
   const [showExtraSlots, setShowExtraSlots] = useState(false);
   const [currentAlertIndex, setCurrentAlertIndex] = useState(0);
+
+ 
+  const [pullY, setPullY] = useState(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const startY = useRef(0);
+  const startX = useRef(0);
+ 
 
   useEffect(() => {
     setMounted(true);
@@ -318,6 +327,45 @@ export default function MinimalHomepage({
 
   const currentAlert = allAlerts[currentAlertIndex];
 
+  const handleTouchStart = (e: any) => {
+    if (window.scrollY <= 0 && !isAlertsOpen) {
+      startY.current = e.touches[0].clientY;
+      startX.current = e.touches[0].clientX;
+      setIsDragging(true);
+    }
+  };
+
+  const handleTouchMove = (e: any) => {
+    if (!isDragging || isRefreshing) return;
+    const currentY = e.touches[0].clientY;
+    const currentX = e.touches[0].clientX;
+    const diffY = currentY - startY.current;
+    const diffX = currentX - startX.current;
+
+    // Ignore mostly horizontal swipes
+    if (Math.abs(diffX) > Math.abs(diffY)) return;
+
+    if (window.scrollY <= 0 && diffY > 0) {
+      if (e.cancelable) e.preventDefault();
+      setPullY(Math.pow(diffY, 0.8));
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+    if (pullY > 80) {
+      setIsRefreshing(true);
+      setPullY(80);
+      if (navigator.vibrate) navigator.vibrate(20);
+      setTimeout(() => {
+        window.location.reload();
+      }, 800);
+    } else {
+      setPullY(0);
+    }
+  };
+ 
+
   const renderSlot = (slot: any, index: number) => {
     if (!slot.active) return <motion.div key={slot.id} variants={itemVariants} className="aspect-square bg-[#EFEFEF]/50 custom-dotted" />;
     let boxClass = "bg-white border-[#111111]/20";
@@ -339,82 +387,119 @@ export default function MinimalHomepage({
 
   if (!mounted) return null;
 
-  return (
-    <>
+return (
+    <div 
+      className="relative w-full min-h-screen bg-[#F7F7F7] overflow-x-hidden"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
       <style dangerouslySetInnerHTML={{ __html: `.custom-dotted { background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='14' ry='14' stroke='%2311111150' stroke-width='2' stroke-dasharray='4%2c 8' stroke-dashoffset='0' stroke-linecap='round'/%3e%3c/svg%3e"); border-radius: 14px; } .no-scrollbar::-webkit-scrollbar { display: none; } .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }` }} />
-      <motion.div 
-        variants={containerVariants}
-        initial="hidden"
-        animate={startEntrance ? "show" : "hidden"}
-        className="min-h-screen w-full flex flex-col bg-[#F7F7F7] text-[#111111] px-6 pt-6 pb-24 overflow-x-hidden"
+      
+ 
+      <div
+        className="fixed top-0 left-0 w-full flex justify-center pt-8 z-0 transition-opacity duration-300 pointer-events-none"
+        style={{
+          opacity: Math.min(pullY / 60, 1),
+          transform: `translateY(${pullY * 0.3}px)`,
+        }}
       >
-        <motion.div variants={itemVariants} className="flex justify-between items-center mb-6 shrink-0">
-          <button onClick={onOpenSettings} className="w-[50px] h-[50px] rounded-[16px] bg-transparent flex items-center justify-center overflow-hidden active:scale-95 transition-transform"><img src="/image.png" alt="Profile" className="w-full h-full object-cover" /></button>
-          <div className="flex flex-col items-end">
-            <span className="text-[16px] font-semibold lowercase tracking-widest text-[#111111]/50 mb-[-4px]" style={{ fontFamily: "'Afacad', sans-serif" }}>sup!</span>
-            <span className="text-[25px] leading-none font-medium lowercase tracking-tight text-[#111111]" style={{ fontFamily: "'Montserrat', sans-serif" }}>{userName}</span>
-          </div>
-        </motion.div>
-        {isHoliday && <motion.div variants={itemVariants} className="w-full bg-[#85a818]/10 border-[1.5px] border-[#85a818]/30 rounded-[16px] p-3 mb-4 flex items-center gap-3 shrink-0"><span className="text-xl">🌴</span><span className="text-[13px] font-bold text-[#4d6600] lowercase tracking-wide" style={{ fontFamily: "'Afacad', sans-serif" }}>holiday today! viewing upcoming classes.</span></motion.div>}
-        <motion.div variants={itemVariants} className="flex items-center justify-between mb-3 px-1 shrink-0">
-          <div className="flex items-center gap-3">
-            <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#111111]/40 flex items-center gap-1.5" style={{ fontFamily: "'Montserrat', sans-serif" }}>Day Order {selectedDay}{isViewingToday ? <span>• today</span> : <span className="text-[#85a818] font-black tracking-widest"> • upcoming</span>}</span>
-            {extraGrid.length > 0 && <button onClick={() => setShowExtraSlots(!showExtraSlots)} className="bg-[#111111]/5 px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest text-[#111111]/50 active:scale-95 transition-all" style={{ fontFamily: "'Afacad', sans-serif" }}>{showExtraSlots ? "hide extra" : `+${extraGrid.length} extra`}</button>}
-          </div>
-          <div className="flex gap-2">
-            <button onClick={() => handleDaySwitch("prev")} className="active:scale-75 transition-transform"><ChevronLeft size={18} className="text-[#111111]/40" /></button>
-            <button onClick={() => handleDaySwitch("next")} className="active:scale-75 transition-transform"><ChevronRight size={18} className="text-[#111111]/40" /></button>
-          </div>
-        </motion.div>
-        <motion.div variants={containerVariants} className="grid grid-cols-5 gap-[8px] mb-8 shrink-0 transition-all">{standardGrid.map((slot, i) => renderSlot(slot, i))}</motion.div>
-        <motion.div variants={itemVariants} className="flex flex-col mb-8 shrink-0 w-full">
-          <div className="flex items-center gap-3 mb-2 w-full">
-            <span className="text-[14px] font-bold lowercase tracking-[0.25em] text-[#111111]/50 whitespace-nowrap" style={{ fontFamily: "'Montserrat', sans-serif" }}>{focusLabel}</span>
-            <div className="flex-1 h-[1.5px] bg-[#111111]/15 rounded-full" />
-            <span className="text-[13px] font-black uppercase tracking-[0.2em] text-[#111111] whitespace-nowrap" style={{ fontFamily: "'Afacad', sans-serif" }}>DO {String(selectedDay).padStart(2, "0")}</span>
-          </div>
-          <div className="flex flex-col max-w-full">
-            <span className="text-[4.5rem] font-black tracking-tighter lowercase text-[#111111] truncate pt-3" style={{ fontFamily: "'Montserrat', sans-serif", lineHeight: 0.85 }}>{displayCourseWords[0]}</span>
-            <div className="flex items-baseline gap-3 w-full pb-3">
-              <span className="text-[4.5rem] font-black tracking-tighter lowercase text-[#111111] truncate flex-1 min-w-0" style={{ fontFamily: "'Montserrat', sans-serif", lineHeight: 0.85 }}>{displayCourseWords.slice(1).join(" ")}</span>
-              <span className="text-[1.25rem] font-bold uppercase tracking-widest text-[#111111]/40 shrink-0" style={{ fontFamily: "'Afacad', sans-serif" }}>{displayTiming}</span>
+        <Loader
+          className="w-6 h-6 text-black/40"
+          style={{
+            animation: isRefreshing ? "spin 1s linear infinite" : "none",
+            transform: `rotate(${pullY * 2}deg)`,
+          }}
+        />
+      </div>
+
+      <motion.div 
+        style={{ y: pullY }} 
+ 
+        className="relative z-10 w-full min-h-screen bg-[#F7F7F7]" 
+      >
+        <motion.div 
+          variants={containerVariants}
+          initial="hidden"
+          animate={startEntrance ? "show" : "hidden"}
+          className="w-full flex flex-col text-[#111111] px-6 pt-6 pb-24"
+        >
+          <motion.div variants={itemVariants} className="flex justify-between items-center mb-6 shrink-0">
+            <button onClick={onOpenSettings} className="w-[50px] h-[50px] rounded-[16px] bg-transparent flex items-center justify-center overflow-hidden active:scale-95 transition-transform"><img src="/image.png" alt="Profile" className="w-full h-full object-cover" /></button>
+            <div className="flex flex-col items-end">
+              <span className="text-[16px] font-semibold lowercase tracking-widest text-[#111111]/50 mb-[-4px]" style={{ fontFamily: "'Afacad', sans-serif" }}>sup!</span>
+              <span className="text-[25px] leading-none font-medium lowercase tracking-tight text-[#111111]" style={{ fontFamily: "'Montserrat', sans-serif" }}>{userName}</span>
             </div>
-          </div>
-          <div className="flex items-center justify-between mt-3 w-full bg-white px-4 py-3 rounded-full border-[1.5px] border-[#111111]/10 shadow-sm min-w-0">
-            <div className="flex items-center gap-3 min-w-0">
-              <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${isViewingToday && currentClass ? "bg-[#111111] animate-pulse" : "bg-[#111111]/20"}`} />
-              <span className="text-[14px] font-bold lowercase text-[#111111]/70 truncate" style={{ fontFamily: "'Afacad', sans-serif" }}>{isViewingToday && currentClass ? "current class • " : "first class • "}<strong className="text-[#111111] font-black uppercase tracking-widest">{focusClass ? getAcronym(focusClass.name || focusClass.courseTitle || focusClass.course || focusClass.code).toUpperCase() : "FREE"}</strong></span>
+          </motion.div>
+          
+          {isHoliday && <motion.div variants={itemVariants} className="w-full bg-[#85a818]/10 border-[1.5px] border-[#85a818]/30 rounded-[16px] p-3 mb-4 flex items-center gap-3 shrink-0"><span className="text-xl">🌴</span><span className="text-[13px] font-bold text-[#4d6600] lowercase tracking-wide" style={{ fontFamily: "'Afacad', sans-serif" }}>holiday today! viewing upcoming classes.</span></motion.div>}
+          
+          <motion.div variants={itemVariants} className="flex items-center justify-between mb-3 px-1 shrink-0">
+            <div className="flex items-center gap-3">
+              <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#111111]/40 flex items-center gap-1.5" style={{ fontFamily: "'Montserrat', sans-serif" }}>Day Order {selectedDay}{isViewingToday ? <span>• today</span> : <span className="text-[#85a818] font-black tracking-widest"> • upcoming</span>}</span>
+              {extraGrid.length > 0 && <button onClick={() => setShowExtraSlots(!showExtraSlots)} className="bg-[#111111]/5 px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest text-[#111111]/50 active:scale-95 transition-all" style={{ fontFamily: "'Afacad', sans-serif" }}>{showExtraSlots ? "hide extra" : `+${extraGrid.length} extra`}</button>}
             </div>
-            <span className="text-[12px] font-bold lowercase text-[#111111]/40 shrink-0 ml-2" style={{ fontFamily: "'Afacad', sans-serif" }}>{focusClass ? (isViewingToday && currentClass ? `ends at ${focusClass.time.split("-")[1].trim()}` : `starts at ${focusClass.time.split("-")[0].trim()}`) : "check back later"}</span>
-          </div>
-        </motion.div>
-        <motion.div variants={itemVariants} className="flex flex-col gap-3 shrink-0 w-full">
-          <div onClick={() => setActiveTab && setActiveTab("attendance")} className={`w-full border-[1.5px] rounded-[24px] p-2 pr-5 flex items-center gap-4 shadow-sm transition-all active:scale-[0.98] cursor-pointer ${attStyles.bg} ${attStyles.border}`}>
-            <div className={`w-[50px] h-[50px] rounded-[18px] flex items-center justify-center shrink-0 ${attStyles.iconBg}`}><CheckCircle size={20} strokeWidth={2.5} className={attStyles.text} /></div>
-            <div className="flex-1 flex flex-col justify-center min-w-0 py-0.5">
-              <span className={`text-[15px] font-bold lowercase leading-tight truncate mb-0.5 ${attStyles.text}`} style={{ fontFamily: "'Montserrat', sans-serif" }}>{alertName}</span>
-              <span className={`text-[13px] font-medium lowercase truncate ${attStyles.subText}`} style={{ fontFamily: "'Afacad', sans-serif" }}>{alertPct}% • {alertMargin} {alertLabel}</span>
+            <div className="flex gap-2">
+              <button onClick={() => handleDaySwitch("prev")} className="active:scale-75 transition-transform"><ChevronLeft size={18} className="text-[#111111]/40" /></button>
+              <button onClick={() => handleDaySwitch("next")} className="active:scale-75 transition-transform"><ChevronRight size={18} className="text-[#111111]/40" /></button>
             </div>
-            <ChevronRight size={22} strokeWidth={2} className={`shrink-0 ${attStyles.arrow}`} />
-          </div>
-          <div onClick={() => setIsAlertsOpen(true)} className="w-full bg-[#111111] text-white border-[1.5px] border-[#111111] rounded-[24px] p-2 pr-5 flex items-center gap-4 shadow-md active:scale-[0.98] transition-transform cursor-pointer">
-            <div className="w-[50px] h-[50px] rounded-[18px] bg-white/10 flex items-center justify-center shrink-0"><Bell size={20} strokeWidth={2.5} className="text-white" /></div>
-            <div className="flex-1 flex flex-col justify-center min-w-0 py-0.5">
-              <span className="text-[15px] font-bold lowercase leading-tight truncate mb-0.5 text-white" style={{ fontFamily: "'Montserrat', sans-serif" }}>academic alerts</span>
-              <AnimatePresence mode="wait"><motion.span key={currentAlertIndex} initial={{ opacity: 0, x: 5 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -5 }} className="text-[13px] font-medium lowercase text-white/70 truncate" style={{ fontFamily: "'Afacad', sans-serif" }}>{currentAlert ? `${currentAlert.title}: ${currentAlert.desc.split(' / ')[0].substring(0, 20)}...` : (overallPct < 75 ? "attendance might be cooked." : "stats looking solid.")}</motion.span></AnimatePresence>
+          </motion.div>
+
+          <motion.div variants={containerVariants} className="grid grid-cols-5 gap-[8px] mb-8 shrink-0 transition-all">{standardGrid.map((slot, i) => renderSlot(slot, i))}</motion.div>
+          
+          <motion.div variants={itemVariants} className="flex flex-col mb-8 shrink-0 w-full">
+            <div className="flex items-center gap-3 mb-2 w-full">
+              <span className="text-[14px] font-bold lowercase tracking-[0.25em] text-[#111111]/50 whitespace-nowrap" style={{ fontFamily: "'Montserrat', sans-serif" }}>{focusLabel}</span>
+              <div className="flex-1 h-[1.5px] bg-[#111111]/15 rounded-full" />
+              <span className="text-[13px] font-black uppercase tracking-[0.2em] text-[#111111] whitespace-nowrap" style={{ fontFamily: "'Afacad', sans-serif" }}>DO {String(selectedDay).padStart(2, "0")}</span>
             </div>
-            <ChevronRight size={22} strokeWidth={2} className="text-white/30 shrink-0" />
-          </div>
-          <div onClick={() => setActiveTab && setActiveTab("marks")} className="w-full bg-white border-[1.5px] border-[#111111]/10 rounded-[24px] p-2 pr-5 flex items-center gap-4 shadow-sm active:scale-[0.98] transition-transform cursor-pointer">
-            <div className="w-[50px] h-[50px] rounded-[18px] bg-[#F4F4F4] flex items-center justify-center shrink-0"><GraduationCap size={20} strokeWidth={2.5} className="text-[#111111]" /></div>
-            <div className="flex-1 flex flex-col justify-center min-w-0 py-0.5">
-              <span className="text-[15px] font-bold lowercase leading-tight text-[#111111] truncate mb-0.5" style={{ fontFamily: "'Montserrat', sans-serif" }}>recent marks</span>
-              <span className="text-[13px] font-medium lowercase text-[#111111]/50 truncate" style={{ fontFamily: "'Afacad', sans-serif" }}>{latestMark ? `${getAcronym(latestMark.title || latestMark.courseTitle || latestMark.code)} • ${latestMark.displayScore}/${latestMark.max}` : "no recent tests"}</span>
+            <div className="flex flex-col max-w-full">
+              <span className="text-[4.5rem] font-black tracking-tighter lowercase text-[#111111] truncate pt-3" style={{ fontFamily: "'Montserrat', sans-serif", lineHeight: 0.85 }}>{displayCourseWords[0]}</span>
+              <div className="flex items-baseline gap-3 w-full pb-3">
+                <span className="text-[4.5rem] font-black tracking-tighter lowercase text-[#111111] truncate flex-1 min-w-0" style={{ fontFamily: "'Montserrat', sans-serif", lineHeight: 0.85 }}>{displayCourseWords.slice(1).join(" ")}</span>
+                <span className="text-[1.25rem] font-bold uppercase tracking-widest text-[#111111]/40 shrink-0" style={{ fontFamily: "'Afacad', sans-serif" }}>{displayTiming}</span>
+              </div>
             </div>
-            <ChevronRight size={22} strokeWidth={2} className="text-[#111111]/30 shrink-0" />
-          </div>
+            <div className="flex items-center justify-between mt-3 w-full bg-white px-4 py-3 rounded-full border-[1.5px] border-[#111111]/10 shadow-sm min-w-0">
+              <div className="flex items-center gap-3 min-w-0">
+                <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${isViewingToday && currentClass ? "bg-[#111111] animate-pulse" : "bg-[#111111]/20"}`} />
+                <span className="text-[14px] font-bold lowercase text-[#111111]/70 truncate" style={{ fontFamily: "'Afacad', sans-serif" }}>{isViewingToday && currentClass ? "current class • " : "first class • "}<strong className="text-[#111111] font-black uppercase tracking-widest">{focusClass ? getAcronym(focusClass.name || focusClass.courseTitle || focusClass.course || focusClass.code).toUpperCase() : "FREE"}</strong></span>
+              </div>
+              <span className="text-[12px] font-bold lowercase text-[#111111]/40 shrink-0 ml-2" style={{ fontFamily: "'Afacad', sans-serif" }}>{focusClass ? (isViewingToday && currentClass ? `ends at ${focusClass.time.split("-")[1].trim()}` : `starts at ${focusClass.time.split("-")[0].trim()}`) : "check back later"}</span>
+            </div>
+          </motion.div>
+
+          <motion.div variants={itemVariants} className="flex flex-col gap-3 shrink-0 w-full">
+            <div onClick={() => setActiveTab && setActiveTab("attendance")} className={`w-full border-[1.5px] rounded-[24px] p-2 pr-5 flex items-center gap-4 shadow-sm transition-all active:scale-[0.98] cursor-pointer ${attStyles.bg} ${attStyles.border}`}>
+              <div className={`w-[50px] h-[50px] rounded-[18px] flex items-center justify-center shrink-0 ${attStyles.iconBg}`}><CheckCircle size={20} strokeWidth={2.5} className={attStyles.text} /></div>
+              <div className="flex-1 flex flex-col justify-center min-w-0 py-0.5">
+                <span className={`text-[15px] font-bold lowercase leading-tight truncate mb-0.5 ${attStyles.text}`} style={{ fontFamily: "'Montserrat', sans-serif" }}>{alertName}</span>
+                <span className={`text-[13px] font-medium lowercase truncate ${attStyles.subText}`} style={{ fontFamily: "'Afacad', sans-serif" }}>{alertPct}% • {alertMargin} {alertLabel}</span>
+              </div>
+              <ChevronRight size={22} strokeWidth={2} className={`shrink-0 ${attStyles.arrow}`} />
+            </div>
+            
+            <div onClick={() => setIsAlertsOpen(true)} className="w-full bg-[#111111] text-white border-[1.5px] border-[#111111] rounded-[24px] p-2 pr-5 flex items-center gap-4 shadow-md active:scale-[0.98] transition-transform cursor-pointer">
+              <div className="w-[50px] h-[50px] rounded-[18px] bg-white/10 flex items-center justify-center shrink-0"><Bell size={20} strokeWidth={2.5} className="text-white" /></div>
+              <div className="flex-1 flex flex-col justify-center min-w-0 py-0.5">
+                <span className="text-[15px] font-bold lowercase leading-tight truncate mb-0.5 text-white" style={{ fontFamily: "'Montserrat', sans-serif" }}>academic alerts</span>
+                <AnimatePresence mode="wait"><motion.span key={currentAlertIndex} initial={{ opacity: 0, x: 5 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -5 }} className="text-[13px] font-medium lowercase text-white/70 truncate" style={{ fontFamily: "'Afacad', sans-serif" }}>{currentAlert ? `${currentAlert.title}: ${currentAlert.desc.split(' / ')[0].substring(0, 20)}...` : (overallPct < 75 ? "attendance might be cooked." : "stats looking solid.")}</motion.span></AnimatePresence>
+              </div>
+              <ChevronRight size={22} strokeWidth={2} className="text-white/30 shrink-0" />
+            </div>
+
+            <div onClick={() => setActiveTab && setActiveTab("marks")} className="w-full bg-white border-[1.5px] border-[#111111]/10 rounded-[24px] p-2 pr-5 flex items-center gap-4 shadow-sm active:scale-[0.98] transition-transform cursor-pointer">
+              <div className="w-[50px] h-[50px] rounded-[18px] bg-[#F4F4F4] flex items-center justify-center shrink-0"><GraduationCap size={20} strokeWidth={2.5} className="text-[#111111]" /></div>
+              <div className="flex-1 flex flex-col justify-center min-w-0 py-0.5">
+                <span className="text-[15px] font-bold lowercase leading-tight text-[#111111] truncate mb-0.5" style={{ fontFamily: "'Montserrat', sans-serif" }}>recent marks</span>
+                <span className="text-[13px] font-medium lowercase text-[#111111]/50 truncate" style={{ fontFamily: "'Afacad', sans-serif" }}>{latestMark ? `${getAcronym(latestMark.title || latestMark.courseTitle || latestMark.code)} • ${latestMark.displayScore}/${latestMark.max}` : "no recent tests"}</span>
+              </div>
+              <ChevronRight size={22} strokeWidth={2} className="text-[#111111]/30 shrink-0" />
+            </div>
+          </motion.div>
         </motion.div>
       </motion.div>
+ 
       <AnimatePresence>
         {isAlertsOpen && (
           <motion.div initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }} transition={{ duration: 0.4, ease: [0.25, 1, 0.5, 1] }} drag="y" dragDirectionLock dragConstraints={{ top: 0, bottom: 500 }} dragElastic={{ top: 0, bottom: 0.8 }} onDragEnd={(e, info) => { if (info.offset.y > 100 || info.velocity.y > 500) setIsAlertsOpen(false); }} className="fixed inset-0 bg-[#111111] z-[60] flex flex-col px-6 pt-10 pb-6 overflow-hidden">
@@ -454,6 +539,6 @@ export default function MinimalHomepage({
           </motion.div>
         )}
       </AnimatePresence>
-    </>
+    </div>
   );
 }
