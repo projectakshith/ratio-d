@@ -1,5 +1,27 @@
 import { MarksRecord, Assessment } from "@/types";
 
+export const gradePoints: Record<string, number> = {
+  O: 10,
+  "A+": 9,
+  A: 8,
+  "B+": 7,
+  B: 6,
+  C: 5,
+  U: 0,
+  W: 0,
+  I: 0,
+};
+
+export const getGrade = (score: number) => {
+  if (score >= 91) return "O";
+  if (score >= 81) return "A+";
+  if (score >= 71) return "A";
+  if (score >= 61) return "B+";
+  if (score >= 51) return "B";
+  if (score >= 41) return "C";
+  return "U";
+};
+
 export const buildCourseMap = (data: any) => {
   const map: Record<string, string> = {};
   if (data?.attendance) {

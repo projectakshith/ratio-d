@@ -5,16 +5,17 @@ from utils.text import TextUtils
 class TimetableService:
     @staticmethod
     def parse_course_details(html_content):
-        if not html_content: return {}
+        if not html_content: return {"slots": {}, "courses": {}}
         soup = BeautifulSoup(html_content, 'html.parser')
-        mapping = {}
+        slot_mapping = {}
+        course_mapping = {}
         
         table = None
         for t in soup.find_all('table'):
             if "Course Code" in t.get_text():
                 table = t; break
                 
-        if not table: return mapping
+        if not table: return {"slots": slot_mapping, "courses": course_mapping}
 
         all_cells = table.find_all('td')
         COL_COUNT = 11 
@@ -36,6 +37,7 @@ class TimetableService:
                 cols = all_cells[current_idx : current_idx + COL_COUNT]
                 c_code = TextUtils.clean(cols[1].get_text())
                 c_name = TextUtils.clean(cols[2].get_text())
+                c_credits = TextUtils.clean(cols[3].get_text())
                 c_faculty = TextUtils.clean(cols[7].get_text())
                 c_slot_raw = TextUtils.clean(cols[8].get_text())
                 c_room = TextUtils.clean(cols[9].get_text())
@@ -45,17 +47,26 @@ class TimetableService:
 
                 if "Lab Based" in c_faculty: c_faculty = "Unknown"
                 
+                course_mapping[c_code] = {
+                    "code": c_code,
+                    "name": c_name,
+                    "credits": c_credits,
+                    "faculty": c_faculty,
+                    "room": c_room,
+                    "slot": c_slot_raw
+                }
+
                 clean_slots = c_slot_raw.replace('-', ' ').replace('/', ' ').replace(',', ' ').split()
                 
                 for slot in clean_slots:
                     s = slot.strip()
                     if s:
-                        mapping[s] = {"course": c_name, "faculty": c_faculty, "room": c_room}
+                        slot_mapping[s] = {"course": c_name, "faculty": c_faculty, "room": c_room, "credits": c_credits}
                 
                 count += 1
                 current_idx += COL_COUNT
             except IndexError: break
-        return mapping
+        return {"slots": slot_mapping, "courses": course_mapping}
 
     @staticmethod
     def parse_unified_grid(html_content, course_mapping):
@@ -104,7 +115,8 @@ class TimetableService:
                     "course": details['course'], 
                     "faculty": details['faculty'],
                     "room": details['room'],
-                    "time": time_headers[i]
+                    "time": time_headers[i],
+                    "credits": details.get('credits', '0')
                 }
         return timetable
 

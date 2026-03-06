@@ -38,6 +38,7 @@ export interface ScheduleSlot {
   isCurrent?: boolean;
   startMinutes?: number;
   endMinutes?: number;
+  credits?: string;
 }
 
 export interface DaySchedule {
@@ -86,11 +87,21 @@ export interface CalendarEvent {
   dayOrder?: string;
 }
 
+export interface Course {
+  code: string;
+  name: string;
+  credits: string;
+  faculty: string;
+  room: string;
+  slot: string;
+}
+
 export interface AcademiaData {
   profile: StudentProfile;
   attendance: AttendanceRecord[];
   schedule: ScheduleData;
   marks: MarksRecord[];
+  courses?: Record<string, Course>;
   dayOrder?: string;
   calendarData?: CalendarEvent[];
   effectiveDayOrder?: string;

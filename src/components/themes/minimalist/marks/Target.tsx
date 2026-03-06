@@ -77,7 +77,7 @@ export default function Target({
                 className="text-[10px] font-bold lowercase tracking-[0.2em] text-[#85a818] mt-1.5"
                 style={{ fontFamily: "'Afacad', sans-serif" }}
               >
-                gpa prediction
+                sgpa prediction
               </span>
             </div>
             <button
@@ -112,7 +112,7 @@ export default function Target({
                 className={`text-[11px] font-bold lowercase tracking-[0.2em] ${isDark ? "text-white/40" : "text-black/40"} mb-1`}
                 style={{ fontFamily: "'Afacad', sans-serif" }}
               >
-                predicted gpa
+                predicted sgpa
               </span>
               <span
                 className={`text-[4.5rem] leading-[0.9] font-black tracking-tighter transition-colors duration-300 ${gpaColor}`}
@@ -267,10 +267,13 @@ export default function Target({
                       setPredSubjectId(sub.id);
                       setExpectedMarks(0);
                     }}
-                    className={`px-4 py-2.5 rounded-[12px] text-[12px] font-bold uppercase tracking-widest transition-all whitespace-nowrap shrink-0 ${predSubjectId === sub.id ? "bg-[#85a818] text-white" : isDark ? "bg-white/10 text-white hover:bg-white/20" : "bg-black/10 text-black hover:bg-black/20"}`}
+                    className={`px-4 py-2.5 rounded-[12px] text-[12px] font-bold uppercase tracking-widest transition-all whitespace-nowrap shrink-0 flex flex-col items-center gap-0.5 ${predSubjectId === sub.id ? "bg-[#85a818] text-white" : isDark ? "bg-white/10 text-white hover:bg-white/20" : "bg-black/10 text-black hover:bg-black/20"}`}
                     style={{ fontFamily: "'Afacad', sans-serif" }}
                   >
-                    {sub.displayCode}
+                    <span>{sub.displayCode}</span>
+                    <span className="text-[9px] opacity-60 font-black">
+                      {sub.credits} credits
+                    </span>
                   </button>
                 ))}
               </div>

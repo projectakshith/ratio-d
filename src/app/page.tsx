@@ -67,8 +67,19 @@ export default function Home() {
     setIsUpdating(true);
     try {
       const savedCookies = EncryptionUtils.loadDecrypted("academia_cookies");
+      const isMissingData = 
+        !existingData.courses || 
+        Object.keys(existingData.courses).length === 0 ||
+        !existingData.profile?.name ||
+        !existingData.schedule || 
+        Object.keys(existingData.schedule).length === 0;
+
+      // If missing critical data (like courses for migration), do a full login sync
+      // Otherwise, do a fast attendance/marks refresh
+      const endpoint = isMissingData ? "login" : "refresh";
+      
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/refresh`,
+        `${process.env.NEXT_PUBLIC_API_URL}/${endpoint}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -80,21 +91,35 @@ export default function Home() {
         },
       );
       const result = await response.json();
-      if (!result.success) throw new Error("Refresh failed");
+      if (!result.success) throw new Error(`${endpoint} failed`);
+      
       if (result.cookies) {
         EncryptionUtils.saveEncrypted("academia_cookies", result.cookies);
         delete result.cookies;
       }
-      const updatedData = {
-        ...existingData,
-        attendance: result.attendance,
-        marks: result.marks,
-      };
+
+      let updatedData;
+      if (isMissingData) {
+        // Full sync result
+        updatedData = {
+          ...result,
+          // preserve any local-only state if necessary
+        };
+      } else {
+        // Partial refresh result
+        updatedData = {
+          ...existingData,
+          attendance: result.attendance,
+          marks: result.marks,
+        };
+      }
+      
       setUserData(updatedData);
       localStorage.setItem("ratio_data", JSON.stringify(updatedData));
-      console.log("[SYNC] Data updated in localStorage");
+      console.log(`[SYNC] Data updated via ${endpoint}`);
       return updatedData;
     } catch (err) {
+      console.error("[SYNC] Error:", err);
       return existingData;
     } finally {
       setIsUpdating(false);

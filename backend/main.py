@@ -115,7 +115,9 @@ def login(creds: Credentials):
         t0 = time.time()
         print("[PARSER] Parsing Profile & Course Map...")
         profile = ProfileService.parse_student_profile(profile_html)
-        course_map = TimetableService.parse_course_details(profile_html)
+        course_data = TimetableService.parse_course_details(profile_html)
+        course_map = course_data.get("slots", {})
+        courses = course_data.get("courses", {})
         print(f"[PARSER] Parsing completed in {time.time() - t0:.2f}s")
 
         t0 = time.time()
@@ -168,6 +170,7 @@ def login(creds: Credentials):
             "schedule": schedule,
             "calendar": calendar,
             "dayOrder": day_order,
+            "courses": courses,
             "cookies": current_cookies,
         }
 

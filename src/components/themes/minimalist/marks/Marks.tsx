@@ -9,6 +9,8 @@ import {
   getTheme,
   getMarkColor,
   getBoxTheme,
+  gradePoints,
+  getGrade,
 } from "@/utils/marks/marksLogic";
 import Target from "./Target";
 import { AcademiaData } from "@/types";
@@ -64,6 +66,9 @@ export default function Marks({
     const courseMap = buildCourseMap(data);
     const sorted = processAndSortMarks(data.marks, courseMap);
     return sorted.map((sub: any, i: number) => {
+      const courseDetails = data.courses?.[sub.code];
+      const credits = courseDetails?.credits ? parseFloat(courseDetails.credits) : 0;
+      
       let recent: { test: string; text: string } | null = null;
       if (i < 2 && sub.assessments.length > 0) {
         const lastAss = sub.assessments[sub.assessments.length - 1];
@@ -85,6 +90,7 @@ export default function Marks({
         (sub.slot || "").toUpperCase().includes("P");
       return {
         ...sub,
+        credits,
         displayCode: getAcronym(sub.title) || sub.code,
         displayName: sub.title.toLowerCase(),
         recent,
@@ -149,27 +155,49 @@ export default function Marks({
     { label: "B", min: 51 },
     { label: "C", min: 41 },
   ];
-  const baseGpa = data?.profile?.cgpa ? parseFloat(data.profile.cgpa) : 8.74;
-  let gpaOffset = 0;
-  if (targetGrade === 91) gpaOffset = 0.08;
-  else if (targetGrade === 81) gpaOffset = 0.04;
-  else if (targetGrade === 71) gpaOffset = -0.02;
-  else if (targetGrade === 61) gpaOffset = -0.08;
-  else if (targetGrade === 51) gpaOffset = -0.15;
-  else if (targetGrade === 41) gpaOffset = -0.25;
-  const predictedGpa = (baseGpa + gpaOffset).toFixed(2);
+  const predictedGpa = useMemo(() => {
+    if (subjects.length === 0) return "0.00";
+
+    let totalPoints = 0;
+    let totalCredits = 0;
+
+    subjects.forEach((sub: any) => {
+      if (sub.isNA) return;
+      
+      const credits = sub.credits || 0;
+      if (credits === 0) return;
+
+      let grade;
+      if (sub.id === predSubjectId) {
+        // Use the selected target grade label
+        const gradeObj = grades.find(g => g.min === targetGrade);
+        grade = gradeObj ? gradeObj.label : "O";
+      } else {
+        // Estimate current grade based on current percentage
+        grade = getGrade(sub.percentage);
+      }
+
+      const points = gradePoints[grade] || 0;
+      totalPoints += credits * points;
+      totalCredits += credits;
+    });
+
+    if (totalCredits === 0) return "0.00";
+    return (totalPoints / totalCredits).toFixed(2);
+  }, [subjects, predSubjectId, targetGrade, grades]);
+
   const gpaColor =
-    targetGrade >= 91
+    parseFloat(predictedGpa) >= 9.0
       ? "text-[#85a818]"
-      : targetGrade <= 61
+      : parseFloat(predictedGpa) <= 6.0
         ? "text-[#FF4D4D]"
         : "text-[#F97316]";
   const gpaFlavorText =
-    baseGpa >= 9.0
+    parseFloat(predictedGpa) >= 9.0
       ? "academic weapon"
-      : baseGpa >= 8.0
+      : parseFloat(predictedGpa) >= 8.0
         ? "keeping it steady"
-        : baseGpa >= 7.0
+        : parseFloat(predictedGpa) >= 7.0
           ? "needs a slight push"
           : "your gpa is in the trenches";
 
