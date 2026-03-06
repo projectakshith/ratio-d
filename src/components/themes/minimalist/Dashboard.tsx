@@ -27,25 +27,6 @@ const sectionFade = {
   show: { opacity: 1, y: 0, transition: { duration: 0.3 } },
 };
 
-const listVariants = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.05,
-    },
-  },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  show: {
-    opacity: 1,
-    y: 0,
-    transition: { type: "spring", stiffness: 300, damping: 24 },
-  },
-};
-
 const containerVariants = {
   hidden: { opacity: 0 },
   show: {
@@ -54,6 +35,16 @@ const containerVariants = {
       staggerChildren: 0.05,
       delayChildren: 0.02
     }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: -20, scale: 0.98 },
+  show: { 
+    opacity: 1, 
+    y: 0, 
+    scale: 1,
+    transition: { type: "spring", stiffness: 450, damping: 30 } 
   }
 };
 
@@ -668,9 +659,9 @@ export default function MinimalHomepage({
             </div>
           </motion.div>
 
-          <motion.div variants={containerVariants} className="grid grid-cols-5 gap-[8px] mb-8 shrink-0 transition-all">
+          <div className="grid grid-cols-5 gap-[8px] mb-8 shrink-0 transition-all">
             {displayGrid.map((slot, i) => renderSlot(slot, i))}
-          </motion.div>
+          </div>
 
           <motion.div
             variants={itemVariants}
@@ -780,7 +771,7 @@ export default function MinimalHomepage({
               </button>
             </div>
 
-            <motion.div onScroll={handleAlertsScroll} variants={listVariants} initial="hidden" animate="show" className="flex-1 overflow-y-auto no-scrollbar flex flex-col gap-10 pb-4">
+            <motion.div onScroll={handleAlertsScroll} variants={containerVariants} initial="hidden" animate="show" className="flex-1 overflow-y-auto no-scrollbar flex flex-col gap-10 pb-4">
               <div className="flex flex-col gap-3 mt-4">
                 <div className="flex items-center gap-3 w-full">
                   <span className="text-[11px] font-bold lowercase tracking-[0.2em] text-[#85a818] whitespace-nowrap" style={{ fontFamily: "'Montserrat', sans-serif" }}>my private notes</span>

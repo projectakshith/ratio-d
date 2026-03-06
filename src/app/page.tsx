@@ -34,9 +34,9 @@ export default function Home() {
     }
 
     const timer = setTimeout(() => {
-      setShowSplash(false);
       setStartEntrance(true);
-    }, 700);
+      setTimeout(() => setShowSplash(false), 100);
+    }, 600);
 
     return () => clearTimeout(timer);
   }, []);

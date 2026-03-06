@@ -10,30 +10,32 @@ import {
 } from "@/utils/timetableLogic";
 import calendarDataJson from "@/data/calendar_data.json";
 
-const listVariants = {
+const containerVariants = {
   hidden: { opacity: 0 },
   show: {
     opacity: 1,
     transition: {
       staggerChildren: 0.05,
-    },
-  },
+      delayChildren: 0.02
+    }
+  }
 };
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 40, scale: 0.95 },
-  show: {
-    opacity: 1,
-    y: 0,
+  hidden: { opacity: 0, y: -20, scale: 0.98 },
+  show: { 
+    opacity: 1, 
+    y: 0, 
     scale: 1,
-    transition: { type: "tween", ease: [0.25, 1, 0.5, 1], duration: 0.3 },
-  },
+    transition: { type: "spring", stiffness: 450, damping: 30 } 
+  }
 };
 
 export default function MinimalTimetable({
   data,
   academia,
   setIsSwipeDisabled,
+  startEntrance,
 }: any) {
   const [mounted, setMounted] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -308,9 +310,9 @@ export default function MinimalTimetable({
           <AnimatePresence mode="wait">
             <motion.div
               key={`${activeDay}-${refreshKey}`}
-              variants={listVariants}
+              variants={containerVariants}
               initial="hidden"
-              animate="show"
+              animate={startEntrance ? "show" : "hidden"}
               exit="hidden"
               className="flex flex-col w-full"
             >
