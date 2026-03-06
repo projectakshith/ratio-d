@@ -279,13 +279,9 @@ export default function MinimalHomepage({
         else if (cls.minutesStart > nowMins && !nxt) nxt = cls;
       }
 
-      const isLast =
-        curr &&
-        activeToday.length > 0 &&
-        curr.id === activeToday[activeToday.length - 1].id;
       let trackedDay = todayOrder;
 
-      if (!curr && !nxt && !isHoliday) {
+      if (!nxt && !isHoliday) {
         const nextDay =
           nextWorkingDayOrder || (todayOrder < 5 ? todayOrder + 1 : 1);
         const processedNext = processSchedule(
@@ -305,7 +301,7 @@ export default function MinimalHomepage({
       return {
         currentClass: curr,
         nextClass: nxt,
-        isLastClass: isLast,
+        isLastClass: !!(curr && !nxt),
         realDayToTrack: trackedDay,
       };
     }, [
@@ -319,15 +315,14 @@ export default function MinimalHomepage({
       courseMap,
     ]);
 
-  const focusClass = isLastClass ? currentClass : nextClass || null;
-  const isShowingTomorrow = realDayToTrack !== currentDayOrder && !isHoliday;
-  const focusLabel = isLastClass
-    ? "last class"
-    : focusClass
-      ? isShowingTomorrow
-        ? "tomorrow's first"
-        : "next up"
-      : "free time";
+  const focusClass = nextClass || null;
+  const isShowingTomorrow =
+    focusClass && realDayToTrack !== (isHoliday ? (nextWorkingDayOrder || 1) : currentDayOrder);
+  const focusLabel = focusClass
+    ? isShowingTomorrow
+      ? "tomorrow's first"
+      : "next up"
+    : "free time";
 
   const displayCourse = (
     focusClass?.name ||
@@ -338,6 +333,8 @@ export default function MinimalHomepage({
 
   const displayCourseWords = displayCourse.split(" ");
   const displayTiming = focusClass?.time || "--:--";
+
+  const statusClass = currentClass || nextClass || null;
 
   const { alertName, alertPctNum, alertPct, alertMargin, alertLabel } =
     useMemo(() => {
@@ -836,13 +833,13 @@ export default function MinimalHomepage({
             >
               <div className="flex items-center gap-3 min-w-0 flex-1">
                 <span
-                  className={`w-2.5 h-2.5 rounded-full shrink-0 ${!isShowingTomorrow && currentClass ? (isDark ? "bg-white animate-pulse" : "bg-[#111111] animate-pulse") : isDark ? "bg-white/20" : "bg-[#111111]/20"}`}
+                  className={`w-2.5 h-2.5 rounded-full shrink-0 ${currentClass ? (isDark ? "bg-white animate-pulse" : "bg-[#111111] animate-pulse") : isDark ? "bg-white/20" : "bg-[#111111]/20"}`}
                 />
                 <span
                   className={`text-[14px] font-bold lowercase ${isDark ? "text-white/70" : "text-[#111111]/70"} truncate`}
                   style={{ fontFamily: "'Afacad', sans-serif" }}
                 >
-                  {!isShowingTomorrow && currentClass
+                  {currentClass
                     ? "current class • "
                     : isShowingTomorrow
                       ? "first class • "
@@ -850,9 +847,9 @@ export default function MinimalHomepage({
                   <strong
                     className={`${textClass} font-black uppercase tracking-widest`}
                   >
-                    {focusClass
+                    {statusClass
                       ? getAcronym(
-                          focusClass.name || focusClass.code,
+                          statusClass.name || statusClass.code,
                         ).toUpperCase()
                       : "FREE"}
                   </strong>
@@ -862,10 +859,10 @@ export default function MinimalHomepage({
                 className={`text-[12px] font-bold lowercase ${subTextClass} shrink-0 ml-2`}
                 style={{ fontFamily: "'Afacad', sans-serif" }}
               >
-                {focusClass
-                  ? !isShowingTomorrow && currentClass
-                    ? `ends at ${focusClass.time.split("-")[1].trim()}`
-                    : `starts at ${focusClass.time.split("-")[0].trim()}`
+                {statusClass
+                  ? currentClass
+                    ? `ends at ${statusClass.time.split("-")[1].trim()}`
+                    : `starts at ${statusClass.time.split("-")[0].trim()}`
                   : "check back later"}
               </span>
             </div>
