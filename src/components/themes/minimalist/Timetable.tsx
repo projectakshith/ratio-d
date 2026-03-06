@@ -98,7 +98,10 @@ export default function MinimalTimetable({
   useEffect(() => {
     setMounted(true);
 
-    if (!initialSet.current && (Object.keys(schedule).length > 0 || isHoliday)) {
+    if (
+      !initialSet.current &&
+      (Object.keys(schedule).length > 0 || isHoliday)
+    ) {
       if (isHoliday) {
         setActiveDay(nextWorkingDayOrder || 1);
       } else if (!isNaN(dayOrder) && dayOrder >= 1 && dayOrder <= 5) {

@@ -33,19 +33,19 @@ const containerVariants = {
     opacity: 1,
     transition: {
       staggerChildren: 0.05,
-      delayChildren: 0.02
-    }
-  }
+      delayChildren: 0.02,
+    },
+  },
 };
 
 const itemVariants = {
   hidden: { opacity: 0, y: -20, scale: 0.98 },
-  show: { 
-    opacity: 1, 
-    y: 0, 
+  show: {
+    opacity: 1,
+    y: 0,
     scale: 1,
-    transition: { type: "spring", stiffness: 450, damping: 30 } 
-  }
+    transition: { type: "spring", stiffness: 450, damping: 30 },
+  },
 };
 
 export default function MinimalHomepage({
@@ -87,11 +87,14 @@ export default function MinimalHomepage({
   ).toLowerCase();
 
   const profile = data?.profile || {};
-  const isTargetAudience = 
-    (profile.dept || "").toLowerCase().includes("computer science and engineering") && 
-    (String(profile.semester) === "4");
+  const isTargetAudience =
+    (profile.dept || "")
+      .toLowerCase()
+      .includes("computer science and engineering") &&
+    String(profile.semester) === "4";
 
-  const currentDayOrderStr = academia?.effectiveDayOrder || data?.dayOrder || "1";
+  const currentDayOrderStr =
+    academia?.effectiveDayOrder || data?.dayOrder || "1";
   const currentDayOrder = parseInt(String(currentDayOrderStr)) || 1;
 
   const isHoliday =
@@ -133,14 +136,19 @@ export default function MinimalHomepage({
     if (hasInitialized.current) return;
     const scheduleData =
       academia?.effectiveSchedule || data?.timetable || data?.schedule || {};
-    
+
     if (isHoliday) {
       setSelectedDay(nextWorkingDayOrder || 1);
     } else {
       const variants = [`Day ${currentDayOrder}`, String(currentDayOrder)];
       let todayData = null;
-      for (const v of variants) { if (scheduleData[v]) { todayData = scheduleData[v]; break; } }
-      
+      for (const v of variants) {
+        if (scheduleData[v]) {
+          todayData = scheduleData[v];
+          break;
+        }
+      }
+
       let lastEnd = 0;
       if (todayData) {
         Object.values(todayData).forEach((timeStr: any) => {
@@ -155,7 +163,10 @@ export default function MinimalHomepage({
       const nowMins = new Date().getHours() * 60 + new Date().getMinutes();
 
       if (lastEnd > 0 && nowMins >= lastEnd) {
-        setSelectedDay(nextWorkingDayOrder || (currentDayOrder < 5 ? currentDayOrder + 1 : 1));
+        setSelectedDay(
+          nextWorkingDayOrder ||
+            (currentDayOrder < 5 ? currentDayOrder + 1 : 1),
+        );
       } else {
         setSelectedDay(currentDayOrder);
       }
@@ -246,40 +257,78 @@ export default function MinimalHomepage({
     return { standardGrid: std, extraGrid: ext };
   }, [data, academia, selectedDay, currentDayOrder, customClasses, courseMap]);
 
-  const { currentClass, nextClass, isLastClass, realDayToTrack } = useMemo(() => {
-    const scheduleData = academia?.effectiveSchedule || data?.timetable || data?.schedule || {};
-    const todayOrder = isHoliday ? (nextWorkingDayOrder || 1) : currentDayOrder;
-    const processedToday = processSchedule(scheduleData, customClasses, todayOrder, currentDayOrder, courseMap);
-    const nowMins = new Date().getHours() * 60 + new Date().getMinutes();
-    const activeToday = processedToday.filter((c: any) => c.type !== "break");
-    
-    let curr = null;
-    let nxt = null;
-    for (const cls of activeToday) {
-      if (nowMins >= cls.minutesStart && nowMins < cls.minutesEnd) curr = cls;
-      else if (cls.minutesStart > nowMins && !nxt) nxt = cls;
-    }
-    
-    const isLast = curr && activeToday.length > 0 && curr.id === activeToday[activeToday.length - 1].id;
-    let trackedDay = todayOrder;
+  const { currentClass, nextClass, isLastClass, realDayToTrack } =
+    useMemo(() => {
+      const scheduleData =
+        academia?.effectiveSchedule || data?.timetable || data?.schedule || {};
+      const todayOrder = isHoliday ? nextWorkingDayOrder || 1 : currentDayOrder;
+      const processedToday = processSchedule(
+        scheduleData,
+        customClasses,
+        todayOrder,
+        currentDayOrder,
+        courseMap,
+      );
+      const nowMins = new Date().getHours() * 60 + new Date().getMinutes();
+      const activeToday = processedToday.filter((c: any) => c.type !== "break");
 
-    if (!curr && !nxt && !isHoliday) {
-      const nextDay = nextWorkingDayOrder || (todayOrder < 5 ? todayOrder + 1 : 1);
-      const processedNext = processSchedule(scheduleData, customClasses, nextDay, currentDayOrder, courseMap);
-      const activeNext = processedNext.filter((c: any) => c.type !== "break");
-      if (activeNext.length > 0) {
-        nxt = activeNext[0];
-        trackedDay = nextDay;
+      let curr = null;
+      let nxt = null;
+      for (const cls of activeToday) {
+        if (nowMins >= cls.minutesStart && nowMins < cls.minutesEnd) curr = cls;
+        else if (cls.minutesStart > nowMins && !nxt) nxt = cls;
       }
-    }
-    
-    return { currentClass: curr, nextClass: nxt, isLastClass: isLast, realDayToTrack: trackedDay };
-  }, [academia?.effectiveSchedule, data?.timetable, data?.schedule, customClasses, currentDayOrder, isHoliday, nextWorkingDayOrder, courseMap]);
 
-  const focusClass = isLastClass ? currentClass : (nextClass || null);
+      const isLast =
+        curr &&
+        activeToday.length > 0 &&
+        curr.id === activeToday[activeToday.length - 1].id;
+      let trackedDay = todayOrder;
+
+      if (!curr && !nxt && !isHoliday) {
+        const nextDay =
+          nextWorkingDayOrder || (todayOrder < 5 ? todayOrder + 1 : 1);
+        const processedNext = processSchedule(
+          scheduleData,
+          customClasses,
+          nextDay,
+          currentDayOrder,
+          courseMap,
+        );
+        const activeNext = processedNext.filter((c: any) => c.type !== "break");
+        if (activeNext.length > 0) {
+          nxt = activeNext[0];
+          trackedDay = nextDay;
+        }
+      }
+
+      return {
+        currentClass: curr,
+        nextClass: nxt,
+        isLastClass: isLast,
+        realDayToTrack: trackedDay,
+      };
+    }, [
+      academia?.effectiveSchedule,
+      data?.timetable,
+      data?.schedule,
+      customClasses,
+      currentDayOrder,
+      isHoliday,
+      nextWorkingDayOrder,
+      courseMap,
+    ]);
+
+  const focusClass = isLastClass ? currentClass : nextClass || null;
   const isShowingTomorrow = realDayToTrack !== currentDayOrder && !isHoliday;
-  const focusLabel = isLastClass ? "last class" : (focusClass ? (isShowingTomorrow ? "tomorrow's first" : "next up") : "free time");
-  
+  const focusLabel = isLastClass
+    ? "last class"
+    : focusClass
+      ? isShowingTomorrow
+        ? "tomorrow's first"
+        : "next up"
+      : "free time";
+
   const displayCourse = (
     focusClass?.name ||
     focusClass?.courseTitle ||
@@ -385,7 +434,10 @@ export default function MinimalHomepage({
         d.setHours(0, 0, 0, 0);
         return d >= now && ev.type === "exam" && isTargetAudience;
       })
-      .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      .sort(
+        (a: any, b: any) =>
+          new Date(a.date).getTime() - new Date(b.date).getTime(),
+      )
       .slice(0, 2)
       .map((ev: any, i: number) => ({
         id: `exam-${i}`,
@@ -405,9 +457,15 @@ export default function MinimalHomepage({
       .filter((ev: any) => {
         const d = new Date(ev.date);
         d.setHours(0, 0, 0, 0);
-        return d.getTime() > now.getTime() && ev.description.toLowerCase().includes("holiday");
+        return (
+          d.getTime() > now.getTime() &&
+          ev.description.toLowerCase().includes("holiday")
+        );
       })
-      .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      .sort(
+        (a: any, b: any) =>
+          new Date(a.date).getTime() - new Date(b.date).getTime(),
+      )
       .slice(0, 2)
       .map((ev: any, i: number) => ({
         id: `holiday-${i}`,
@@ -418,7 +476,10 @@ export default function MinimalHomepage({
       }));
   }, [academia?.calendarData]);
 
-  const allAlerts = useMemo(() => [...exams, ...upcomingBreaks], [exams, upcomingBreaks]);
+  const allAlerts = useMemo(
+    () => [...exams, ...upcomingBreaks],
+    [exams, upcomingBreaks],
+  );
 
   const [currentAlertIndex, setCurrentAlertIndex] = useState(0);
   const [canDragClose, setCanDragClose] = useState(true);
@@ -453,7 +514,7 @@ export default function MinimalHomepage({
   };
 
   const handleDeleteNote = (id: number) => {
-    const updated = personalNotes.filter(n => n.id !== id);
+    const updated = personalNotes.filter((n) => n.id !== id);
     setPersonalNotes(updated);
     localStorage.setItem("ratio_private_notes", JSON.stringify(updated));
     window.dispatchEvent(new Event("private_notes_updated"));
@@ -508,12 +569,17 @@ export default function MinimalHomepage({
       );
     }
 
-    let boxClass = isDark ? "bg-white/5 border-white/10" : "bg-white border-[#111111]/20";
+    let boxClass = isDark
+      ? "bg-white/5 border-white/10"
+      : "bg-white border-[#111111]/20";
     let topText = isDark ? "text-white/40" : "text-[#111111]/50";
     let midText = isDark ? "text-white" : "text-[#111111]";
     let botText = isDark ? "text-white/60" : "text-[#111111]/70";
 
-    const isActuallyCurrent = slot.isCurrent && String(selectedDay) === String(currentDayOrder) && !isHoliday;
+    const isActuallyCurrent =
+      slot.isCurrent &&
+      String(selectedDay) === String(currentDayOrder) &&
+      !isHoliday;
 
     if (isActuallyCurrent) {
       boxClass = isDark
@@ -523,7 +589,9 @@ export default function MinimalHomepage({
       midText = isDark ? "text-black" : "text-white";
       botText = isDark ? "text-black/60" : "text-white/80";
     } else if (slot.isPractical) {
-      boxClass = isDark ? "bg-[#0ea5e9]/10 border-[#0ea5e9]/30" : "bg-[#e0f2fe]/60 border-[#0EA5E9]/20";
+      boxClass = isDark
+        ? "bg-[#0ea5e9]/10 border-[#0ea5e9]/30"
+        : "bg-[#e0f2fe]/60 border-[#0EA5E9]/20";
       topText = isDark ? "text-[#0ea5e9]/60" : "text-[#0ea5e9]/70";
       midText = isDark ? "text-[#0ea5e9]" : "text-[#0ea5e9]";
       botText = isDark ? "text-[#0ea5e9]/60" : "text-[#0ea5e9]/70";
@@ -563,8 +631,11 @@ export default function MinimalHomepage({
     : standardGrid;
 
   const currentAlert = allAlerts[currentAlertIndex];
-  const nextScheduledDay = nextWorkingDayOrder || (currentDayOrder < 5 ? currentDayOrder + 1 : 1);
-  const isViewingNext = String(selectedDay) === String(nextScheduledDay) && String(selectedDay) !== String(currentDayOrder);
+  const nextScheduledDay =
+    nextWorkingDayOrder || (currentDayOrder < 5 ? currentDayOrder + 1 : 1);
+  const isViewingNext =
+    String(selectedDay) === String(nextScheduledDay) &&
+    String(selectedDay) !== String(currentDayOrder);
 
   const bgClass = isDark ? "bg-[#111111]" : "bg-[#F7F7F7]";
   const textClass = isDark ? "text-white" : "text-[#111111]";
@@ -574,7 +645,7 @@ export default function MinimalHomepage({
   const cardBorder = isDark ? "border-white/10" : "border-[#111111]/10";
 
   return (
-    <div 
+    <div
       className={`relative w-full min-h-screen ${bgClass} overflow-x-hidden`}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
@@ -609,26 +680,43 @@ export default function MinimalHomepage({
         />
       </div>
 
-      <motion.div 
+      <motion.div
         style={{ y: pullY }}
         className={`relative z-10 min-h-screen w-full flex flex-col ${bgClass} ${textClass}`}
       >
-        <motion.div 
+        <motion.div
           variants={containerVariants}
           initial="hidden"
           animate={startEntrance ? "show" : "hidden"}
           className="w-full flex flex-col px-6 pt-6 pb-24"
         >
-          <motion.div variants={itemVariants} className="flex justify-between items-center mb-6 shrink-0">
+          <motion.div
+            variants={itemVariants}
+            className="flex justify-between items-center mb-6 shrink-0"
+          >
             <button
               onClick={onOpenSettings}
               className="w-[50px] h-[50px] rounded-[16px] overflow-hidden active:scale-95 transition-all mt-3 shadow-[4px_4px_10px_rgba(0,0,0,0.15)] dark:shadow-[4px_4px_10px_rgba(0,0,0,0.4)] bg-transparent border-none"
             >
-              <img src="/image.png" alt="Profile" className="w-full h-full object-cover" />
+              <img
+                src="/image.png"
+                alt="Profile"
+                className="w-full h-full object-cover"
+              />
             </button>
             <div className="flex flex-col items-end">
-              <span className={`text-[16px] font-semibold lowercase tracking-widest ${isDark ? "text-white/50" : "text-[#111111]/50"} mb-[-4px]`} style={{ fontFamily: "'Afacad', sans-serif" }}>sup!</span>
-              <span className={`text-[25px] leading-none font-medium lowercase tracking-tight ${textClass}`} style={{ fontFamily: "'Montserrat', sans-serif" }}>{userName}</span>
+              <span
+                className={`text-[16px] font-semibold lowercase tracking-widest ${isDark ? "text-white/50" : "text-[#111111]/50"} mb-[-4px]`}
+                style={{ fontFamily: "'Afacad', sans-serif" }}
+              >
+                sup!
+              </span>
+              <span
+                className={`text-[25px] leading-none font-medium lowercase tracking-tight ${textClass}`}
+                style={{ fontFamily: "'Montserrat', sans-serif" }}
+              >
+                {userName}
+              </span>
             </div>
           </motion.div>
 
@@ -638,7 +726,12 @@ export default function MinimalHomepage({
               className={`w-full ${isDark ? "bg-[#85a818]/5 border-[#85a818]/20" : "bg-[#85a818]/10 border-[#85a818]/30"} border-[1.5px] rounded-[16px] p-3 mb-4 flex items-center gap-3 shrink-0`}
             >
               <span className="text-xl">🌴</span>
-              <span className={`text-[13px] font-bold ${isDark ? "text-[#85a818]" : "text-[#4d6600]"} lowercase tracking-wide`} style={{ fontFamily: "'Afacad', sans-serif" }}>holiday today! viewing upcoming classes.</span>
+              <span
+                className={`text-[13px] font-bold ${isDark ? "text-[#85a818]" : "text-[#4d6600]"} lowercase tracking-wide`}
+                style={{ fontFamily: "'Afacad', sans-serif" }}
+              >
+                holiday today! viewing upcoming classes.
+              </span>
             </motion.div>
           )}
 
@@ -647,27 +740,45 @@ export default function MinimalHomepage({
             className="flex items-center justify-between mb-3 px-1 shrink-0"
           >
             <div className="flex items-center gap-3">
-              <span className={`text-[11px] font-bold uppercase tracking-[0.2em] ${subTextClass} flex items-center gap-1.5`} style={{ fontFamily: "'Montserrat', sans-serif" }}>
+              <span
+                className={`text-[11px] font-bold uppercase tracking-[0.2em] ${subTextClass} flex items-center gap-1.5`}
+                style={{ fontFamily: "'Montserrat', sans-serif" }}
+              >
                 Day Order {selectedDay}
                 {String(selectedDay) === String(currentDayOrder) ? (
                   <span>• today</span>
+                ) : isViewingNext ? (
+                  <span className="text-[#85a818] font-black tracking-widest">
+                    {" "}
+                    • upcoming
+                  </span>
                 ) : (
-                  isViewingNext ? (
-                    <span className="text-[#85a818] font-black tracking-widest"> • upcoming</span>
-                  ) : (
-                    <span> • selected</span>
-                  )
+                  <span> • selected</span>
                 )}
               </span>
               {extraGrid.length > 0 && (
-                <button onClick={() => setShowExtraSlots(!showExtraSlots)} className={`${isDark ? "bg-white/10 text-white/50" : "bg-[#111111]/5 text-[#111111]/50"} px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest active:scale-95 transition-all`} style={{ fontFamily: "'Afacad', sans-serif" }}>
+                <button
+                  onClick={() => setShowExtraSlots(!showExtraSlots)}
+                  className={`${isDark ? "bg-white/10 text-white/50" : "bg-[#111111]/5 text-[#111111]/50"} px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest active:scale-95 transition-all`}
+                  style={{ fontFamily: "'Afacad', sans-serif" }}
+                >
                   {showExtraSlots ? "hide extra" : `+${extraGrid.length} extra`}
                 </button>
               )}
             </div>
             <div className="flex gap-2">
-              <button onClick={() => handleDaySwitch("prev")} className="active:scale-75 transition-transform"><ChevronLeft size={18} className={subTextClass} /></button>
-              <button onClick={() => handleDaySwitch("next")} className="active:scale-75 transition-transform"><ChevronRight size={18} className={subTextClass} /></button>
+              <button
+                onClick={() => handleDaySwitch("prev")}
+                className="active:scale-75 transition-transform"
+              >
+                <ChevronLeft size={18} className={subTextClass} />
+              </button>
+              <button
+                onClick={() => handleDaySwitch("next")}
+                className="active:scale-75 transition-transform"
+              >
+                <ChevronRight size={18} className={subTextClass} />
+              </button>
             </div>
           </motion.div>
 
@@ -680,29 +791,82 @@ export default function MinimalHomepage({
             className="flex flex-col mb-8 shrink-0 w-full"
           >
             <div className="flex items-center gap-3 mb-2 w-full">
-              <span className={`text-[14px] font-bold lowercase tracking-[0.25em] ${focusSubTextClass} whitespace-nowrap`} style={{ fontFamily: "'Montserrat', sans-serif" }}>{focusLabel}</span>
-              <div className={`flex-1 h-[1.5px] ${isDark ? "bg-white/10" : "bg-[#111111]/15"} rounded-full`} />
-              <span className={`text-[13px] font-black uppercase tracking-[0.2em] ${textClass} whitespace-nowrap`} style={{ fontFamily: "'Afacad', sans-serif" }}>{focusClass?.room || "FREE"}</span>
+              <span
+                className={`text-[14px] font-bold lowercase tracking-[0.25em] ${focusSubTextClass} whitespace-nowrap`}
+                style={{ fontFamily: "'Montserrat', sans-serif" }}
+              >
+                {focusLabel}
+              </span>
+              <div
+                className={`flex-1 h-[1.5px] ${isDark ? "bg-white/10" : "bg-[#111111]/15"} rounded-full`}
+              />
+              <span
+                className={`text-[13px] font-black uppercase tracking-[0.2em] ${textClass} whitespace-nowrap`}
+                style={{ fontFamily: "'Afacad', sans-serif" }}
+              >
+                {focusClass?.room || "FREE"}
+              </span>
             </div>
 
             <div className="flex flex-col max-w-full">
-              <span className={`text-[4.5rem] leading-[0.85] font-black tracking-tighter lowercase ${textClass} truncate pt-3`} style={{ fontFamily: "'Montserrat', sans-serif" }}>{displayCourseWords[0]}</span>
+              <span
+                className={`text-[4.5rem] leading-[0.85] font-black tracking-tighter lowercase ${textClass} truncate pt-3`}
+                style={{ fontFamily: "'Montserrat', sans-serif" }}
+              >
+                {displayCourseWords[0]}
+              </span>
               <div className="flex items-baseline gap-3 w-full pb-3">
-                <span className={`text-[4.5rem] leading-[0.85] font-black tracking-tighter lowercase ${textClass} truncate flex-1 min-w-0`} style={{ fontFamily: "'Montserrat', sans-serif" }}>{displayCourseWords.slice(1).join(" ")}</span>
-                <span className={`text-[1.25rem] font-bold uppercase tracking-widest ${subTextClass} shrink-0`} style={{ fontFamily: "'Afacad', sans-serif" }}>{displayTiming}</span>
+                <span
+                  className={`text-[4.5rem] leading-[0.85] font-black tracking-tighter lowercase ${textClass} truncate flex-1 min-w-0`}
+                  style={{ fontFamily: "'Montserrat', sans-serif" }}
+                >
+                  {displayCourseWords.slice(1).join(" ")}
+                </span>
+                <span
+                  className={`text-[1.25rem] font-bold uppercase tracking-widest ${subTextClass} shrink-0`}
+                  style={{ fontFamily: "'Afacad', sans-serif" }}
+                >
+                  {displayTiming}
+                </span>
               </div>
             </div>
 
-            <div className={`flex items-center justify-between mt-3 w-full ${isDark ? "bg-white/5 border-white/10" : "bg-white border-[#111111]/10"} px-4 py-3 rounded-full border-[1.5px] shadow-sm min-w-0`}>
+            <div
+              className={`flex items-center justify-between mt-3 w-full ${isDark ? "bg-white/5 border-white/10" : "bg-white border-[#111111]/10"} px-4 py-3 rounded-full border-[1.5px] shadow-sm min-w-0`}
+            >
               <div className="flex items-center gap-3 min-w-0 flex-1">
-                <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${!isShowingTomorrow && currentClass ? (isDark ? "bg-white animate-pulse" : "bg-[#111111] animate-pulse") : (isDark ? "bg-white/20" : "bg-[#111111]/20")}`} />
-                <span className={`text-[14px] font-bold lowercase ${isDark ? "text-white/70" : "text-[#111111]/70"} truncate`} style={{ fontFamily: "'Afacad', sans-serif" }}>
-                  {!isShowingTomorrow && currentClass ? "current class • " : (isShowingTomorrow ? "first class • " : "status • ")}
-                  <strong className={`${textClass} font-black uppercase tracking-widest`}>{focusClass ? getAcronym(focusClass.name || focusClass.code).toUpperCase() : "FREE"}</strong>
+                <span
+                  className={`w-2.5 h-2.5 rounded-full shrink-0 ${!isShowingTomorrow && currentClass ? (isDark ? "bg-white animate-pulse" : "bg-[#111111] animate-pulse") : isDark ? "bg-white/20" : "bg-[#111111]/20"}`}
+                />
+                <span
+                  className={`text-[14px] font-bold lowercase ${isDark ? "text-white/70" : "text-[#111111]/70"} truncate`}
+                  style={{ fontFamily: "'Afacad', sans-serif" }}
+                >
+                  {!isShowingTomorrow && currentClass
+                    ? "current class • "
+                    : isShowingTomorrow
+                      ? "first class • "
+                      : "status • "}
+                  <strong
+                    className={`${textClass} font-black uppercase tracking-widest`}
+                  >
+                    {focusClass
+                      ? getAcronym(
+                          focusClass.name || focusClass.code,
+                        ).toUpperCase()
+                      : "FREE"}
+                  </strong>
                 </span>
               </div>
-              <span className={`text-[12px] font-bold lowercase ${subTextClass} shrink-0 ml-2`} style={{ fontFamily: "'Afacad', sans-serif" }}>
-                {focusClass ? (!isShowingTomorrow && currentClass ? `ends at ${focusClass.time.split("-")[1].trim()}` : `starts at ${focusClass.time.split("-")[0].trim()}`) : "check back later"}
+              <span
+                className={`text-[12px] font-bold lowercase ${subTextClass} shrink-0 ml-2`}
+                style={{ fontFamily: "'Afacad', sans-serif" }}
+              >
+                {focusClass
+                  ? !isShowingTomorrow && currentClass
+                    ? `ends at ${focusClass.time.split("-")[1].trim()}`
+                    : `starts at ${focusClass.time.split("-")[0].trim()}`
+                  : "check back later"}
               </span>
             </div>
           </motion.div>
@@ -711,31 +875,118 @@ export default function MinimalHomepage({
             variants={itemVariants}
             className="flex flex-col gap-3 shrink-0 w-full"
           >
-            <div onClick={() => setActiveTab && setActiveTab("attendance")} className={`w-full border-[1.5px] rounded-[24px] p-2 pr-5 flex items-center gap-4 shadow-sm transition-all active:scale-[0.98] cursor-pointer ${attStyles.bg} ${attStyles.border}`}>
-              <div className={`w-[50px] h-[50px] rounded-[18px] flex items-center justify-center shrink-0 ${attStyles.iconBg}`}><CheckCircle size={20} strokeWidth={2.5} className={attStyles.text} /></div>
-              <div className="flex-1 flex flex-col justify-center min-w-0 py-0.5">
-                <span className={`text-[15px] font-bold lowercase leading-tight truncate mb-0.5 ${attStyles.text}`} style={{ fontFamily: "'Montserrat', sans-serif" }}>{alertName}</span>
-                <span className={`text-[13px] font-medium lowercase truncate ${attStyles.subText}`} style={{ fontFamily: "'Afacad', sans-serif" }}>{alertPct}% • {alertMargin} {alertLabel}</span>
+            <div
+              onClick={() => setActiveTab && setActiveTab("attendance")}
+              className={`w-full border-[1.5px] rounded-[24px] p-2 pr-5 flex items-center gap-4 shadow-sm transition-all active:scale-[0.98] cursor-pointer ${attStyles.bg} ${attStyles.border}`}
+            >
+              <div
+                className={`w-[50px] h-[50px] rounded-[18px] flex items-center justify-center shrink-0 ${attStyles.iconBg}`}
+              >
+                <CheckCircle
+                  size={20}
+                  strokeWidth={2.5}
+                  className={attStyles.text}
+                />
               </div>
-              <ChevronRight size={22} strokeWidth={2} className={`shrink-0 ${attStyles.arrow}`} />
+              <div className="flex-1 flex flex-col justify-center min-w-0 py-0.5">
+                <span
+                  className={`text-[15px] font-bold lowercase leading-tight truncate mb-0.5 ${attStyles.text}`}
+                  style={{ fontFamily: "'Montserrat', sans-serif" }}
+                >
+                  {alertName}
+                </span>
+                <span
+                  className={`text-[13px] font-medium lowercase truncate ${attStyles.subText}`}
+                  style={{ fontFamily: "'Afacad', sans-serif" }}
+                >
+                  {alertPct}% • {alertMargin} {alertLabel}
+                </span>
+              </div>
+              <ChevronRight
+                size={22}
+                strokeWidth={2}
+                className={`shrink-0 ${attStyles.arrow}`}
+              />
             </div>
 
-            <div onClick={() => setIsAlertsOpen(true)} className={`w-full ${isDark ? "bg-[#BBBBBB] text-black" : "bg-[#111111] text-white"} border-[1.5px] ${isDark ? "border-black/5" : "border-black/5"} rounded-[24px] p-2 pr-5 flex items-center gap-4 shadow-sm active:scale-[0.98] transition-transform cursor-pointer`}>
-              <div className={`w-[50px] h-[50px] rounded-[18px] ${isDark ? "bg-black/10" : "bg-white/10"} flex items-center justify-center shrink-0`}><Bell size={20} strokeWidth={2.5} className={isDark ? "text-black" : "text-white"} /></div>
-              <div className="flex-1 flex flex-col justify-center min-w-0 py-0.5">
-                <span className={`text-[15px] font-bold lowercase leading-tight truncate mb-0.5 ${isDark ? "text-black" : "text-white"}`} style={{ fontFamily: "'Montserrat', sans-serif" }}>academic alerts</span>
-                <AnimatePresence mode="wait"><motion.span key={currentAlertIndex} initial={{ opacity: 0, x: 5 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -5 }} className={`text-[13px] font-medium lowercase ${isDark ? "text-black/60" : "text-white/70"} truncate`} style={{ fontFamily: "'Afacad', sans-serif" }}>{currentAlert ? `${currentAlert.title}: ${currentAlert.desc.split(' / ')[0].substring(0, 20)}...` : (overallPct < 75 ? "attendance might be cooked." : "stats looking solid.")}</motion.span></AnimatePresence>
+            <div
+              onClick={() => setIsAlertsOpen(true)}
+              className={`w-full ${isDark ? "bg-[#BBBBBB] text-black" : "bg-[#111111] text-white"} border-[1.5px] ${isDark ? "border-black/5" : "border-black/5"} rounded-[24px] p-2 pr-5 flex items-center gap-4 shadow-sm active:scale-[0.98] transition-transform cursor-pointer`}
+            >
+              <div
+                className={`w-[50px] h-[50px] rounded-[18px] ${isDark ? "bg-black/10" : "bg-white/10"} flex items-center justify-center shrink-0`}
+              >
+                <Bell
+                  size={20}
+                  strokeWidth={2.5}
+                  className={isDark ? "text-black" : "text-white"}
+                />
               </div>
-              <ChevronRight size={22} strokeWidth={2} className={`${isDark ? "text-black/20" : "text-white/30"} shrink-0`} />
+              <div className="flex-1 flex flex-col justify-center min-w-0 py-0.5">
+                <span
+                  className={`text-[15px] font-bold lowercase leading-tight truncate mb-0.5 ${isDark ? "text-black" : "text-white"}`}
+                  style={{ fontFamily: "'Montserrat', sans-serif" }}
+                >
+                  academic alerts
+                </span>
+                <AnimatePresence mode="wait">
+                  <motion.span
+                    key={currentAlertIndex}
+                    initial={{ opacity: 0, x: 5 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -5 }}
+                    className={`text-[13px] font-medium lowercase ${isDark ? "text-black/60" : "text-white/70"} truncate`}
+                    style={{ fontFamily: "'Afacad', sans-serif" }}
+                  >
+                    {currentAlert
+                      ? `${currentAlert.title}: ${currentAlert.desc.split(" / ")[0].substring(0, 20)}...`
+                      : overallPct < 75
+                        ? "attendance might be cooked."
+                        : "stats looking solid."}
+                  </motion.span>
+                </AnimatePresence>
+              </div>
+              <ChevronRight
+                size={22}
+                strokeWidth={2}
+                className={`${isDark ? "text-black/20" : "text-white/30"} shrink-0`}
+              />
             </div>
 
-            <div onClick={() => setActiveTab && setActiveTab("marks")} className={`w-full ${isDark ? "bg-white/5 border-white/10" : "bg-white border-[#111111]/10"} border-[1.5px] rounded-[24px] p-2 pr-5 flex items-center gap-4 shadow-sm active:scale-[0.98] transition-transform cursor-pointer`}>
-              <div className={`w-[50px] h-[50px] rounded-[18px] ${isDark ? "bg-white/5" : "bg-[#F4F4F4]"} flex items-center justify-center shrink-0`}><GraduationCap size={20} strokeWidth={2.5} className={textClass} /></div>
-              <div className="flex-1 flex flex-col justify-center min-w-0 py-0.5">
-                <span className={`text-[15px] font-bold lowercase leading-tight ${textClass} truncate mb-0.5`} style={{ fontFamily: "'Montserrat', sans-serif" }}>recent marks</span>
-                <span className={`text-[13px] font-medium lowercase ${subTextClass} truncate`} style={{ fontFamily: "'Afacad', sans-serif" }}>{latestMark ? `${getAcronym(latestMark.title || latestMark.courseTitle || latestMark.code)} • ${latestMark.displayScore}/${latestMark.max}` : "no recent tests"}</span>
+            <div
+              onClick={() => setActiveTab && setActiveTab("marks")}
+              className={`w-full ${isDark ? "bg-white/5 border-white/10" : "bg-white border-[#111111]/10"} border-[1.5px] rounded-[24px] p-2 pr-5 flex items-center gap-4 shadow-sm active:scale-[0.98] transition-transform cursor-pointer`}
+            >
+              <div
+                className={`w-[50px] h-[50px] rounded-[18px] ${isDark ? "bg-white/5" : "bg-[#F4F4F4]"} flex items-center justify-center shrink-0`}
+              >
+                <GraduationCap
+                  size={20}
+                  strokeWidth={2.5}
+                  className={textClass}
+                />
               </div>
-              <ChevronRight size={22} strokeWidth={2} className={`${isDark ? "text-white/20" : "text-[#111111]/30"} shrink-0`} />
+              <div className="flex-1 flex flex-col justify-center min-w-0 py-0.5">
+                <span
+                  className={`text-[15px] font-bold lowercase leading-tight ${textClass} truncate mb-0.5`}
+                  style={{ fontFamily: "'Montserrat', sans-serif" }}
+                >
+                  recent marks
+                </span>
+                <span
+                  className={`text-[13px] font-medium lowercase ${subTextClass} truncate`}
+                  style={{ fontFamily: "'Afacad', sans-serif" }}
+                >
+                  {latestMark
+                    ? `${getAcronym(latestMark.title || latestMark.courseTitle || latestMark.code)} • ${latestMark.displayScore}/${latestMark.max}`
+                    : "no recent tests"}
+                </span>
+              </div>
+              <ChevronRight
+                size={22}
+                strokeWidth={2}
+                className={`${isDark ? "text-white/20" : "text-[#111111]/30"} shrink-0`}
+              />
             </div>
           </motion.div>
         </motion.div>
@@ -759,7 +1010,9 @@ export default function MinimalHomepage({
             }}
             className={`fixed inset-0 ${isDark ? "bg-[#111111]" : "bg-white"} z-[60] flex flex-col px-6 pt-10 pb-6 overflow-hidden`}
           >
-            <div className={`w-12 h-1.5 ${isDark ? "bg-white/10" : "bg-[#111111]/10"} rounded-full mx-auto mb-6 shrink-0`} />
+            <div
+              className={`w-12 h-1.5 ${isDark ? "bg-white/10" : "bg-[#111111]/10"} rounded-full mx-auto mb-6 shrink-0`}
+            />
             <div className="flex justify-between items-start w-full shrink-0 mb-6">
               <div className="flex flex-col">
                 <span
@@ -783,24 +1036,63 @@ export default function MinimalHomepage({
               </button>
             </div>
 
-            <motion.div onScroll={handleAlertsScroll} variants={containerVariants} initial="hidden" animate="show" className="flex-1 overflow-y-auto no-scrollbar flex flex-col gap-10 pb-4">
+            <motion.div
+              onScroll={handleAlertsScroll}
+              variants={containerVariants}
+              initial="hidden"
+              animate="show"
+              className="flex-1 overflow-y-auto no-scrollbar flex flex-col gap-10 pb-4"
+            >
               <div className="flex flex-col gap-3 mt-4">
                 <div className="flex items-center gap-3 w-full">
-                  <span className="text-[11px] font-bold lowercase tracking-[0.2em] text-[#85a818] whitespace-nowrap" style={{ fontFamily: "'Montserrat', sans-serif" }}>my private notes</span>
+                  <span
+                    className="text-[11px] font-bold lowercase tracking-[0.2em] text-[#85a818] whitespace-nowrap"
+                    style={{ fontFamily: "'Montserrat', sans-serif" }}
+                  >
+                    my private notes
+                  </span>
                   <div className="flex-1 h-[1.5px] bg-[#85a818]/20 rounded-full" />
                 </div>
                 {personalNotes.length === 0 ? (
-                  <motion.div variants={itemVariants} className="w-full flex flex-col items-center justify-center py-6 gap-2 opacity-30">
-                    <div className={`w-full h-px ${isDark ? "bg-white/10" : "bg-[#111111]/10"} rounded-full`} />
-                    <div className={`w-3/4 h-px ${isDark ? "bg-white/10" : "bg-[#111111]/10"} rounded-full`} />
-                    <div className={`w-1/2 h-px ${isDark ? "bg-white/10" : "bg-[#111111]/10"} rounded-full`} />
+                  <motion.div
+                    variants={itemVariants}
+                    className="w-full flex flex-col items-center justify-center py-6 gap-2 opacity-30"
+                  >
+                    <div
+                      className={`w-full h-px ${isDark ? "bg-white/10" : "bg-[#111111]/10"} rounded-full`}
+                    />
+                    <div
+                      className={`w-3/4 h-px ${isDark ? "bg-white/10" : "bg-[#111111]/10"} rounded-full`}
+                    />
+                    <div
+                      className={`w-1/2 h-px ${isDark ? "bg-white/10" : "bg-[#111111]/10"} rounded-full`}
+                    />
                   </motion.div>
                 ) : (
                   personalNotes.map((note) => (
-                    <motion.div key={note.id} variants={itemVariants} className={`bg-gradient-to-br ${isDark ? "from-white/5 to-white/10 border-white/5" : "from-white to-[#F7F7F7] border-[#111111]/5"} border-[1.5px] rounded-[20px] p-4 flex flex-col shadow-sm relative group`}>
-                      <button onClick={() => handleDeleteNote(note.id)} className={`absolute top-3 right-3 w-8 h-8 rounded-full ${isDark ? "bg-white/5 text-white/30" : "bg-[#111111]/5 text-[#111111]/30"} flex items-center justify-center hover:text-[#FF4D4D] hover:bg-[#FF4D4D]/5 active:scale-95 transition-all z-10`}><Trash2 size={14} /></button>
-                      <span className={`text-[15px] font-bold ${isDark ? "text-white/80" : "text-[#111111]/80"} lowercase leading-snug mb-3 pr-8`} style={{ fontFamily: "'Afacad', sans-serif" }}>{note.text}</span>
-                      <span className={`text-[10px] font-bold tracking-widest uppercase ${subTextClass}`} style={{ fontFamily: "'Montserrat', sans-serif" }}>{note.date}</span>
+                    <motion.div
+                      key={note.id}
+                      variants={itemVariants}
+                      className={`bg-gradient-to-br ${isDark ? "from-white/5 to-white/10 border-white/5" : "from-white to-[#F7F7F7] border-[#111111]/5"} border-[1.5px] rounded-[20px] p-4 flex flex-col shadow-sm relative group`}
+                    >
+                      <button
+                        onClick={() => handleDeleteNote(note.id)}
+                        className={`absolute top-3 right-3 w-8 h-8 rounded-full ${isDark ? "bg-white/5 text-white/30" : "bg-[#111111]/5 text-[#111111]/30"} flex items-center justify-center hover:text-[#FF4D4D] hover:bg-[#FF4D4D]/5 active:scale-95 transition-all z-10`}
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                      <span
+                        className={`text-[15px] font-bold ${isDark ? "text-white/80" : "text-[#111111]/80"} lowercase leading-snug mb-3 pr-8`}
+                        style={{ fontFamily: "'Afacad', sans-serif" }}
+                      >
+                        {note.text}
+                      </span>
+                      <span
+                        className={`text-[10px] font-bold tracking-widest uppercase ${subTextClass}`}
+                        style={{ fontFamily: "'Montserrat', sans-serif" }}
+                      >
+                        {note.date}
+                      </span>
                     </motion.div>
                   ))
                 )}
@@ -808,31 +1100,76 @@ export default function MinimalHomepage({
 
               <div className="flex flex-col gap-3">
                 <div className="flex items-center gap-3 w-full">
-                  <span className="text-[11px] font-bold lowercase tracking-[0.25em] text-[#8b5cf6] whitespace-nowrap" style={{ fontFamily: "'Montserrat', sans-serif" }}>assessments</span>
+                  <span
+                    className="text-[11px] font-bold lowercase tracking-[0.25em] text-[#8b5cf6] whitespace-nowrap"
+                    style={{ fontFamily: "'Montserrat', sans-serif" }}
+                  >
+                    assessments
+                  </span>
                   <div className="flex-1 h-[1.5px] bg-[#8b5cf6]/20 rounded-full" />
                 </div>
                 {exams.length === 0 ? (
-                  <motion.div variants={itemVariants} className="w-full flex flex-col items-center justify-center py-6 gap-2 opacity-30">
-                    <div className={`w-full h-px ${isDark ? "bg-white/10" : "bg-[#111111]/10"} rounded-full`} />
-                    <div className={`w-3/4 h-px ${isDark ? "bg-white/10" : "bg-[#111111]/10"} rounded-full`} />
-                    <div className={`w-1/2 h-px ${isDark ? "bg-white/10" : "bg-[#111111]/10"} rounded-full`} />
+                  <motion.div
+                    variants={itemVariants}
+                    className="w-full flex flex-col items-center justify-center py-6 gap-2 opacity-30"
+                  >
+                    <div
+                      className={`w-full h-px ${isDark ? "bg-white/10" : "bg-[#111111]/10"} rounded-full`}
+                    />
+                    <div
+                      className={`w-3/4 h-px ${isDark ? "bg-white/10" : "bg-[#111111]/10"} rounded-full`}
+                    />
+                    <div
+                      className={`w-1/2 h-px ${isDark ? "bg-white/10" : "bg-[#111111]/10"} rounded-full`}
+                    />
                   </motion.div>
                 ) : (
                   exams.map((alert) => (
-                    <motion.div key={alert.id} variants={itemVariants} className={`bg-gradient-to-br ${isDark ? "from-white/5 to-[#8b5cf6]/5 border-[#8b5cf6]/20" : "from-white to-[#8b5cf6]/5 border-[#8b5cf6]/10"} border-[1.5px] rounded-[20px] p-5 flex flex-col relative overflow-hidden shadow-sm`}>
+                    <motion.div
+                      key={alert.id}
+                      variants={itemVariants}
+                      className={`bg-gradient-to-br ${isDark ? "from-white/5 to-[#8b5cf6]/5 border-[#8b5cf6]/20" : "from-white to-[#8b5cf6]/5 border-[#8b5cf6]/10"} border-[1.5px] rounded-[20px] p-5 flex flex-col relative overflow-hidden shadow-sm`}
+                    >
                       <div className="absolute top-0 right-0 w-24 h-24 rounded-bl-[100px] bg-[#8b5cf6]/5 pointer-events-none" />
                       <div className="flex items-center gap-3 mb-4 z-10">
-                        <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full shrink-0 bg-[#8b5cf6] text-white" style={{ fontFamily: "'Afacad', sans-serif" }}>exam</span>
-                        <span className={`text-[12px] font-bold ${subTextClass} tracking-wider uppercase`} style={{ fontFamily: "'Montserrat', sans-serif" }}>{alert.date}</span>
+                        <span
+                          className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full shrink-0 bg-[#8b5cf6] text-white"
+                          style={{ fontFamily: "'Afacad', sans-serif" }}
+                        >
+                          exam
+                        </span>
+                        <span
+                          className={`text-[12px] font-bold ${subTextClass} tracking-wider uppercase`}
+                          style={{ fontFamily: "'Montserrat', sans-serif" }}
+                        >
+                          {alert.date}
+                        </span>
                       </div>
-                      <span className={`text-[20px] font-black tracking-wide ${textClass} leading-tight mb-4 z-10`} style={{ fontFamily: "'Montserrat', sans-serif" }}>{alert.title}</span>
+                      <span
+                        className={`text-[20px] font-black tracking-wide ${textClass} leading-tight mb-4 z-10`}
+                        style={{ fontFamily: "'Montserrat', sans-serif" }}
+                      >
+                        {alert.title}
+                      </span>
                       <div className="flex flex-col gap-2.5 z-10">
-                        {alert.desc.split(" / ").map((sub: string, idx: number) => (
-                          <div key={idx} className={`flex items-start gap-3 ${isDark ? "bg-white/5 border-white/5" : "bg-white/50 border-[#111111]/5"} rounded-xl p-3 border`}>
-                            {alert.desc.includes("/") && <div className="mt-1.5 w-1.5 h-1.5 rounded-full shrink-0 bg-[#8b5cf6]" />}
-                            <span className={`text-[15px] font-bold ${isDark ? "text-white/80" : "text-[#111111]/80"} lowercase leading-snug`} style={{ fontFamily: "'Afacad', sans-serif" }}>{sub.trim()}</span>
-                          </div>
-                        ))}
+                        {alert.desc
+                          .split(" / ")
+                          .map((sub: string, idx: number) => (
+                            <div
+                              key={idx}
+                              className={`flex items-start gap-3 ${isDark ? "bg-white/5 border-white/5" : "bg-white/50 border-[#111111]/5"} rounded-xl p-3 border`}
+                            >
+                              {alert.desc.includes("/") && (
+                                <div className="mt-1.5 w-1.5 h-1.5 rounded-full shrink-0 bg-[#8b5cf6]" />
+                              )}
+                              <span
+                                className={`text-[15px] font-bold ${isDark ? "text-white/80" : "text-[#111111]/80"} lowercase leading-snug`}
+                                style={{ fontFamily: "'Afacad', sans-serif" }}
+                              >
+                                {sub.trim()}
+                              </span>
+                            </div>
+                          ))}
                       </div>
                     </motion.div>
                   ))
@@ -841,31 +1178,76 @@ export default function MinimalHomepage({
 
               <div className="flex flex-col gap-3">
                 <div className="flex items-center gap-3 w-full">
-                  <span className="text-[11px] font-bold lowercase tracking-[0.25em] text-[#FF4D4D] whitespace-nowrap" style={{ fontFamily: "'Montserrat', sans-serif" }}>upcoming breaks</span>
+                  <span
+                    className="text-[11px] font-bold lowercase tracking-[0.25em] text-[#FF4D4D] whitespace-nowrap"
+                    style={{ fontFamily: "'Montserrat', sans-serif" }}
+                  >
+                    upcoming breaks
+                  </span>
                   <div className="flex-1 h-[1.5px] bg-[#FF4D4D]/20 rounded-full" />
                 </div>
                 {upcomingBreaks.length === 0 ? (
-                  <motion.div variants={itemVariants} className="w-full flex flex-col items-center justify-center py-6 gap-2 opacity-30">
-                    <div className={`w-full h-px ${isDark ? "bg-white/10" : "bg-[#111111]/10"} rounded-full`} />
-                    <div className={`w-3/4 h-px ${isDark ? "bg-white/10" : "bg-[#111111]/10"} rounded-full`} />
-                    <div className={`w-1/2 h-px ${isDark ? "bg-white/10" : "bg-[#111111]/10"} rounded-full`} />
+                  <motion.div
+                    variants={itemVariants}
+                    className="w-full flex flex-col items-center justify-center py-6 gap-2 opacity-30"
+                  >
+                    <div
+                      className={`w-full h-px ${isDark ? "bg-white/10" : "bg-[#111111]/10"} rounded-full`}
+                    />
+                    <div
+                      className={`w-3/4 h-px ${isDark ? "bg-white/10" : "bg-[#111111]/10"} rounded-full`}
+                    />
+                    <div
+                      className={`w-1/2 h-px ${isDark ? "bg-white/10" : "bg-[#111111]/10"} rounded-full`}
+                    />
                   </motion.div>
                 ) : (
                   upcomingBreaks.map((alert) => (
-                    <motion.div key={alert.id} variants={itemVariants} className={`bg-gradient-to-br ${isDark ? "from-white/5 to-[#FF4D4D]/5 border-[#FF4D4D]/20" : "from-white to-[#FF4D4D]/5 border-[#FF4D4D]/10"} border-[1.5px] rounded-[20px] p-5 flex flex-col relative overflow-hidden shadow-sm`}>
+                    <motion.div
+                      key={alert.id}
+                      variants={itemVariants}
+                      className={`bg-gradient-to-br ${isDark ? "from-white/5 to-[#FF4D4D]/5 border-[#FF4D4D]/20" : "from-white to-[#FF4D4D]/5 border-[#FF4D4D]/10"} border-[1.5px] rounded-[20px] p-5 flex flex-col relative overflow-hidden shadow-sm`}
+                    >
                       <div className="absolute top-0 right-0 w-24 h-24 rounded-bl-[100px] bg-[#FF4D4D]/5 pointer-events-none" />
                       <div className="flex items-center gap-3 mb-4 z-10">
-                        <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full shrink-0 bg-[#FF4D4D] text-white" style={{ fontFamily: "'Afacad', sans-serif" }}>holiday</span>
-                        <span className={`text-[12px] font-bold ${subTextClass} tracking-wider uppercase`} style={{ fontFamily: "'Montserrat', sans-serif" }}>{alert.date}</span>
+                        <span
+                          className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full shrink-0 bg-[#FF4D4D] text-white"
+                          style={{ fontFamily: "'Afacad', sans-serif" }}
+                        >
+                          holiday
+                        </span>
+                        <span
+                          className={`text-[12px] font-bold ${subTextClass} tracking-wider uppercase`}
+                          style={{ fontFamily: "'Montserrat', sans-serif" }}
+                        >
+                          {alert.date}
+                        </span>
                       </div>
-                      <span className={`text-[20px] font-black tracking-wide ${textClass} leading-tight mb-4 z-10`} style={{ fontFamily: "'Montserrat', sans-serif" }}>{alert.title}</span>
+                      <span
+                        className={`text-[20px] font-black tracking-wide ${textClass} leading-tight mb-4 z-10`}
+                        style={{ fontFamily: "'Montserrat', sans-serif" }}
+                      >
+                        {alert.title}
+                      </span>
                       <div className="flex flex-col gap-2.5 z-10">
-                        {alert.desc.split(" / ").map((sub: string, idx: number) => (
-                          <div key={idx} className={`flex items-start gap-3 ${isDark ? "bg-white/5 border-white/5" : "bg-white/50 border-[#111111]/5"} rounded-xl p-3 border`}>
-                            {alert.desc.includes("/") && <div className="mt-1.5 w-1.5 h-1.5 rounded-full shrink-0 bg-[#FF4D4D]" />}
-                            <span className={`text-[15px] font-bold ${isDark ? "text-white/80" : "text-[#111111]/80"} lowercase leading-snug`} style={{ fontFamily: "'Afacad', sans-serif" }}>{sub.trim()}</span>
-                          </div>
-                        ))}
+                        {alert.desc
+                          .split(" / ")
+                          .map((sub: string, idx: number) => (
+                            <div
+                              key={idx}
+                              className={`flex items-start gap-3 ${isDark ? "bg-white/5 border-white/5" : "bg-white/50 border-[#111111]/5"} rounded-xl p-3 border`}
+                            >
+                              {alert.desc.includes("/") && (
+                                <div className="mt-1.5 w-1.5 h-1.5 rounded-full shrink-0 bg-[#FF4D4D]" />
+                              )}
+                              <span
+                                className={`text-[15px] font-bold ${isDark ? "text-white/80" : "text-[#111111]/80"} lowercase leading-snug`}
+                                style={{ fontFamily: "'Afacad', sans-serif" }}
+                              >
+                                {sub.trim()}
+                              </span>
+                            </div>
+                          ))}
                       </div>
                     </motion.div>
                   ))
@@ -873,9 +1255,15 @@ export default function MinimalHomepage({
               </div>
             </motion.div>
 
-            <div className={`mt-auto shrink-0 pt-4 ${isDark ? "bg-[#111111]" : "bg-white/80 backdrop-blur-sm"} border-t ${isDark ? "border-white/5" : "border-[#111111]/5"}`}>
-              <div className={`flex items-center gap-2 p-1.5 rounded-[20px] ${isDark ? "bg-white/5 border-white/10" : "bg-[#111111]/5 border-transparent"} border transition-colors focus-within:border-opacity-30`}>
-                <div className={`w-10 h-10 rounded-[14px] flex items-center justify-center ${isDark ? "bg-white/5 text-white/40" : "bg-white/50 text-[#111111]/40"} shrink-0`}>
+            <div
+              className={`mt-auto shrink-0 pt-4 ${isDark ? "bg-[#111111]" : "bg-white/80 backdrop-blur-sm"} border-t ${isDark ? "border-white/5" : "border-[#111111]/5"}`}
+            >
+              <div
+                className={`flex items-center gap-2 p-1.5 rounded-[20px] ${isDark ? "bg-white/5 border-white/10" : "bg-[#111111]/5 border-transparent"} border transition-colors focus-within:border-opacity-30`}
+              >
+                <div
+                  className={`w-10 h-10 rounded-[14px] flex items-center justify-center ${isDark ? "bg-white/5 text-white/40" : "bg-white/50 text-[#111111]/40"} shrink-0`}
+                >
                   <Lock size={18} strokeWidth={2.5} />
                 </div>
                 <input
@@ -885,7 +1273,10 @@ export default function MinimalHomepage({
                   onKeyDown={(e) => e.key === "Enter" && handleAddNote()}
                   placeholder="add a private note..."
                   className={`flex-1 bg-transparent outline-none px-2 text-[14px] font-bold placeholder:font-medium placeholder:opacity-25 lowercase ${isDark ? "text-white focus:text-white" : "text-[#111111] focus:text-[#111111]"}`}
-                  style={{ fontFamily: "'Afacad', sans-serif", colorScheme: isDark ? "dark" : "light" }}
+                  style={{
+                    fontFamily: "'Afacad', sans-serif",
+                    colorScheme: isDark ? "dark" : "light",
+                  }}
                 />
                 <button
                   onClick={handleAddNote}

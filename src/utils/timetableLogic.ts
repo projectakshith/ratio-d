@@ -74,9 +74,7 @@ export const processSchedule = (
         details.type?.toLowerCase() === "practical";
 
       return {
-        id:
-          details.id ||
-          `sch-${activeDay}-${idx}-${cleanCode}`,
+        id: details.id || `sch-${activeDay}-${idx}-${cleanCode}`,
         code: getAcronym(fullName) || cleanCode,
         name: fullName.toLowerCase(),
         time: details.time,

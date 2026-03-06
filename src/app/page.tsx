@@ -21,7 +21,10 @@ export default function Home() {
 
   useEffect(() => {
     EncryptionUtils.cleanOldKeys();
-    const isStandalone = typeof window !== "undefined" && (window.matchMedia("(display-mode: standalone)").matches || (window.navigator as any).standalone);
+    const isStandalone =
+      typeof window !== "undefined" &&
+      (window.matchMedia("(display-mode: standalone)").matches ||
+        (window.navigator as any).standalone);
     const cachedData = localStorage.getItem("ratio_data");
     const cachedName = localStorage.getItem("ratiod_custom_name");
     if (cachedName) setCustomDisplayName(cachedName);
@@ -64,22 +67,29 @@ export default function Home() {
     setIsUpdating(true);
     try {
       const savedCookies = EncryptionUtils.loadDecrypted("academia_cookies");
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/refresh`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          username: creds.username,
-          password: creds.password,
-          cookies: savedCookies,
-        }),
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/refresh`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            username: creds.username,
+            password: creds.password,
+            cookies: savedCookies,
+          }),
+        },
+      );
       const result = await response.json();
       if (!result.success) throw new Error("Refresh failed");
       if (result.cookies) {
         EncryptionUtils.saveEncrypted("academia_cookies", result.cookies);
         delete result.cookies;
       }
-      const updatedData = { ...existingData, attendance: result.attendance, marks: result.marks };
+      const updatedData = {
+        ...existingData,
+        attendance: result.attendance,
+        marks: result.marks,
+      };
       setUserData(updatedData);
       localStorage.setItem("ratio_data", JSON.stringify(updatedData));
       console.log("[SYNC] Data updated in localStorage");
@@ -143,45 +153,88 @@ export default function Home() {
     <main className="bg-[#F7F7F7] min-h-[100dvh] w-full relative overflow-hidden">
       <AnimatePresence>
         {isOffline && (
-          <motion.div initial={{ y: "-100%" }} animate={{ y: showBigOffline ? "0%" : "-100%" }} exit={{ y: "-100%" }} transition={{ type: "spring", stiffness: 300, damping: 25 }} className="fixed top-0 left-0 right-0 z-[9999] flex flex-col items-center pointer-events-none">
+          <motion.div
+            initial={{ y: "-100%" }}
+            animate={{ y: showBigOffline ? "0%" : "-100%" }}
+            exit={{ y: "-100%" }}
+            transition={{ type: "spring", stiffness: 300, damping: 25 }}
+            className="fixed top-0 left-0 right-0 z-[9999] flex flex-col items-center pointer-events-none"
+          >
             <div className="bg-[#FF4D4D] w-full py-4 px-6 flex flex-col items-center justify-center shadow-xl relative overflow-hidden">
               <div className="absolute top-0 left-0 w-full h-1 bg-black/20" />
               <div className="flex flex-col items-center gap-2 mt-4">
-                <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-md mb-1"><WifiOff size={24} className="text-white" strokeWidth={2.5} /></div>
-                <span className="text-3xl font-black lowercase tracking-widest text-white leading-none" style={{ fontFamily: "Aonic, sans-serif" }}>Offline</span>
-                <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/80 max-w-[250px] text-center leading-snug">You are viewing cached data.</span>
+                <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-md mb-1">
+                  <WifiOff size={24} className="text-white" strokeWidth={2.5} />
+                </div>
+                <span
+                  className="text-3xl font-black lowercase tracking-widest text-white leading-none"
+                  style={{ fontFamily: "Aonic, sans-serif" }}
+                >
+                  Offline
+                </span>
+                <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/80 max-w-[250px] text-center leading-snug">
+                  You are viewing cached data.
+                </span>
               </div>
             </div>
-            <div className="bg-[#FF4D4D] px-6 py-2 rounded-b-3xl shadow-lg mt-0 flex justify-center items-center"><span className="text-[10px] font-bold uppercase tracking-widest text-white/90 flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />waiting for connection</span></div>
+            <div className="bg-[#FF4D4D] px-6 py-2 rounded-b-3xl shadow-lg mt-0 flex justify-center items-center">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-white/90 flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                waiting for connection
+              </span>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      <div className={`w-full h-full ${view === "loading" ? "opacity-0" : "opacity-100"}`}>
+      <div
+        className={`w-full h-full ${view === "loading" ? "opacity-0" : "opacity-100"}`}
+      >
         {view === "onboarding" && (
           <>
-            <button onClick={handleDevBypass} className="absolute top-0 right-0 w-24 h-24 z-[99] opacity-0" aria-label="Developer Bypass" />
+            <button
+              onClick={handleDevBypass}
+              className="absolute top-0 right-0 w-24 h-24 z-[99] opacity-0"
+              aria-label="Developer Bypass"
+            />
             <OnboardingPage />
           </>
         )}
-        {view === "login" && <LoginPage onLogin={(data) => { setUserData(data); setView("app"); localStorage.setItem("ratio_data", JSON.stringify(data)); }} />}
-        {view === "app" && <AcademiaApp data={userData} onLogout={handleLogout} customDisplayName={customDisplayName} onUpdateName={handleUpdateName} isUpdating={isUpdating} startEntrance={startEntrance} />}
+        {view === "login" && (
+          <LoginPage
+            onLogin={(data) => {
+              setUserData(data);
+              setView("app");
+              localStorage.setItem("ratio_data", JSON.stringify(data));
+            }}
+          />
+        )}
+        {view === "app" && (
+          <AcademiaApp
+            data={userData}
+            onLogout={handleLogout}
+            customDisplayName={customDisplayName}
+            onUpdateName={handleUpdateName}
+            isUpdating={isUpdating}
+            startEntrance={startEntrance}
+          />
+        )}
       </div>
 
       <AnimatePresence>
         {showSplash && (
-          <motion.div 
-            key="splash" 
-            initial={{ opacity: 1 }} 
-            exit={{ y: "-100%" }} 
-            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }} 
+          <motion.div
+            key="splash"
+            initial={{ opacity: 1 }}
+            exit={{ y: "-100%" }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
             className="fixed inset-0 bg-[#0c30ff] flex items-center justify-center z-[100]"
           >
-            <motion.h1 
-              initial={{ opacity: 0, scale: 0.8, y: 20 }} 
-              animate={{ opacity: 1, scale: 1, y: 0 }} 
-              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }} 
-              className="text-5xl md:text-7xl lowercase tracking-tighter text-[#ceff1c]" 
+            <motion.h1
+              initial={{ opacity: 0, scale: 0.8, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+              className="text-5xl md:text-7xl lowercase tracking-tighter text-[#ceff1c]"
               style={{ fontFamily: "Urbanosta, sans-serif" }}
             >
               ratio'd

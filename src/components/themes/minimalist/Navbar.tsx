@@ -16,7 +16,9 @@ export default function Navbar({ activeTab, setActiveTab, isDark }: any) {
   const inactiveText = isDark ? "text-white/30" : "text-[#111111]/30";
 
   return (
-    <nav className={`px-6 py-8 flex justify-between items-center ${bgClass} border-t ${borderClass}`}>
+    <nav
+      className={`px-6 py-8 flex justify-between items-center ${bgClass} border-t ${borderClass}`}
+    >
       {tabs.map((tab) => (
         <button
           key={tab.id}
