@@ -26,7 +26,7 @@ export default function AcademiaApp({
   onUpdateName,
   startEntrance,
 }: any) {
-  const [theme, setTheme] = useState<"brutalist" | "minimalist">("minimalist");
+  const [theme, setTheme] = useState<string>("minimalist_light");
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const academia = useAcademiaData(data);
@@ -34,25 +34,22 @@ export default function AcademiaApp({
   useEffect(() => {
     try {
       const savedTheme = localStorage.getItem("ratiod_theme");
-      if (savedTheme === "brutalist") {
-        setTheme("brutalist");
+      if (savedTheme) {
+        setTheme(savedTheme);
       } else {
-        setTheme("minimalist");
+        setTheme("minimalist_light");
       }
     } catch (error) {
-      setTheme("minimalist");
+      setTheme("minimalist_light");
     } finally {
       setMounted(true);
     }
   }, []);
 
   const handleThemeChange = (newTheme: string) => {
-    const exactTheme = newTheme.toLowerCase().includes("brutal")
-      ? "brutalist"
-      : "minimalist";
-    setTheme(exactTheme);
+    setTheme(newTheme);
     try {
-      localStorage.setItem("ratiod_theme", exactTheme);
+      localStorage.setItem("ratiod_theme", newTheme);
     } catch (error) {}
     setIsSettingsOpen(false);
   };
@@ -61,6 +58,9 @@ export default function AcademiaApp({
     return <main className="h-[100dvh] w-full bg-[#F7F7F7]" />;
   }
 
+  const isDark = theme === "minimalist_dark";
+  const themeMode = theme.startsWith("minimalist") ? "minimalist" : "brutalist";
+
   const sharedProps = {
     data,
     academia,
@@ -68,12 +68,13 @@ export default function AcademiaApp({
     customDisplayName,
     onUpdateName,
     startEntrance,
+    isDark,
     onOpenSettings: () => setIsSettingsOpen(true),
   };
 
   return (
     <main className="h-[100dvh] w-full bg-[#F7F7F7] overflow-hidden relative">
-      {theme === "brutalist" ? (
+      {themeMode === "brutalist" ? (
         <BrutalistTheme {...sharedProps} />
       ) : (
         <MinimalistTheme {...sharedProps} />
@@ -92,6 +93,7 @@ export default function AcademiaApp({
             onSelectTheme={handleThemeChange}
             currentTheme={theme}
             onTestNotification={academia?.triggerTestClass}
+            isDark={isDark}
           />
         )}
       </AnimatePresence>

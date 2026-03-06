@@ -82,6 +82,7 @@ export default function Home() {
       const updatedData = { ...existingData, attendance: result.attendance, marks: result.marks };
       setUserData(updatedData);
       localStorage.setItem("ratio_data", JSON.stringify(updatedData));
+      console.log("[SYNC] Data updated in localStorage");
       return updatedData;
     } catch (err) {
       return existingData;

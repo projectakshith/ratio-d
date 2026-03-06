@@ -13,6 +13,7 @@ export default function MinimalTheme(props: any) {
   const [isAlertsOpen, setIsAlertsOpen] = useState(false);
   const [isSwipeDisabled, setIsSwipeDisabled] = useState(false);
   const { activeTab, direction } = tabState;
+  const isDark = props.isDark;
 
   const tabs = ["marks", "attendance", "home", "timetable", "calendar"];
 
@@ -85,9 +86,11 @@ export default function MinimalTheme(props: any) {
     }),
   };
 
+  const baseBg = isDark ? "bg-[#111111]" : "bg-[#F7F7F7]";
+
   return (
     <div
-      className="h-[100dvh] w-full bg-[#F7F7F7] flex flex-col overflow-hidden relative"
+      className={`h-[100dvh] w-full ${baseBg} flex flex-col overflow-hidden relative`}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
@@ -114,6 +117,7 @@ export default function MinimalTheme(props: any) {
                 data={props.data}
                 academia={props.academia}
                 setIsSwipeDisabled={setIsSwipeDisabled}
+                isDark={isDark}
               />
             )}
             {activeTab === "attendance" && (
@@ -121,6 +125,7 @@ export default function MinimalTheme(props: any) {
                 data={props.data}
                 academia={props.academia}
                 setIsSwipeDisabled={setIsSwipeDisabled}
+                isDark={isDark}
               />
             )}
             {activeTab === "home" && (
@@ -136,6 +141,7 @@ export default function MinimalTheme(props: any) {
                   setIsAlertsOpen={setIsAlertsOpen}
                   setIsSwipeDisabled={setIsSwipeDisabled}
                   startEntrance={props.startEntrance}
+                  isDark={isDark}
                 />
               </div>
             )}
@@ -145,6 +151,7 @@ export default function MinimalTheme(props: any) {
                 academia={props.academia}
                 setIsSwipeDisabled={setIsSwipeDisabled}
                 startEntrance={props.startEntrance}
+                isDark={isDark}
               />
             )}
             {activeTab === "calendar" && (
@@ -152,6 +159,7 @@ export default function MinimalTheme(props: any) {
                 data={props.data}
                 academia={props.academia}
                 setIsSwipeDisabled={setIsSwipeDisabled}
+                isDark={isDark}
               />
             )}
           </motion.div>
@@ -167,7 +175,7 @@ export default function MinimalTheme(props: any) {
             transition={{ type: "spring", stiffness: 400, damping: 30 }}
             className="absolute bottom-0 left-0 w-full z-50"
           >
-            <Navbar activeTab={activeTab} setActiveTab={handleTabChange} />
+            <Navbar activeTab={activeTab} setActiveTab={handleTabChange} isDark={isDark} />
           </motion.div>
         )}
       </AnimatePresence>

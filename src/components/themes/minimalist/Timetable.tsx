@@ -36,6 +36,7 @@ export default function MinimalTimetable({
   academia,
   setIsSwipeDisabled,
   startEntrance,
+  isDark,
 }: any) {
   const [mounted, setMounted] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -225,6 +226,12 @@ export default function MinimalTimetable({
   if (!mounted) return null;
   const overview = getDayOverview(currentSchedule);
 
+  const bgClass = isDark ? "bg-[#111111]" : "bg-[#F7F7F7]";
+  const textClass = isDark ? "text-white" : "text-[#111111]";
+  const subTextClass = isDark ? "text-white/40" : "text-[#111111]/40";
+  const cardBg = isDark ? "bg-white/5" : "bg-white";
+  const cardBorder = isDark ? "border-white/10" : "border-[#111111]/5";
+
   return (
     <>
       <style
@@ -233,23 +240,23 @@ export default function MinimalTimetable({
           .no-scrollbar::-webkit-scrollbar { display: none; }
           .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
           .break-dotted {
-            background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='20' ry='20' stroke='%23111111' stroke-width='2' stroke-dasharray='6%2c 12' stroke-dashoffset='0' stroke-linecap='round' opacity='0.15'/%3e%3c/svg%3e");
+            background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='20' ry='20' stroke='%23${isDark ? "ffffff20" : "111111"}' stroke-width='2' stroke-dasharray='6%2c 12' stroke-dashoffset='0' stroke-linecap='round' opacity='0.15'/%3e%3c/svg%3e");
             border-radius: 20px;
           }
         `,
         }}
       />
 
-      <div className="absolute inset-0 bg-[#F7F7F7]">
+      <div className={`absolute inset-0 ${bgClass}`}>
         <div
           ref={scrollContainerRef}
           className="h-full w-full overflow-y-auto no-scrollbar px-6 pt-10 pb-[280px] flex flex-col relative z-10"
         >
           {isHoliday && (
-            <div className="w-full bg-[#85a818]/10 border-[1.5px] border-[#85a818]/30 rounded-[16px] p-3 mb-6 flex items-center justify-center gap-2 shrink-0">
+            <div className={`w-full ${isDark ? "bg-[#85a818]/5 border-[#85a818]/20" : "bg-[#85a818]/10 border-[#85a818]/30"} border-[1.5px] rounded-[16px] p-3 mb-6 flex items-center justify-center gap-2 shrink-0`}>
               <span className="text-xl">🌴</span>
               <span
-                className="text-[13px] font-bold text-[#4d6600] lowercase tracking-wide"
+                className={`text-[13px] font-bold ${isDark ? "text-[#85a818]" : "text-[#4d6600]"} lowercase tracking-wide`}
                 style={{ fontFamily: "'Afacad', sans-serif" }}
               >
                 holiday today!
@@ -259,14 +266,14 @@ export default function MinimalTimetable({
 
           <div className="w-full flex flex-col items-center mt-2 mb-8 shrink-0 relative">
             <span
-              className={`text-[12px] font-bold lowercase tracking-[0.3em] mb-3 text-center transition-colors ${isViewingToday ? "text-[#111111]/40" : (isViewingNext ? "text-[#85a818]" : "text-[#111111]/40")}`}
+              className={`text-[12px] font-bold lowercase tracking-[0.3em] mb-3 text-center transition-colors ${isViewingToday ? subTextClass : (isViewingNext ? "text-[#85a818]" : subTextClass)}`}
               style={{ fontFamily: "'Montserrat', sans-serif" }}
             >
               {isViewingToday ? "current day order" : (isViewingNext ? "upcoming day order" : "selected day order")}
             </span>
             <div className="flex items-baseline gap-2">
               <span
-                className="text-[7.5rem] leading-[0.8] font-black tracking-tighter text-[#111111] text-center"
+                className={`text-[7.5rem] leading-[0.8] font-black tracking-tighter ${textClass} text-center`}
                 style={{ fontFamily: "'Montserrat', sans-serif" }}
               >
                 {String(activeDay).padStart(2, "0")}
@@ -279,29 +286,29 @@ export default function MinimalTimetable({
               onClick={() => setIsAddingClass(true)}
               className="w-full relative group active:scale-[0.98] transition-all duration-200"
             >
-              <div className="absolute inset-0 bg-[#111111] rounded-[24px] translate-y-1.5 transition-transform group-hover:translate-y-2" />
-              <div className="relative w-full border-[1.5px] border-[#111111] rounded-[24px] p-4 flex items-center justify-between bg-white transition-transform group-hover:-translate-y-0.5 group-active:translate-y-1">
+              <div className={`absolute inset-0 ${isDark ? "bg-white" : "bg-[#111111]"} rounded-[24px] translate-y-1.5 transition-transform group-hover:translate-y-2`} />
+              <div className={`relative w-full border-[1.5px] ${isDark ? "border-white bg-[#111111] text-white" : "border-[#111111] bg-white text-[#111111]"} rounded-[24px] p-4 flex items-center justify-between transition-transform group-hover:-translate-y-0.5 group-active:translate-y-1`}>
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-[#111111]/5 flex items-center justify-center">
-                    <Plus size={20} strokeWidth={2.5} className="text-[#111111]" />
+                  <div className={`w-10 h-10 rounded-full ${isDark ? "bg-white/5" : "bg-[#111111]/5"} flex items-center justify-center`}>
+                    <Plus size={20} strokeWidth={2.5} className={isDark ? "text-white" : "text-[#111111]"} />
                   </div>
                   <div className="flex flex-col items-start">
                     <span
-                      className="text-[14px] font-black uppercase tracking-widest text-[#111111] leading-none"
+                      className="text-[14px] font-black uppercase tracking-widest leading-none"
                       style={{ fontFamily: "'Montserrat', sans-serif" }}
                     >
                       CUSTOM CLASS
                     </span>
                     <span
-                      className="text-[10px] font-bold lowercase tracking-wider text-[#111111]/40 mt-1"
+                      className={`text-[10px] font-bold lowercase tracking-wider ${isDark ? "text-white/40" : "text-[#111111]/40"} mt-1`}
                       style={{ fontFamily: "'Afacad', sans-serif" }}
                     >
                       add to your schedule
                     </span>
                   </div>
                 </div>
-                <div className="w-9 h-9 rounded-full bg-[#F7F7F7] border border-[#111111] flex items-center justify-center shadow-[2px_2px_0px_#111111]">
-                  <ChevronRight size={20} strokeWidth={3} className="text-[#111111]" />
+                <div className={`w-9 h-9 rounded-full ${isDark ? "bg-white/5 border-white/20" : "bg-[#F7F7F7] border-[#111111]"} border flex items-center justify-center shadow-[2px_2px_0px_${isDark ? "#ffffff" : "#111111"}]`}>
+                  <ChevronRight size={20} strokeWidth={3} className={isDark ? "text-white" : "text-[#111111]"} />
                 </div>
               </div>
             </button>
@@ -318,30 +325,30 @@ export default function MinimalTimetable({
             >
               <motion.div
                 variants={itemVariants}
-                className="w-full bg-[#F2FFDB] border-[1.5px] border-[#85a818]/30 rounded-[24px] p-5 mb-8 flex items-center justify-between shadow-sm"
+                className={`w-full ${isDark ? "bg-[#85a818]/5 border-[#85a818]/20" : "bg-[#F2FFDB] border-[#85a818]/30"} border-[1.5px] rounded-[24px] p-5 mb-8 flex items-center justify-between shadow-sm`}
               >
                 <div className="flex flex-col">
                   <span
-                    className="text-[10px] font-bold lowercase tracking-[0.2em] text-[#4d6600]/60 mb-1"
+                    className={`text-[10px] font-bold lowercase tracking-[0.2em] ${isDark ? "text-[#85a818]/60" : "text-[#4d6600]/60"} mb-1`}
                     style={{ fontFamily: "'Afacad', sans-serif" }}
                   >
                     day overview
                   </span>
                   <div className="flex items-baseline gap-2">
                     <span
-                      className="text-[24px] font-black tracking-tighter text-[#4d6600]"
+                      className={`text-[24px] font-black tracking-tighter ${isDark ? "text-[#85a818]" : "text-[#4d6600]"}`}
                       style={{ fontFamily: "'Montserrat', sans-serif" }}
                     >
                       {overview.start}
                     </span>
                     <span
-                      className="text-[14px] font-bold text-[#4d6600]/40"
+                      className={`text-[14px] font-bold ${isDark ? "text-[#85a818]/40" : "text-[#4d6600]/40"}`}
                       style={{ fontFamily: "'Montserrat', sans-serif" }}
                     >
                       to
                     </span>
                     <span
-                      className="text-[24px] font-black tracking-tighter text-[#4d6600]"
+                      className={`text-[24px] font-black tracking-tighter ${isDark ? "text-[#85a818]" : "text-[#4d6600]"}`}
                       style={{ fontFamily: "'Montserrat', sans-serif" }}
                     >
                       {overview.end}
@@ -350,13 +357,13 @@ export default function MinimalTimetable({
                 </div>
                 <div className="flex flex-col items-end">
                   <span
-                    className="text-[32px] leading-[0.8] font-black text-[#4d6600]"
+                    className={`text-[32px] leading-[0.8] font-black ${isDark ? "text-[#85a818]" : "text-[#4d6600]"}`}
                     style={{ fontFamily: "'Montserrat', sans-serif" }}
                   >
                     {overview.count}
                   </span>
                   <span
-                    className="text-[10px] font-bold uppercase tracking-widest text-[#4d6600]/60 mt-1.5"
+                    className={`text-[10px] font-bold uppercase tracking-widest ${isDark ? "text-[#85a818]/60" : "text-[#4d6600]/60"} mt-1.5`}
                     style={{ fontFamily: "'Afacad', sans-serif" }}
                   >
                     classes
@@ -365,7 +372,7 @@ export default function MinimalTimetable({
               </motion.div>
 
               <div className="flex flex-col gap-4 w-full relative">
-                <div className="absolute left-[23px] top-6 bottom-6 w-[2px] bg-[#111111]/5 rounded-full z-0" />
+                <div className={`absolute left-[23px] top-6 bottom-6 w-[2px] ${isDark ? "bg-white/5" : "bg-[#111111]/5"} rounded-full z-0`} />
 
                 {currentSchedule.map((item) => {
                   if (item.type === "break") {
@@ -376,17 +383,17 @@ export default function MinimalTimetable({
                         className="flex items-center gap-4 w-full z-10"
                       >
                         <div className="w-12 flex justify-center shrink-0">
-                          <div className="w-2.5 h-2.5 rounded-full bg-[#111111]/10 ring-4 ring-[#F7F7F7]" />
+                          <div className={`w-2.5 h-2.5 rounded-full ${isDark ? "bg-white/10" : "bg-[#111111]/10"} ring-4 ${isDark ? "ring-[#111111]" : "ring-[#F7F7F7]"}`} />
                         </div>
                         <div className="flex-1 break-dotted p-4 flex items-center justify-between">
                           <span
-                            className="text-[14px] font-bold lowercase tracking-widest text-[#111111]/40"
+                            className={`text-[14px] font-bold lowercase tracking-widest ${isDark ? "text-white/20" : "text-[#111111]/40"}`}
                             style={{ fontFamily: "'Afacad', sans-serif" }}
                           >
                             {item.title}
                           </span>
                           <span
-                            className="text-[11px] font-bold tracking-widest text-[#111111]/40"
+                            className={`text-[11px] font-bold tracking-widest ${isDark ? "text-white/20" : "text-[#111111]/40"}`}
                             style={{ fontFamily: "'Montserrat', sans-serif" }}
                           >
                             {item.time}
@@ -398,21 +405,21 @@ export default function MinimalTimetable({
 
                   const isLab = item.type === "lab";
                   const labTheme = isLab
-                    ? "border-[#0EA5E9]/20 bg-[#E0F2FE]/50"
-                    : "border-[#111111]/10 bg-white";
+                    ? (isDark ? "border-[#0EA5E9]/20 bg-[#0EA5E9]/5" : "border-[#0EA5E9]/20 bg-[#E0F2FE]/50")
+                    : `${cardBg} ${cardBorder}`;
                   const isActuallyCurrent = item.isCurrent && isViewingToday;
 
                   const currentTheme = isActuallyCurrent
-                    ? "bg-[#111111] border-transparent shadow-lg scale-[1.02] transform-gpu"
+                    ? (isDark ? "bg-white border-transparent shadow-lg scale-[1.02] transform-gpu" : "bg-[#111111] border-transparent shadow-lg scale-[1.02] transform-gpu")
                     : labTheme;
                   const textTheme = isActuallyCurrent
-                    ? "text-white"
-                    : "text-[#111111]";
+                    ? (isDark ? "text-[#111111]" : "text-white")
+                    : textClass;
                   const subTextTheme = isActuallyCurrent
-                    ? "text-white/60"
+                    ? (isDark ? "text-[#111111]/60" : "text-white/60")
                     : isLab
-                      ? "text-[#111111]/60"
-                      : "text-[#111111]/50";
+                      ? (isDark ? "text-[#0ea5e9]/60" : "text-[#111111]/60")
+                      : subTextClass;
 
                   return (
                     <motion.div
@@ -425,7 +432,7 @@ export default function MinimalTimetable({
                     >
                       <div className="w-12 flex justify-center pt-6 shrink-0 relative">
                         <div
-                          className={`w-3.5 h-3.5 rounded-full ring-4 ring-[#F7F7F7] z-10 ${isActuallyCurrent ? "bg-[#85a818] animate-pulse shadow-[0_0_12px_rgba(133,168,24,0.8)]" : isLab ? "bg-[#0EA5E9]" : "bg-[#111111]"}`}
+                          className={`w-3.5 h-3.5 rounded-full ring-4 ${isDark ? "ring-[#111111]" : "ring-[#F7F7F7]"} z-10 ${isActuallyCurrent ? "bg-[#85a818] animate-pulse shadow-[0_0_12px_rgba(133,168,24,0.8)]" : isLab ? "bg-[#0EA5E9]" : (isDark ? "bg-white/20" : "bg-[#111111]")}`}
                         />
                         {isActuallyCurrent && (
                           <div className="absolute top-6 w-3.5 h-3.5 rounded-full bg-[#85a818] animate-ping opacity-50" />
@@ -440,7 +447,7 @@ export default function MinimalTimetable({
                             onClick={() =>
                               handleDeleteCustom(activeDay, item.time)
                             }
-                            className="absolute top-3 right-3 w-8 h-8 bg-[#FF4D4D]/10 text-[#FF4D4D] rounded-full flex items-center justify-center hover:bg-[#FF4D4D]/20 active:scale-95 transition-all z-20"
+                            className={`absolute top-3 right-3 w-8 h-8 ${isDark ? "bg-[#FF4D4D]/5" : "bg-[#FF4D4D]/10"} text-[#FF4D4D] rounded-full flex items-center justify-center hover:bg-[#FF4D4D]/20 active:scale-95 transition-all z-20`}
                           >
                             <X size={16} strokeWidth={2.5} />
                           </button>
@@ -448,7 +455,7 @@ export default function MinimalTimetable({
 
                         <div className="flex justify-between items-start mb-4 pr-10">
                           <div
-                            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-[10px] ${isActuallyCurrent ? "bg-white/10" : isLab ? "bg-[#0EA5E9]/10" : "bg-[#F7F7F7]"}`}
+                            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-[10px] ${isActuallyCurrent ? (isDark ? "bg-[#111111]/5" : "bg-white/10") : isLab ? (isDark ? "bg-[#0EA5E9]/10" : "bg-[#0EA5E9]/10") : (isDark ? "bg-white/5" : "bg-[#F7F7F7]")}`}
                           >
                             <Clock
                               size={12}
@@ -457,7 +464,7 @@ export default function MinimalTimetable({
                                   ? "text-[#85a818]"
                                   : isLab
                                     ? "text-[#0EA5E9]"
-                                    : "text-[#111111]/50"
+                                    : subTextClass
                               }
                             />
                             <span
@@ -479,7 +486,7 @@ export default function MinimalTimetable({
                             )}
                             {isActuallyCurrent && (
                               <span
-                                className="text-[9px] font-bold uppercase tracking-[0.25em] text-white bg-[#85a818] px-2 py-1 rounded-md shrink-0"
+                                className={`text-[9px] font-bold uppercase tracking-[0.25em] ${isDark ? "text-[#111111] bg-[#85a818]" : "text-white bg-[#85a818]"} px-2 py-1 rounded-md shrink-0`}
                                 style={{ fontFamily: "'Afacad', sans-serif" }}
                               >
                                 live
@@ -502,7 +509,7 @@ export default function MinimalTimetable({
                         </span>
 
                         <div
-                          className={`flex items-center justify-between pt-4 mt-auto border-t ${isActuallyCurrent ? "border-white/10" : isLab ? "border-[#0EA5E9]/20" : "border-[#111111]/5"}`}
+                          className={`flex items-center justify-between pt-4 mt-auto border-t ${isActuallyCurrent ? (isDark ? "border-[#111111]/5" : "border-white/10") : isLab ? "border-[#0EA5E9]/20" : (isDark ? "border-white/5" : "border-[#111111]/5")}`}
                         >
                           <div className="flex items-center gap-3 flex-wrap">
                             <div className="flex items-center gap-1.5">
@@ -510,10 +517,10 @@ export default function MinimalTimetable({
                                 size={12}
                                 className={
                                   isActuallyCurrent
-                                    ? "text-white/40"
+                                    ? (isDark ? "text-[#111111]/40" : "text-white/40")
                                     : isLab
                                       ? "text-[#0EA5E9]/50"
-                                      : "text-[#111111]/30"
+                                      : subTextClass
                                 }
                               />
                               <span
@@ -526,21 +533,21 @@ export default function MinimalTimetable({
                               </span>
                             </div>
                             <div
-                              className={`w-1 h-1 rounded-full ${isActuallyCurrent ? "bg-white/20" : isLab ? "bg-[#0EA5E9]/30" : "bg-[#111111]/20"}`}
+                              className={`w-1 h-1 rounded-full ${isActuallyCurrent ? (isDark ? "bg-[#111111]/20" : "bg-white/20") : isLab ? "bg-[#0EA5E9]/30" : (isDark ? "bg-white/10" : "bg-[#111111]/20")}`}
                             />
                             <div className="flex items-center gap-1.5">
                               <User
                                 size={12}
                                 className={
                                   isActuallyCurrent
-                                    ? "text-white/40"
+                                    ? (isDark ? "text-[#111111]/40" : "text-white/40")
                                     : isLab
                                       ? "text-[#0EA5E9]/50"
-                                      : "text-[#111111]/30"
+                                      : subTextClass
                                 }
                               />
                               <span
-                                className={`text-[11px] font-bold lowercase tracking-wider ${isActuallyCurrent ? "text-white/80" : isLab ? "text-[#111111]" : "text-[#111111]/70"}`}
+                                className={`text-[11px] font-bold lowercase tracking-wider ${isActuallyCurrent ? (isDark ? "text-[#111111]/80" : "text-white/80") : isLab ? textClass : subTextClass}`}
                                 style={{ fontFamily: "'Afacad', sans-serif" }}
                               >
                                 {item.faculty}
@@ -557,14 +564,14 @@ export default function MinimalTimetable({
           </AnimatePresence>
         </div>
 
-        <div className="fixed bottom-[85px] left-1/2 -translate-x-1/2 bg-[#111111]/95 backdrop-blur-md p-1.5 pr-2 rounded-full flex items-center gap-1 z-40 shadow-[0_8px_32px_rgba(17,17,17,0.3)] border border-white/10">
+        <div className={`fixed bottom-[85px] left-1/2 -translate-x-1/2 ${isDark ? "bg-white/10" : "bg-[#111111]/95"} backdrop-blur-md p-1.5 pr-2 rounded-full flex items-center gap-1 z-40 shadow-[0_8px_32px_rgba(0,0,0,0.3)] border ${isDark ? "border-white/20" : "border-white/10"}`}>
           <span
-            className="text-[11px] font-bold text-white/40 ml-3 mr-1 tracking-widest"
+            className={`text-[11px] font-bold ${isDark ? "text-white/60" : "text-white/40"} ml-3 mr-1 tracking-widest`}
             style={{ fontFamily: "'Montserrat', sans-serif" }}
           >
             DO
           </span>
-          <div className="w-[1.5px] h-5 bg-white/20 mx-1 rounded-full" />
+          <div className={`w-[1.5px] h-5 ${isDark ? "bg-white/20" : "bg-white/20"} mx-1 rounded-full`} />
           {[1, 2, 3, 4, 5].map((day) => (
             <button
               key={day}
@@ -572,7 +579,7 @@ export default function MinimalTimetable({
               className={`w-10 h-10 flex items-center justify-center rounded-full transition-all duration-300 ${
                 activeDay === day
                   ? "bg-[#85a818] text-white scale-105 shadow-[0_0_12px_rgba(133,168,24,0.4)]"
-                  : "bg-transparent text-white/40 hover:text-white hover:bg-white/10"
+                  : `bg-transparent ${isDark ? "text-white/60" : "text-white/40"} hover:text-white hover:bg-white/10`
               }`}
             >
               <span
@@ -585,11 +592,11 @@ export default function MinimalTimetable({
           ))}
         </div>
 
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-[#F7F7F7] via-[#F7F7F7]/95 to-transparent px-6 pt-24 pb-[30px] z-20 flex justify-between items-end pointer-events-none">
+        <div className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t ${isDark ? "from-[#111111] via-[#111111]/95" : "from-[#F7F7F7] via-[#F7F7F7]/95"} to-transparent px-6 pt-24 pb-[30px] z-20 flex justify-between items-end pointer-events-none`}>
           {"timetable".split("").map((char, i) => (
             <span
               key={i}
-              className="text-[3.2rem] leading-[0.75] lowercase text-[#111111]"
+              className={`text-[3.2rem] leading-[0.75] lowercase ${textClass}`}
               style={{ fontFamily: "'Afacad', sans-serif", fontWeight: 400 }}
             >
               {char}
@@ -605,7 +612,7 @@ export default function MinimalTimetable({
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ duration: 0.4, ease: [0.25, 1, 0.5, 1] }}
-            className="fixed inset-0 bg-[#111111] z-[60] flex flex-col px-6 pt-10 pb-6 overflow-hidden"
+            className={`fixed inset-0 ${isDark ? "bg-[#111111]" : "bg-[#111111]"} z-[60] flex flex-col px-6 pt-10 pb-6 overflow-hidden`}
           >
             <div className="flex justify-between items-start w-full shrink-0 mb-10">
               <div className="flex flex-col">
