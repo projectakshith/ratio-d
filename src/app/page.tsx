@@ -60,6 +60,7 @@ export default function Home() {
   };
 
   const refreshData = async (creds: any, existingData: any) => {
+    if (!creds || !existingData || isUpdating) return;
     setIsUpdating(true);
     try {
       const savedCookies = EncryptionUtils.loadDecrypted("academia_cookies");
@@ -91,28 +92,49 @@ export default function Home() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+
+    const triggerSync = () => {
+      if (view === "app") {
+        const creds = EncryptionUtils.loadDecrypted("ratio_credentials");
+        const dataStr = localStorage.getItem("ratio_data");
+        if (creds && dataStr) refreshData(creds, JSON.parse(dataStr));
+      }
+    };
+
     const handleOnline = () => {
       setIsOffline(false);
       setShowBigOffline(false);
       setJustCameOnline(true);
       setTimeout(() => setJustCameOnline(false), 3000);
-      if (view === "app") {
-        const creds = EncryptionUtils.loadDecrypted("ratio_credentials");
-        const data = localStorage.getItem("ratio_data");
-        if (creds && data) refreshData(creds, JSON.parse(data));
-      }
+      triggerSync();
     };
+
     const handleOffline = () => {
       setIsOffline(true);
       setShowBigOffline(true);
       setTimeout(() => setShowBigOffline(false), 2000);
     };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") triggerSync();
+    };
+
+    if (view === "app") triggerSync();
+
+    const interval = setInterval(triggerSync, 3600000);
+
     if (!navigator.onLine) handleOffline();
     window.addEventListener("online", handleOnline);
     window.addEventListener("offline", handleOffline);
+    window.addEventListener("focus", triggerSync);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
     return () => {
+      clearInterval(interval);
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
+      window.removeEventListener("focus", triggerSync);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [view]);
 
