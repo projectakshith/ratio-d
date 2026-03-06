@@ -2,12 +2,13 @@
 import React, { useState, useMemo, useRef, useEffect } from "react";
 import { motion, AnimatePresence, animate } from "framer-motion";
 import { Zap, AlertCircle } from "lucide-react";
-import { getRandomRoast } from "@/utils/flavortext";
+import { getRandomRoast } from "@/utils/shared/flavortext";
 import {
   processAndSortMarks,
+  getMarksTheme,
   getActiveSubject,
   buildCourseMap,
-} from "@/utils/marksLogic";
+} from "@/utils/marks/marksLogic";
 
 const ScoreCounter = ({ value }: any) => {
   const nodeRef = useRef<any>(null);
@@ -178,7 +179,7 @@ const MarksPage = ({ data }: { data: any }) => {
                   /
                   {Number.isInteger(activeSubject.max)
                     ? activeSubject.max
-                    : activeSubject.max.toFixed(1)}
+                    : (activeSubject.max || 0).toFixed(1)}
                 </span>
                 <span
                   className={`text-[12px] font-black uppercase tracking-tight opacity-40 transition-colors duration-300 ease-out ${themeColorClass}`}

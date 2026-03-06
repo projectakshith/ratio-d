@@ -1,11 +1,11 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import Dashboard from "./Dashboard";
-import MinimalAttendance from "./Attendance";
-import MinimalMarks from "./Marks";
-import MinimalTimetable from "./Timetable";
-import MinimalCalendar from "./Calendar";
+import Dashboard from "./dashboard/Dashboard";
+import Attendance from "./attendance/Attendance";
+import Marks from "./marks/Marks";
+import Timetable from "./timetable/Timetable";
+import Calendar from "./calendar/Calendar";
 import Navbar from "./Navbar";
 
 import { AcademiaData } from "@/types";
@@ -123,14 +123,14 @@ export default function MinimalTheme(props: MinimalThemeProps) {
             style={{ willChange: "transform, opacity" }}
           >
             {activeTab === "marks" && (
-              <MinimalMarks
+              <Marks
                 data={props.data}
                 setIsSwipeDisabled={setIsSwipeDisabled}
                 isDark={isDark}
               />
             )}
             {activeTab === "attendance" && (
-              <MinimalAttendance
+              <Attendance
                 data={props.data}
                 academia={props.academia}
                 setIsSwipeDisabled={setIsSwipeDisabled}
@@ -153,7 +153,7 @@ export default function MinimalTheme(props: MinimalThemeProps) {
               </div>
             )}
             {activeTab === "timetable" && (
-              <MinimalTimetable
+              <Timetable
                 data={props.data}
                 academia={props.academia}
                 setIsSwipeDisabled={setIsSwipeDisabled}
@@ -162,7 +162,7 @@ export default function MinimalTheme(props: MinimalThemeProps) {
               />
             )}
             {activeTab === "calendar" && (
-              <MinimalCalendar
+              <Calendar
                 data={props.data}
                 academia={props.academia}
                 isDark={isDark}

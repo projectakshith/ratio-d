@@ -1,8 +1,17 @@
 "use client";
 import React, { useEffect, useState, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Calculator, X, ChevronRight, Check } from "lucide-react";
-import { processAndSortMarks, buildCourseMap } from "@/utils/marksLogic";
+import { motion } from "framer-motion";
+import { Calculator, ChevronRight } from "lucide-react";
+import {
+  processAndSortMarks,
+  buildCourseMap,
+  getAcronym,
+  getTheme,
+  getMarkColor,
+  getBoxTheme,
+} from "@/utils/marks/marksLogic";
+import Target from "./Target";
+import { AcademiaData } from "@/types";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -25,11 +34,15 @@ const itemVariants = {
   },
 };
 
-export default function MinimalMarks({
+export default function Marks({
   data,
   setIsSwipeDisabled,
   isDark,
-}: any) {
+}: {
+  data: AcademiaData;
+  setIsSwipeDisabled?: (disabled: boolean) => void;
+  isDark: boolean;
+}) {
   const [mounted, setMounted] = useState(false);
   const [predictMode, setPredictMode] = useState(false);
 
@@ -45,108 +58,6 @@ export default function MinimalMarks({
   useEffect(() => {
     setMounted(true);
   }, []);
-
-  const getAcronym = (name: string) => {
-    if (!name) return "";
-    const lowerName = name.toLowerCase().trim();
-    if (lowerName.includes("internet of things")) return "iot";
-    if (lowerName.includes("design thinking")) return "dtm";
-    const skipWords = [
-      "and",
-      "of",
-      "to",
-      "in",
-      "for",
-      "with",
-      "a",
-      "an",
-      "the",
-    ];
-    const parts = lowerName.split(/\s+/).filter((w) => !skipWords.includes(w));
-    if (parts.length === 1 && parts[0].length <= 5) return parts[0];
-    return parts.map((w) => w[0]).join("");
-  };
-
-  const getTheme = (pct: number, max: number) => {
-    if (max === 0)
-      return {
-        wrapperBg: isDark ? "bg-white/5" : "bg-[#F7F7F7]/50",
-        cardBg: isDark ? "bg-white/5" : "bg-white",
-        border: isDark ? "border-white/10" : "border-[#111111]/10",
-        text: isDark ? "text-white" : "text-[#111111]",
-        subText: isDark ? "text-white/50" : "text-[#111111]/50",
-        boxBg: isDark ? "bg-white/5" : "bg-[#F7F7F7]",
-        dottedClass: "neutral-dotted",
-      };
-    if (pct >= 85)
-      return {
-        wrapperBg: isDark ? "bg-[#F2FFDB]/10" : "bg-[#F2FFDB]/60",
-        cardBg: isDark ? "bg-white/5" : "bg-white",
-        border: isDark ? "border-[#85a818]/40" : "border-[#85a818]/30",
-        text: isDark ? "text-[#85a818]" : "text-[#4d6600]",
-        subText: isDark ? "text-[#85a818]/80" : "text-[#4d6600]/60",
-        boxBg: isDark ? "bg-[#85a818]/20" : "bg-[#F2FFDB]/40",
-        dottedClass: "safe-dotted",
-      };
-    if (pct >= 60)
-      return {
-        wrapperBg: isDark ? "bg-[#FFF4E5]/10" : "bg-[#FFF4E5]/70",
-        cardBg: isDark ? "bg-white/5" : "bg-white",
-        border: isDark ? "border-[#F97316]/40" : "border-[#F97316]/30",
-        text: isDark ? "text-[#F97316]" : "text-[#EA580C]",
-        subText: isDark ? "text-[#F97316]/80" : "text-[#EA580C]/60",
-        boxBg: isDark ? "bg-[#F97316]/20" : "bg-[#FFF4E5]/50",
-        dottedClass: "danger-dotted",
-      };
-    return {
-      wrapperBg: isDark ? "bg-[#FFEDED]/10" : "bg-[#FFEDED]/60",
-      cardBg: isDark ? "bg-white/5" : "bg-white",
-      border: isDark ? "border-[#FF4D4D]/40" : "border-[#FF4D4D]/30",
-      text: isDark ? "text-[#FF4D4D]" : "text-[#FF4D4D]",
-      subText: isDark ? "text-[#FF4D4D]/80" : "text-[#FF4D4D]/70",
-      boxBg: isDark ? "bg-[#FF4D4D]/20" : "bg-[#FFEDED]/50",
-      dottedClass: "warning-dotted",
-    };
-  };
-
-  const getMarkColor = (got: number, max: number) => {
-    if (max === 0) return isDark ? "text-white" : "text-[#111111]";
-    const pct = (got / max) * 100;
-    if (pct >= 75) return "text-[#85a818]";
-    if (pct >= 50) return "text-[#F97316]";
-    return "text-[#FF4D4D]";
-  };
-
-  const getBoxTheme = (got: number | null, max: number) => {
-    if (got === null || max === 0)
-      return {
-        boxBg: isDark ? "bg-white/5" : "bg-[#F7F7F7]",
-        text: isDark ? "text-white/50" : "text-[#111111]/50",
-        subText: isDark ? "text-white/40" : "text-[#111111]/40",
-        border: isDark ? "border-white/5" : "border-[#111111]/5",
-      };
-    const pct = (got / max) * 100;
-    if (pct >= 75)
-      return {
-        boxBg: isDark ? "bg-[#F2FFDB]/10" : "bg-[#F2FFDB]/60",
-        text: isDark ? "text-[#85a818]" : "text-[#4d6600]",
-        subText: isDark ? "text-[#85a818]/60" : "text-[#4d6600]/60",
-        border: isDark ? "border-[#85a818]/20" : "border-[#85a818]/20",
-      };
-    if (pct >= 50)
-      return {
-        boxBg: isDark ? "bg-[#FFF4E5]/10" : "bg-[#FFF4E5]/70",
-        text: isDark ? "text-[#F97316]" : "text-[#EA580C]",
-        subText: isDark ? "text-[#F97316]/60" : "text-[#EA580C]/60",
-        border: isDark ? "border-[#F97316]/20" : "border-[#F97316]/20",
-      };
-    return {
-      boxBg: isDark ? "bg-[#FFEDED]/10" : "bg-[#FFEDED]/60",
-      text: isDark ? "text-[#FF4D4D]" : "text-[#FF4D4D]",
-      subText: isDark ? "text-[#FF4D4D]/70" : "text-[#FF4D4D]/70",
-      border: isDark ? "border-[#FF4D4D]/20" : "border-[#FF4D4D]/20",
-    };
-  };
 
   const subjects = useMemo(() => {
     if (!data?.marks || data.marks.length === 0) return [];
@@ -178,7 +89,7 @@ export default function MinimalMarks({
         displayName: sub.title.toLowerCase(),
         recent,
         isPractical: isPrac,
-        theme: getTheme(sub.percentage, sub.totalMax),
+        theme: getTheme(sub.percentage, sub.totalMax, isDark),
       };
     });
   }, [data, isDark]);
@@ -294,7 +205,7 @@ export default function MinimalMarks({
             </span>
             <div className="flex items-baseline gap-1">
               <span
-                className={`text-[7.5rem] leading-[0.8] font-black tracking-tighter ${getMarkColor(totalObtained, maxTotal)}`}
+                className={`text-[7.5rem] leading-[0.8] font-black tracking-tighter ${getMarkColor(totalObtained, maxTotal, isDark)}`}
                 style={{ fontFamily: "'Montserrat', sans-serif" }}
               >
                 {Number.isInteger(totalObtained)
@@ -462,7 +373,7 @@ export default function MinimalMarks({
                   </div>
                   <div className="flex gap-2 w-full mt-1 overflow-x-auto no-scrollbar pb-1">
                     {sub.assessments.slice(-3).map((box: any, idx: number) => {
-                      const boxTheme = getBoxTheme(box.got, box.max);
+                      const boxTheme = getBoxTheme(box.got, box.max, isDark);
                       return (
                         <div
                           key={idx}
@@ -604,7 +515,7 @@ export default function MinimalMarks({
                 </div>
                 <div className="flex gap-2 w-full mt-1 overflow-x-auto no-scrollbar pb-1">
                   {sub.assessments.slice(-3).map((box: any, idx: number) => {
-                    const boxTheme = getBoxTheme(box.got, box.max);
+                    const boxTheme = getBoxTheme(box.got, box.max, isDark);
                     return (
                       <div
                         key={idx}
@@ -671,239 +582,27 @@ export default function MinimalMarks({
         </div>
       </div>
 
-      <AnimatePresence>
-        {predictMode && (
-          <motion.div
-            initial={{ y: "100%" }}
-            animate={{ y: 0 }}
-            exit={{ y: "100%" }}
-            transition={{ duration: 0.4, ease: [0.25, 1, 0.5, 1] }}
-            drag="y"
-            dragConstraints={{ top: 0, bottom: 500 }}
-            dragElastic={{ top: 0, bottom: 0.8 }}
-            onDragEnd={(e, info) => {
-              if (info.offset.y > 100 || info.velocity.y > 500)
-                setPredictMode(false);
-            }}
-            className={`fixed inset-0 ${isDark ? "bg-[#111111]" : "bg-white"} z-[60] flex flex-col overflow-hidden px-6 pt-10 pb-6`}
-          >
-            <div
-              className={`w-12 h-1.5 ${isDark ? "bg-white/20" : "bg-black/10"} rounded-full mx-auto mb-6 shrink-0`}
-            />
-            <div className="flex justify-between items-start w-full shrink-0">
-              <div className="flex flex-col">
-                <span
-                  className={`text-[32px] leading-[1] font-black uppercase tracking-[0.15em] ${textClass}`}
-                  style={{ fontFamily: "'Montserrat', sans-serif" }}
-                >
-                  TARGET
-                </span>
-                <span
-                  className="text-[10px] font-bold lowercase tracking-[0.2em] text-[#85a818] mt-1.5"
-                  style={{ fontFamily: "'Afacad', sans-serif" }}
-                >
-                  gpa prediction
-                </span>
-              </div>
-              <button
-                onClick={() => setPredictMode(false)}
-                className={`w-10 h-10 rounded-full ${isDark ? "bg-white/10" : "bg-[#111111]/5"} flex items-center justify-center ${textClass} active:scale-95 transition-all shrink-0`}
-              >
-                <X size={20} strokeWidth={2.5} />
-              </button>
-            </div>
-            <div className="flex flex-col flex-1 justify-between mt-5 w-full overflow-y-auto no-scrollbar pb-4">
-              <div
-                className={`w-full ${isDark ? "bg-white/5 border-white/10" : "bg-black/5 border-black/10"} border rounded-[16px] px-4 py-3.5 flex items-center gap-3 shrink-0`}
-              >
-                <span
-                  className={`text-[16px] font-black uppercase tracking-widest ${isDark ? "text-white/90" : "text-[#111111]"} shrink-0`}
-                  style={{ fontFamily: "'Montserrat', sans-serif" }}
-                >
-                  {activePredSub.displayCode}
-                </span>
-                <div
-                  className={`w-[1.5px] h-4 ${isDark ? "bg-white/20" : "bg-black/20"} shrink-0`}
-                />
-                <span
-                  className={`text-[13px] font-medium lowercase tracking-wide ${isDark ? "text-white/60" : "text-black/60"} truncate min-w-0`}
-                  style={{ fontFamily: "'Afacad', sans-serif" }}
-                >
-                  {activePredSub.displayName}
-                </span>
-              </div>
-              <div className="flex flex-col items-center justify-center shrink-0">
-                <span
-                  className={`text-[11px] font-bold lowercase tracking-[0.2em] ${isDark ? "text-white/40" : "text-black/40"} mb-1`}
-                  style={{ fontFamily: "'Afacad', sans-serif" }}
-                >
-                  predicted gpa
-                </span>
-                <span
-                  className={`text-[4.5rem] leading-[0.9] font-black tracking-tighter transition-colors duration-300 ${gpaColor}`}
-                  style={{ fontFamily: "'Montserrat', sans-serif" }}
-                >
-                  {predictedGpa}
-                </span>
-              </div>
-              <div className="flex flex-col items-center justify-center shrink-0">
-                <span
-                  className={`text-[11px] font-bold lowercase tracking-widest ${isDark ? "text-white/40" : "text-black/40"} mb-1`}
-                  style={{ fontFamily: "'Afacad', sans-serif" }}
-                >
-                  sem marks needed
-                </span>
-                <div className="flex items-baseline gap-1">
-                  <span
-                    className={`leading-[0.85] font-black tracking-tighter text-center ${semRequiredOutOf75 > 75 ? "text-[4rem] text-[#FF4D4D]" : "text-[5rem] text-[#85a818]"}`}
-                    style={{ fontFamily: "'Montserrat', sans-serif" }}
-                  >
-                    {semRequiredOutOf75 > 75
-                      ? "cooked."
-                      : semRequiredOutOf75 <= 0
-                        ? "0"
-                        : semRequiredOutOf75}
-                  </span>
-                  {semRequiredOutOf75 > 0 && semRequiredOutOf75 <= 75 && (
-                    <span
-                      className={`text-[20px] font-bold ${isDark ? "text-white/30" : "text-black/30"}`}
-                      style={{ fontFamily: "'Montserrat', sans-serif" }}
-                    >
-                      /75
-                    </span>
-                  )}
-                </div>
-              </div>
-              <div className="flex justify-between items-start w-full px-2 shrink-0">
-                <div className="flex flex-col items-start w-1/2">
-                  <span
-                    className={`text-[11px] font-bold lowercase tracking-widest ${isDark ? "text-white/50" : "text-black/50"} mb-1.5`}
-                    style={{ fontFamily: "'Afacad', sans-serif" }}
-                  >
-                    current internals
-                  </span>
-                  <div className="flex items-baseline gap-1 h-10">
-                    <span
-                      className={`text-[2rem] leading-[1] font-black ${textClass}`}
-                      style={{ fontFamily: "'Montserrat', sans-serif" }}
-                    >
-                      {Number.isInteger(currentInternals)
-                        ? currentInternals
-                        : currentInternals.toFixed(1)}
-                    </span>
-                    <span
-                      className={`text-[12px] font-bold ${isDark ? "text-white/40" : "text-black/40"}`}
-                      style={{ fontFamily: "'Montserrat', sans-serif" }}
-                    >
-                      /60
-                    </span>
-                  </div>
-                </div>
-                <div className="flex flex-col items-end w-1/2">
-                  <span
-                    className={`text-[11px] font-bold lowercase tracking-widest ${isDark ? "text-white/50" : "text-black/50"} mb-1.5 text-right`}
-                    style={{ fontFamily: "'Afacad', sans-serif" }}
-                  >
-                    expected remaining
-                  </span>
-                  <div
-                    className={`flex items-center gap-1 ${isDark ? "bg-white/10" : "bg-black/10"} rounded-[12px] px-1.5 py-1.5 h-10`}
-                  >
-                    <button
-                      onClick={() =>
-                        setExpectedMarks(Math.max(0, expectedMarks - 1))
-                      }
-                      className={`w-7 h-7 rounded-[8px] ${isDark ? "bg-white/10" : "bg-black/10"} flex items-center justify-center ${textClass} font-bold active:scale-95 transition-all`}
-                    >
-                      -
-                    </button>
-                    <div className="flex items-baseline justify-center gap-0.5 min-w-[40px] px-1">
-                      <input
-                        type="number"
-                        inputMode="numeric"
-                        value={expectedMarks === 0 ? "" : expectedMarks}
-                        onChange={handleExpectedChange}
-                        placeholder="0"
-                        className={`w-6 bg-transparent text-[18px] font-black ${textClass} text-center outline-none [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [appearance:textfield] placeholder:${isDark ? "text-white/30" : "text-black/30"}`}
-                        style={{ fontFamily: "'Montserrat', sans-serif" }}
-                      />
-                      <span
-                        className={`text-[11px] font-bold ${isDark ? "text-white/30" : "text-black/30"}`}
-                        style={{ fontFamily: "'Montserrat', sans-serif" }}
-                      >
-                        /{maxPossibleExpected}
-                      </span>
-                    </div>
-                    <button
-                      onClick={() =>
-                        setExpectedMarks(
-                          Math.min(maxPossibleExpected, expectedMarks + 1),
-                        )
-                      }
-                      className={`w-7 h-7 rounded-[8px] ${isDark ? "bg-white text-black" : "bg-black text-white"} flex items-center justify-center font-bold active:scale-95 transition-all`}
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
-              </div>
-              <div className="flex flex-col w-full shrink-0 mt-2">
-                <span
-                  className={`text-[10px] font-bold lowercase tracking-[0.2em] ${isDark ? "text-white/50" : "text-black/50"} mb-2 px-2`}
-                  style={{ fontFamily: "'Montserrat', sans-serif" }}
-                >
-                  target grade
-                </span>
-                <div className="grid grid-cols-3 gap-2">
-                  {grades.map((g) => (
-                    <button
-                      key={g.label}
-                      onClick={() => setTargetGrade(g.min)}
-                      className={`py-3 rounded-[16px] flex flex-col items-center justify-center transition-all ${targetGrade === g.min ? (isDark ? "bg-white text-black" : "bg-black text-white") : isDark ? "bg-white/10 text-white/60 hover:bg-white/20" : "bg-black/10 text-black/60 hover:bg-black/20"}`}
-                    >
-                      <span
-                        className="text-[18px] font-black"
-                        style={{ fontFamily: "'Montserrat', sans-serif" }}
-                      >
-                        {g.label}
-                      </span>
-                      <span
-                        className="text-[10px] font-bold uppercase tracking-widest mt-0.5"
-                        style={{ fontFamily: "'Afacad', sans-serif" }}
-                      >
-                        {g.min}+
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div className="flex flex-col w-full shrink-0 mt-2 pb-2">
-                <span
-                  className={`text-[10px] font-bold lowercase tracking-[0.2em] ${isDark ? "text-white/50" : "text-black/50"} mb-2 px-2`}
-                  style={{ fontFamily: "'Montserrat', sans-serif" }}
-                >
-                  select subject
-                </span>
-                <div className="flex gap-2 overflow-x-auto no-scrollbar w-full px-2">
-                  {subjects.map((sub: any) => (
-                    <button
-                      key={sub.id}
-                      onClick={() => {
-                        setPredSubjectId(sub.id);
-                        setExpectedMarks(0);
-                      }}
-                      className={`px-4 py-2.5 rounded-[12px] text-[12px] font-bold uppercase tracking-widest transition-all whitespace-nowrap shrink-0 ${predSubjectId === sub.id ? "bg-[#85a818] text-white" : isDark ? "bg-white/10 text-white hover:bg-white/20" : "bg-black/10 text-black hover:bg-black/20"}`}
-                      style={{ fontFamily: "'Afacad', sans-serif" }}
-                    >
-                      {sub.displayCode}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <Target
+        isOpen={predictMode}
+        onClose={() => setPredictMode(false)}
+        isDark={isDark}
+        activePredSub={activePredSub}
+        predictedGpa={predictedGpa}
+        gpaColor={gpaColor}
+        semRequiredOutOf75={semRequiredOutOf75}
+        currentInternals={currentInternals}
+        expectedMarks={expectedMarks}
+        maxPossibleExpected={maxPossibleExpected}
+        handleExpectedChange={handleExpectedChange}
+        setExpectedMarks={setExpectedMarks}
+        targetGrade={targetGrade}
+        setTargetGrade={setTargetGrade}
+        grades={grades}
+        subjects={subjects}
+        predSubjectId={predSubjectId}
+        setPredSubjectId={setPredSubjectId}
+        textClass={textClass}
+      />
     </>
   );
 }

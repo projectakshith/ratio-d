@@ -6,6 +6,7 @@ export interface StudentProfile {
   semester?: string;
   section?: string;
   photo?: string;
+  cgpa?: string;
 }
 
 export interface AttendanceRecord {
@@ -47,18 +48,21 @@ export interface ScheduleData {
   [dayKey: string]: DaySchedule;
 }
 
+export interface Assessment {
+  title: string;
+  marks: string;
+  total: string;
+  got?: number;
+  max?: number;
+}
+
 export interface MarksRecord {
   course: string;
-  assessments: {
-    title: string;
-    marks: string;
-    total: string;
-    got?: number;
-    max?: number;
-  }[];
+  assessments: Assessment[];
   id?: number;
   code?: string;
   title?: string;
+  courseTitle?: string;
   type?: string;
   totalGot?: number;
   totalMax?: number;

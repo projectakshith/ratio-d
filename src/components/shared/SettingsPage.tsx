@@ -15,7 +15,7 @@ import {
   Sun,
   Moon,
 } from "lucide-react";
-import { requestNotificationPermission } from "@/utils/notifs";
+import { requestNotificationPermission } from "@/utils/shared/notifs";
 import { StudentProfile } from "@/types";
 
 const backdropVariants: any = {

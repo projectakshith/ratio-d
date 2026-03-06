@@ -7,7 +7,7 @@ import Timetable from "./Timetable";
 import MobileAttendance from "./MobileAttendance";
 import CalendarPage from "./CalendarPage";
 import MarksPage from "./MarksPage";
-import { flavorText } from "@/utils/flavortext";
+import { flavorText } from "@/utils/shared/flavortext";
 import { AcademiaData } from "@/types";
 
 interface BrutalistThemeProps {

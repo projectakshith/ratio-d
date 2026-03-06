@@ -9,7 +9,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-import { flavorText } from "@/utils/flavortext";
+import { flavorText } from "@/utils/shared/flavortext";
 
 import { CalendarEvent, AcademiaData, ScheduleData } from "@/types";
 

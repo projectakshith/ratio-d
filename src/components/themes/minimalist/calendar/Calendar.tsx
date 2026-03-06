@@ -125,7 +125,7 @@ const CalendarDay = memo(
 );
 CalendarDay.displayName = "CalendarDay";
 
-const MinimalCalendar = ({ data, academia, isDark }: any) => {
+const Calendar = ({ data, academia, isDark }: any) => {
   const [mounted, setMounted] = useState(false);
   const activeData = academia?.calendarData || data?.calendarData || [];
   const profile = data?.profile || {};
@@ -349,4 +349,4 @@ const MinimalCalendar = ({ data, academia, isDark }: any) => {
   );
 };
 
-export default MinimalCalendar;
+export default Calendar;

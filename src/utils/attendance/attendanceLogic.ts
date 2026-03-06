@@ -1,4 +1,5 @@
-import { flavorText } from "./flavortext";
+import { flavorText } from "../shared/flavortext";
+import { AttendanceRecord, CalendarEvent, ScheduleData } from "@/types";
 
 export const getEffectiveSchedule = (data: any, schedule: any) => {
   if (schedule) return schedule;
@@ -8,14 +9,35 @@ export const getEffectiveSchedule = (data: any, schedule: any) => {
   return {};
 };
 
+export const getAcronym = (name: string) => {
+  if (!name) return "";
+  const skipWords = ["and", "of", "to", "in", "for", "with", "a", "an", "the"];
+  return name
+    .toLowerCase()
+    .split(/\s+/)
+    .filter((word) => word.length > 0 && !skipWords.includes(word))
+    .map((word) => word[0])
+    .join("")
+    .toLowerCase();
+};
+
+export const getPercentColor = (percent: string) => {
+  const pVal = parseFloat(percent);
+  if (pVal < 75) return "#FF4D4D";
+  if (pVal < 85) return "#F97316";
+  return "#85a818";
+};
+
 export const getBaseAttendance = (rawAttendance: any[]) => {
   return rawAttendance
     .map((subject, index) => {
       const pct = parseFloat(subject?.percent || "0");
       const category = pct < 75 ? "cooked" : pct >= 85 ? "safe" : "danger";
-      const list = flavorText.header?.[category] || flavorText.header?.danger || ["..."];
+      const list =
+        flavorText.header?.[category] || flavorText.header?.danger || ["..."];
       const stableBadge = list[Math.floor(index % list.length)].toLowerCase();
-      const safeTitle = subject.title || subject.courseTitle || "Unknown Subject";
+      const safeTitle =
+        subject.title || subject.courseTitle || "Unknown Subject";
       const slot = (subject.slot || "").toUpperCase();
 
       return {
@@ -25,11 +47,17 @@ export const getBaseAttendance = (rawAttendance: any[]) => {
         code: String(subject?.code || ""),
         percentage: String(subject?.percent || "0"),
         conducted: parseInt(subject?.conducted || "0"),
-        present: parseInt(subject?.conducted || "0") - parseInt(subject?.absent || "0"),
+        present:
+          parseInt(subject?.conducted || "0") -
+          parseInt(subject?.absent || "0"),
         badge: category,
         tagline: stableBadge,
         slot: slot,
-        isPractical: slot.includes("LAB") || slot.includes("P") || safeTitle.toLowerCase().includes("practical") || safeTitle.toLowerCase().includes("lab")
+        isPractical:
+          slot.includes("LAB") ||
+          slot.includes("P") ||
+          safeTitle.toLowerCase().includes("practical") ||
+          safeTitle.toLowerCase().includes("lab"),
       };
     })
     .sort((a, b) => parseFloat(a.percentage) - parseFloat(b.percentage));
@@ -47,8 +75,10 @@ export const getOverallStats = (baseAttendance: any[]) => {
     totalPresent += s.present;
   });
 
-  const overallPct = totalConducted === 0 ? 0 : (totalPresent / totalConducted) * 100;
-  const category = overallPct < 75 ? "cooked" : overallPct >= 85 ? "safe" : "danger";
+  const overallPct =
+    totalConducted === 0 ? 0 : (totalPresent / totalConducted) * 100;
+  const category =
+    overallPct < 75 ? "cooked" : overallPct >= 85 ? "safe" : "danger";
   const list = flavorText.header?.[category] || ["..."];
   const badge = list[0].toLowerCase();
 
@@ -56,7 +86,12 @@ export const getOverallStats = (baseAttendance: any[]) => {
   if (category === "cooked") tagline = "academic comeback needed";
   if (category === "danger") tagline = "treading on thin ice";
 
-  return { pct: overallPct, badge, tagline, color: category === "safe" ? "#ceff1c" : "#ff003c" };
+  return {
+    pct: overallPct,
+    badge,
+    tagline,
+    color: category === "safe" ? "#ceff1c" : "#ff003c",
+  };
 };
 
 const parseDateString = (str: string) => {
@@ -77,23 +112,24 @@ export const getStatus = (pct: number, conducted: number, present: number) => {
 
 export const getImpactMap = (
   selectedDates: string[],
-  calendarData: any[],
-  effectiveSchedule: any,
-  baseAttendance: any[]
+  calendarData: CalendarEvent[],
+  effectiveSchedule: ScheduleData,
+  baseAttendance: any[],
 ) => {
-  const impact: any = {};
-  if (calendarData.length === 0 || Object.keys(effectiveSchedule).length === 0) return impact;
+  const impact: Record<string, number> = {};
+  if (calendarData.length === 0 || Object.keys(effectiveSchedule).length === 0)
+    return impact;
 
-  const normalizedCalData = calendarData.map(c => ({
+  const normalizedCalData = calendarData.map((c) => ({
     ...c,
-    normDate: parseDateString(c.date)
+    normDate: parseDateString(c.date),
   }));
 
   selectedDates.forEach((dateStr) => {
     const dayInfo = normalizedCalData.find((c) => c.normDate === dateStr);
 
     if (dayInfo) {
-      const rawOrder = dayInfo.dayOrder || dayInfo.day_order || dayInfo.order;
+      const rawOrder = dayInfo.dayOrder || dayInfo.order;
       if (rawOrder && rawOrder !== "-" && !isNaN(parseInt(rawOrder))) {
         const orderNum = parseInt(rawOrder);
         const dayClasses = effectiveSchedule[`Day ${orderNum}`];
@@ -103,21 +139,23 @@ export const getImpactMap = (
             if (!cls.course) return;
 
             const clsName = cls.course.toLowerCase();
-            const clsCodeRaw = (cls.code || cls.courseCode || "").toLowerCase().trim();
+            const clsCodeRaw = (cls.code || cls.courseCode || "")
+              .toLowerCase()
+              .trim();
             const clsCodeClean = clsCodeRaw.split("-")[0].split(" ")[0].trim();
             const clsSlot = (cls.slot || "").toUpperCase().trim();
-            
-            const isClsPractical = 
-              clsSlot.includes("LAB") || 
-              clsSlot.includes("P") || 
-              clsName.includes("practical") || 
+
+            const isClsPractical =
+              clsSlot.includes("LAB") ||
+              clsSlot.includes("P") ||
+              clsName.includes("practical") ||
               clsName.includes("lab");
 
             const matchedSubjects = baseAttendance.filter((s) => {
               const sCodeRaw = (s.code || "").toLowerCase().trim();
               const sCodeClean = sCodeRaw.split("-")[0].split(" ")[0].trim();
               const sName = s.rawTitle.toLowerCase();
-              
+
               if (sCodeClean === clsCodeClean) {
                 return isClsPractical === s.isPractical;
               }
@@ -125,7 +163,12 @@ export const getImpactMap = (
               const sNameClean = sName.replace(/[^a-z0-9]/g, "");
               const cNameClean = clsName.replace(/[^a-z0-9]/g, "");
 
-              if (sNameClean === cNameClean || (sNameClean.length > 4 && cNameClean.length > 4 && sNameClean.includes(cNameClean))) {
+              if (
+                sNameClean === cNameClean ||
+                (sNameClean.length > 4 &&
+                  cNameClean.length > 4 &&
+                  sNameClean.includes(cNameClean))
+              ) {
                 return isClsPractical === s.isPractical;
               }
 
@@ -133,7 +176,8 @@ export const getImpactMap = (
             });
 
             matchedSubjects.forEach((matchedSubject) => {
-              impact[matchedSubject.id] = (impact[matchedSubject.id] || 0) + 1;
+              impact[matchedSubject.code] =
+                (impact[matchedSubject.code] || 0) + 1;
             });
           });
         }
@@ -147,14 +191,15 @@ export const getProcessedList = (
   baseAttendance: any[],
   predictionImpact: any,
   predType: string,
-  predictMode: boolean
+  predictMode: boolean,
 ) => {
   const list = baseAttendance.map((subject) => {
-    const sessions = predictionImpact[subject.id] || 0;
+    const sessions = predictionImpact[subject.code] || 0;
     const currentPresent = subject.present;
     const currentConducted = subject.conducted;
 
-    const newPresent = predType === "attend" ? currentPresent + sessions : currentPresent;
+    const newPresent =
+      predType === "attend" ? currentPresent + sessions : currentPresent;
     const newConducted = currentConducted + sessions;
     const newPct = newConducted === 0 ? 0 : (newPresent / newConducted) * 100;
 
@@ -172,11 +217,17 @@ export const getProcessedList = (
 
   if (predictMode) {
     return list.sort((a, b) => {
-      const scoreA = !a.pred.status.safe ? a.pred.status.val + 1000 : -a.pred.status.val;
-      const scoreB = !b.pred.status.safe ? b.pred.status.val + 1000 : -b.pred.status.val;
+      const scoreA = !a.pred.status.safe
+        ? a.pred.status.val + 1000
+        : -a.pred.status.val;
+      const scoreB = !b.pred.status.safe
+        ? b.pred.status.val + 1000
+        : -b.pred.status.val;
       return scoreB - scoreA;
     });
   }
 
-  return list.sort((a, b) => parseFloat(a.percentage) - parseFloat(b.percentage));
+  return list.sort(
+    (a, b) => parseFloat(a.percentage) - parseFloat(b.percentage),
+  );
 };

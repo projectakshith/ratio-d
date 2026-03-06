@@ -19,12 +19,13 @@ const MinimalistTheme = dynamic(
   },
 );
 
-export default function AcademiaApp({
+export default function ThemeRouter({
   data,
   onLogout,
   customDisplayName,
   onUpdateName,
   startEntrance,
+  isUpdating,
 }: any) {
   const [theme, setTheme] = useState<string>("minimalist_light");
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);

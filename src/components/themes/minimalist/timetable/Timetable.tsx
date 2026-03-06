@@ -1,14 +1,20 @@
 "use client";
 import React, { useEffect, useState, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MapPin, Clock, User, Plus, X, ChevronRight } from "lucide-react";
+import { MapPin, Clock, User, Plus, X, ChevronRight, Layers } from "lucide-react";
 import {
   buildCourseMap,
   processSchedule,
   getDayOverview,
-  parseTimetableTime,
-} from "@/utils/timetableLogic";
+} from "@/utils/dashboard/timetableLogic";
+import {
+  getInitialActiveDay,
+  handleAddClassLogic,
+  handleDeleteCustomLogic,
+} from "@/utils/timetable/timetableLogic";
 import calendarDataJson from "@/data/calendar_data.json";
+import CustomClass from "./CustomClass";
+import { AcademiaData, ScheduleSlot, CalendarEvent } from "@/types";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -31,13 +37,19 @@ const itemVariants = {
   },
 };
 
-export default function MinimalTimetable({
+export default function Timetable({
   data,
   academia,
   setIsSwipeDisabled,
   startEntrance,
   isDark,
-}: any) {
+}: {
+  data: AcademiaData;
+  academia: any;
+  setIsSwipeDisabled?: (disabled: boolean) => void;
+  startEntrance: boolean;
+  isDark: boolean;
+}) {
   const [mounted, setMounted] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const initialSet = useRef(false);
@@ -102,29 +114,9 @@ export default function MinimalTimetable({
       !initialSet.current &&
       (Object.keys(schedule).length > 0 || isHoliday)
     ) {
-      if (isHoliday) {
-        setActiveDay(nextWorkingDayOrder || 1);
-      } else if (!isNaN(dayOrder) && dayOrder >= 1 && dayOrder <= 5) {
-        const todayData = schedule[`Day ${dayOrder}`] || {};
-        let lastEnd = 0;
-        Object.keys(todayData).forEach((time) => {
-          const endStr = time.split("-")[1];
-          if (endStr) {
-            const endMins = parseTimetableTime(endStr);
-            if (endMins > lastEnd) lastEnd = endMins;
-          }
-        });
-
-        const nowMins = new Date().getHours() * 60 + new Date().getMinutes();
-
-        if (lastEnd > 0 && nowMins >= lastEnd) {
-          setActiveDay(
-            nextWorkingDayOrder || (dayOrder < 5 ? dayOrder + 1 : 1),
-          );
-        } else {
-          setActiveDay(dayOrder);
-        }
-      }
+      setActiveDay(
+        getInitialActiveDay(schedule, isHoliday, dayOrder, nextWorkingDayOrder),
+      );
       initialSet.current = true;
     }
 
@@ -145,54 +137,27 @@ export default function MinimalTimetable({
   const courseMap = useMemo(() => buildCourseMap(data), [data]);
 
   const handleAddClass = () => {
-    if (!newSub.trim() || !newRoom.trim() || !startTime || !endTime) return;
-
-    const stored = localStorage.getItem("ratio_custom_classes");
-    const currentCustoms = stored ? JSON.parse(stored) : {};
-
-    const newClassItem = {
-      id: `custom-${Date.now()}`,
-      code: newSub,
-      courseTitle: newSub,
-      course: newSub,
-      time: `${startTime} - ${endTime}`,
-      room: newRoom,
-      faculty: "user added",
-      slot: newType === "lab" ? "P1" : "A1",
-      type: newType,
-      isCustom: true,
-    };
-
-    const updated = {
-      ...currentCustoms,
-      [activeDay]: [...(currentCustoms[activeDay] || []), newClassItem],
-    };
-
-    localStorage.setItem("ratio_custom_classes", JSON.stringify(updated));
-    window.dispatchEvent(new Event("custom_classes_updated"));
-
-    setNewSub("");
-    setNewRoom("");
-    setStartTime("08:00");
-    setEndTime("08:50");
-    setIsAddingClass(false);
-    setRefreshKey((prev) => prev + 1);
+    const success = handleAddClassLogic(
+      newSub,
+      newRoom,
+      startTime,
+      endTime,
+      newType,
+      activeDay,
+    );
+    if (success) {
+      setNewSub("");
+      setNewRoom("");
+      setStartTime("08:00");
+      setEndTime("08:50");
+      setIsAddingClass(false);
+      setRefreshKey((prev) => prev + 1);
+    }
   };
 
   const handleDeleteCustom = (day: number, timeStr: string) => {
-    const stored = localStorage.getItem("ratio_custom_classes");
-    if (!stored) return;
-    const currentCustoms = JSON.parse(stored);
-
-    if (currentCustoms[day]) {
-      currentCustoms[day] = currentCustoms[day].filter(
-        (c: any) => c.time !== timeStr,
-      );
-      localStorage.setItem(
-        "ratio_custom_classes",
-        JSON.stringify(currentCustoms),
-      );
-      window.dispatchEvent(new Event("custom_classes_updated"));
+    const success = handleDeleteCustomLogic(day, timeStr);
+    if (success) {
       setRefreshKey((prev) => prev + 1);
     }
   };
@@ -662,142 +627,22 @@ export default function MinimalTimetable({
         </div>
       </div>
 
-      <AnimatePresence>
-        {isAddingClass && (
-          <motion.div
-            initial={{ y: "100%" }}
-            animate={{ y: 0 }}
-            exit={{ y: "100%" }}
-            transition={{ duration: 0.4, ease: [0.25, 1, 0.5, 1] }}
-            className={`fixed inset-0 ${isDark ? "bg-[#111111]" : "bg-white"} z-[60] flex flex-col px-6 pt-10 pb-6 overflow-hidden`}
-          >
-            <div className="flex justify-between items-start w-full shrink-0 mb-10">
-              <div className="flex flex-col">
-                <span
-                  className={`text-[32px] leading-[1] font-black uppercase tracking-[0.15em] ${isDark ? "text-white" : "text-[#111111]"}`}
-                  style={{ fontFamily: "'Montserrat', sans-serif" }}
-                >
-                  ADD CLASS
-                </span>
-                <span
-                  className="text-[10px] font-bold lowercase tracking-[0.2em] text-[#85a818] mt-1.5"
-                  style={{ fontFamily: "'Afacad', sans-serif" }}
-                >
-                  custom schedule mapping
-                </span>
-              </div>
-              <button
-                onClick={() => setIsAddingClass(false)}
-                className={`w-10 h-10 rounded-full ${isDark ? "bg-white/10 text-white" : "bg-[#111111]/5 text-[#111111]"} flex items-center justify-center active:scale-95 transition-all shrink-0`}
-              >
-                <X size={20} strokeWidth={2.5} />
-              </button>
-            </div>
-
-            <div className="flex flex-col gap-6 flex-1 w-full">
-              <div className="flex flex-col gap-2">
-                <span
-                  className={`text-[11px] font-bold uppercase tracking-widest ${isDark ? "text-white/50" : "text-[#111111]/50"} pl-1`}
-                  style={{ fontFamily: "'Afacad', sans-serif" }}
-                >
-                  Subject Code
-                </span>
-                <input
-                  type="text"
-                  placeholder="e.g. DTM"
-                  value={newSub}
-                  onChange={(e) => setNewSub(e.target.value)}
-                  className={`w-full ${isDark ? "bg-white/5 border-white/10 text-white placeholder:text-white/20" : "bg-[#111111]/5 border-[#111111]/10 text-[#111111] placeholder:text-[#111111]/20"} border rounded-[16px] px-4 py-4 text-[16px] font-bold uppercase tracking-widest outline-none focus:border-[#85a818]/50 transition-colors`}
-                  style={{ fontFamily: "'Montserrat', sans-serif" }}
-                />
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <span
-                  className={`text-[11px] font-bold uppercase tracking-widest ${isDark ? "text-white/50" : "text-[#111111]/50"} pl-1`}
-                  style={{ fontFamily: "'Afacad', sans-serif" }}
-                >
-                  Room / Hall
-                </span>
-                <input
-                  type="text"
-                  placeholder="e.g. UB304"
-                  value={newRoom}
-                  onChange={(e) => setNewRoom(e.target.value)}
-                  className={`w-full ${isDark ? "bg-white/5 border-white/10 text-white placeholder:text-white/20" : "bg-[#111111]/5 border-[#111111]/10 text-[#111111] placeholder:text-[#111111]/20"} border rounded-[16px] px-4 py-4 text-[16px] font-bold uppercase tracking-widest outline-none focus:border-[#85a818]/50 transition-colors`}
-                  style={{ fontFamily: "'Montserrat', sans-serif" }}
-                />
-              </div>
-
-              <div className="flex gap-3">
-                <div className="flex-1 flex flex-col gap-2">
-                  <span
-                    className={`text-[11px] font-bold uppercase tracking-widest ${isDark ? "text-white/50" : "text-[#111111]/50"} pl-1`}
-                    style={{ fontFamily: "'Afacad', sans-serif" }}
-                  >
-                    Start Time
-                  </span>
-                  <input
-                    type="time"
-                    value={startTime}
-                    onChange={(e) => setStartTime(e.target.value)}
-                    className={`w-full ${isDark ? "bg-white/5 border-white/10 text-white [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert" : "bg-[#111111]/5 border-[#111111]/10 text-[#111111]"} border rounded-[16px] px-4 py-4 text-[16px] font-bold outline-none focus:border-[#85a818]/50 transition-colors`}
-                    style={{ fontFamily: "'Montserrat', sans-serif" }}
-                  />
-                </div>
-                <div className="flex-1 flex flex-col gap-2">
-                  <span
-                    className={`text-[11px] font-bold uppercase tracking-widest ${isDark ? "text-white/50" : "text-[#111111]/50"} pl-1`}
-                    style={{ fontFamily: "'Afacad', sans-serif" }}
-                  >
-                    End Time
-                  </span>
-                  <input
-                    type="time"
-                    value={endTime}
-                    onChange={(e) => setEndTime(e.target.value)}
-                    className={`w-full ${isDark ? "bg-white/5 border-white/10 text-white [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert" : "bg-[#111111]/5 border-[#111111]/10 text-[#111111]"} border rounded-[16px] px-4 py-4 text-[16px] font-bold outline-none focus:border-[#85a818]/50 transition-colors`}
-                    style={{ fontFamily: "'Montserrat', sans-serif" }}
-                  />
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-2 mt-2">
-                <span
-                  className={`text-[11px] font-bold uppercase tracking-widest ${isDark ? "text-white/50" : "text-[#111111]/50"} pl-1 mb-1`}
-                  style={{ fontFamily: "'Afacad', sans-serif" }}
-                >
-                  Class Type
-                </span>
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => setNewType("theory")}
-                    className={`flex-1 py-4 rounded-[16px] text-[13px] font-bold uppercase tracking-widest transition-all ${newType === "theory" ? (isDark ? "bg-white text-[#111111]" : "bg-[#111111] text-white") : isDark ? "bg-white/5 text-white/50 border border-white/10" : "bg-[#111111]/5 text-[#111111]/50 border border-black/5"}`}
-                    style={{ fontFamily: "'Montserrat', sans-serif" }}
-                  >
-                    Theory
-                  </button>
-                  <button
-                    onClick={() => setNewType("lab")}
-                    className={`flex-1 py-4 rounded-[16px] text-[13px] font-bold uppercase tracking-widest transition-all ${newType === "lab" ? "bg-[#0EA5E9] text-white" : isDark ? "bg-white/5 text-white/50 border border-white/10" : "bg-[#111111]/5 text-[#111111]/50 border border-black/5"}`}
-                    style={{ fontFamily: "'Montserrat', sans-serif" }}
-                  >
-                    Practical
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <button
-              onClick={handleAddClass}
-              className="w-full bg-[#85a818] text-white py-5 rounded-[20px] text-[15px] font-black uppercase tracking-[0.2em] shadow-[0_0_20px_rgba(133,168,24,0.3)] active:scale-[0.98] transition-all mt-auto shrink-0"
-              style={{ fontFamily: "'Montserrat', sans-serif" }}
-            >
-              add to schedule
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <CustomClass
+        isOpen={isAddingClass}
+        onClose={() => setIsAddingClass(false)}
+        isDark={isDark}
+        newSub={newSub}
+        setNewSub={setNewSub}
+        newRoom={newRoom}
+        setNewRoom={setNewRoom}
+        startTime={startTime}
+        setStartTime={setStartTime}
+        endTime={endTime}
+        setEndTime={setEndTime}
+        newType={newType}
+        setNewType={setNewType}
+        handleAddClass={handleAddClass}
+      />
     </>
   );
 }

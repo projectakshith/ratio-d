@@ -2,7 +2,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MapPin, User, ArrowRight, Layers, Clock } from "lucide-react";
-import { getDayOverview, processSchedule } from "@/utils/timetableLogic";
+import { getDayOverview, processSchedule } from "@/utils/dashboard/timetableLogic";
 
 export default function Timetable({ schedule, dayOrder, data }) {
   const [isExpanded, setIsExpanded] = useState(false);

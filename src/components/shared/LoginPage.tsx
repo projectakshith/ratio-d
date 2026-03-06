@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, Loader2, AlertCircle, Eye, EyeOff } from "lucide-react";
-import { EncryptionUtils } from "@/utils/Encryption";
+import { EncryptionUtils } from "@/utils/shared/Encryption";
 
 interface LoginPageProps {
   onLogin: (data: any) => void;

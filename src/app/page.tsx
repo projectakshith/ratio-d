@@ -2,9 +2,9 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import LoginPage from "@/components/shared/LoginPage";
-import AcademiaApp from "@/components/AcademiaApp";
+import ThemeRouter from "@/components/ThemeRouter";
 import OnboardingPage from "@/components/OnboardingPage";
-import { EncryptionUtils } from "@/utils/Encryption";
+import { EncryptionUtils } from "@/utils/shared/Encryption";
 import { WifiOff, Wifi } from "lucide-react";
 
 export default function Home() {
@@ -210,7 +210,7 @@ export default function Home() {
           />
         )}
         {view === "app" && (
-          <AcademiaApp
+          <ThemeRouter
             data={userData}
             onLogout={handleLogout}
             customDisplayName={customDisplayName}
