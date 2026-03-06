@@ -516,8 +516,9 @@ export default function MinimalHomepage({
     const isActuallyCurrent = slot.isCurrent && String(selectedDay) === String(currentDayOrder) && !isHoliday;
 
     if (isActuallyCurrent) {
-      boxClass =
-        "bg-[#111111] border-[#111111] shadow-[0_6px_16px_rgba(0,0,0,0.2)] scale-105 z-10 dark:bg-white dark:border-white";
+      boxClass = isDark
+        ? "bg-white border-white shadow-[0_6px_16px_rgba(255,255,255,0.2)] scale-105 z-10"
+        : "bg-[#111111] border-[#111111] shadow-[0_6px_16px_rgba(0,0,0,0.2)] scale-105 z-10";
       topText = isDark ? "text-black/60" : "text-white/80";
       midText = isDark ? "text-black" : "text-white";
       botText = isDark ? "text-black/60" : "text-white/80";
