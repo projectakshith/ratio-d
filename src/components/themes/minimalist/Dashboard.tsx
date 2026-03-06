@@ -130,6 +130,39 @@ export default function MinimalHomepage({
     return null;
   }, [academia?.calendarData]);
 
+  const isTomorrowHoliday = useMemo(() => {
+    const calData = academia?.calendarData || calendarDataJson || [];
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    const d = String(tomorrow.getDate()).padStart(2, "0");
+    const m = months[tomorrow.getMonth()];
+    const y = tomorrow.getFullYear();
+    const tomorrowStr = `${d} ${m} ${y}`;
+
+    const entry = calData.find((ev: any) => ev.date === tomorrowStr);
+    return (
+      !entry ||
+      entry.order === "-" ||
+      entry.order === "0" ||
+      entry.description.toLowerCase().includes("holiday")
+    );
+  }, [academia?.calendarData]);
+
   const hasInitialized = useRef(false);
 
   useEffect(() => {
@@ -164,8 +197,7 @@ export default function MinimalHomepage({
 
       if (lastEnd > 0 && nowMins >= lastEnd) {
         setSelectedDay(
-          nextWorkingDayOrder ||
-            (currentDayOrder < 5 ? currentDayOrder + 1 : 1),
+          nextWorkingDayOrder || (currentDayOrder < 5 ? currentDayOrder + 1 : 1),
         );
       } else {
         setSelectedDay(currentDayOrder);
@@ -282,19 +314,42 @@ export default function MinimalHomepage({
       let trackedDay = todayOrder;
 
       if (!nxt && !isHoliday) {
-        const nextDay =
-          nextWorkingDayOrder || (todayOrder < 5 ? todayOrder + 1 : 1);
-        const processedNext = processSchedule(
-          scheduleData,
-          customClasses,
-          nextDay,
-          currentDayOrder,
-          courseMap,
-        );
-        const activeNext = processedNext.filter((c: any) => c.type !== "break");
-        if (activeNext.length > 0) {
-          nxt = activeNext[0];
-          trackedDay = nextDay;
+        const calData = academia?.calendarData || calendarDataJson || [];
+        const now = new Date();
+        now.setHours(0, 0, 0, 0);
+
+        const futureWorkingDays = calData
+          .filter((ev: any) => {
+            const evDate = new Date(ev.date);
+            evDate.setHours(0, 0, 0, 0);
+            const dOrder = parseInt(ev.dayOrder || ev.day_order || ev.order);
+            return evDate > now && !isNaN(dOrder) && dOrder >= 1 && dOrder <= 5;
+          })
+          .sort(
+            (a: any, b: any) =>
+              new Date(a.date).getTime() - new Date(b.date).getTime(),
+          );
+
+        if (futureWorkingDays.length > 0) {
+          const nextWorkingDay = parseInt(
+            futureWorkingDays[0].dayOrder ||
+              futureWorkingDays[0].day_order ||
+              futureWorkingDays[0].order,
+          );
+          const processedNext = processSchedule(
+            scheduleData,
+            customClasses,
+            nextWorkingDay,
+            currentDayOrder,
+            courseMap,
+          );
+          const activeNext = processedNext.filter(
+            (c: any) => c.type !== "break",
+          );
+          if (activeNext.length > 0) {
+            nxt = activeNext[0];
+            trackedDay = nextWorkingDay;
+          }
         }
       }
 
@@ -317,10 +372,13 @@ export default function MinimalHomepage({
 
   const focusClass = nextClass || null;
   const isShowingTomorrow =
-    focusClass && realDayToTrack !== (isHoliday ? (nextWorkingDayOrder || 1) : currentDayOrder);
+    focusClass &&
+    realDayToTrack !== (isHoliday ? nextWorkingDayOrder || 1 : currentDayOrder);
   const focusLabel = focusClass
     ? isShowingTomorrow
-      ? "tomorrow's first"
+      ? isTomorrowHoliday
+        ? "next session"
+        : "tomorrow's first"
       : "next up"
     : "free time";
 
@@ -621,18 +679,17 @@ export default function MinimalHomepage({
     );
   };
 
-  if (!mounted) return null;
+  const nextScheduledDay =
+    nextWorkingDayOrder || (dayOrder < 5 ? dayOrder + 1 : 1);
+  const isViewingNext =
+    String(selectedDay) === String(nextScheduledDay) &&
+    String(selectedDay) !== String(currentDayOrder);
 
   const displayGrid = showExtraSlots
     ? [...standardGrid, ...extraGrid]
     : standardGrid;
 
   const currentAlert = allAlerts[currentAlertIndex];
-  const nextScheduledDay =
-    nextWorkingDayOrder || (currentDayOrder < 5 ? currentDayOrder + 1 : 1);
-  const isViewingNext =
-    String(selectedDay) === String(nextScheduledDay) &&
-    String(selectedDay) !== String(currentDayOrder);
 
   const bgClass = isDark ? "bg-[#111111]" : "bg-[#F7F7F7]";
   const textClass = isDark ? "text-white" : "text-[#111111]";
@@ -640,6 +697,8 @@ export default function MinimalHomepage({
   const focusSubTextClass = isDark ? "text-white/50" : "text-[#111111]/50";
   const cardBg = isDark ? "bg-white/5" : "bg-white";
   const cardBorder = isDark ? "border-white/10" : "border-[#111111]/10";
+
+  if (!mounted) return null;
 
   return (
     <div
@@ -728,6 +787,21 @@ export default function MinimalHomepage({
                 style={{ fontFamily: "'Afacad', sans-serif" }}
               >
                 holiday today! viewing upcoming classes.
+              </span>
+            </motion.div>
+          )}
+
+          {!isHoliday && isTomorrowHoliday && (
+            <motion.div
+              variants={itemVariants}
+              className={`w-full ${isDark ? "bg-[#85a818]/5 border-[#85a818]/20" : "bg-[#85a818]/10 border-[#85a818]/30"} border-[1.5px] rounded-[16px] p-3 mb-4 flex items-center gap-3 shrink-0`}
+            >
+              <span className="text-xl">😉</span>
+              <span
+                className={`text-[13px] font-bold ${isDark ? "text-[#85a818]" : "text-[#4d6600]"} lowercase tracking-wide`}
+                style={{ fontFamily: "'Afacad', sans-serif" }}
+              >
+                holiday tomorrow! enjoy the break.
               </span>
             </motion.div>
           )}
@@ -957,11 +1031,7 @@ export default function MinimalHomepage({
               <div
                 className={`w-[50px] h-[50px] rounded-[18px] ${isDark ? "bg-white/5" : "bg-[#F4F4F4]"} flex items-center justify-center shrink-0`}
               >
-                <GraduationCap
-                  size={20}
-                  strokeWidth={2.5}
-                  className={textClass}
-                />
+                <GraduationCap size={20} strokeWidth={2.5} className={textClass} />
               </div>
               <div className="flex-1 flex flex-col justify-center min-w-0 py-0.5">
                 <span
@@ -1149,24 +1219,22 @@ export default function MinimalHomepage({
                         {alert.title}
                       </span>
                       <div className="flex flex-col gap-2.5 z-10">
-                        {alert.desc
-                          .split(" / ")
-                          .map((sub: string, idx: number) => (
-                            <div
-                              key={idx}
-                              className={`flex items-start gap-3 ${isDark ? "bg-white/5 border-white/5" : "bg-white/50 border-[#111111]/5"} rounded-xl p-3 border`}
+                        {alert.desc.split(" / ").map((sub: string, idx: number) => (
+                          <div
+                            key={idx}
+                            className={`flex items-start gap-3 ${isDark ? "bg-white/5 border-white/5" : "bg-white/50 border-[#111111]/5"} rounded-xl p-3 border`}
+                          >
+                            {alert.desc.includes("/") && (
+                              <div className="mt-1.5 w-1.5 h-1.5 rounded-full shrink-0 bg-[#8b5cf6]" />
+                            )}
+                            <span
+                              className={`text-[15px] font-bold ${isDark ? "text-white/80" : "text-[#111111]/80"} lowercase leading-snug`}
+                              style={{ fontFamily: "'Afacad', sans-serif" }}
                             >
-                              {alert.desc.includes("/") && (
-                                <div className="mt-1.5 w-1.5 h-1.5 rounded-full shrink-0 bg-[#8b5cf6]" />
-                              )}
-                              <span
-                                className={`text-[15px] font-bold ${isDark ? "text-white/80" : "text-[#111111]/80"} lowercase leading-snug`}
-                                style={{ fontFamily: "'Afacad', sans-serif" }}
-                              >
-                                {sub.trim()}
-                              </span>
-                            </div>
-                          ))}
+                              {sub.trim()}
+                            </span>
+                          </div>
+                        ))}
                       </div>
                     </motion.div>
                   ))
@@ -1227,24 +1295,22 @@ export default function MinimalHomepage({
                         {alert.title}
                       </span>
                       <div className="flex flex-col gap-2.5 z-10">
-                        {alert.desc
-                          .split(" / ")
-                          .map((sub: string, idx: number) => (
-                            <div
-                              key={idx}
-                              className={`flex items-start gap-3 ${isDark ? "bg-white/5 border-white/5" : "bg-white/50 border-[#111111]/5"} rounded-xl p-3 border`}
+                        {alert.desc.split(" / ").map((sub: string, idx: number) => (
+                          <div
+                            key={idx}
+                            className={`flex items-start gap-3 ${isDark ? "bg-white/5 border-white/5" : "bg-white/50 border-[#111111]/5"} rounded-xl p-3 border`}
+                          >
+                            {alert.desc.includes("/") && (
+                              <div className="mt-1.5 w-1.5 h-1.5 rounded-full shrink-0 bg-[#FF4D4D]" />
+                            )}
+                            <span
+                              className={`text-[15px] font-bold ${isDark ? "text-white/80" : "text-[#111111]/80"} lowercase leading-snug`}
+                              style={{ fontFamily: "'Afacad', sans-serif" }}
                             >
-                              {alert.desc.includes("/") && (
-                                <div className="mt-1.5 w-1.5 h-1.5 rounded-full shrink-0 bg-[#FF4D4D]" />
-                              )}
-                              <span
-                                className={`text-[15px] font-bold ${isDark ? "text-white/80" : "text-[#111111]/80"} lowercase leading-snug`}
-                                style={{ fontFamily: "'Afacad', sans-serif" }}
-                              >
-                                {sub.trim()}
-                              </span>
-                            </div>
-                          ))}
+                              {sub.trim()}
+                            </span>
+                          </div>
+                        ))}
                       </div>
                     </motion.div>
                   ))
