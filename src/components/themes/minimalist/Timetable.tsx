@@ -612,12 +612,12 @@ export default function MinimalTimetable({
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ duration: 0.4, ease: [0.25, 1, 0.5, 1] }}
-            className={`fixed inset-0 ${isDark ? "bg-[#111111]" : "bg-[#111111]"} z-[60] flex flex-col px-6 pt-10 pb-6 overflow-hidden`}
+            className={`fixed inset-0 ${isDark ? "bg-[#111111]" : "bg-white"} z-[60] flex flex-col px-6 pt-10 pb-6 overflow-hidden`}
           >
             <div className="flex justify-between items-start w-full shrink-0 mb-10">
               <div className="flex flex-col">
                 <span
-                  className="text-[32px] leading-[1] font-black uppercase tracking-[0.15em] text-white"
+                  className={`text-[32px] leading-[1] font-black uppercase tracking-[0.15em] ${isDark ? 'text-white' : 'text-[#111111]'}`}
                   style={{ fontFamily: "'Montserrat', sans-serif" }}
                 >
                   ADD CLASS
@@ -631,7 +631,7 @@ export default function MinimalTimetable({
               </div>
               <button
                 onClick={() => setIsAddingClass(false)}
-                className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white active:scale-95 transition-all shrink-0"
+                className={`w-10 h-10 rounded-full ${isDark ? 'bg-white/10 text-white' : 'bg-[#111111]/5 text-[#111111]'} flex items-center justify-center active:scale-95 transition-all shrink-0`}
               >
                 <X size={20} strokeWidth={2.5} />
               </button>
@@ -640,7 +640,7 @@ export default function MinimalTimetable({
             <div className="flex flex-col gap-6 flex-1 w-full">
               <div className="flex flex-col gap-2">
                 <span
-                  className="text-[11px] font-bold uppercase tracking-widest text-white/50 pl-1"
+                  className={`text-[11px] font-bold uppercase tracking-widest ${isDark ? 'text-white/50' : 'text-[#111111]/50'} pl-1`}
                   style={{ fontFamily: "'Afacad', sans-serif" }}
                 >
                   Subject Code
@@ -650,14 +650,14 @@ export default function MinimalTimetable({
                   placeholder="e.g. DTM"
                   value={newSub}
                   onChange={(e) => setNewSub(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-[16px] px-4 py-4 text-white text-[16px] font-bold placeholder:text-white/20 uppercase tracking-widest outline-none focus:border-[#85a818]/50 transition-colors"
+                  className={`w-full ${isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-white/20' : 'bg-[#111111]/5 border-[#111111]/10 text-[#111111] placeholder:text-[#111111]/20'} border rounded-[16px] px-4 py-4 text-[16px] font-bold uppercase tracking-widest outline-none focus:border-[#85a818]/50 transition-colors`}
                   style={{ fontFamily: "'Montserrat', sans-serif" }}
                 />
               </div>
 
               <div className="flex flex-col gap-2">
                 <span
-                  className="text-[11px] font-bold uppercase tracking-widest text-white/50 pl-1"
+                  className={`text-[11px] font-bold uppercase tracking-widest ${isDark ? 'text-white/50' : 'text-[#111111]/50'} pl-1`}
                   style={{ fontFamily: "'Afacad', sans-serif" }}
                 >
                   Room / Hall
@@ -667,7 +667,7 @@ export default function MinimalTimetable({
                   placeholder="e.g. UB304"
                   value={newRoom}
                   onChange={(e) => setNewRoom(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-[16px] px-4 py-4 text-white text-[16px] font-bold placeholder:text-white/20 uppercase tracking-widest outline-none focus:border-[#85a818]/50 transition-colors"
+                  className={`w-full ${isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-white/20' : 'bg-[#111111]/5 border-[#111111]/10 text-[#111111] placeholder:text-[#111111]/20'} border rounded-[16px] px-4 py-4 text-[16px] font-bold uppercase tracking-widest outline-none focus:border-[#85a818]/50 transition-colors`}
                   style={{ fontFamily: "'Montserrat', sans-serif" }}
                 />
               </div>
@@ -675,7 +675,7 @@ export default function MinimalTimetable({
               <div className="flex gap-3">
                 <div className="flex-1 flex flex-col gap-2">
                   <span
-                    className="text-[11px] font-bold uppercase tracking-widest text-white/50 pl-1"
+                    className={`text-[11px] font-bold uppercase tracking-widest ${isDark ? 'text-white/50' : 'text-[#111111]/50'} pl-1`}
                     style={{ fontFamily: "'Afacad', sans-serif" }}
                   >
                     Start Time
@@ -684,13 +684,13 @@ export default function MinimalTimetable({
                     type="time"
                     value={startTime}
                     onChange={(e) => setStartTime(e.target.value)}
-                    className="w-full bg-white/5 border border-white/10 rounded-[16px] px-4 py-4 text-white text-[16px] font-bold outline-none focus:border-[#85a818]/50 transition-colors [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert"
+                    className={`w-full ${isDark ? 'bg-white/5 border-white/10 text-white [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert' : 'bg-[#111111]/5 border-[#111111]/10 text-[#111111]'} border rounded-[16px] px-4 py-4 text-[16px] font-bold outline-none focus:border-[#85a818]/50 transition-colors`}
                     style={{ fontFamily: "'Montserrat', sans-serif" }}
                   />
                 </div>
                 <div className="flex-1 flex flex-col gap-2">
                   <span
-                    className="text-[11px] font-bold uppercase tracking-widest text-white/50 pl-1"
+                    className={`text-[11px] font-bold uppercase tracking-widest ${isDark ? 'text-white/50' : 'text-[#111111]/50'} pl-1`}
                     style={{ fontFamily: "'Afacad', sans-serif" }}
                   >
                     End Time
@@ -699,7 +699,7 @@ export default function MinimalTimetable({
                     type="time"
                     value={endTime}
                     onChange={(e) => setEndTime(e.target.value)}
-                    className="w-full bg-white/5 border border-white/10 rounded-[16px] px-4 py-4 text-white text-[16px] font-bold outline-none focus:border-[#85a818]/50 transition-colors [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert"
+                    className={`w-full ${isDark ? 'bg-white/5 border-white/10 text-white [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert' : 'bg-[#111111]/5 border-[#111111]/10 text-[#111111]'} border rounded-[16px] px-4 py-4 text-[16px] font-bold outline-none focus:border-[#85a818]/50 transition-colors`}
                     style={{ fontFamily: "'Montserrat', sans-serif" }}
                   />
                 </div>
@@ -707,7 +707,7 @@ export default function MinimalTimetable({
 
               <div className="flex flex-col gap-2 mt-2">
                 <span
-                  className="text-[11px] font-bold uppercase tracking-widest text-white/50 pl-1 mb-1"
+                  className={`text-[11px] font-bold uppercase tracking-widest ${isDark ? 'text-white/50' : 'text-[#111111]/50'} pl-1 mb-1`}
                   style={{ fontFamily: "'Afacad', sans-serif" }}
                 >
                   Class Type
@@ -715,14 +715,14 @@ export default function MinimalTimetable({
                 <div className="flex gap-3">
                   <button
                     onClick={() => setNewType("theory")}
-                    className={`flex-1 py-4 rounded-[16px] text-[13px] font-bold uppercase tracking-widest transition-all ${newType === "theory" ? "bg-white text-[#111111]" : "bg-white/5 text-white/50 border border-white/10"}`}
+                    className={`flex-1 py-4 rounded-[16px] text-[13px] font-bold uppercase tracking-widest transition-all ${newType === "theory" ? (isDark ? "bg-white text-[#111111]" : "bg-[#111111] text-white") : (isDark ? "bg-white/5 text-white/50 border border-white/10" : "bg-[#111111]/5 text-[#111111]/50 border border-black/5")}`}
                     style={{ fontFamily: "'Montserrat', sans-serif" }}
                   >
                     Theory
                   </button>
                   <button
                     onClick={() => setNewType("lab")}
-                    className={`flex-1 py-4 rounded-[16px] text-[13px] font-bold uppercase tracking-widest transition-all ${newType === "lab" ? "bg-[#0EA5E9] text-white" : "bg-white/5 text-white/50 border border-white/10"}`}
+                    className={`flex-1 py-4 rounded-[16px] text-[13px] font-bold uppercase tracking-widest transition-all ${newType === "lab" ? "bg-[#0EA5E9] text-white" : (isDark ? "bg-white/5 text-white/50 border border-white/10" : "bg-[#111111]/5 text-[#111111]/50 border border-black/5")}`}
                     style={{ fontFamily: "'Montserrat', sans-serif" }}
                   >
                     Practical

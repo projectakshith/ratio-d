@@ -522,7 +522,10 @@ export default function MinimalHomepage({
       midText = isDark ? "text-black" : "text-white";
       botText = isDark ? "text-black/60" : "text-white/80";
     } else if (slot.isPractical) {
-      boxClass = isDark ? "bg-[#0ea5e9]/10 border-[#0ea5e9]/30" : "bg-[#e0f2fe] border-[#bae6fd]";
+      boxClass = isDark ? "bg-[#0ea5e9]/10 border-[#0ea5e9]/30" : "bg-[#e0f2fe]/60 border-[#0EA5E9]/20";
+      topText = isDark ? "text-[#0ea5e9]/60" : "text-[#0ea5e9]/70";
+      midText = isDark ? "text-[#0ea5e9]" : "text-[#0ea5e9]";
+      botText = isDark ? "text-[#0ea5e9]/60" : "text-[#0ea5e9]/70";
     }
 
     return (
@@ -618,7 +621,7 @@ export default function MinimalHomepage({
           <motion.div variants={itemVariants} className="flex justify-between items-center mb-6 shrink-0">
             <button
               onClick={onOpenSettings}
-              className={`w-[50px] h-[50px] rounded-[16px] ${isDark ? "bg-white/5" : "bg-transparent"} flex items-center justify-center overflow-hidden active:scale-95 transition-transform`}
+              className="w-[50px] h-[50px] rounded-[16px] overflow-hidden active:scale-95 transition-all mt-3 shadow-[4px_4px_10px_rgba(0,0,0,0.15)] dark:shadow-[4px_4px_10px_rgba(0,0,0,0.4)] bg-transparent border-none"
             >
               <img src="/image.png" alt="Profile" className="w-full h-full object-cover" />
             </button>
@@ -716,7 +719,7 @@ export default function MinimalHomepage({
               <ChevronRight size={22} strokeWidth={2} className={`shrink-0 ${attStyles.arrow}`} />
             </div>
 
-            <div onClick={() => setIsAlertsOpen(true)} className={`w-full ${isDark ? "bg-[#E5E5E5] text-black" : "bg-[#111111] text-white"} border-[1.5px] ${isDark ? "border-black/5" : "border-black/5"} rounded-[24px] p-2 pr-5 flex items-center gap-4 shadow-sm active:scale-[0.98] transition-transform cursor-pointer`}>
+            <div onClick={() => setIsAlertsOpen(true)} className={`w-full ${isDark ? "bg-[#BBBBBB] text-black" : "bg-[#111111] text-white"} border-[1.5px] ${isDark ? "border-black/5" : "border-black/5"} rounded-[24px] p-2 pr-5 flex items-center gap-4 shadow-sm active:scale-[0.98] transition-transform cursor-pointer`}>
               <div className={`w-[50px] h-[50px] rounded-[18px] ${isDark ? "bg-black/10" : "bg-white/10"} flex items-center justify-center shrink-0`}><Bell size={20} strokeWidth={2.5} className={isDark ? "text-black" : "text-white"} /></div>
               <div className="flex-1 flex flex-col justify-center min-w-0 py-0.5">
                 <span className={`text-[15px] font-bold lowercase leading-tight truncate mb-0.5 ${isDark ? "text-black" : "text-white"}`} style={{ fontFamily: "'Montserrat', sans-serif" }}>academic alerts</span>

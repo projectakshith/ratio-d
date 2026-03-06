@@ -138,7 +138,8 @@ const MinimalCalendar = ({ data, academia, isDark }: any) => {
             <div className="grid grid-cols-7 gap-2 gap-y-3 content-start">{gridData.map((item: any) => (item.type === "padding" ? <div key={item.key} className="w-full aspect-square" /> : <CalendarDay key={item.key} item={item} onClick={handleDateClick} isDark={isDark} />))}</div>
           </motion.div>
         </motion.div>
-        <div className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t ${isDark ? 'from-[#111111] via-[#111111]' : 'from-[#F7F7F7] via-[#F7F7F7]'} to-transparent px-6 pt-24 pb-[30px] z-0 flex justify-between items-end pointer-events-none`}>
+        <div className={`absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t ${isDark ? 'from-[#111111] via-[#111111]/80' : 'from-[#F7F7F7] via-[#F7F7F7]/80'} to-transparent z-20 pointer-events-none`} />
+        <div className={`absolute bottom-0 left-0 right-0 px-6 pb-[30px] z-30 flex justify-between items-end pointer-events-none`}>
           {"calendar".split("").map((char, i) => (<span key={i} className={`text-[3.2rem] leading-[0.75] lowercase ${textClass}`} style={{ fontFamily: "'Afacad', sans-serif", fontWeight: 400 }}>{char}</span>))}
         </div>
       </div>
