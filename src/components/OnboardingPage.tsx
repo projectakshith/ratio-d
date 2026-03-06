@@ -15,6 +15,7 @@ const OnboardingPage = () => {
   const [isPWA, setIsPWA] = useState<boolean>(false);
   const [os, setOs] = useState<"android" | "ios" | "other" | null>(null);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [canInstall, setCanInstall] = useState<boolean>(false);
 
   useEffect(() => {
     const isStandalone =
@@ -36,21 +37,30 @@ const OnboardingPage = () => {
       else setOs("other");
     };
 
-    window.addEventListener("beforeinstallprompt", (e) => {
+    const handler = (e: any) => {
       e.preventDefault();
       setDeferredPrompt(e);
-    });
+      setCanInstall(true);
+    };
+
+    window.addEventListener("beforeinstallprompt", handler);
 
     checkDevice();
     window.addEventListener("resize", checkDevice);
-    return () => window.removeEventListener("resize", checkDevice);
+    return () => {
+      window.removeEventListener("beforeinstallprompt", handler);
+      window.removeEventListener("resize", checkDevice);
+    };
   }, []);
 
   const handleAndroidInstall = async () => {
     if (!deferredPrompt) return;
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
-    if (outcome === "accepted") setDeferredPrompt(null);
+    if (outcome === "accepted") {
+      setDeferredPrompt(null);
+      setCanInstall(false);
+    }
   };
 
   if (isMobile === null)
@@ -164,17 +174,17 @@ const OnboardingPage = () => {
               {os === "android" ? (
                 <button
                   onClick={handleAndroidInstall}
-                  className="w-full group flex items-center justify-between border-t border-white pt-8"
+                  className={`w-full group flex items-center justify-between border-t border-white pt-8 ${!canInstall ? "opacity-50 grayscale cursor-not-allowed" : ""}`}
                 >
                   <span
                     className="text-5xl lowercase group-hover:text-[#ceff1c] transition-colors"
                     style={{ fontFamily: "Aonic" }}
                   >
-                    Install App
+                    {canInstall ? "Install App" : "App Ready"}
                   </span>
                   <Download
                     size={48}
-                    className="group-hover:translate-y-2 transition-transform"
+                    className={canInstall ? "group-hover:translate-y-2 transition-transform" : ""}
                   />
                 </button>
               ) : (
