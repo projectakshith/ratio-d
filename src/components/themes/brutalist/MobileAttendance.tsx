@@ -84,8 +84,8 @@ const MobileAttendance = ({
       .map((subject: any, index: number) => {
         const pct = parseFloat(String(subject?.percent || "0"));
         let category = pct < 75 ? "cooked" : pct >= 85 ? "safe" : "danger";
-        const list =
-          flavorText.header?.[category] || flavorText.header?.danger || ["..."];
+        const list = flavorText.header?.[category] ||
+          flavorText.header?.danger || ["..."];
         const stableBadge = list[Math.floor(index % list.length)].toLowerCase();
         const safeTitle =
           subject.title || subject.courseTitle || "Unknown Subject";

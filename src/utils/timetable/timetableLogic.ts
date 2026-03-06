@@ -42,7 +42,9 @@ export const handleAddClassLogic = (
   if (!newSub.trim() || !newRoom.trim() || !startTime || !endTime) return null;
 
   const stored = localStorage.getItem("ratio_custom_classes");
-  const currentCustoms: Record<number, any[]> = stored ? JSON.parse(stored) : {};
+  const currentCustoms: Record<number, any[]> = stored
+    ? JSON.parse(stored)
+    : {};
 
   const newClassItem = {
     id: `custom-${Date.now()}`,

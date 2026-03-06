@@ -14,7 +14,6 @@ export default function Home() {
   const [view, setView] = useState("loading");
   const [showSplash, setShowSplash] = useState(true);
   const [startEntrance, setStartEntrance] = useState(false);
-
   const [isOffline, setIsOffline] = useState(false);
   const [showBigOffline, setShowBigOffline] = useState(false);
   const [justCameOnline, setJustCameOnline] = useState(false);
@@ -28,19 +27,16 @@ export default function Home() {
     const cachedData = localStorage.getItem("ratio_data");
     const cachedName = localStorage.getItem("ratiod_custom_name");
     if (cachedName) setCustomDisplayName(cachedName);
-
     if (cachedData) {
       setUserData(JSON.parse(cachedData));
       setView(isStandalone ? "app" : "onboarding");
     } else {
       setView(isStandalone ? "login" : "onboarding");
     }
-
     const timer = setTimeout(() => {
       setStartEntrance(true);
       setTimeout(() => setShowSplash(false), 100);
     }, 600);
-
     return () => clearTimeout(timer);
   }, []);
 
@@ -67,17 +63,15 @@ export default function Home() {
     setIsUpdating(true);
     try {
       const savedCookies = EncryptionUtils.loadDecrypted("academia_cookies");
-      const isMissingData = 
-        !existingData.courses || 
+      const isMissingData =
+        !existingData.courses ||
         Object.keys(existingData.courses).length === 0 ||
+        !existingData.slots ||
+        Object.keys(existingData.slots).length === 0 ||
         !existingData.profile?.name ||
-        !existingData.schedule || 
+        !existingData.schedule ||
         Object.keys(existingData.schedule).length === 0;
-
-      // If missing critical data (like courses for migration), do a full login sync
-      // Otherwise, do a fast attendance/marks refresh
       const endpoint = isMissingData ? "login" : "refresh";
-      
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/${endpoint}`,
         {
@@ -92,34 +86,26 @@ export default function Home() {
       );
       const result = await response.json();
       if (!result.success) throw new Error(`${endpoint} failed`);
-      
       if (result.cookies) {
         EncryptionUtils.saveEncrypted("academia_cookies", result.cookies);
         delete result.cookies;
       }
-
       let updatedData;
       if (isMissingData) {
-        // Full sync result
         updatedData = {
           ...result,
-          // preserve any local-only state if necessary
         };
       } else {
-        // Partial refresh result
         updatedData = {
           ...existingData,
           attendance: result.attendance,
           marks: result.marks,
         };
       }
-      
       setUserData(updatedData);
       localStorage.setItem("ratio_data", JSON.stringify(updatedData));
-      console.log(`[SYNC] Data updated via ${endpoint}`);
       return updatedData;
     } catch (err) {
-      console.error("[SYNC] Error:", err);
       return existingData;
     } finally {
       setIsUpdating(false);
@@ -128,7 +114,6 @@ export default function Home() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-
     const triggerSync = () => {
       if (view === "app") {
         const creds = EncryptionUtils.loadDecrypted("ratio_credentials");
@@ -136,7 +121,6 @@ export default function Home() {
         if (creds && dataStr) refreshData(creds, JSON.parse(dataStr));
       }
     };
-
     const handleOnline = () => {
       setIsOffline(false);
       setShowBigOffline(false);
@@ -144,27 +128,21 @@ export default function Home() {
       setTimeout(() => setJustCameOnline(false), 3000);
       triggerSync();
     };
-
     const handleOffline = () => {
       setIsOffline(true);
       setShowBigOffline(true);
       setTimeout(() => setShowBigOffline(false), 2000);
     };
-
     const handleVisibilityChange = () => {
       if (document.visibilityState === "visible") triggerSync();
     };
-
     if (view === "app") triggerSync();
-
     const interval = setInterval(triggerSync, 3600000);
-
     if (!navigator.onLine) handleOffline();
     window.addEventListener("online", handleOnline);
     window.addEventListener("offline", handleOffline);
     window.addEventListener("focus", triggerSync);
     document.addEventListener("visibilitychange", handleVisibilityChange);
-
     return () => {
       clearInterval(interval);
       window.removeEventListener("online", handleOnline);
@@ -211,7 +189,6 @@ export default function Home() {
           </motion.div>
         )}
       </AnimatePresence>
-
       <div
         className={`w-full h-full ${view === "loading" ? "opacity-0" : "opacity-100"}`}
       >
@@ -245,7 +222,6 @@ export default function Home() {
           />
         )}
       </div>
-
       <AnimatePresence>
         {showSplash && (
           <motion.div

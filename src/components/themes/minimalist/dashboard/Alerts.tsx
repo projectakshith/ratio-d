@@ -238,22 +238,24 @@ export default function Alerts({
                       {alert.title}
                     </span>
                     <div className="flex flex-col gap-2.5 z-10">
-                      {alert.desc.split(" / ").map((sub: string, idx: number) => (
-                        <div
-                          key={idx}
-                          className={`flex items-start gap-3 ${isDark ? "bg-white/5 border-white/5" : "bg-white/50 border-[#111111]/5"} rounded-xl p-3 border`}
-                        >
-                          {alert.desc.includes("/") && (
-                            <div className="mt-1.5 w-1.5 h-1.5 rounded-full shrink-0 bg-[#8b5cf6]" />
-                          )}
-                          <span
-                            className={`text-[15px] font-bold ${isDark ? "text-white/80" : "text-[#111111]/80"} lowercase leading-snug`}
-                            style={{ fontFamily: "'Afacad', sans-serif" }}
+                      {alert.desc
+                        .split(" / ")
+                        .map((sub: string, idx: number) => (
+                          <div
+                            key={idx}
+                            className={`flex items-start gap-3 ${isDark ? "bg-white/5 border-white/5" : "bg-white/50 border-[#111111]/5"} rounded-xl p-3 border`}
                           >
-                            {sub.trim()}
-                          </span>
-                        </div>
-                      ))}
+                            {alert.desc.includes("/") && (
+                              <div className="mt-1.5 w-1.5 h-1.5 rounded-full shrink-0 bg-[#8b5cf6]" />
+                            )}
+                            <span
+                              className={`text-[15px] font-bold ${isDark ? "text-white/80" : "text-[#111111]/80"} lowercase leading-snug`}
+                              style={{ fontFamily: "'Afacad', sans-serif" }}
+                            >
+                              {sub.trim()}
+                            </span>
+                          </div>
+                        ))}
                     </div>
                   </motion.div>
                 ))
@@ -314,22 +316,24 @@ export default function Alerts({
                       {alert.title}
                     </span>
                     <div className="flex flex-col gap-2.5 z-10">
-                      {alert.desc.split(" / ").map((sub: string, idx: number) => (
-                        <div
-                          key={idx}
-                          className={`flex items-start gap-3 ${isDark ? "bg-white/5 border-white/5" : "bg-white/50 border-[#111111]/5"} rounded-xl p-3 border`}
-                        >
-                          {alert.desc.includes("/") && (
-                            <div className="mt-1.5 w-1.5 h-1.5 rounded-full shrink-0 bg-[#FF4D4D]" />
-                          )}
-                          <span
-                            className={`text-[15px] font-bold ${isDark ? "text-white/80" : "text-[#111111]/80"} lowercase leading-snug`}
-                            style={{ fontFamily: "'Afacad', sans-serif" }}
+                      {alert.desc
+                        .split(" / ")
+                        .map((sub: string, idx: number) => (
+                          <div
+                            key={idx}
+                            className={`flex items-start gap-3 ${isDark ? "bg-white/5 border-white/5" : "bg-white/50 border-[#111111]/5"} rounded-xl p-3 border`}
                           >
-                            {sub.trim()}
-                          </span>
-                        </div>
-                      ))}
+                            {alert.desc.includes("/") && (
+                              <div className="mt-1.5 w-1.5 h-1.5 rounded-full shrink-0 bg-[#FF4D4D]" />
+                            )}
+                            <span
+                              className={`text-[15px] font-bold ${isDark ? "text-white/80" : "text-[#111111]/80"} lowercase leading-snug`}
+                              style={{ fontFamily: "'Afacad', sans-serif" }}
+                            >
+                              {sub.trim()}
+                            </span>
+                          </div>
+                        ))}
                     </div>
                   </motion.div>
                 ))

@@ -91,6 +91,7 @@ export interface Course {
   code: string;
   name: string;
   credits: string;
+  type: string;
   faculty: string;
   room: string;
   slot: string;
@@ -102,6 +103,7 @@ export interface AcademiaData {
   schedule: ScheduleData;
   marks: MarksRecord[];
   courses?: Record<string, Course>;
+  slots?: Record<string, any>;
   dayOrder?: string;
   calendarData?: CalendarEvent[];
   effectiveDayOrder?: string;

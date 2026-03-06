@@ -3,8 +3,7 @@
   runtime: static
   buildCommand: yarn; yarn build
   staticPublishPath: out
-  pullRequestPreviewsEnabled: true   
+  pullRequestPreviewsEnabled: true
   envVars:
-  - key: NODE_ENV
-    value: production
-
+    - key: NODE_ENV
+      value: production

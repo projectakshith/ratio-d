@@ -204,7 +204,8 @@ export default function Dashboard({
 
       if (lastEnd > 0 && nowMins >= lastEnd) {
         setSelectedDay(
-          nextWorkingDayOrder || (currentDayOrder < 5 ? currentDayOrder + 1 : 1),
+          nextWorkingDayOrder ||
+            (currentDayOrder < 5 ? currentDayOrder + 1 : 1),
         );
       } else {
         setSelectedDay(currentDayOrder);
@@ -303,7 +304,9 @@ export default function Dashboard({
   const displayCourseWords = displayCourse.split(" ");
   const displayTiming = focusClass?.time || "--:--";
 
-  const statusClass = (currentClass || nextClass || null) as ScheduleSlot | null;
+  const statusClass = (currentClass ||
+    nextClass ||
+    null) as ScheduleSlot | null;
 
   const { alertName, alertPctNum, alertPct, alertMargin, alertLabel } =
     useMemo(() => {
@@ -332,9 +335,37 @@ export default function Dashboard({
         if (match) targetSubject = match;
       }
 
+      // Calculate hours scheduled today for this subject
+      const todaySchedule =
+        academia?.effectiveSchedule?.[`Day ${currentDayOrder}`] ||
+        data?.timetable?.[`Day ${currentDayOrder}`] ||
+        {};
+      const scheduledHoursToday = Object.values(todaySchedule).filter(
+        (slot: any) => {
+          if (!targetSubject || !slot) return false;
+          const sCode = (slot.courseCode || slot.code || "")
+            .split("-")[0]
+            .trim()
+            .toLowerCase();
+          const tCode = (targetSubject.courseCode || targetSubject.code || "")
+            .trim()
+            .toLowerCase();
+          return sCode === tCode;
+        },
+      ).length;
+
       const conducted = targetSubject ? targetSubject.conducted : 0;
       const present = targetSubject ? conducted - targetSubject.absent : 0;
+
+      // Predict if classes were attended today
+      const predictedConducted = conducted + scheduledHoursToday;
+      const predictedPresent = present + scheduledHoursToday;
       const pct = conducted > 0 ? (present / conducted) * 100 : 100;
+      const predictedPct =
+        predictedConducted > 0
+          ? (predictedPresent / predictedConducted) * 100
+          : 100;
+
       const isSafe = pct >= 75;
 
       let margin = 0;
@@ -351,8 +382,10 @@ export default function Dashboard({
           "attendance",
         alertPctNum: pct,
         alertPct: pct.toFixed(1),
+        alertPredictedPct: predictedPct.toFixed(1),
         alertMargin: Math.max(0, margin),
         alertLabel: isSafe ? "margin" : "recover",
+        scheduledHoursToday,
       };
     }, [data?.attendance, nextClass, currentClass]);
 
@@ -844,7 +877,11 @@ export default function Dashboard({
               <div
                 className={`w-[50px] h-[50px] rounded-[18px] ${isDark ? "bg-white/5" : "bg-[#F4F4F4]"} flex items-center justify-center shrink-0`}
               >
-                <GraduationCap size={20} strokeWidth={2.5} className={textClass} />
+                <GraduationCap
+                  size={20}
+                  strokeWidth={2.5}
+                  className={textClass}
+                />
               </div>
               <div className="flex-1 flex flex-col justify-center min-w-0 py-0.5">
                 <span

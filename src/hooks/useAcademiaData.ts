@@ -7,7 +7,12 @@ import {
   calculateOverallAttendance,
   getCriticalAttendance,
 } from "@/utils/academia/academiaLogic";
-import { AcademiaData, CalendarEvent, ScheduleData, ScheduleSlot } from "@/types";
+import {
+  AcademiaData,
+  CalendarEvent,
+  ScheduleData,
+  ScheduleSlot,
+} from "@/types";
 
 export const useAcademiaData = (data: AcademiaData) => {
   const initialSchedule = data?.schedule || {};

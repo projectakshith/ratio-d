@@ -184,7 +184,11 @@ const OnboardingPage = () => {
                   </span>
                   <Download
                     size={48}
-                    className={canInstall ? "group-hover:translate-y-2 transition-transform" : ""}
+                    className={
+                      canInstall
+                        ? "group-hover:translate-y-2 transition-transform"
+                        : ""
+                    }
                   />
                 </button>
               ) : (

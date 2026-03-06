@@ -70,19 +70,32 @@ export default function Attendance({
   }, []);
 
   const baseAttendance = useMemo(
-    () => getBaseAttendance(data?.attendance || []),
-    [data?.attendance],
+    () => getBaseAttendance(data?.attendance || [], data?.courses, data?.slots),
+    [data?.attendance, data?.courses, data?.slots],
   );
 
   const impactMap = useMemo(() => {
     if (!isPredicting || selectedDates.length === 0) return {};
+    const calDataToUse =
+      academia?.calendarData?.length > 0
+        ? academia.calendarData
+        : calendarDataJson || [];
     return getImpactMap(
       selectedDates,
-      academia?.calendarData || [],
-      academia?.effectiveSchedule || {},
+      calDataToUse,
+      academia?.effectiveSchedule || data?.schedule || data?.timetable || {},
       baseAttendance,
+      data?.slots,
     );
-  }, [isPredicting, selectedDates, academia, baseAttendance]);
+  }, [
+    isPredicting,
+    selectedDates,
+    academia,
+    baseAttendance,
+    data?.slots,
+    data?.schedule,
+    data?.timetable,
+  ]);
 
   const processedList = useMemo(() => {
     const list = getProcessedList(
@@ -108,6 +121,9 @@ export default function Attendance({
         originalVal: origStatus.val,
         originalLabel: origStatus.label,
         currentLabel: s.pred.status.label,
+        hasChanged:
+          s.pred.status.val !== origStatus.val ||
+          s.pred.status.label !== origStatus.label,
       };
     });
   }, [baseAttendance, impactMap, predictAction, isPredicting]);
@@ -128,7 +144,7 @@ export default function Attendance({
     let totalC = 0,
       totalP = 0;
     baseAttendance.forEach((s) => {
-      const sessions = impactMap[s.code] || 0;
+      const sessions = impactMap[s.id] || 0;
       totalC += s.conducted + sessions;
       totalP += s.present + (predictAction === "attend" ? sessions : 0);
     });
@@ -223,7 +239,7 @@ export default function Attendance({
     <>
       <style
         dangerouslySetInnerHTML={{
-          __html: `.no-scrollbar::-webkit-scrollbar { display: none; } .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; } .warning-dotted-rect { background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='24' ry='14' stroke='%23FF4D4D' stroke-width='3' stroke-dasharray='6%2c 10' stroke-dashoffset='0' stroke-linecap='round'/%3e%3c/svg%3e"); border-radius: 24px; } .affected-dotted-rect { background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='24' ry='14' stroke='%23${isDark ? "ffffff" : "111111"}' stroke-width='2' stroke-dasharray='8%2c 12' stroke-dashoffset='0' stroke-linecap='round' opacity='0.15'/%3e%3c/svg%3e"); border-radius: 24px; } .shift-bar { background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='12' ry='12' stroke='%23${isDark ? "ffffff" : "111111"}15' stroke-width='1.5' stroke-dasharray='4%2c 6' stroke-dashoffset='0' stroke-linecap='round'/%3e%3c/svg%3e"); border-radius: 12px; }`,
+          __html: `.no-scrollbar::-webkit-scrollbar { display: none; } .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; } .warning-dotted-rect { background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='24' ry='14' stroke='%23FF4D4D' stroke-width='3' stroke-dasharray='6%2c 10' stroke-dashoffset='0' stroke-linecap='round'/%3e%3c/svg%3e"); border-radius: 24px; } .affected-dotted-border { border-style: dashed !important; border-width: 2px !important; border-color: ${isDark ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.4)"} !important; } .shift-bar { background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='12' ry='12' stroke='%23${isDark ? "ffffff" : "111111"}15' stroke-width='1.5' stroke-dasharray='4%2c 6' stroke-dashoffset='0' stroke-linecap='round'/%3e%3c/svg%3e"); border-radius: 12px; }`,
         }}
       />
       <div className={`absolute inset-0 ${bgClass}`}>
@@ -382,10 +398,10 @@ export default function Attendance({
               {actionRequired.map((sub: any) => (
                 <div
                   key={sub.id}
-                  className={`w-full ${isDark ? "bg-white/5 border-[#FF4D4D]/20" : "bg-white border-[#FF4D4D]/30"} border-[1.5px] rounded-[18px] p-4 flex flex-col shadow-sm transition-all`}
+                  className={`w-full ${isDark ? "bg-white/5" : "bg-white"} border-[1.5px] rounded-[18px] p-4 flex flex-col shadow-sm transition-all ${isPredicting && sub.hasChanged ? "affected-dotted-border" : "border-[#FF4D4D]/20"}`}
                 >
                   <div className="flex items-center justify-between w-full">
-                    <div className="flex flex-col items-center justify-center w-[70px] shrink-0">
+                    <div className="flex flex-col items-center justify-center min-w-[80px] shrink-0">
                       <span
                         className="text-[3.2rem] leading-[0.8] font-black tracking-tighter"
                         style={{
@@ -395,15 +411,37 @@ export default function Attendance({
                       >
                         {sub.val}
                       </span>
-                      <span
-                        className="text-[10px] font-bold uppercase tracking-widest mt-1 text-center"
-                        style={{
-                          fontFamily: "'Afacad', sans-serif",
-                          color: "#FF4D4Db3",
-                        }}
-                      >
-                        {sub.currentLabel}
-                      </span>
+                      {isPredicting && sub.hasChanged ? (
+                        <div className="flex items-center gap-1 mt-1.5 px-2 py-0.5 rounded-full bg-[#FF4D4D]/10 border border-[#FF4D4D]/20">
+                          <span className="text-[10px] font-bold opacity-40 text-[#FF4D4D]">
+                            {sub.originalVal}
+                          </span>
+                          <ChevronRightIcon
+                            size={8}
+                            className="opacity-40 text-[#FF4D4D]"
+                          />
+                          <span className="text-[10px] font-black text-[#FF4D4D]">
+                            {sub.val}
+                          </span>
+                        </div>
+                      ) : (
+                        <span
+                          className="text-[10px] font-bold uppercase tracking-widest mt-1 text-center"
+                          style={{
+                            fontFamily: "'Afacad', sans-serif",
+                            color: "#FF4D4Db3",
+                          }}
+                        >
+                          {sub.currentLabel}
+                        </span>
+                      )}
+                      {isPredicting &&
+                        sub.hasChanged &&
+                        sub.originalLabel !== sub.currentLabel && (
+                          <span className="text-[8px] font-black uppercase tracking-tighter mt-1 text-[#FF4D4D]/60 text-center">
+                            {sub.originalLabel} → {sub.currentLabel}
+                          </span>
+                        )}
                     </div>
                     <div className="flex-1 flex flex-col items-end text-right min-w-0 ml-4">
                       <div className="flex items-center gap-2 mb-1">
@@ -491,9 +529,9 @@ export default function Attendance({
                 <motion.div
                   key={sub.id}
                   variants={itemVariants}
-                  className={`w-full border-[1.5px] rounded-[24px] p-5 flex items-center justify-between shadow-sm transition-all ${isDark ? "bg-white/5 border-white/10" : "bg-white border-[#111111]/10"}`}
+                  className={`w-full ${isDark ? "bg-white/5" : "bg-white"} border-[1.5px] rounded-[24px] p-5 flex items-center justify-between shadow-sm transition-all ${isPredicting && sub.hasChanged ? "affected-dotted-border" : isDark ? "border-white/10" : "border-[#111111]/10"}`}
                 >
-                  <div className="flex flex-col items-center justify-center w-[70px] shrink-0">
+                  <div className="flex flex-col items-center justify-center min-w-[80px] shrink-0">
                     <span
                       className="text-[3.2rem] leading-[0.8] font-black tracking-tighter"
                       style={{
@@ -503,19 +541,53 @@ export default function Attendance({
                     >
                       {sub.val}
                     </span>
-                    <span
-                      className="text-[10px] font-bold uppercase tracking-widest mt-1 text-center"
-                      style={{
-                        fontFamily: "'Afacad', sans-serif",
-                        color: isPrac
-                          ? `${baseColor}b3`
-                          : isDark
-                            ? "rgba(255,255,255,0.4)"
-                            : "#11111166",
-                      }}
-                    >
-                      {sub.currentLabel}
-                    </span>
+                    {isPredicting && sub.hasChanged ? (
+                      <div
+                        className={`flex items-center gap-1 mt-1.5 px-2 py-0.5 rounded-full border ${isDark ? "bg-white/10 border-white/20" : "bg-black/5 border-black/10"}`}
+                      >
+                        <span
+                          className="text-[10px] font-bold opacity-40"
+                          style={{ color: baseColor }}
+                        >
+                          {sub.originalVal}
+                        </span>
+                        <ChevronRightIcon
+                          size={8}
+                          className="opacity-40"
+                          style={{ color: baseColor }}
+                        />
+                        <span
+                          className="text-[10px] font-black"
+                          style={{ color: baseColor }}
+                        >
+                          {sub.val}
+                        </span>
+                      </div>
+                    ) : (
+                      <span
+                        className="text-[10px] font-bold uppercase tracking-widest mt-1 text-center"
+                        style={{
+                          fontFamily: "'Afacad', sans-serif",
+                          color: isPrac
+                            ? `${baseColor}b3`
+                            : isDark
+                              ? "rgba(255,255,255,0.4)"
+                              : "#11111166",
+                        }}
+                      >
+                        {sub.currentLabel}
+                      </span>
+                    )}
+                    {isPredicting &&
+                      sub.hasChanged &&
+                      sub.originalLabel !== sub.currentLabel && (
+                        <span
+                          className="text-[8px] font-black uppercase tracking-tighter mt-1 opacity-60 text-center"
+                          style={{ color: baseColor }}
+                        >
+                          {sub.originalLabel} → {sub.currentLabel}
+                        </span>
+                      )}
                   </div>
                   <div className="flex-1 flex flex-col items-end text-right min-w-0 ml-4">
                     <div className="flex items-center gap-2 mb-1">

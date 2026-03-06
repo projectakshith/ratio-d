@@ -1,7 +1,15 @@
 "use client";
 import React, { useEffect, useState, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MapPin, Clock, User, Plus, X, ChevronRight, Layers } from "lucide-react";
+import {
+  MapPin,
+  Clock,
+  User,
+  Plus,
+  X,
+  ChevronRight,
+  Layers,
+} from "lucide-react";
 import {
   buildCourseMap,
   processSchedule,

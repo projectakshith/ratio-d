@@ -67,8 +67,10 @@ export default function Marks({
     const sorted = processAndSortMarks(data.marks, courseMap);
     return sorted.map((sub: any, i: number) => {
       const courseDetails = data.courses?.[sub.code];
-      const credits = courseDetails?.credits ? parseFloat(courseDetails.credits) : 0;
-      
+      const credits = courseDetails?.credits
+        ? parseFloat(courseDetails.credits)
+        : 0;
+
       let recent: { test: string; text: string } | null = null;
       if (i < 2 && sub.assessments.length > 0) {
         const lastAss = sub.assessments[sub.assessments.length - 1];
@@ -163,14 +165,14 @@ export default function Marks({
 
     subjects.forEach((sub: any) => {
       if (sub.isNA) return;
-      
+
       const credits = sub.credits || 0;
       if (credits === 0) return;
 
       let grade;
       if (sub.id === predSubjectId) {
         // Use the selected target grade label
-        const gradeObj = grades.find(g => g.min === targetGrade);
+        const gradeObj = grades.find((g) => g.min === targetGrade);
         grade = gradeObj ? gradeObj.label : "O";
       } else {
         // Estimate current grade based on current percentage

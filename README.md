@@ -20,13 +20,13 @@ It simplifies academic management by providing a clean, centralized interface fo
 
 ## Project Structure
 
-- **Frontend**  - Nextjs [PWA] 
+- **Frontend** - Nextjs [PWA]
 
-- **Backend**  - Python
+- **Backend** - Python
 
 ---
 
 ## Status
 
-- **Version:** 2.0  
+- **Version:** 2.0
 - **Current State:** In Development.

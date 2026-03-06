@@ -89,7 +89,13 @@ export const useCalendarData = (
 
   const display = useMemo(
     () =>
-      getCalendarDisplay(selectedDate, isExam, hasOrder, isHoliday, currentEvent),
+      getCalendarDisplay(
+        selectedDate,
+        isExam,
+        hasOrder,
+        isHoliday,
+        currentEvent,
+      ),
     [selectedDate, isExam, hasOrder, isHoliday, currentEvent],
   );
 

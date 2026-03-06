@@ -181,7 +181,11 @@ export default function MinimalTheme(props: MinimalThemeProps) {
             transition={{ type: "spring", stiffness: 400, damping: 30 }}
             className="absolute bottom-0 left-0 w-full z-50"
           >
-            <Navbar activeTab={activeTab} setActiveTab={handleTabChange} isDark={isDark} />
+            <Navbar
+              activeTab={activeTab}
+              setActiveTab={handleTabChange}
+              isDark={isDark}
+            />
           </motion.div>
         )}
       </AnimatePresence>

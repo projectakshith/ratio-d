@@ -3,28 +3,28 @@
 @tailwind utilities;
 
 @font-face {
-    font-family: "Akira";
-    src: url("/fonts/Akira.otf");
+  font-family: "Akira";
+  src: url("/fonts/Akira.otf");
 }
 @font-face {
-    font-family: "Aonic";
-    src: url("/fonts/Aonic.ttf");
+  font-family: "Aonic";
+  src: url("/fonts/Aonic.ttf");
 }
 @font-face {
-    font-family: "Urbanosta";
-    src: url("/fonts/Urbanosta.otf");
+  font-family: "Urbanosta";
+  src: url("/fonts/Urbanosta.otf");
 }
 
 :root {
-    --font-afacad: var(--font-afacad);
-    --font-montserrat: var(--font-montserrat);
+  --font-afacad: var(--font-afacad);
+  --font-montserrat: var(--font-montserrat);
 }
 
 body {
-    background-color: #F7F7F7;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    font-family: var(--font-afacad), sans-serif;
+  background-color: #f7f7f7;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-family: var(--font-afacad), sans-serif;
 }
 
 h1,
@@ -33,24 +33,24 @@ h3,
 h4,
 h5,
 h6 {
-    font-family: var(--font-montserrat), sans-serif;
+  font-family: var(--font-montserrat), sans-serif;
 }
 
 input:focus {
-    color: #f5f6fc !important;
+  color: #f5f6fc !important;
 }
 
 ::selection {
-    background: #ceff1c;
-    color: #0c30ff;
+  background: #ceff1c;
+  color: #0c30ff;
 }
 
 input:-webkit-autofill {
-    -webkit-text-fill-color: #ffffff;
-    -webkit-box-shadow: 0 0 0px 1000px #0c30ff inset;
+  -webkit-text-fill-color: #ffffff;
+  -webkit-box-shadow: 0 0 0px 1000px #0c30ff inset;
 }
 
 .stroke-text-black {
-    -webkit-text-stroke: 1px #050505;
-    color: transparent;
+  -webkit-text-stroke: 1px #050505;
+  color: transparent;
 }

@@ -140,13 +140,11 @@ export const processAndSortMarks = (
         .map((ass: any) => {
           let title = ass.title || ass.testName || ass.name || "Test";
           if (title.toLowerCase().includes("total")) return null;
-
           const markStr = String(
             ass.mark ?? ass.score ?? ass.obtained ?? ass.marks ?? "0",
           );
           let got = 0;
           let max = parseFloat(ass.maxMark ?? ass.max ?? ass.total ?? "0") || 0;
-
           if (markStr.includes("/")) {
             const parts = markStr.split("/");
             got = parseFloat(parts[0]) || 0;
@@ -154,7 +152,6 @@ export const processAndSortMarks = (
           } else {
             got = parseFloat(markStr) || 0;
           }
-
           if (max === 0 || max === 100) {
             const lowerTitle = title.toLowerCase();
             if (lowerTitle.match(/ct[- ]?1|ct[- ]?2|ct[- ]?3|cycle test/)) {
@@ -166,18 +163,14 @@ export const processAndSortMarks = (
               max = 5;
             }
           }
-
           return { title, got, max };
         })
         .filter(Boolean);
-
       const perfString = subject.performance || "N/A";
       const isNA =
         perfString === "N/A" || perfString === "." || perfString === "";
-
       let got = 0;
       let max = 0;
-
       if (!isNA && perfString.includes("/")) {
         const parts = perfString.split("/");
         got = parseFloat(parts[0]) || 0;
@@ -186,12 +179,10 @@ export const processAndSortMarks = (
         got = parseFloat(perfString) || 0;
         max = 100;
       }
-
       if ((isNA || max === 0) && assessments.length > 0) {
         got = assessments.reduce((sum: number, curr: any) => sum + curr.got, 0);
         max = assessments.reduce((sum: number, curr: any) => sum + curr.max, 0);
       }
-
       const actualIsNA = (isNA || max === 0) && assessments.length === 0;
       const percentage = max > 0 ? (got / max) * 100 : 0;
       const code = subject.courseCode || "";
@@ -201,10 +192,8 @@ export const processAndSortMarks = (
         subject.courseTitle ||
         code ||
         "Unknown Subject";
-
       let status: "cooked" | "danger" | "safe" | "neutral" = "neutral";
       let badge = "pending";
-
       if (!actualIsNA && max > 0) {
         if (percentage >= 80) {
           status = "safe";
@@ -217,17 +206,21 @@ export const processAndSortMarks = (
           badge = "critical";
         }
       }
-
       const latestTest =
         assessments.length > 0 ? assessments[assessments.length - 1] : null;
-
+      const type = subject.type || "Theory";
+      const isPractical =
+        type.toLowerCase() === "practical" ||
+        type.toLowerCase() === "lab" ||
+        subject.courseCode?.toUpperCase().includes("-P") ||
+        (subject.slot || "").toUpperCase().includes("P");
       return {
-        id: index,
+        id: `${cleanCode}-${type}-${index}`,
         title,
         courseTitle: title,
         code: cleanCode,
         course: title,
-        type: subject.type || "Theory",
+        type: isPractical ? "Practical" : "Theory",
         totalGot: got,
         totalMax: max === 0 ? 60 : max,
         percentage,
@@ -239,6 +232,7 @@ export const processAndSortMarks = (
         displayScore: actualIsNA ? "N/A" : got.toString(),
         status,
         badge,
+        isPractical,
       } as any;
     })
     .sort((a: any, b: any) => {

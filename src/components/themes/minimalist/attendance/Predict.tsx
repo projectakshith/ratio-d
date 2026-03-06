@@ -163,10 +163,15 @@ export default function Predict({
                 ))}
                 {Array.from({ length: daysInMonth }).map((_, i) => {
                   const day = i + 1;
+                  const dateObj = new Date(calYear, calMonth, day);
                   const dStr = formatDate(calYear, calMonth, day);
+                  const now = new Date();
+                  now.setHours(0, 0, 0, 0);
+                  const isPast = dateObj < now;
+                  const isToday = dateObj.getTime() === now.getTime();
                   const isWeekend = isWeekendStr(dStr);
                   const isHoliday = holidayMap.has(dStr);
-                  const isDisabled = isWeekend || isHoliday;
+                  const isDisabled = isWeekend || isHoliday || isPast;
                   const selected =
                     (isRangeMode && rangeStart === dStr) ||
                     selectedDates.includes(dStr);
@@ -178,11 +183,14 @@ export default function Predict({
                       <button
                         onClick={() => handleDateClick(day)}
                         disabled={isDisabled}
-                        className={`w-full h-full rounded-[12px] flex items-center justify-center text-[15px] font-black transition-all ${isDisabled ? (isDark ? "text-white/10" : "text-black/10") : selected ? "bg-[#ceff1c] text-[#111111] shadow-lg" : isDark ? "bg-white/10 text-white" : "bg-black/10 text-black"}`}
+                        className={`w-full h-full rounded-[12px] flex items-center justify-center text-[15px] font-black transition-all ${isDisabled ? (isDark ? "text-white/10" : "text-black/10") : selected ? "bg-[#ceff1c] text-[#111111] shadow-lg" : isToday ? (isDark ? "bg-[#0EA5E9]/20 text-[#0EA5E9] border border-[#0EA5E9]/40" : "bg-[#0EA5E9]/10 text-[#0EA5E9] border border-[#0EA5E9]/30") : isDark ? "bg-white/10 text-white" : "bg-black/10 text-black"}`}
                         style={{ fontFamily: "'Montserrat', sans-serif" }}
                       >
                         {day}
                       </button>
+                      {isToday && !selected && (
+                        <div className="absolute -top-1 right-1 w-1.5 h-1.5 rounded-full bg-[#0EA5E9]" />
+                      )}
                       {isHoliday && !isWeekend && (
                         <div className="absolute -bottom-1 w-1 h-1 rounded-full bg-[#FF4D4D]" />
                       )}
