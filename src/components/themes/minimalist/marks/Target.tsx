@@ -53,12 +53,14 @@ export default function Target({
           initial={{ y: "100%" }}
           animate={{ y: 0 }}
           exit={{ y: "100%" }}
-          transition={{ duration: 0.4, ease: [0.25, 1, 0.5, 1] }}
+          transition={{ type: "spring", damping: 25, stiffness: 200 }}
           drag="y"
-          dragConstraints={{ top: 0, bottom: 500 }}
-          dragElastic={{ top: 0, bottom: 0.8 }}
+          dragConstraints={{ top: 0, bottom: 0 }}
+          dragElastic={0.6}
           onDragEnd={(e, info) => {
-            if (info.offset.y > 100 || info.velocity.y > 500) onClose();
+            if (info.offset.y > 150 || info.velocity.y > 500) {
+              onClose();
+            }
           }}
           className={`fixed inset-0 ${isDark ? "bg-[#111111]" : "bg-white"} z-[60] flex flex-col overflow-hidden px-6 pt-10 pb-6`}
         >
@@ -68,7 +70,7 @@ export default function Target({
           <div className="flex justify-between items-start w-full shrink-0">
             <div className="flex flex-col">
               <span
-                className={`text-[32px] leading-[1] font-black uppercase tracking-[0.15em] ${textClass}`}
+                className={`text-[32px] font-black uppercase tracking-[0.15em] ${textClass}`}
                 style={{ fontFamily: "'Montserrat', sans-serif" }}
               >
                 TARGET
@@ -186,7 +188,7 @@ export default function Target({
                 >
                   <button
                     onClick={() =>
-                      setExpectedMarks(Math.max(0, expectedMarks - 1))
+                      setExpectedMarks((prev: any) => Math.max(0, (typeof prev === "function" ? prev(expectedMarks) : prev) - 1))
                     }
                     className={`w-7 h-7 rounded-[8px] ${isDark ? "bg-white/10" : "bg-black/10"} flex items-center justify-center ${textClass} font-bold active:scale-95 transition-all`}
                   >
@@ -211,11 +213,9 @@ export default function Target({
                   </div>
                   <button
                     onClick={() =>
-                      setExpectedMarks(
-                        Math.min(maxPossibleExpected, expectedMarks + 1),
-                      )
+                      setExpectedMarks((prev: any) => Math.min(maxPossibleExpected, (typeof prev === "function" ? prev(expectedMarks) : prev) + 1))
                     }
-                    className={`w-7 h-7 rounded-[8px] ${isDark ? "bg-white text-black" : "bg-black text-white"} flex items-center justify-center font-bold active:scale-95 transition-all`}
+                    className={`w-7 h-7 rounded-[8px] ${isDark ? "bg-white text-[#111111]" : "bg-[#111111] text-white"} flex items-center justify-center font-bold active:scale-95 transition-all`}
                   >
                     +
                   </button>
@@ -234,7 +234,7 @@ export default function Target({
                   <button
                     key={g.label}
                     onClick={() => setTargetGrade(g.min)}
-                    className={`py-3 rounded-[16px] flex flex-col items-center justify-center transition-all ${targetGrade === g.min ? (isDark ? "bg-white text-black" : "bg-black text-white") : isDark ? "bg-white/10 text-white/60 hover:bg-white/20" : "bg-black/10 text-black/60 hover:bg-black/20"}`}
+                    className={`py-3 rounded-[16px] flex flex-col items-center justify-center transition-all ${targetGrade === g.min ? (isDark ? "bg-white text-[#111111]" : "bg-[#111111] text-white") : isDark ? "bg-white/10 text-white/60 hover:bg-white/20" : "bg-black/10 text-black/60 hover:bg-black/20"}`}
                   >
                     <span
                       className="text-[18px] font-black"
@@ -267,11 +267,11 @@ export default function Target({
                       setPredSubjectId(sub.id);
                       setExpectedMarks(0);
                     }}
-                    className={`px-4 py-2.5 rounded-[12px] text-[12px] font-bold uppercase tracking-widest transition-all whitespace-nowrap shrink-0 flex flex-col items-center gap-0.5 ${predSubjectId === sub.id ? "bg-[#85a818] text-white" : isDark ? "bg-white/10 text-white hover:bg-white/20" : "bg-black/10 text-black hover:bg-black/20"}`}
+                    className={`px-4 py-2.5 rounded-[12px] text-[12px] font-bold uppercase tracking-widest transition-all whitespace-nowrap shrink-0 flex flex-col items-center gap-0.5 ${predSubjectId === sub.id ? (isDark ? "bg-[#ceff1c] text-[#111111]" : "bg-[#111111] text-white") : isDark ? "bg-white/10 text-white hover:bg-white/20" : "bg-black/10 text-black hover:bg-black/20"}`}
                     style={{ fontFamily: "'Afacad', sans-serif" }}
                   >
                     <span>{sub.displayCode}</span>
-                    <span className="text-[9px] opacity-60 font-black">
+                    <span className={`text-[9px] ${predSubjectId === sub.id ? "opacity-100 font-black" : "opacity-60 font-black"}`}>
                       {sub.credits} credits
                     </span>
                   </button>

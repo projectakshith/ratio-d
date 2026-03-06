@@ -3,23 +3,6 @@ import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 
-interface AddClassProps {
-  isOpen: boolean;
-  onClose: () => void;
-  isDark: boolean;
-  newSub: string;
-  setNewSub: (val: string) => void;
-  newRoom: string;
-  setNewRoom: (val: string) => void;
-  startTime: string;
-  setStartTime: (val: string) => void;
-  endTime: string;
-  setEndTime: (val: string) => void;
-  newType: "theory" | "lab";
-  setNewType: (val: "theory" | "lab") => void;
-  handleAddClass: () => void;
-}
-
 export default function CustomClass({
   isOpen,
   onClose,
@@ -36,6 +19,8 @@ export default function CustomClass({
   setNewType,
   handleAddClass,
 }: any) {
+  const textClass = isDark ? "text-white" : "text-[#111111]";
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -43,16 +28,26 @@ export default function CustomClass({
           initial={{ y: "100%" }}
           animate={{ y: 0 }}
           exit={{ y: "100%" }}
-          transition={{ duration: 0.4, ease: [0.25, 1, 0.5, 1] }}
-          className={`fixed inset-0 ${isDark ? "bg-[#111111]" : "bg-white"} z-[60] flex flex-col px-6 pt-10 pb-6 overflow-hidden`}
+          transition={{ type: "spring", damping: 25, stiffness: 200 }}
+          drag="y"
+          dragConstraints={{ top: 0, bottom: 0 }}
+          dragElastic={0.6}
+          dragListener={true}
+          onDragEnd={(e, info) => {
+            if (info.offset.y > 150 || info.velocity.y > 500) onClose();
+          }}
+          className={`fixed inset-0 ${isDark ? "bg-[#111111]" : "bg-white"} z-[60] flex flex-col px-6 pt-6 pb-6 overflow-hidden`}
         >
+          <div
+            className={`w-12 h-1.5 ${isDark ? "bg-white/20" : "bg-black/10"} rounded-full mx-auto mb-6 shrink-0`}
+          />
           <div className="flex justify-between items-start w-full shrink-0 mb-10">
             <div className="flex flex-col">
               <span
-                className={`text-[32px] leading-[1] font-black uppercase tracking-[0.15em] ${isDark ? "text-white" : "text-[#111111]"}`}
+                className={`text-[32px] leading-[1] font-black uppercase tracking-[0.15em] ${textClass}`}
                 style={{ fontFamily: "'Montserrat', sans-serif" }}
               >
-                ADD CLASS
+                CUSTOM CLASS
               </span>
               <span
                 className="text-[10px] font-bold lowercase tracking-[0.2em] text-[#85a818] mt-1.5"
@@ -63,13 +58,13 @@ export default function CustomClass({
             </div>
             <button
               onClick={onClose}
-              className={`w-10 h-10 rounded-full ${isDark ? "bg-white/10 text-white" : "bg-[#111111]/5 text-[#111111]"} flex items-center justify-center active:scale-95 transition-all shrink-0`}
+              className={`w-10 h-10 rounded-full ${isDark ? "bg-white/10" : "bg-[#111111]/5"} flex items-center justify-center ${textClass} active:scale-95 transition-all shrink-0`}
             >
               <X size={20} strokeWidth={2.5} />
             </button>
           </div>
 
-          <div className="flex flex-col gap-6 flex-1 w-full">
+          <div className="flex flex-col gap-6 flex-1 w-full overflow-y-auto no-scrollbar pb-4">
             <div className="flex flex-col gap-2">
               <span
                 className={`text-[11px] font-bold uppercase tracking-widest ${isDark ? "text-white/50" : "text-[#111111]/50"} pl-1`}
@@ -146,6 +141,7 @@ export default function CustomClass({
               </span>
               <div className="flex gap-3">
                 <button
+                  type="button"
                   onClick={() => setNewType("theory")}
                   className={`flex-1 py-4 rounded-[16px] text-[13px] font-bold uppercase tracking-widest transition-all ${newType === "theory" ? (isDark ? "bg-white text-[#111111]" : "bg-[#111111] text-white") : isDark ? "bg-white/5 text-white/50 border border-white/10" : "bg-[#111111]/5 text-[#111111]/50 border border-black/5"}`}
                   style={{ fontFamily: "'Montserrat', sans-serif" }}
@@ -153,6 +149,7 @@ export default function CustomClass({
                   Theory
                 </button>
                 <button
+                  type="button"
                   onClick={() => setNewType("lab")}
                   className={`flex-1 py-4 rounded-[16px] text-[13px] font-bold uppercase tracking-widest transition-all ${newType === "lab" ? "bg-[#0EA5E9] text-white" : isDark ? "bg-white/5 text-white/50 border border-white/10" : "bg-[#111111]/5 text-[#111111]/50 border border-black/5"}`}
                   style={{ fontFamily: "'Montserrat', sans-serif" }}

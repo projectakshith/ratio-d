@@ -335,7 +335,6 @@ export default function Dashboard({
         if (match) targetSubject = match;
       }
 
-      // Calculate hours scheduled today for this subject
       const todaySchedule =
         academia?.effectiveSchedule?.[`Day ${currentDayOrder}`] ||
         data?.timetable?.[`Day ${currentDayOrder}`] ||
@@ -357,7 +356,6 @@ export default function Dashboard({
       const conducted = targetSubject ? targetSubject.conducted : 0;
       const present = targetSubject ? conducted - targetSubject.absent : 0;
 
-      // Predict if classes were attended today
       const predictedConducted = conducted + scheduledHoursToday;
       const predictedPresent = present + scheduledHoursToday;
       const pct = conducted > 0 ? (present / conducted) * 100 : 100;
@@ -553,7 +551,7 @@ export default function Dashboard({
         dangerouslySetInnerHTML={{
           __html: `
           .custom-dotted {
-            background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='14' ry='14' stroke='%23${isDark ? "ffffff20" : "11111150"}' stroke-width='2' stroke-dasharray='4%2c 8' stroke-dashoffset='0' stroke-linecap='round' opacity='0.15'/%3e%3c/svg%3e");
+            background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='14' ry='14' stroke='%23${isDark ? "ffffff" : "111111"}' stroke-width='2' stroke-dasharray='4%2c 8' stroke-dashoffset='0' stroke-linecap='round' opacity='0.3'/%3e%3c/svg%3e");
             border-radius: 14px;
           }
           .no-scrollbar::-webkit-scrollbar { display: none; }

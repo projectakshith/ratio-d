@@ -21,8 +21,8 @@ interface PredictProps {
   isRangeMode: boolean;
   setIsRangeMode: (val: boolean) => void;
   rangeStart: string | null;
-  setRangeStart: (val: string | null) => void;
-  setRangeEnd: (val: string | null) => void;
+  setRangeStart(val: string | null): void;
+  setRangeEnd(val: string | null): void;
   selectedDates: string[];
   setSelectedDates: (dates: string[] | ((prev: string[]) => string[])) => void;
   handleDateClick: (day: number) => void;
@@ -63,15 +63,14 @@ export default function Predict({
           initial={{ y: "100%" }}
           animate={{ y: 0 }}
           exit={{ y: "100%" }}
-          transition={{ duration: 0.4, ease: [0.25, 1, 0.5, 1] }}
+          transition={{ type: "spring", damping: 25, stiffness: 200 }}
           drag="y"
-          dragDirectionLock
-          dragConstraints={{ top: 0, bottom: 500 }}
-          dragElastic={{ top: 0, bottom: 0.8 }}
+          dragConstraints={{ top: 0, bottom: 0 }}
+          dragElastic={0.6}
           onDragEnd={(e, info) => {
-            if (info.offset.y > 100) onClose();
+            if (info.offset.y > 150 || info.velocity.y > 500) onClose();
           }}
-          className={`fixed inset-0 ${isDark ? "bg-[#111111]" : "bg-white"} z-[60] flex flex-col overflow-hidden px-6 pt-6 pb-6`}
+          className={`fixed inset-0 ${isDark ? "bg-[#111111]" : "bg-white"} z-[60] flex flex-col overflow-hidden px-6 pt-10 pb-6`}
         >
           <div
             className={`w-12 h-1.5 ${isDark ? "bg-white/20" : "bg-black/10"} rounded-full mx-auto mb-6 shrink-0`}

@@ -66,7 +66,13 @@ export default function Marks({
     const courseMap = buildCourseMap(data);
     const sorted = processAndSortMarks(data.marks, courseMap);
     return sorted.map((sub: any, i: number) => {
-      const courseDetails = data.courses?.[sub.code];
+      const typeKey = sub.isPractical ? "Practical" : "Theory";
+      const lookupKey = `${sub.code}_${typeKey}`;
+      const courseDetails =
+        data.courses?.[lookupKey] ||
+        data.courses?.[sub.code] ||
+        Object.values(data.courses || {}).find((c: any) => c.code === sub.code);
+
       const credits = courseDetails?.credits
         ? parseFloat(courseDetails.credits)
         : 0;
@@ -171,11 +177,9 @@ export default function Marks({
 
       let grade;
       if (sub.id === predSubjectId) {
-        // Use the selected target grade label
         const gradeObj = grades.find((g) => g.min === targetGrade);
         grade = gradeObj ? gradeObj.label : "O";
       } else {
-        // Estimate current grade based on current percentage
         grade = getGrade(sub.percentage);
       }
 
