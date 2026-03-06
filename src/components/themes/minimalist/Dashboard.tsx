@@ -44,9 +44,11 @@ const itemVariants = {
     opacity: 1,
     y: 0,
     scale: 1,
-    transition: { type: "spring", stiffness: 450, damping: 30 },
+    transition: { type: "spring", stiffness: 450, damping: 30 } as const,
   },
 };
+
+import { AcademiaData, ScheduleSlot } from "@/types";
 
 export default function MinimalHomepage({
   data,
@@ -58,7 +60,17 @@ export default function MinimalHomepage({
   setIsSwipeDisabled,
   startEntrance,
   isDark,
-}: any) {
+}: {
+  data: AcademiaData;
+  academia: any;
+  setActiveTab: (tab: string) => void;
+  onOpenSettings: () => void;
+  isAlertsOpen: boolean;
+  setIsAlertsOpen: (open: boolean) => void;
+  setIsSwipeDisabled?: (disabled: boolean) => void;
+  startEntrance: boolean;
+  isDark: boolean;
+}) {
   const [mounted, setMounted] = useState(false);
   const [pullY, setPullY] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -304,11 +316,11 @@ export default function MinimalHomepage({
       const nowMins = new Date().getHours() * 60 + new Date().getMinutes();
       const activeToday = processedToday.filter((c: any) => c.type !== "break");
 
-      let curr = null;
-      let nxt = null;
+      let curr: ScheduleSlot | null = null;
+      let nxt: ScheduleSlot | null = null;
       for (const cls of activeToday) {
-        if (nowMins >= cls.minutesStart && nowMins < cls.minutesEnd) curr = cls;
-        else if (cls.minutesStart > nowMins && !nxt) nxt = cls;
+        if (nowMins >= (cls.minutesStart || 0) && nowMins < (cls.minutesEnd || 0)) curr = cls;
+        else if ((cls.minutesStart || 0) > nowMins && !nxt) nxt = cls;
       }
 
       let trackedDay = todayOrder;
@@ -370,7 +382,7 @@ export default function MinimalHomepage({
       courseMap,
     ]);
 
-  const focusClass = nextClass || null;
+  const focusClass = (nextClass || null) as ScheduleSlot | null;
   const isShowingTomorrow =
     focusClass &&
     realDayToTrack !== (isHoliday ? nextWorkingDayOrder || 1 : currentDayOrder);
@@ -392,11 +404,11 @@ export default function MinimalHomepage({
   const displayCourseWords = displayCourse.split(" ");
   const displayTiming = focusClass?.time || "--:--";
 
-  const statusClass = currentClass || nextClass || null;
+  const statusClass = (currentClass || nextClass || null) as ScheduleSlot | null;
 
   const { alertName, alertPctNum, alertPct, alertMargin, alertLabel } =
     useMemo(() => {
-      const targetClass = nextClass || currentClass;
+      const targetClass = (nextClass || currentClass) as ScheduleSlot | null;
       const critical = getCriticalAttendance(data?.attendance || []);
       let targetSubject =
         critical.length > 0 ? critical[0] : data?.attendance?.[0] || null;
@@ -680,7 +692,7 @@ export default function MinimalHomepage({
   };
 
   const nextScheduledDay =
-    nextWorkingDayOrder || (dayOrder < 5 ? dayOrder + 1 : 1);
+    nextWorkingDayOrder || (currentDayOrder < 5 ? currentDayOrder + 1 : 1);
   const isViewingNext =
     String(selectedDay) === String(nextScheduledDay) &&
     String(selectedDay) !== String(currentDayOrder);
@@ -923,7 +935,7 @@ export default function MinimalHomepage({
                   >
                     {statusClass
                       ? getAcronym(
-                          statusClass.name || statusClass.code,
+                          statusClass.name || statusClass.code || "",
                         ).toUpperCase()
                       : "FREE"}
                   </strong>

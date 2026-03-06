@@ -21,7 +21,7 @@ const itemVariants = {
     opacity: 1,
     y: 0,
     scale: 1,
-    transition: { type: "spring", stiffness: 450, damping: 30 },
+    transition: { type: "spring", stiffness: 450, damping: 30 } as const,
   },
 };
 
@@ -153,7 +153,7 @@ export default function MinimalMarks({
     const courseMap = buildCourseMap(data);
     const sorted = processAndSortMarks(data.marks, courseMap);
     return sorted.map((sub: any, i: number) => {
-      let recent = null;
+      let recent: { test: string; text: string } | null = null;
       if (i < 2 && sub.assessments.length > 0) {
         const lastAss = sub.assessments[sub.assessments.length - 1];
         let recTitle = lastAss.title.toLowerCase();

@@ -152,6 +152,7 @@ export default function BrutalistTheme({
                 <Timetable
                   schedule={academia.effectiveSchedule}
                   dayOrder={academia.effectiveDayOrder}
+                  data={data}
                 />
               )}
               {activeTab === "attendance" && (

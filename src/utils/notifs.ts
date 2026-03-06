@@ -22,14 +22,14 @@ export const sendNotification = async (
   try {
     const registration = await navigator.serviceWorker.getRegistration();
 
-    const options: NotificationOptions = {
+    const options = {
       body: body,
       icon: "/icons/icon-192.png",
       vibrate: [200, 100, 200],
       tag: tag || "class-alert",
       renotify: true,
       badge: "/icons/icon-192.png",
-    };
+    } as any;
 
     if (registration && registration.active) {
       await registration.showNotification(title, options);

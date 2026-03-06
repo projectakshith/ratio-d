@@ -11,8 +11,10 @@ import {
 } from "lucide-react";
 import { flavorText } from "@/utils/flavortext";
 
-const MarginCounter = ({ value }) => {
-  const nodeRef = useRef(null);
+import { CalendarEvent, AcademiaData, ScheduleData } from "@/types";
+
+const MarginCounter = ({ value }: { value: number }) => {
+  const nodeRef = useRef<HTMLSpanElement>(null);
   const prevValue = useRef(0);
 
   useEffect(() => {
@@ -37,20 +39,26 @@ const MarginCounter = ({ value }) => {
   return <span ref={nodeRef} />;
 };
 
-const MobileAttendance = ({ data, schedule }) => {
-  const [calendarData, setCalendarData] = useState([]);
-  const [selectedId, setSelectedId] = useState(null);
+const MobileAttendance = ({
+  data,
+  schedule,
+}: {
+  data: AcademiaData;
+  schedule: ScheduleData;
+}) => {
+  const [calendarData, setCalendarData] = useState<CalendarEvent[]>([]);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
   const [predictMode, setPredictMode] = useState(false);
   const [introMode, setIntroMode] = useState(true);
-  const [selectedDates, setSelectedDates] = useState([]);
-  const [predType, setPredType] = useState("leave");
+  const [selectedDates, setSelectedDates] = useState<string[]>([]);
+  const [predType, setPredType] = useState<"leave" | "attend">("leave");
   const [calMonth, setCalMonth] = useState(new Date());
   const [isRangeMode, setIsRangeMode] = useState(false);
-  const [rangeStart, setRangeStart] = useState(null);
+  const [rangeStart, setRangeStart] = useState<Date | null>(null);
 
-  const itemRefs = useRef([]);
-  const listContainerRef = useRef(null);
-  const scrollTimeout = useRef(null);
+  const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const listContainerRef = useRef<HTMLDivElement>(null);
+  const scrollTimeout = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     fetch("/calendar_data.json")
@@ -73,11 +81,11 @@ const MobileAttendance = ({ data, schedule }) => {
 
   const baseAttendance = useMemo(() => {
     return rawAttendance
-      .map((subject, index) => {
-        const pct = parseFloat(subject?.percent || "0");
+      .map((subject: any, index: number) => {
+        const pct = parseFloat(String(subject?.percent || "0"));
         let category = pct < 75 ? "cooked" : pct >= 85 ? "safe" : "danger";
-        const list = flavorText.header?.[category] ||
-          flavorText.header?.danger || ["..."];
+        const list =
+          flavorText.header?.[category] || flavorText.header?.danger || ["..."];
         const stableBadge = list[Math.floor(index % list.length)].toLowerCase();
         const safeTitle =
           subject.title || subject.courseTitle || "Unknown Subject";
@@ -87,12 +95,17 @@ const MobileAttendance = ({ data, schedule }) => {
           rawTitle: safeTitle,
           code: String(subject?.code || ""),
           percentage: String(subject?.percent || "0"),
-          conducted: parseInt(subject?.conducted || "4"),
+          conducted: parseInt(String(subject?.conducted || "4")),
           present:
-            parseInt(subject?.conducted || "0") -
-            parseInt(subject?.absent || "0"),
+            parseInt(String(subject?.conducted || "0")) -
+            parseInt(String(subject?.absent || "0")),
           badge: category,
           tagline: stableBadge,
+          isPractical:
+            (subject.slot || "").toUpperCase().includes("P") ||
+            (subject.slot || "").toUpperCase().includes("LAB") ||
+            safeTitle.toLowerCase().includes("practical") ||
+            safeTitle.toLowerCase().includes("lab"),
         };
       })
       .sort((a, b) => parseFloat(a.percentage) - parseFloat(b.percentage));
@@ -151,7 +164,7 @@ const MobileAttendance = ({ data, schedule }) => {
   }, [predictMode]);
 
   const getImpactMap = () => {
-    const impact = {};
+    const impact: Record<string, number> = {};
     if (
       calendarData.length === 0 ||
       Object.keys(effectiveSchedule).length === 0
@@ -179,7 +192,7 @@ const MobileAttendance = ({ data, schedule }) => {
           effectiveSchedule[dayOrderKey] ||
           effectiveSchedule[`Day ${dayInfo.order}`];
         if (dayClasses) {
-          Object.values(dayClasses).forEach((cls) => {
+          Object.values(dayClasses).forEach((cls: any) => {
             if (!cls.course) return;
             const matchedSubject = baseAttendance.find((s) => {
               const sCode = (s.code || "").toLowerCase().trim();
@@ -268,14 +281,14 @@ const MobileAttendance = ({ data, schedule }) => {
     }
   }, [predictMode]);
 
-  const formatDateKey = (date) => {
+  const formatDateKey = (date: Date) => {
     const dayStr = String(date.getDate()).padStart(2, "0");
     const monthStr = date.toLocaleString("en-US", { month: "short" });
     const yearStr = date.getFullYear();
     return `${dayStr} ${monthStr} ${yearStr}`;
   };
 
-  const handleDateClick = (day) => {
+  const handleDateClick = (day: number) => {
     const clickedDate = new Date(
       calMonth.getFullYear(),
       calMonth.getMonth(),
@@ -308,13 +321,15 @@ const MobileAttendance = ({ data, schedule }) => {
     }
   };
 
-  const activeSubject =
-    processedList.find((s) => s.id === selectedId) || processedList[0] || {};
+  const activeSubject: any =
+    processedList.find((s: any) => s.id === selectedId) ||
+    processedList[0] ||
+    {};
   const currentActiveStat =
     predictMode && activeSubject.pred
       ? activeSubject.pred.status
       : getStatus(
-          parseFloat(activeSubject.percentage || 0),
+          parseFloat(String(activeSubject.percentage || 0)),
           activeSubject.conducted || 0,
           activeSubject.present || 0,
         );
@@ -356,7 +371,7 @@ const MobileAttendance = ({ data, schedule }) => {
 
       const triggerLine =
         container.getBoundingClientRect().top + container.offsetHeight * 0.2;
-      let closestId = null;
+      let closestId: number | null = null;
       let minDistance = Infinity;
 
       itemRefs.current.forEach((el, index) => {
@@ -671,7 +686,9 @@ const MobileAttendance = ({ data, schedule }) => {
               <div
                 key={subject.id}
                 data-id={subject.id}
-                ref={(el) => (itemRefs.current[index] = el)}
+                ref={(el) => {
+                  itemRefs.current[index] = el;
+                }}
                 onClick={() => {
                   if (!predictMode) {
                     itemRefs.current[index]?.scrollIntoView({

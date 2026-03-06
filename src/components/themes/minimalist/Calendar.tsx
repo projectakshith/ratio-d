@@ -23,7 +23,7 @@ const itemVariants = {
     opacity: 1,
     y: 0,
     scale: 1,
-    transition: { type: "spring", stiffness: 450, damping: 30 },
+    transition: { type: "spring", stiffness: 450, damping: 30 } as const,
   },
 };
 
@@ -88,7 +88,7 @@ const CalendarDay = memo(
       <motion.button
         variants={itemVariants}
         whileTap={{ scale: 0.9 }}
-        onClick={() => onClick(item.dateObj)}
+        onClick={() => item.dateObj && onClick(item.dateObj)}
         className={`aspect-square w-full rounded-[14px] flex flex-col items-center justify-center relative transition-colors ${bg} ${border} ${item.isPast && !item.isSelected && !item.isToday ? "opacity-40" : ""} ${scaleClass} ${shadowClass}`}
       >
         <div className="absolute top-1.5 left-1.5 right-1.5 flex items-start justify-between pointer-events-none">
@@ -120,7 +120,7 @@ const CalendarDay = memo(
     prev.item.isSelected === next.item.isSelected &&
     prev.item.isToday === next.item.isToday &&
     prev.item.dayOrder === next.item.dayOrder &&
-    prev.item.dateObj.getTime() === next.item.dateObj.getTime() &&
+    prev.item.dateObj?.getTime() === next.item.dateObj?.getTime() &&
     prev.isDark === next.isDark,
 );
 CalendarDay.displayName = "CalendarDay";

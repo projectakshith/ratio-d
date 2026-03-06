@@ -8,7 +8,17 @@ import MinimalTimetable from "./Timetable";
 import MinimalCalendar from "./Calendar";
 import Navbar from "./Navbar";
 
-export default function MinimalTheme(props: any) {
+import { AcademiaData } from "@/types";
+
+interface MinimalThemeProps {
+  data: AcademiaData;
+  academia: any;
+  onOpenSettings: () => void;
+  startEntrance: boolean;
+  isDark: boolean;
+}
+
+export default function MinimalTheme(props: MinimalThemeProps) {
   const [tabState, setTabState] = useState({ activeTab: "home", direction: 0 });
   const [isAlertsOpen, setIsAlertsOpen] = useState(false);
   const [isSwipeDisabled, setIsSwipeDisabled] = useState(false);
@@ -115,7 +125,6 @@ export default function MinimalTheme(props: any) {
             {activeTab === "marks" && (
               <MinimalMarks
                 data={props.data}
-                academia={props.academia}
                 setIsSwipeDisabled={setIsSwipeDisabled}
                 isDark={isDark}
               />
@@ -133,8 +142,6 @@ export default function MinimalTheme(props: any) {
                 <Dashboard
                   data={props.data}
                   academia={props.academia}
-                  timeStatus={props.academia?.timeStatus}
-                  currentRoast={props.academia?.currentRoast || "analyzing..."}
                   setActiveTab={handleTabChange}
                   onOpenSettings={props.onOpenSettings}
                   isAlertsOpen={isAlertsOpen}
@@ -158,7 +165,6 @@ export default function MinimalTheme(props: any) {
               <MinimalCalendar
                 data={props.data}
                 academia={props.academia}
-                setIsSwipeDisabled={setIsSwipeDisabled}
                 isDark={isDark}
               />
             )}

@@ -17,6 +17,8 @@ export interface AttendanceRecord {
   present: number;
   percent: number;
   title?: string;
+  required?: number;
+  displayName?: string;
 }
 
 export interface ScheduleSlot {
@@ -24,7 +26,15 @@ export interface ScheduleSlot {
   room: string;
   faculty: string;
   slot: string;
-  time?: string;
+  time: string;
+  code?: string;
+  courseCode?: string;
+  courseTitle?: string;
+  name?: string;
+  id?: string;
+  type?: string;
+  isCustom?: boolean;
+  isCurrent?: boolean;
   startMinutes?: number;
   endMinutes?: number;
 }
@@ -43,7 +53,23 @@ export interface MarksRecord {
     title: string;
     marks: string;
     total: string;
+    got?: number;
+    max?: number;
   }[];
+  id?: number;
+  code?: string;
+  title?: string;
+  type?: string;
+  totalGot?: number;
+  totalMax?: number;
+  percentage?: number;
+  isNA?: boolean;
+  score?: number;
+  testName?: string;
+  displayScore?: string;
+  max?: number;
+  status?: string;
+  badge?: string;
 }
 
 export interface CalendarEvent {
@@ -53,6 +79,7 @@ export interface CalendarEvent {
   description: string;
   type: string;
   dateObj?: Date;
+  dayOrder?: string;
 }
 
 export interface AcademiaData {
@@ -61,4 +88,22 @@ export interface AcademiaData {
   schedule: ScheduleData;
   marks: MarksRecord[];
   dayOrder?: string;
+  calendarData?: CalendarEvent[];
+  effectiveDayOrder?: string;
+  effectiveSchedule?: ScheduleData;
+  timetable?: ScheduleData;
+  time_table?: ScheduleData;
+}
+
+export interface CalendarSlot {
+  type: "padding" | "day";
+  key: string;
+  day?: number;
+  dateObj?: Date;
+  isSelected?: boolean;
+  isToday?: boolean;
+  isPast?: boolean;
+  isDayHoliday?: boolean;
+  dayOrder?: string | null;
+  isDayExam?: boolean;
 }

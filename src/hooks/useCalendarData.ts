@@ -1,13 +1,19 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import calendarDataJson from "@/data/calendar_data.json";
+import { CalendarEvent, CalendarSlot } from "@/types";
 
-export const useCalendarData = (calendarDataProp?: any[], isTargetAudience: boolean = false) => {
+export const useCalendarData = (
+  calendarDataProp?: CalendarEvent[],
+  isTargetAudience: boolean = false,
+) => {
   const [viewMonth, setViewMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [introMode, setIntroMode] = useState(true);
 
   const calendarData =
-    (calendarDataProp?.length ? calendarDataProp : calendarDataJson) || [];
+    (calendarDataProp?.length
+      ? calendarDataProp
+      : (calendarDataJson as CalendarEvent[])) || [];
 
   useEffect(() => {
     const timer = setTimeout(() => setIntroMode(false), 800);
@@ -20,8 +26,8 @@ export const useCalendarData = (calendarDataProp?: any[], isTargetAudience: bool
   }, []);
 
   const eventsMap = useMemo(() => {
-    const map: Record<string, any> = {};
-    calendarData.forEach((item: any) => {
+    const map: Record<string, CalendarEvent> = {};
+    calendarData.forEach((item) => {
       const dateObj = new Date(item.date);
       if (!isNaN(dateObj.getTime())) {
         if (item.type === "exam" && !isTargetAudience) {
@@ -116,23 +122,23 @@ export const useCalendarData = (calendarDataProp?: any[], isTargetAudience: bool
       .toLowerCase();
 
     if (isExam) {
-      const parts = (currentEvent.description || "Test Scheduled").split(":");
+      const parts = (currentEvent?.description || "Test Scheduled").split(":");
       return {
         pill: weekday,
-        bigText: currentEvent.order
+        bigText: currentEvent?.order
           ? currentEvent.order.padStart(2, "0")
           : dayNum,
         label: "day order",
         infoMain: parts[0]?.trim() || "Test",
         infoSub:
           parts.slice(1).join(":").trim() ||
-          currentEvent.description ||
+          currentEvent?.description ||
           "Exam Day",
       };
     } else if (hasOrder) {
       return {
         pill: weekday,
-        bigText: currentEvent.order.padStart(2, "0"),
+        bigText: currentEvent?.order.padStart(2, "0"),
         label: "day order",
         infoMain: `${month} ${dayNum}`,
         infoSub: "Regular Classes",
@@ -159,7 +165,7 @@ export const useCalendarData = (calendarDataProp?: any[], isTargetAudience: bool
   const gridData = useMemo(() => {
     const daysInMonth = getDaysInMonth(viewYear, viewMonthIndex);
     const startOffset = getFirstDayOfMonth(viewYear, viewMonthIndex);
-    const slots = [];
+    const slots: CalendarSlot[] = [];
 
     for (let i = 0; i < startOffset; i++)
       slots.push({ type: "padding", key: `prev-${i}` });

@@ -101,6 +101,7 @@ export const processAndSortMarks = (rawMarks: any[], courseMap: any) => {
       return {
         id: index,
         title,
+        courseTitle: title,
         code: cleanCode,
         type: subject.type || "Theory",
         totalGot: got,

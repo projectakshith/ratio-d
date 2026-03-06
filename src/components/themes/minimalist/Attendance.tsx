@@ -35,16 +35,24 @@ const itemVariants = {
     opacity: 1,
     y: 0,
     scale: 1,
-    transition: { type: "spring", stiffness: 450, damping: 30 },
+    transition: { type: "spring", stiffness: 450, damping: 30 } as const,
   },
 };
+
+
+import { AcademiaData } from "@/types";
 
 export default function MinimalAttendance({
   data,
   academia,
   setIsSwipeDisabled,
   isDark,
-}: any) {
+}: {
+  data: AcademiaData;
+  academia: any;
+  setIsSwipeDisabled?: (disabled: boolean) => void;
+  isDark: boolean;
+}) {
   const [mounted, setMounted] = useState(false);
   const [isPredictOverlay, setIsPredictOverlay] = useState(false);
   const [isPredicting, setIsPredicting] = useState(false);
@@ -234,7 +242,7 @@ export default function MinimalAttendance({
           Number(dStr.split("-")[2]),
         );
         if (start > end) [start, end] = [end, start];
-        const range = [];
+        const range: string[] = [];
         for (
           let dt = new Date(start);
           dt <= end;
@@ -709,8 +717,9 @@ export default function MinimalAttendance({
                 </span>
                 <button
                   onClick={() =>
-                    setCurrentDate(new Date(calYear, calMonth + 1, 1))
+                    setCurrentCalDate(new Date(calYear, calMonth + 1, 1))
                   }
+
                   className={`w-10 h-10 ${isDark ? "bg-white/5" : "bg-black/5"} rounded-full flex items-center justify-center ${textClass}`}
                 >
                   <ChevronRight />
