@@ -27,7 +27,7 @@ export default function ThemeRouter({
   startEntrance,
   isUpdating,
 }: any) {
-  const [theme, setTheme] = useState<string>("minimalist_light");
+  const [theme, setTheme] = useState<string>("minimalist_dark");
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const academia = useAcademiaData(data);
@@ -38,10 +38,10 @@ export default function ThemeRouter({
       if (savedTheme) {
         setTheme(savedTheme);
       } else {
-        setTheme("minimalist_light");
+        setTheme("minimalist_dark");
       }
     } catch (error) {
-      setTheme("minimalist_light");
+      setTheme("minimalist_dark");
     } finally {
       setMounted(true);
     }

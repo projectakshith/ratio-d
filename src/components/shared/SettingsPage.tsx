@@ -149,7 +149,7 @@ const SettingsPage = ({
   onUpdateName,
   onTestNotification,
   onSelectTheme,
-  currentTheme = "minimalist_light",
+  currentTheme = "minimalist_dark",
   isDark = false,
 }: SettingsPageProps) => {
   const [isEditing, setIsEditing] = useState(false);
