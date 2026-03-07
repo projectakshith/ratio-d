@@ -63,13 +63,11 @@ export default function Home() {
     setIsUpdating(true);
     try {
       const savedCookies = EncryptionUtils.loadDecrypted("academia_cookies");
-      const isMissingData =
-        !existingData.courses ||
+      const isMissingData = 
+        !existingData.courses || 
         Object.keys(existingData.courses).length === 0 ||
-        !existingData.slots ||
-        Object.keys(existingData.slots).length === 0 ||
         !existingData.profile?.name ||
-        !existingData.schedule ||
+        !existingData.schedule || 
         Object.keys(existingData.schedule).length === 0;
       const endpoint = isMissingData ? "login" : "refresh";
       const response = await fetch(
@@ -84,6 +82,10 @@ export default function Home() {
           }),
         },
       );
+      if (response.status === 401) {
+        handleLogout();
+        throw new Error("Session expired or invalid credentials");
+      }
       const result = await response.json();
       if (!result.success) throw new Error(`${endpoint} failed`);
       if (result.cookies) {
@@ -92,9 +94,7 @@ export default function Home() {
       }
       let updatedData;
       if (isMissingData) {
-        updatedData = {
-          ...result,
-        };
+        updatedData = { ...result };
       } else {
         updatedData = {
           ...existingData,

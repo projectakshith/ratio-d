@@ -4,68 +4,7 @@ from utils.text import TextUtils
 
 class TimetableService:
     @staticmethod
-    def parse_course_details(html_content):
-        if not html_content: return {"slots": {}, "courses": {}}
-        soup = BeautifulSoup(html_content, 'html.parser')
-        slot_mapping = {}
-        course_mapping = {}
-        table = None
-        for t in soup.find_all('table'):
-            if "Course Code" in t.get_text():
-                table = t; break
-        if not table: return {"slots": slot_mapping, "courses": course_mapping}
-        all_cells = table.find_all('td')
-        COL_COUNT = 11 
-        start_index = 0
-        for i, cell in enumerate(all_cells):
-            txt = TextUtils.clean(cell.get_text())
-            if txt == "1":
-                if i+1 < len(all_cells):
-                    next_txt = TextUtils.clean(all_cells[i+1].get_text())
-                    if re.match(r'^\d+', next_txt) or len(next_txt) > 4: 
-                        start_index = i; break
-        current_idx = start_index
-        while current_idx + 10 < len(all_cells):
-            try:
-                cols = all_cells[current_idx : current_idx + COL_COUNT]
-                c_code = TextUtils.clean(cols[1].get_text())
-                c_name = TextUtils.clean(cols[2].get_text())
-                c_credits = TextUtils.clean(cols[3].get_text())
-                c_type = TextUtils.clean(cols[6].get_text())
-                c_faculty = TextUtils.clean(cols[7].get_text())
-                c_slot_raw = TextUtils.clean(cols[8].get_text())
-                c_room = TextUtils.clean(cols[9].get_text())
-                if not c_code or len(c_code) < 3: 
-                    current_idx += COL_COUNT; continue
-                if "Lab Based" in c_faculty: c_faculty = "Unknown"
-                course_id = f"{c_code}_{c_type}"
-                course_mapping[course_id] = {
-                    "code": c_code,
-                    "name": c_name,
-                    "credits": c_credits,
-                    "type": c_type,
-                    "faculty": c_faculty,
-                    "room": c_room,
-                    "slot": c_slot_raw
-                }
-                clean_slots = c_slot_raw.replace('-', ' ').replace('/', ' ').replace(',', ' ').split()
-                for slot in clean_slots:
-                    s = slot.strip()
-                    if s:
-                        slot_mapping[s] = {
-                            "course": c_name, 
-                            "faculty": c_faculty, 
-                            "room": c_room, 
-                            "credits": c_credits,
-                            "type": c_type,
-                            "code": c_code
-                        }
-                current_idx += COL_COUNT
-            except IndexError: break
-        return {"slots": slot_mapping, "courses": course_mapping}
-
-    @staticmethod
-    def parse_unified_grid(html_content, slot_mapping):
+    def parse_unified_grid(html_content, course_map):
         if not html_content: return {}
         soup = BeautifulSoup(html_content, 'html.parser')
         grid_table = None
@@ -83,11 +22,14 @@ class TimetableService:
                 txt = TextUtils.clean(cell.get_text())
                 if ":" in txt and "day" not in txt.lower():
                     time_headers.append(txt)
+        if not time_headers: return {}
         for row in rows:
             cols = row.find_all('td')
             if not cols: continue
-            day_name = TextUtils.clean(cols[0].get_text())
-            if "day" not in day_name.lower() or "order" in day_name.lower(): continue
+            day_text = TextUtils.clean(cols[0].get_text())
+            day_match = re.search(r'Day\s*(\d+)', day_text, re.I)
+            if not day_match: continue
+            day_name = f"Day {day_match.group(1)}"
             timetable[day_name] = {}
             data_cells = cols[1:]
             for i, cell in enumerate(data_cells):
@@ -95,17 +37,18 @@ class TimetableService:
                 raw_slot = TextUtils.clean(cell.get_text())
                 slot_code = raw_slot.split('/')[0].strip()
                 if not slot_code or slot_code == "-": continue
-                if slot_code not in slot_mapping: continue 
-                details = slot_mapping[slot_code]
+                if slot_code not in course_map: continue 
+                details = course_map[slot_code]
+                
                 timetable[day_name][time_headers[i]] = {
                     "slot": slot_code,
-                    "course": details['course'], 
+                    "course": details['name'], 
                     "code": details['code'],
                     "type": details['type'],
-                    "faculty": details['faculty'],
-                    "room": details['room'],
-                    "time": time_headers[i],
-                    "credits": details.get('credits', '0')
+                    "raw_type": details.get('raw_type'),
+                    "room": details.get('room', 'TBA'),
+                    "faculty": details.get('faculty', 'TBA'),
+                    "time": time_headers[i]
                 }
         return timetable
 
@@ -122,11 +65,13 @@ class TimetableService:
             rows = attn_table.find_all('tr')[1:]
             for row in rows:
                 cols = row.find_all('td')
-                if len(cols) < 8: continue
+                if len(cols) < 9: continue
                 try:
+                    category = TextUtils.clean(cols[2].get_text())
                     courses.append({
                         "code": cols[0].get_text(strip=True).split('Regular')[0],
                         "title": cols[1].get_text(strip=True),
+                        "category": category,
                         "slot": cols[4].get_text(strip=True),
                         "conducted": int(cols[6].get_text(strip=True)),
                         "absent": int(cols[7].get_text(strip=True)),

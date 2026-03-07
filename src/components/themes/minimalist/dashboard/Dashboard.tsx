@@ -100,15 +100,29 @@ export default function Dashboard({
       .includes("computer science and engineering") &&
     String(profile.semester) === "4";
 
-  const currentDayOrderStr =
-    academia?.effectiveDayOrder || data?.dayOrder || "1";
-  const currentDayOrder = parseInt(String(currentDayOrderStr)) || 1;
+  const todayStr = useMemo(() => {
+    const now = new Date();
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const d = String(now.getDate()).padStart(2, "0");
+    const m = months[now.getMonth()];
+    const y = now.getFullYear();
+    return `${d} ${m} ${y}`;
+  }, []);
+
+  const todayCalendarEntry = useMemo(() => {
+    const calData = academia?.calendarData || calendarDataJson || [];
+    return calData.find((ev: any) => ev.date === todayStr);
+  }, [academia?.calendarData, todayStr]);
+
+  const currentDayOrderStr = todayCalendarEntry?.dayOrder || todayCalendarEntry?.order || data?.dayOrder || "-";
+  const currentDayOrder = parseInt(String(currentDayOrderStr)) || 0;
 
   const isHoliday =
     !currentDayOrderStr ||
     currentDayOrderStr === "-" ||
     currentDayOrderStr === "0" ||
-    isNaN(parseInt(String(currentDayOrderStr)));
+    isNaN(currentDayOrder) ||
+    currentDayOrder === 0;
 
   const [selectedDay, setSelectedDay] = useState(1);
 
@@ -143,18 +157,7 @@ export default function Dashboard({
     tomorrow.setDate(tomorrow.getDate() + 1);
 
     const months = [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
+      "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
     ];
     const d = String(tomorrow.getDate()).padStart(2, "0");
     const m = months[tomorrow.getMonth()];
@@ -180,19 +183,15 @@ export default function Dashboard({
     if (isHoliday) {
       setSelectedDay(nextWorkingDayOrder || 1);
     } else {
-      const variants = [`Day ${currentDayOrder}`, String(currentDayOrder)];
-      let todayData = null;
-      for (const v of variants) {
-        if (scheduleData[v]) {
-          todayData = scheduleData[v];
-          break;
-        }
-      }
+      const dayKey = `Day ${currentDayOrder}`;
+      const todayData = scheduleData[dayKey];
 
       let lastEnd = 0;
       if (todayData) {
-        Object.values(todayData).forEach((timeStr: any) => {
-          const endStr = timeStr?.time?.split("-")[1] || timeStr?.split("-")[1];
+        Object.values(todayData).forEach((item: any) => {
+          if (!item) return;
+          const timeStr = item.time || "";
+          const endStr = timeStr.split("-")[1];
           if (endStr) {
             const endMins = parseTimeValues(endStr);
             if (endMins > lastEnd) lastEnd = endMins;
@@ -655,9 +654,14 @@ export default function Dashboard({
                 className={`text-[11px] font-bold uppercase tracking-[0.2em] ${subTextClass} flex items-center gap-1.5`}
                 style={{ fontFamily: "'Montserrat', sans-serif" }}
               >
-                Day Order {selectedDay}
-                {String(selectedDay) === String(currentDayOrder) ? (
+                {`Day Order ${selectedDay}`}
+                {String(selectedDay) === String(currentDayOrder) && !isHoliday ? (
                   <span>• today</span>
+                ) : isHoliday && selectedDay === nextWorkingDayOrder ? (
+                  <span className="text-[#85a818] font-black tracking-widest">
+                    {" "}
+                    • upcoming
+                  </span>
                 ) : isViewingNext ? (
                   <span className="text-[#85a818] font-black tracking-widest">
                     {" "}
@@ -751,13 +755,13 @@ export default function Dashboard({
             >
               <div className="flex items-center gap-3 min-w-0 flex-1">
                 <span
-                  className={`w-2.5 h-2.5 rounded-full shrink-0 ${currentClass ? (isDark ? "bg-white animate-pulse" : "bg-[#111111] animate-pulse") : isDark ? "bg-white/20" : "bg-[#111111]/20"}`}
+                  className={`w-2.5 h-2.5 rounded-full shrink-0 ${currentClass && !isHoliday ? (isDark ? "bg-white animate-pulse" : "bg-[#111111] animate-pulse") : isDark ? "bg-white/20" : "bg-[#111111]/20"}`}
                 />
                 <span
                   className={`text-[14px] font-bold lowercase ${isDark ? "text-white/70" : "text-[#111111]/70"} truncate`}
                   style={{ fontFamily: "'Afacad', sans-serif" }}
                 >
-                  {currentClass
+                  {isHoliday ? "holiday • " : currentClass
                     ? "current class • "
                     : isShowingTomorrow
                       ? "first class • "
@@ -765,7 +769,7 @@ export default function Dashboard({
                   <strong
                     className={`${textClass} font-black uppercase tracking-widest`}
                   >
-                    {statusClass
+                    {isHoliday ? "CHILL" : statusClass
                       ? getAcronym(
                           statusClass.name || statusClass.code || "",
                         ).toUpperCase()
@@ -777,7 +781,7 @@ export default function Dashboard({
                 className={`text-[12px] font-bold lowercase ${subTextClass} shrink-0 ml-2`}
                 style={{ fontFamily: "'Afacad', sans-serif" }}
               >
-                {statusClass
+                {isHoliday ? "no classes today" : statusClass
                   ? currentClass
                     ? `ends at ${statusClass.time.split("-")[1].trim()}`
                     : `starts at ${statusClass.time.split("-")[0].trim()}`

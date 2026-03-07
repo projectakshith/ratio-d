@@ -1,4 +1,381 @@
-INFO:     Started server process [245535]
+INFO:     Started server process [27016]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
 INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+
+2026-03-07 08:31:16.044 IST -> [API] POST /login
+
+[API] Incoming login request for: dfd@srmist.edu.in
+2026-03-07 08:31:16.046 IST
+  -> [SESSION] Injected existing cookies from frontend.
+2026-03-07 08:31:16.046 IST
+  -> [SESSION] Resuming with cached cookies.
+2026-03-07 08:31:16.046 IST
+[SCRAPER] Fetching Profile...
+  -> [NETWORK] GET /srm_university/academia-academic-services/page/My_Time_Table_2023_24
+2026-03-07 08:31:17.122 IST
+[SCRAPER] Profile fetched in 1.08s
+2026-03-07 08:31:17.136 IST
+[PARSER] Profile & Courses parsed in 0.01s
+2026-03-07 08:31:17.136 IST
+[SCRAPER] Fetching Attendance & Marks...
+  -> [NETWORK] GET /srm_university/academia-academic-services/page/My_Attendance
+2026-03-07 08:31:17.623 IST
+[SCRAPER] Attendance fetched in 0.49s
+2026-03-07 08:31:17.644 IST
+[PARSER] Attendance & Marks parsed in 0.02s
+2026-03-07 08:31:17.644 IST
+[SCRAPER] Fetching Timetable Grid...
+  -> [NETWORK] GET /srm_university/academia-academic-services/page/Unified_Time_Table_2025_batch_2
+2026-03-07 08:31:17.938 IST
+[SCRAPER] Timetable fetched and parsed in 0.29s
+2026-03-07 08:31:17.939 IST
+[API] Success! Total execution time: 1.89s
+==================================================
+
+2026-03-07 08:31:17.940 IST <- [API] Status: 200
+
+2026-03-07 08:31:21.391 IST -> [API] POST /login
+
+[API] Incoming login request for: dfd@srmist.edu.in
+2026-03-07 08:31:21.392 IST
+  -> [SESSION] Injected existing cookies from frontend.
+2026-03-07 08:31:21.392 IST
+  -> [SESSION] Resuming with cached cookies.
+2026-03-07 08:31:21.392 IST
+[SCRAPER] Fetching Profile...
+  -> [NETWORK] GET /srm_university/academia-academic-services/page/My_Time_Table_2023_24
+2026-03-07 08:31:22.288 IST
+[SCRAPER] Profile fetched in 0.90s
+2026-03-07 08:31:22.307 IST
+[PARSER] Profile & Courses parsed in 0.02s
+2026-03-07 08:31:22.307 IST
+[SCRAPER] Fetching Attendance & Marks...
+  -> [NETWORK] GET /srm_university/academia-academic-services/page/My_Attendance
+2026-03-07 08:31:22.844 IST
+[SCRAPER] Attendance fetched in 0.54s
+2026-03-07 08:31:22.856 IST
+[PARSER] Attendance & Marks parsed in 0.01s
+2026-03-07 08:31:22.856 IST
+[SCRAPER] Fetching Timetable Grid...
+  -> [NETWORK] GET /srm_university/academia-academic-services/page/Unified_Time_Table_2025_batch_2
+2026-03-07 08:31:23.161 IST
+[SCRAPER] Timetable fetched and parsed in 0.31s
+2026-03-07 08:31:23.161 IST
+[API] Success! Total execution time: 1.77s
+==================================================
+
+2026-03-07 08:31:23.164 IST <- [API] Status: 200
+INFO:     127.0.0.1:41818 - "POST /login HTTP/1.1" 200 OK
+
+2026-03-07 08:31:40.220 IST -> [API] OPTIONS /refresh
+2026-03-07 08:31:40.221 IST <- [API] Status: 200
+INFO:     127.0.0.1:48172 - "OPTIONS /refresh HTTP/1.1" 200 OK
+
+2026-03-07 08:31:40.224 IST -> [API] POST /refresh
+
+[API] Incoming REFRESH request for: dfd@srmist.edu.in
+2026-03-07 08:31:40.227 IST
+  -> [SESSION] Injected existing cookies from frontend.
+2026-03-07 08:31:40.228 IST
+  -> [SESSION] Injected existing cookies from frontend.
+2026-03-07 08:31:40.228 IST
+[API] Cached cookies received. Attempting fast refresh...
+2026-03-07 08:31:40.228 IST
+[SCRAPER] Fetching Attendance & Marks only...
+2026-03-07 08:31:40.228 IST
+  -> [NETWORK] GET /srm_university/academia-academic-services/page/My_Attendance
+  -> [NETWORK] GET /srm_university/academia-academic-services/page/My_Attendance
+2026-03-07 08:31:41.483 IST
+[SCRAPER] Attendance fetched in 1.26s
+2026-03-07 08:31:41.504 IST
+[PARSER] Parsing completed in 0.02s
+2026-03-07 08:31:41.504 IST
+[API] Refresh Success! Total time: 1.28s
+==================================================
+
+2026-03-07 08:31:41.505 IST <- [API] Status: 200
+INFO:     127.0.0.1:48186 - "POST /refresh HTTP/1.1" 200 OK
+
+2026-03-07 08:32:41.646 IST -> [API] POST /refresh
+
+[API] Incoming REFRESH request for: dfd@srmist.edu.in
+2026-03-07 08:32:41.647 IST
+  -> [SESSION] Injected existing cookies from frontend.
+2026-03-07 08:32:41.647 IST
+  -> [SESSION] Injected existing cookies from frontend.
+2026-03-07 08:32:41.647 IST
+[API] Cached cookies received. Attempting fast refresh...
+2026-03-07 08:32:41.647 IST
+[SCRAPER] Fetching Attendance & Marks only...
+2026-03-07 08:32:41.647 IST
+  -> [NETWORK] GET /srm_university/academia-academic-services/page/My_Attendance
+  -> [NETWORK] GET /srm_university/academia-academic-services/page/My_Attendance
+2026-03-07 08:32:42.817 IST
+[SCRAPER] Attendance fetched in 1.17s
+2026-03-07 08:32:42.830 IST
+[PARSER] Parsing completed in 0.01s
+2026-03-07 08:32:42.830 IST
+[API] Refresh Success! Total time: 1.18s
+==================================================
+
+2026-03-07 08:32:42.832 IST <- [API] Status: 200
+INFO:     127.0.0.1:33750 - "POST /refresh HTTP/1.1" 200 OK
+
+2026-03-07 08:33:17.024 IST -> [API] POST /refresh
+
+[API] Incoming REFRESH request for: dfd@srmist.edu.in
+2026-03-07 08:33:17.025 IST
+  -> [SESSION] Injected existing cookies from frontend.
+2026-03-07 08:33:17.025 IST
+  -> [SESSION] Injected existing cookies from frontend.
+2026-03-07 08:33:17.025 IST
+[API] Cached cookies received. Attempting fast refresh...
+2026-03-07 08:33:17.025 IST
+[SCRAPER] Fetching Attendance & Marks only...
+2026-03-07 08:33:17.025 IST
+  -> [NETWORK] GET /srm_university/academia-academic-services/page/My_Attendance
+  -> [NETWORK] GET /srm_university/academia-academic-services/page/My_Attendance
+2026-03-07 08:33:18.248 IST
+[SCRAPER] Attendance fetched in 1.22s
+2026-03-07 08:33:18.267 IST
+[PARSER] Parsing completed in 0.02s
+2026-03-07 08:33:18.267 IST
+[API] Refresh Success! Total time: 1.24s
+==================================================
+
+2026-03-07 08:33:18.268 IST <- [API] Status: 200
+INFO:     127.0.0.1:48592 - "POST /refresh HTTP/1.1" 200 OK
+
+2026-03-07 08:33:53.752 IST -> [API] POST /refresh
+
+[API] Incoming REFRESH request for: dfd@srmist.edu.in
+2026-03-07 08:33:53.753 IST
+  -> [SESSION] Injected existing cookies from frontend.
+2026-03-07 08:33:53.754 IST
+  -> [SESSION] Injected existing cookies from frontend.
+2026-03-07 08:33:53.754 IST
+[API] Cached cookies received. Attempting fast refresh...
+2026-03-07 08:33:53.754 IST
+[SCRAPER] Fetching Attendance & Marks only...
+2026-03-07 08:33:53.754 IST
+  -> [NETWORK] GET /srm_university/academia-academic-services/page/My_Attendance
+  -> [NETWORK] GET /srm_university/academia-academic-services/page/My_Attendance
+2026-03-07 08:33:54.806 IST
+[SCRAPER] Attendance fetched in 1.05s
+2026-03-07 08:33:54.830 IST
+[PARSER] Parsing completed in 0.02s
+2026-03-07 08:33:54.830 IST
+[API] Refresh Success! Total time: 1.08s
+==================================================
+
+2026-03-07 08:33:54.834 IST <- [API] Status: 200
+INFO:     127.0.0.1:53188 - "POST /refresh HTTP/1.1" 200 OK
+
+2026-03-07 08:34:11.436 IST -> [API] POST /refresh
+
+[API] Incoming REFRESH request for: dfd@srmist.edu.in
+2026-03-07 08:34:11.437 IST
+  -> [SESSION] Injected existing cookies from frontend.
+2026-03-07 08:34:11.438 IST
+  -> [SESSION] Injected existing cookies from frontend.
+2026-03-07 08:34:11.438 IST
+[API] Cached cookies received. Attempting fast refresh...
+2026-03-07 08:34:11.438 IST
+[SCRAPER] Fetching Attendance & Marks only...
+2026-03-07 08:34:11.438 IST
+  -> [NETWORK] GET /srm_university/academia-academic-services/page/My_Attendance
+  -> [NETWORK] GET /srm_university/academia-academic-services/page/My_Attendance
+
+2026-03-07 08:34:12.239 IST -> [API] POST /refresh
+
+[API] Incoming REFRESH request for: dfd@srmist.edu.in
+2026-03-07 08:34:12.241 IST
+  -> [SESSION] Injected existing cookies from frontend.
+2026-03-07 08:34:12.241 IST
+  -> [SESSION] Injected existing cookies from frontend.
+2026-03-07 08:34:12.241 IST
+[API] Cached cookies received. Attempting fast refresh...
+2026-03-07 08:34:12.241 IST
+[SCRAPER] Fetching Attendance & Marks only...
+2026-03-07 08:34:12.241 IST
+  -> [NETWORK] GET /srm_university/academia-academic-services/page/My_Attendance
+  -> [NETWORK] GET /srm_university/academia-academic-services/page/My_Attendance
+2026-03-07 08:34:12.519 IST
+[SCRAPER] Attendance fetched in 1.08s
+2026-03-07 08:34:12.533 IST
+[PARSER] Parsing completed in 0.01s
+2026-03-07 08:34:12.533 IST
+[API] Refresh Success! Total time: 1.10s
+==================================================
+
+2026-03-07 08:34:12.535 IST <- [API] Status: 200
+INFO:     127.0.0.1:53290 - "POST /refresh HTTP/1.1" 200 OK
+2026-03-07 08:34:13.283 IST
+[SCRAPER] Attendance fetched in 1.04s
+2026-03-07 08:34:13.301 IST
+[PARSER] Parsing completed in 0.02s
+2026-03-07 08:34:13.301 IST
+[API] Refresh Success! Total time: 1.06s
+==================================================
+
+2026-03-07 08:34:13.302 IST <- [API] Status: 200
+INFO:     127.0.0.1:53306 - "POST /refresh HTTP/1.1" 200 OK
+
+2026-03-07 08:34:23.950 IST -> [API] POST /refresh
+
+[API] Incoming REFRESH request for: dfd@srmist.edu.in
+2026-03-07 08:34:23.951 IST
+  -> [SESSION] Injected existing cookies from frontend.
+2026-03-07 08:34:23.952 IST
+  -> [SESSION] Injected existing cookies from frontend.
+2026-03-07 08:34:23.952 IST
+[API] Cached cookies received. Attempting fast refresh...
+2026-03-07 08:34:23.952 IST
+[SCRAPER] Fetching Attendance & Marks only...
+2026-03-07 08:34:23.952 IST
+  -> [NETWORK] GET /srm_university/academia-academic-services/page/My_Attendance
+  -> [NETWORK] GET /srm_university/academia-academic-services/page/My_Attendance
+2026-03-07 08:34:25.136 IST
+[SCRAPER] Attendance fetched in 1.18s
+2026-03-07 08:34:25.155 IST
+[PARSER] Parsing completed in 0.02s
+2026-03-07 08:34:25.155 IST
+[API] Refresh Success! Total time: 1.20s
+==================================================
+
+2026-03-07 08:34:25.156 IST <- [API] Status: 200
+INFO:     127.0.0.1:52468 - "POST /refresh HTTP/1.1" 200 OK
+
+2026-03-07 08:35:23.144 IST -> [API] POST /refresh
+
+[API] Incoming REFRESH request for: dfd@srmist.edu.in
+2026-03-07 08:35:23.146 IST
+  -> [SESSION] Injected existing cookies from frontend.
+2026-03-07 08:35:23.146 IST
+  -> [SESSION] Injected existing cookies from frontend.
+2026-03-07 08:35:23.146 IST
+[API] Cached cookies received. Attempting fast refresh...
+2026-03-07 08:35:23.146 IST
+[SCRAPER] Fetching Attendance & Marks only...
+2026-03-07 08:35:23.146 IST
+  -> [NETWORK] GET /srm_university/academia-academic-services/page/My_Attendance
+  -> [NETWORK] GET /srm_university/academia-academic-services/page/My_Attendance
+2026-03-07 08:35:24.300 IST
+[SCRAPER] Attendance fetched in 1.15s
+2026-03-07 08:35:24.321 IST
+[PARSER] Parsing completed in 0.02s
+2026-03-07 08:35:24.321 IST
+[API] Refresh Success! Total time: 1.18s
+==================================================
+
+2026-03-07 08:35:24.324 IST <- [API] Status: 200
+INFO:     127.0.0.1:57142 - "POST /refresh HTTP/1.1" 200 OK
+
+2026-03-07 08:35:48.739 IST -> [API] POST /login
+
+[API] Incoming login request for: fd`df@srmist.edu.in
+2026-03-07 08:35:48.741 IST
+  -> [SESSION] Injected existing cookies from frontend.
+2026-03-07 08:35:48.741 IST
+  -> [SESSION] Resuming with cached cookies.
+2026-03-07 08:35:48.741 IST
+[SCRAPER] Fetching Profile...
+  -> [NETWORK] GET /srm_university/academia-academic-services/page/My_Time_Table_2023_24
+2026-03-07 08:35:49.797 IST
+[SCRAPER] Profile fetched in 1.06s
+2026-03-07 08:35:49.808 IST
+[PARSER] Profile & Courses parsed in 0.01s
+2026-03-07 08:35:49.808 IST
+[SCRAPER] Fetching Attendance & Marks...
+  -> [NETWORK] GET /srm_university/academia-academic-services/page/My_Attendance
+2026-03-07 08:35:50.311 IST
+[SCRAPER] Attendance fetched in 0.50s
+2026-03-07 08:35:50.333 IST
+[PARSER] Attendance & Marks parsed in 0.02s
+2026-03-07 08:35:50.333 IST
+[SCRAPER] Fetching Timetable Grid...
+  -> [NETWORK] GET /srm_university/academia-academic-services/page/Unified_Time_Table_2025_batch_2
+2026-03-07 08:35:50.630 IST
+[SCRAPER] Timetable fetched and parsed in 0.30s
+2026-03-07 08:35:50.630 IST
+[API] Success! Total execution time: 1.89s
+==================================================
+
+2026-03-07 08:35:50.633 IST <- [API] Status: 200
+INFO:     127.0.0.1:56702 - "POST /login HTTP/1.1" 200 OK
+
+2026-03-07 08:35:51.457 IST -> [API] POST /refresh
+
+[API] Incoming REFRESH request for: fd`df@srmist.edu.in
+2026-03-07 08:35:51.458 IST
+  -> [SESSION] Injected existing cookies from frontend.
+2026-03-07 08:35:51.458 IST
+  -> [SESSION] Injected existing cookies from frontend.
+2026-03-07 08:35:51.459 IST
+[API] Cached cookies received. Attempting fast refresh...
+2026-03-07 08:35:51.459 IST
+[SCRAPER] Fetching Attendance & Marks only...
+2026-03-07 08:35:51.459 IST
+  -> [NETWORK] GET /srm_university/academia-academic-services/page/My_Attendance
+  -> [NETWORK] GET /srm_university/academia-academic-services/page/My_Attendance
+2026-03-07 08:35:52.667 IST
+[SCRAPER] Attendance fetched in 1.21s
+2026-03-07 08:35:52.689 IST
+[PARSER] Parsing completed in 0.02s
+2026-03-07 08:35:52.689 IST
+[API] Refresh Success! Total time: 1.23s
+==================================================
+
+2026-03-07 08:35:52.691 IST <- [API] Status: 200
+INFO:     127.0.0.1:56702 - "POST /refresh HTTP/1.1" 200 OK
+
+2026-03-07 08:38:47.789 IST -> [API] POST /refresh
+
+[API] Incoming REFRESH request for: fd`df@srmist.edu.in
+2026-03-07 08:38:47.791 IST
+  -> [SESSION] Injected existing cookies from frontend.
+2026-03-07 08:38:47.792 IST
+  -> [SESSION] Injected existing cookies from frontend.
+2026-03-07 08:38:47.792 IST
+[API] Cached cookies received. Attempting fast refresh...
+2026-03-07 08:38:47.792 IST
+[SCRAPER] Fetching Attendance & Marks only...
+2026-03-07 08:38:47.792 IST
+  -> [NETWORK] GET /srm_university/academia-academic-services/page/My_Attendance
+  -> [NETWORK] GET /srm_university/academia-academic-services/page/My_Attendance
+2026-03-07 08:38:49.000 IST
+[SCRAPER] Attendance fetched in 1.21s
+2026-03-07 08:38:49.014 IST
+[PARSER] Parsing completed in 0.01s
+2026-03-07 08:38:49.014 IST
+[API] Refresh Success! Total time: 1.22s
+==================================================
+
+2026-03-07 08:38:49.015 IST <- [API] Status: 200
+INFO:     127.0.0.1:42320 - "POST /refresh HTTP/1.1" 200 OK
+
+2026-03-07 08:38:49.660 IST -> [API] POST /refresh
+
+[API] Incoming REFRESH request for: fd`df@srmist.edu.in
+2026-03-07 08:38:49.661 IST
+  -> [SESSION] Injected existing cookies from frontend.
+2026-03-07 08:38:49.661 IST
+  -> [SESSION] Injected existing cookies from frontend.
+2026-03-07 08:38:49.661 IST
+[API] Cached cookies received. Attempting fast refresh...
+2026-03-07 08:38:49.661 IST
+[SCRAPER] Fetching Attendance & Marks only...
+2026-03-07 08:38:49.661 IST
+  -> [NETWORK] GET /srm_university/academia-academic-services/page/My_Attendance
+  -> [NETWORK] GET /srm_university/academia-academic-services/page/My_Attendance
+2026-03-07 08:38:50.843 IST
+[SCRAPER] Attendance fetched in 1.18s
+2026-03-07 08:38:50.860 IST
+[PARSER] Parsing completed in 0.02s
+2026-03-07 08:38:50.860 IST
+[API] Refresh Success! Total time: 1.20s
+==================================================
+
+2026-03-07 08:38:50.862 IST <- [API] Status: 200
+INFO:     127.0.0.1:42320 - "POST /refresh HTTP/1.1" 200 OK

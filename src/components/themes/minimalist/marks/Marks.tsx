@@ -36,6 +36,8 @@ const itemVariants = {
   },
 };
 
+const normalize = (str: string) => (str || "").toLowerCase().replace(/[^a-z0-9]/g, "").trim();
+
 export default function Marks({
   data,
   setIsSwipeDisabled,
@@ -66,12 +68,16 @@ export default function Marks({
     const courseMap = buildCourseMap(data);
     const sorted = processAndSortMarks(data.marks, courseMap);
     return sorted.map((sub: any, i: number) => {
-      const typeKey = sub.isPractical ? "Practical" : "Theory";
-      const lookupKey = `${sub.code}_${typeKey}`;
-      const courseDetails =
-        data.courses?.[lookupKey] ||
-        data.courses?.[sub.code] ||
-        Object.values(data.courses || {}).find((c: any) => c.code === sub.code);
+      const sStr = sub.slot || "";
+      const firstSlot = sStr.split(/[,\s+-]/)[0].trim().toUpperCase();
+      let courseDetails = (data.courses as any)?.[firstSlot];
+
+      if (!courseDetails) {
+        courseDetails = Object.values(data.courses || {}).find((c: any) => 
+          normalize(c.code) === normalize(sub.code) && 
+          ((c.type || "").toLowerCase().includes("lab") === sub.isPractical)
+        );
+      }
 
       const credits = courseDetails?.credits
         ? parseFloat(courseDetails.credits)

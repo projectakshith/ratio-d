@@ -94,7 +94,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="w-full bg-transparent py-4 text-4xl md:text-6xl text-white outline-none"
+                className="w-full bg-transparent py-4 text-4xl md:text-6xl text-white outline-none placeholder:text-white/10"
                 placeholder="username"
                 style={{ fontFamily: "Aonic" }}
               />
@@ -118,7 +118,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-transparent py-4 text-4xl md:text-6xl text-white outline-none"
+                className="w-full bg-transparent py-4 text-4xl md:text-6xl text-white outline-none placeholder:text-white/10"
                 placeholder="••••••••"
                 style={{ fontFamily: "Aonic" }}
               />

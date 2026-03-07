@@ -1,15 +1,7 @@
 "use client";
 import React, { useEffect, useState, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  MapPin,
-  Clock,
-  User,
-  Plus,
-  X,
-  ChevronRight,
-  Layers,
-} from "lucide-react";
+import { MapPin, Clock, User, Plus, X, ChevronRight, Layers } from "lucide-react";
 import {
   buildCourseMap,
   processSchedule,
@@ -61,15 +53,26 @@ export default function Timetable({
   const [mounted, setMounted] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const initialSet = useRef(false);
-  const schedule = academia?.effectiveSchedule || {};
-  const dayOrderStr = academia?.effectiveDayOrder || data?.dayOrder || "1";
-  const dayOrder = parseInt(String(dayOrderStr)) || 1;
+  const schedule = academia?.effectiveSchedule || data?.timetable || data?.schedule || {};
+  
+  const todayStr = useMemo(() => {
+    const now = new Date();
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const d = String(now.getDate()).padStart(2, "0");
+    const m = months[now.getMonth()];
+    const y = now.getFullYear();
+    return `${d} ${m} ${y}`;
+  }, []);
 
-  const isHoliday =
-    !dayOrderStr ||
-    dayOrderStr === "-" ||
-    dayOrderStr === "0" ||
-    isNaN(parseInt(String(dayOrderStr)));
+  const todayEntry = useMemo(() => {
+    const calData = academia?.calendarData || calendarDataJson || [];
+    return calData.find((ev: any) => ev.date === todayStr);
+  }, [academia?.calendarData, todayStr]);
+
+  const dayOrderStr = todayEntry?.dayOrder || todayEntry?.order || data?.dayOrder || "0";
+  const dayOrder = parseInt(String(dayOrderStr)) || 0;
+
+  const isHoliday = dayOrder === 0;
 
   const [activeDay, setActiveDay] = useState<number>(1);
   const [isAddingClass, setIsAddingClass] = useState(false);
@@ -112,7 +115,7 @@ export default function Timetable({
         return dOrder;
       }
     }
-    return null;
+    return 1;
   }, [academia?.calendarData]);
 
   useEffect(() => {
@@ -181,10 +184,8 @@ export default function Timetable({
   }, [schedule, customClasses, activeDay, dayOrder, courseMap, refreshKey]);
 
   const isViewingToday = String(activeDay) === String(dayOrder) && !isHoliday;
-  const nextScheduledDay =
-    nextWorkingDayOrder || (dayOrder < 5 ? dayOrder + 1 : 1);
-  const isViewingNext =
-    String(activeDay) === String(nextScheduledDay) && !isViewingToday;
+  const nextScheduledDay = isHoliday ? nextWorkingDayOrder : (dayOrder < 5 ? dayOrder + 1 : 1);
+  const isViewingNext = String(activeDay) === String(nextScheduledDay) && (isHoliday || !isViewingToday);
 
   useEffect(() => {
     if (mounted && isViewingToday) {
@@ -241,7 +242,7 @@ export default function Timetable({
                 className={`text-[13px] font-bold ${isDark ? "text-[#85a818]" : "text-[#4d6600]"} lowercase tracking-wide`}
                 style={{ fontFamily: "'Afacad', sans-serif" }}
               >
-                holiday today!
+                holiday today! viewing upcoming track.
               </span>
             </div>
           )}
