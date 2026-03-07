@@ -18,8 +18,27 @@ export default function Home() {
   const [showBigOffline, setShowBigOffline] = useState(false);
   const [justCameOnline, setJustCameOnline] = useState(false);
 
+  const checkVersion = async () => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/version`);
+      const { version } = await response.json();
+      const currentVersion = localStorage.getItem("ratio_app_version");
+      if (currentVersion !== version) {
+        localStorage.setItem("ratio_app_version", version);
+        const creds = EncryptionUtils.loadDecrypted("ratio_credentials");
+        const cachedData = localStorage.getItem("ratio_data");
+        if (creds && cachedData) {
+          refreshData(creds, JSON.parse(cachedData));
+        }
+      }
+    } catch (err) {
+      console.error("Version check failed", err);
+    }
+  };
+
   useEffect(() => {
     EncryptionUtils.cleanOldKeys();
+    checkVersion();
     const isStandalone =
       typeof window !== "undefined" &&
       (window.matchMedia("(display-mode: standalone)").matches ||

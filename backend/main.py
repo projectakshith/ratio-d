@@ -25,6 +25,10 @@ app.add_middleware(
 def get_now():
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3] + " IST"
 
+@app.get("/version")
+def get_version():
+    return {"version": "0.1.0"}
+
 @app.post("/refresh")
 def refresh_data(creds: Credentials):
     start_total = time.time()

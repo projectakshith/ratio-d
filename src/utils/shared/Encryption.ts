@@ -39,6 +39,7 @@ export const EncryptionUtils = {
       "ratio_private_notes",
       "ratio_class_notes",
       "ratio_custom_classes",
+      "ratio_app_version",
     ];
 
     Object.keys(localStorage).forEach((key) => {
