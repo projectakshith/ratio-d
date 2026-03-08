@@ -125,15 +125,15 @@ export const getCalendarTheme = (
     };
   if (hasOrder)
     return {
-      bg: "#F2FFDB",
-      text: "text-[#4d6600]",
-      border: "border-[#85a818]/30",
-      accent: "bg-[#85a818]/10 text-[#4d6600]",
+      bg: "var(--status-safe-bg, #F2FFDB)",
+      text: "text-theme-highlight",
+      border: "border-theme-highlight",
+      accent: "status-bg-safe status-text-safe",
     };
   return {
-    bg: "#ffffff",
-    text: "text-[#111111]",
-    border: "border-[#111111]/10",
-    accent: "bg-[#F7F7F7] text-[#111111]",
+    bg: "var(--card-bg, #ffffff)",
+    text: "text-theme-text",
+    border: "border-theme-subtle",
+    accent: "bg-theme-surface text-theme-text",
   };
 };

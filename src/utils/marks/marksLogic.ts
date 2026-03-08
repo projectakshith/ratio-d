@@ -45,88 +45,88 @@ export const getAcronym = (name: string) => {
   return parts.map((w) => w[0]).join("");
 };
 
-export const getTheme = (pct: number, max: number, isDark: boolean) => {
+export const getTheme = (pct: number, max: number, _isDark?: boolean) => {
   if (max === 0)
     return {
-      wrapperBg: isDark ? "bg-white/5" : "bg-[#F7F7F7]/50",
-      cardBg: isDark ? "bg-white/5" : "bg-white",
-      border: isDark ? "border-white/10" : "border-[#111111]/10",
-      text: isDark ? "text-white" : "text-[#111111]",
-      subText: isDark ? "text-white/50" : "text-[#111111]/50",
-      boxBg: isDark ? "bg-white/5" : "bg-[#F7F7F7]",
+      wrapperBg: "bg-theme-surface",
+      cardBg: "bg-theme-surface",
+      border: "border-theme-border",
+      text: "text-theme-text",
+      subText: "text-theme-muted",
+      boxBg: "bg-theme-surface",
       dottedClass: "neutral-dotted",
     };
   if (pct >= 85)
     return {
-      wrapperBg: isDark ? "bg-[#F2FFDB]/10" : "bg-[#F2FFDB]/60",
-      cardBg: isDark ? "bg-white/5" : "bg-white",
-      border: isDark ? "border-[#85a818]/40" : "border-[#85a818]/30",
-      text: isDark ? "text-[#85a818]" : "text-[#4d6600]",
-      subText: isDark ? "text-[#85a818]/80" : "text-[#4d6600]/60",
-      boxBg: isDark ? "bg-[#85a818]/20" : "bg-[#F2FFDB]/40",
+      wrapperBg: "status-bg-safe",
+      cardBg: "bg-theme-surface",
+      border: "status-border-safe",
+      text: "status-text-safe",
+      subText: "status-text-safe opacity-80",
+      boxBg: "status-boxbg-safe",
       dottedClass: "safe-dotted",
     };
   if (pct >= 60)
     return {
-      wrapperBg: isDark ? "bg-[#FFF4E5]/10" : "bg-[#FFF4E5]/70",
-      cardBg: isDark ? "bg-white/5" : "bg-white",
-      border: isDark ? "border-[#F97316]/40" : "border-[#F97316]/30",
-      text: isDark ? "text-[#F97316]" : "text-[#EA580C]",
-      subText: isDark ? "text-[#F97316]/80" : "text-[#EA580C]/60",
-      boxBg: isDark ? "bg-[#F97316]/20" : "bg-[#FFF4E5]/50",
+      wrapperBg: "status-bg-danger",
+      cardBg: "bg-theme-surface",
+      border: "status-border-danger",
+      text: "status-text-danger",
+      subText: "status-text-danger opacity-80",
+      boxBg: "status-boxbg-danger",
       dottedClass: "danger-dotted",
     };
   return {
-    wrapperBg: isDark ? "bg-[#FFEDED]/10" : "bg-[#FFEDED]/60",
-    cardBg: isDark ? "bg-white/5" : "bg-white",
-    border: isDark ? "border-[#FF4D4D]/40" : "border-[#FF4D4D]/30",
-    text: isDark ? "text-[#FF4D4D]" : "text-[#FF4D4D]",
-    subText: isDark ? "text-[#FF4D4D]/80" : "text-[#FF4D4D]/70",
-    boxBg: isDark ? "bg-[#FF4D4D]/20" : "bg-[#FFEDED]/50",
+    wrapperBg: "status-bg-cooked",
+    cardBg: "bg-theme-surface",
+    border: "status-border-cooked",
+    text: "status-text-cooked",
+    subText: "status-text-cooked opacity-80",
+    boxBg: "status-boxbg-cooked",
     dottedClass: "warning-dotted",
   };
 };
 
-export const getMarkColor = (got: number, max: number, isDark: boolean) => {
-  if (max === 0) return isDark ? "text-white" : "text-[#111111]";
+export const getMarkColor = (got: number, max: number, _isDark?: boolean) => {
+  if (max === 0) return "text-theme-text";
   const pct = (got / max) * 100;
-  if (pct >= 75) return "text-[#85a818]";
-  if (pct >= 50) return "text-[#F97316]";
-  return "text-[#FF4D4D]";
+  if (pct >= 75) return "status-text-safe";
+  if (pct >= 50) return "status-text-danger";
+  return "status-text-cooked";
 };
 
 export const getBoxTheme = (
   got: number | null,
   max: number,
-  isDark: boolean,
+  _isDark?: boolean,
 ) => {
   if (got === null || max === 0)
     return {
-      boxBg: isDark ? "bg-white/5" : "bg-[#F7F7F7]",
-      text: isDark ? "text-white/50" : "text-[#111111]/50",
-      subText: isDark ? "text-white/40" : "text-[#111111]/40",
-      border: isDark ? "border-white/5" : "border-[#111111]/5",
+      boxBg: "bg-theme-surface",
+      text: "text-theme-muted",
+      subText: "text-theme-subtle",
+      border: "border-theme-subtle",
     };
   const pct = (got / max) * 100;
   if (pct >= 75)
     return {
-      boxBg: isDark ? "bg-[#F2FFDB]/10" : "bg-[#F2FFDB]/60",
-      text: "text-[#85a818]",
-      subText: isDark ? "text-[#85a818]/60" : "text-[#4d6600]/60",
-      border: "border-[#85a818]/20",
+      boxBg: "status-boxbg-safe",
+      text: "status-text-safe",
+      subText: "status-text-safe opacity-60",
+      border: "status-border-safe",
     };
   if (pct >= 50)
     return {
-      boxBg: isDark ? "bg-[#FFF4E5]/10" : "bg-[#FFF4E5]/70",
-      text: "text-[#F97316]",
-      subText: isDark ? "text-[#F97316]/60" : "text-[#EA580C]/60",
-      border: "border-[#F97316]/20",
+      boxBg: "status-boxbg-danger",
+      text: "status-text-danger",
+      subText: "status-text-danger opacity-60",
+      border: "status-border-danger",
     };
   return {
-    boxBg: isDark ? "bg-[#FFEDED]/10" : "bg-[#FFEDED]/60",
-    text: "text-[#FF4D4D]",
-    subText: "text-[#FF4D4D]/70",
-    border: "border-[#FF4D4D]/20",
+    boxBg: "status-boxbg-cooked",
+    text: "status-text-cooked",
+    subText: "status-text-cooked opacity-70",
+    border: "status-border-cooked",
   };
 };
 
@@ -257,12 +257,28 @@ export const getActiveSubject = (
 export const getMarksTheme = (status: string) => {
   switch (status) {
     case "safe":
-      return { bg: "#ceff1c", text: "text-[#050505]", bar: "bg-[#050505]" };
+      return {
+        bg: "var(--theme-highlight)",
+        text: "text-theme-bg",
+        bar: "bg-theme-bg",
+      };
     case "cooked":
-      return { bg: "#ff003c", text: "text-white", bar: "bg-white" };
+      return {
+        bg: "var(--theme-secondary)",
+        text: "text-theme-bg",
+        bar: "bg-theme-bg",
+      };
     case "danger":
-      return { bg: "#ffb800", text: "text-[#050505]", bar: "bg-[#050505]" };
+      return {
+        bg: "var(--theme-accent)",
+        text: "text-theme-bg",
+        bar: "bg-theme-bg",
+      };
     default:
-      return { bg: "#f0f0f0", text: "text-[#050505]", bar: "bg-[#050505]" };
+      return {
+        bg: "var(--theme-surface, #f0f0f0)",
+        text: "text-theme-text",
+        bar: "bg-theme-text",
+      };
   }
 };

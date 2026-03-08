@@ -15,13 +15,372 @@
   src: url("/fonts/Urbanosta.otf");
 }
 
+/* ─── FONT VARIABLES ─────────────────────────────────────────────────────── */
 :root {
-  --font-afacad: var(--font-afacad);
-  --font-montserrat: var(--font-montserrat);
+  --font-montserrat: 'Montserrat', sans-serif;
+  --font-afacad:    'Afacad', sans-serif;
+  --font-urbanosta: 'Urbanosta', sans-serif;
+  --font-akira:     'Akira', sans-serif;
+  --font-aonic:     'Aonic', sans-serif;
+  --transition-default: 0.3s ease;
+  --transition-spring:  cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Semantic accent vars (fixed, not theme-dependent) */
+  --accent-green:        #85a818;
+  --accent-green-light:  #F2FFDB;
+  --accent-green-dark:   #4d6600;
+  --accent-red:          #FF4D4D;
+  --accent-red-light:    #FFEDED;
+  --accent-red-dark:     #CC0000;
+  --accent-orange:       #F97316;
+  --accent-orange-light: #FFF4E5;
+  --accent-orange-dark:  #EA580C;
+  --accent-blue:         #0EA5E9;
+  --accent-blue-light:   #E0F2FE;
+  --accent-purple:       #8b5cf6;
 }
 
+/* ─── THEME COLOR VARIABLES ─────────────────────────────────────────────── */
+:root,
+[data-theme="el"] {
+  /* Egyptian – warm browns / tans */
+  --theme-primary:   #8B7355;
+  --theme-secondary: #D2B48C;
+  --theme-accent:    #C5A572;
+  --theme-bg:        #F5E6D3;
+  --theme-text:      #4A3B2A;
+  --theme-highlight: #C5A572;
+  /* --bg-* / --text-* aliases for compatibility */
+  --bg-primary:   var(--theme-bg);
+  --bg-secondary: color-mix(in srgb, var(--theme-text) 6%, var(--theme-bg));
+  --bg-tertiary:  color-mix(in srgb, var(--theme-text) 10%, var(--theme-bg));
+  --text-primary:   var(--theme-text);
+  --text-secondary: color-mix(in srgb, var(--theme-text) 60%, transparent);
+  --text-muted:     color-mix(in srgb, var(--theme-text) 35%, transparent);
+  --text-inverse:   var(--theme-bg);
+  --border-color:       color-mix(in srgb, var(--theme-text) 15%, transparent);
+  --border-color-light: color-mix(in srgb, var(--theme-text) 8%,  transparent);
+  --shadow-color: rgba(0,0,0,0.1);
+  --overlay-bg:   rgba(255,255,255,0.8);
+  --card-bg:     var(--bg-secondary);
+  --card-border: var(--border-color-light);
+  --card-shadow: 0 4px 12px var(--shadow-color);
+  --gradient-overlay: linear-gradient(to top, var(--theme-bg), transparent);
+  --status-safe:       var(--accent-green);
+  --status-safe-bg:    var(--accent-green-light);
+  --status-safe-text:  var(--accent-green-dark);
+  --status-danger:     var(--accent-orange);
+  --status-danger-bg:  var(--accent-orange-light);
+  --status-danger-text:var(--accent-orange-dark);
+  --status-cooked:     var(--accent-red);
+  --status-cooked-bg:  var(--accent-red-light);
+  --status-cooked-text:var(--accent-red-dark);
+}
+
+[data-theme="asherah"] {
+  /* Canaanite mother goddess – soft pinks / greens */
+  --theme-primary:   #2E7D32;
+  --theme-secondary: #F06292;
+  --theme-accent:    #FFB74D;
+  --theme-bg:        #FFF9E6;
+  --theme-text:      #1B5E20;
+  --theme-highlight: #FFB74D;
+  --bg-primary:   var(--theme-bg);
+  --bg-secondary: color-mix(in srgb, var(--theme-text) 6%, var(--theme-bg));
+  --bg-tertiary:  color-mix(in srgb, var(--theme-text) 10%, var(--theme-bg));
+  --text-primary:   var(--theme-text);
+  --text-secondary: color-mix(in srgb, var(--theme-text) 60%, transparent);
+  --text-muted:     color-mix(in srgb, var(--theme-text) 35%, transparent);
+  --text-inverse:   var(--theme-bg);
+  --border-color:       color-mix(in srgb, var(--theme-text) 15%, transparent);
+  --border-color-light: color-mix(in srgb, var(--theme-text) 8%,  transparent);
+  --shadow-color: rgba(0,0,0,0.1);
+  --card-bg: color-mix(in srgb, var(--theme-text) 6%, var(--theme-bg));
+  --card-border: color-mix(in srgb, var(--theme-text) 8%, transparent);
+  --card-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  --status-safe: var(--accent-green); --status-safe-bg: var(--accent-green-light); --status-safe-text: var(--accent-green-dark);
+  --status-danger: var(--accent-orange); --status-danger-bg: var(--accent-orange-light); --status-danger-text: var(--accent-orange-dark);
+  --status-cooked: var(--accent-red); --status-cooked-bg: var(--accent-red-light); --status-cooked-text: var(--accent-red-dark);
+}
+
+[data-theme="baal"] {
+  /* Storm god – dark stormy with gold */
+  --theme-primary:   #37474F;
+  --theme-secondary: #546E7A;
+  --theme-accent:    #FFD54F;
+  --theme-bg:        #263238;
+  --theme-text:      #ECEFF1;
+  --theme-highlight: #FFD54F;
+  --bg-primary:   var(--theme-bg);
+  --bg-secondary: #1A1A1A;
+  --bg-tertiary:  #222222;
+  --text-primary:   var(--theme-text);
+  --text-secondary: rgba(236,239,241,0.5);
+  --text-muted:     rgba(236,239,241,0.3);
+  --text-inverse:   var(--theme-bg);
+  --border-color:       rgba(236,239,241,0.15);
+  --border-color-light: rgba(236,239,241,0.08);
+  --shadow-color: rgba(0,0,0,0.5);
+  --overlay-bg: rgba(0,0,0,0.8);
+  --card-bg: #1A1A1A;
+  --card-border: rgba(236,239,241,0.1);
+  --card-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  --status-safe: var(--accent-green); --status-safe-bg: rgba(133,168,24,0.15); --status-safe-text: var(--accent-green);
+  --status-danger: var(--accent-orange); --status-danger-bg: rgba(249,115,22,0.15); --status-danger-text: var(--accent-orange);
+  --status-cooked: var(--accent-red); --status-cooked-bg: rgba(255,77,77,0.15); --status-cooked-text: var(--accent-red);
+}
+
+[data-theme="shapash"] {
+  /* Sun goddess – warm golden */
+  --theme-primary:   #FFB300;
+  --theme-secondary: #FF7043;
+  --theme-accent:    #FFF176;
+  --theme-bg:        #FFF9C4;
+  --theme-text:      #BF360C;
+  --theme-highlight: #FFF176;
+  --bg-primary:   var(--theme-bg);
+  --bg-secondary: color-mix(in srgb, var(--theme-text) 6%, var(--theme-bg));
+  --bg-tertiary:  color-mix(in srgb, var(--theme-text) 10%, var(--theme-bg));
+  --text-primary:   var(--theme-text);
+  --text-secondary: color-mix(in srgb, var(--theme-text) 60%, transparent);
+  --text-muted:     color-mix(in srgb, var(--theme-text) 35%, transparent);
+  --text-inverse:   var(--theme-bg);
+  --border-color: color-mix(in srgb, var(--theme-text) 15%, transparent);
+  --border-color-light: color-mix(in srgb, var(--theme-text) 8%, transparent);
+  --shadow-color: rgba(0,0,0,0.1);
+  --card-bg: color-mix(in srgb, var(--theme-text) 6%, var(--theme-bg));
+  --card-border: color-mix(in srgb, var(--theme-text) 8%, transparent);
+  --card-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  --status-safe: var(--accent-green); --status-safe-bg: var(--accent-green-light); --status-safe-text: var(--accent-green-dark);
+  --status-danger: var(--accent-orange); --status-danger-bg: var(--accent-orange-light); --status-danger-text: var(--accent-orange-dark);
+  --status-cooked: var(--accent-red); --status-cooked-bg: var(--accent-red-light); --status-cooked-text: var(--accent-red-dark);
+}
+
+[data-theme="yhwh"] {
+  /* Abstract / transcendent – minimal black/white */
+  --theme-primary:   #212121;
+  --theme-secondary: #F5F5F5;
+  --theme-accent:    #BDBDBD;
+  --theme-bg:        #FFFFFF;
+  --theme-text:      #000000;
+  --theme-highlight: #BDBDBD;
+  --bg-primary:   #F7F7F7;
+  --bg-secondary: #FFFFFF;
+  --bg-tertiary:  #EFEFEF;
+  --text-primary:   #111111;
+  --text-secondary: rgba(17,17,17,0.5);
+  --text-muted:     rgba(17,17,17,0.3);
+  --text-inverse:   #FFFFFF;
+  --border-color:       rgba(17,17,17,0.12);
+  --border-color-light: rgba(17,17,17,0.06);
+  --shadow-color: rgba(0,0,0,0.1);
+  --overlay-bg: rgba(255,255,255,0.8);
+  --card-bg: #FFFFFF;
+  --card-border: rgba(17,17,17,0.06);
+  --card-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  --status-safe: var(--accent-green); --status-safe-bg: var(--accent-green-light); --status-safe-text: var(--accent-green-dark);
+  --status-danger: var(--accent-orange); --status-danger-bg: var(--accent-orange-light); --status-danger-text: var(--accent-orange-dark);
+  --status-cooked: var(--accent-red); --status-cooked-bg: var(--accent-red-light); --status-cooked-text: var(--accent-red-dark);
+}
+
+[data-theme="lucifer"] {
+  /* Light bearer – dark with blood red */
+  --theme-primary:   #1A1A1A;
+  --theme-secondary: #660000;
+  --theme-accent:    #990000;
+  --theme-bg:        #0D0D0D;
+  --theme-text:      #E0E0E0;
+  --theme-highlight: #FF4444;
+  --bg-primary:   #0D0D0D;
+  --bg-secondary: #1A1A1A;
+  --bg-tertiary:  #222222;
+  --text-primary:   #E0E0E0;
+  --text-secondary: rgba(224,224,224,0.5);
+  --text-muted:     rgba(224,224,224,0.3);
+  --text-inverse:   #0D0D0D;
+  --border-color:       rgba(224,224,224,0.15);
+  --border-color-light: rgba(224,224,224,0.08);
+  --shadow-color: rgba(0,0,0,0.6);
+  --overlay-bg: rgba(0,0,0,0.9);
+  --card-bg: #1A1A1A;
+  --card-border: rgba(224,224,224,0.1);
+  --card-shadow: 0 8px 24px rgba(0,0,0,0.6);
+  --status-safe: #FF4444; --status-safe-bg: rgba(255,68,68,0.15); --status-safe-text: #FF4444;
+  --status-danger: var(--accent-orange); --status-danger-bg: rgba(249,115,22,0.15); --status-danger-text: var(--accent-orange);
+  --status-cooked: #990000; --status-cooked-bg: rgba(153,0,0,0.15); --status-cooked-text: #990000;
+}
+
+[data-theme="gad"] {
+  /* Fortune / god of luck – muted grays */
+  --theme-primary:   #2A2A2A;
+  --theme-secondary: #4A4A4A;
+  --theme-accent:    #6A6A6A;
+  --theme-bg:        #1A1A1A;
+  --theme-text:      #AAAAAA;
+  --theme-highlight: #6A6A6A;
+  --bg-primary:   #1A1A1A;
+  --bg-secondary: #2A2A2A;
+  --bg-tertiary:  #333333;
+  --text-primary:   #AAAAAA;
+  --text-secondary: rgba(170,170,170,0.5);
+  --text-muted:     rgba(170,170,170,0.3);
+  --text-inverse:   #1A1A1A;
+  --border-color:       rgba(170,170,170,0.15);
+  --border-color-light: rgba(170,170,170,0.08);
+  --shadow-color: rgba(0,0,0,0.5);
+  --overlay-bg: rgba(0,0,0,0.8);
+  --card-bg: #2A2A2A;
+  --card-border: rgba(170,170,170,0.1);
+  --card-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  --status-safe: #6A6A6A; --status-safe-bg: rgba(106,106,106,0.15); --status-safe-text: #AAAAAA;
+  --status-danger: var(--accent-orange); --status-danger-bg: rgba(249,115,22,0.15); --status-danger-text: var(--accent-orange);
+  --status-cooked: var(--accent-red); --status-cooked-bg: rgba(255,77,77,0.15); --status-cooked-text: var(--accent-red);
+}
+
+[data-theme="gabriel"] {
+  /* Archangel – blues / purples */
+  --theme-primary:   #5C6BC0;
+  --theme-secondary: #9FA8DA;
+  --theme-accent:    #C5CAE9;
+  --theme-bg:        #EEF0FF;
+  --theme-text:      #1A237E;
+  --theme-highlight: #7C4DFF;
+  --bg-primary:   var(--theme-bg);
+  --bg-secondary: color-mix(in srgb, var(--theme-text) 6%, var(--theme-bg));
+  --bg-tertiary:  color-mix(in srgb, var(--theme-text) 10%, var(--theme-bg));
+  --text-primary:   var(--theme-text);
+  --text-secondary: color-mix(in srgb, var(--theme-text) 60%, transparent);
+  --text-muted:     color-mix(in srgb, var(--theme-text) 35%, transparent);
+  --text-inverse:   var(--theme-bg);
+  --border-color: color-mix(in srgb, var(--theme-text) 15%, transparent);
+  --border-color-light: color-mix(in srgb, var(--theme-text) 8%, transparent);
+  --shadow-color: rgba(0,0,0,0.1);
+  --card-bg: color-mix(in srgb, var(--theme-text) 6%, var(--theme-bg));
+  --card-border: color-mix(in srgb, var(--theme-text) 8%, transparent);
+  --card-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  --status-safe: var(--accent-green); --status-safe-bg: var(--accent-green-light); --status-safe-text: var(--accent-green-dark);
+  --status-danger: var(--accent-orange); --status-danger-bg: var(--accent-orange-light); --status-danger-text: var(--accent-orange-dark);
+  --status-cooked: var(--accent-red); --status-cooked-bg: var(--accent-red-light); --status-cooked-text: var(--accent-red-dark);
+}
+
+[data-theme="mot"] {
+  /* Death / Canaanite – dark teals */
+  --theme-primary:   #607D8B;
+  --theme-secondary: #546E7A;
+  --theme-accent:    #80CBC4;
+  --theme-bg:        #1A1F2E;
+  --theme-text:      #ECEFF1;
+  --theme-highlight: #80CBC4;
+  --bg-primary:   #1A1F2E;
+  --bg-secondary: #1E2535;
+  --bg-tertiary:  #232B3A;
+  --text-primary:   #ECEFF1;
+  --text-secondary: rgba(236,239,241,0.5);
+  --text-muted:     rgba(236,239,241,0.3);
+  --text-inverse:   #1A1F2E;
+  --border-color:       rgba(236,239,241,0.15);
+  --border-color-light: rgba(236,239,241,0.08);
+  --shadow-color: rgba(0,0,0,0.5);
+  --overlay-bg: rgba(0,0,0,0.8);
+  --card-bg: #1E2535;
+  --card-border: rgba(236,239,241,0.1);
+  --card-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  --status-safe: #80CBC4; --status-safe-bg: rgba(128,203,196,0.15); --status-safe-text: #80CBC4;
+  --status-danger: var(--accent-orange); --status-danger-bg: rgba(249,115,22,0.15); --status-danger-text: var(--accent-orange);
+  --status-cooked: var(--accent-red); --status-cooked-bg: rgba(255,77,77,0.15); --status-cooked-text: var(--accent-red);
+}
+
+/* ─── LEGACY THEME ALIASES ───────────────────────────────────────────────── */
+/* These let consumers target the old naming convention */
+[data-theme="default"],
+[data-theme="minimalist-light"] {
+  --theme-primary:   #555555;
+  --theme-secondary: #888888;
+  --theme-accent:    #F97316;
+  --theme-bg:        #F7F7F7;
+  --theme-text:      #111111;
+  --theme-highlight: #85a818;
+  --bg-primary:   #F7F7F7;
+  --bg-secondary: #FFFFFF;
+  --bg-tertiary:  #EFEFEF;
+  --text-primary:   #111111;
+  --text-secondary: rgba(17,17,17,0.5);
+  --text-muted:     rgba(17,17,17,0.25);
+  --text-inverse:   #FFFFFF;
+  --border-color:       rgba(17,17,17,0.12);
+  --border-color-light: rgba(17,17,17,0.06);
+  --shadow-color: rgba(0,0,0,0.1);
+  --overlay-bg: rgba(255,255,255,0.8);
+  --card-bg: #FFFFFF;
+  --card-border: rgba(17,17,17,0.06);
+  --card-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  --status-safe: var(--accent-green); --status-safe-bg: var(--accent-green-light); --status-safe-text: var(--accent-green-dark);
+  --status-danger: var(--accent-orange); --status-danger-bg: var(--accent-orange-light); --status-danger-text: var(--accent-orange-dark);
+  --status-cooked: var(--accent-red); --status-cooked-bg: var(--accent-red-light); --status-cooked-text: var(--accent-red-dark);
+}
+
+[data-theme="minimalist-dark"] {
+  --theme-primary:   #37474F;
+  --theme-secondary: #546E7A;
+  --theme-accent:    #FFD54F;
+  --theme-bg:        #111111;
+  --theme-text:      #FFFFFF;
+  --theme-highlight: #85a818;
+  --bg-primary:   #111111;
+  --bg-secondary: #1A1A1A;
+  --bg-tertiary:  #222222;
+  --text-primary:   #FFFFFF;
+  --text-secondary: rgba(255,255,255,0.5);
+  --text-muted:     rgba(255,255,255,0.25);
+  --text-inverse:   #111111;
+  --border-color:       rgba(255,255,255,0.12);
+  --border-color-light: rgba(255,255,255,0.06);
+  --shadow-color: rgba(0,0,0,0.5);
+  --overlay-bg: rgba(0,0,0,0.8);
+  --card-bg: #1A1A1A;
+  --card-border: rgba(255,255,255,0.08);
+  --card-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  --status-safe: var(--accent-green); --status-safe-bg: rgba(133,168,24,0.15); --status-safe-text: var(--accent-green);
+  --status-danger: var(--accent-orange); --status-danger-bg: rgba(249,115,22,0.15); --status-danger-text: var(--accent-orange);
+  --status-cooked: var(--accent-red); --status-cooked-bg: rgba(255,77,77,0.15); --status-cooked-text: var(--accent-red);
+}
+
+[data-theme="brutalist"] {
+  --theme-primary:   #3b82f6;
+  --theme-secondary: #ff003c;
+  --theme-accent:    #ff003c;
+  --theme-bg:        #050505;
+  --theme-text:      #fdfdfd;
+  --theme-highlight: #ceff1c;
+  --bg-primary:   #050505;
+  --bg-secondary: #fdfdfd;
+  --bg-tertiary:  #f5f6fc;
+  --text-primary:   #050505;
+  --text-secondary: rgba(5,5,5,0.5);
+  --text-muted:     rgba(5,5,5,0.25);
+  --text-inverse:   #FFFFFF;
+  --border-color:       rgba(5,5,5,0.12);
+  --border-color-light: rgba(5,5,5,0.06);
+  --shadow-color: rgba(0,0,0,0.5);
+  --overlay-bg: rgba(0,0,0,0.9);
+  --card-bg: #fdfdfd;
+  --card-border: #050505;
+  --card-shadow: 8px 8px 0 rgba(0,0,0,0.2);
+  --brutalist-yellow: #ceff1c;
+  --brutalist-red:    #ff003c;
+  --brutalist-purple: #8b5cf6;
+  --brutalist-blue:   #3b82f6;
+  --brutalist-black:  #050505;
+  --brutalist-white:  #fdfdfd;
+  --status-safe: var(--brutalist-yellow); --status-safe-bg: rgba(206,255,28,0.15); --status-safe-text: var(--brutalist-yellow);
+  --status-danger: var(--brutalist-red); --status-danger-bg: rgba(255,0,60,0.15); --status-danger-text: var(--brutalist-red);
+  --status-cooked: var(--brutalist-red); --status-cooked-bg: rgba(255,0,60,0.15); --status-cooked-text: var(--brutalist-red);
+}
+
+/* ─── GLOBAL BODY ────────────────────────────────────────────────────────── */
 body {
-  background-color: #f7f7f7;
+  background-color: var(--theme-bg, #f7f7f7);
+  color: var(--theme-text, #111111);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-family: var(--font-afacad), sans-serif;
@@ -41,8 +400,8 @@ input:focus {
 }
 
 ::selection {
-  background: #ceff1c;
-  color: #0c30ff;
+  background: var(--theme-highlight, #ceff1c);
+  color: var(--theme-bg, #0c30ff);
 }
 
 input:-webkit-autofill {
@@ -54,3 +413,107 @@ input:-webkit-autofill {
   -webkit-text-stroke: 1px #050505;
   color: transparent;
 }
+
+/* ─── THEME UTILITY CLASSES ──────────────────────────────────────────────── */
+@layer utilities {
+  /* Backgrounds */
+  .bg-theme-primary    { background-color: var(--theme-primary); }
+  .bg-theme-secondary  { background-color: var(--theme-secondary); }
+  .bg-theme-accent     { background-color: var(--theme-accent); }
+  .bg-theme-bg         { background-color: var(--theme-bg); }
+  .bg-theme-highlight  { background-color: var(--theme-highlight); }
+  /* Surface = very slight tint of text over bg – adapts light/dark */
+  .bg-theme-surface    { background-color: color-mix(in srgb, var(--theme-text) 6%, var(--theme-bg)); }
+  .bg-theme-card       { background-color: color-mix(in srgb, var(--theme-text) 8%, var(--theme-bg)); }
+  /* Emphasis = text-color as background (inverted badge) */
+  .bg-theme-emphasis   { background-color: var(--theme-text); }
+
+  /* Text */
+  .text-theme-primary   { color: var(--theme-primary); }
+  .text-theme-secondary { color: var(--theme-secondary); }
+  .text-theme-accent    { color: var(--theme-accent); }
+  .text-theme-text      { color: var(--theme-text); }
+  .text-theme-bg        { color: var(--theme-bg); }
+  .text-theme-highlight { color: var(--theme-highlight); }
+  /* Muted / subtle text opacity variants */
+  .text-theme-muted     { color: color-mix(in srgb, var(--theme-text) 50%, transparent); }
+  .text-theme-subtle    { color: color-mix(in srgb, var(--theme-text) 30%, transparent); }
+  .text-theme-faint     { color: color-mix(in srgb, var(--theme-text) 20%, transparent); }
+
+  /* Borders */
+  .border-theme-primary   { border-color: var(--theme-primary); }
+  .border-theme-secondary { border-color: var(--theme-secondary); }
+  .border-theme-accent    { border-color: var(--theme-accent); }
+  .border-theme-highlight { border-color: var(--theme-highlight); }
+  .border-theme-border    { border-color: color-mix(in srgb, var(--theme-text) 12%, transparent); }
+  .border-theme-subtle    { border-color: color-mix(in srgb, var(--theme-text) 8%, transparent); }
+
+  /* ── Status / semantic colors (attendance & marks) ── */
+  /* safe = highlight, danger = accent, cooked = secondary */
+  .status-text-safe    { color: var(--theme-highlight); }
+  .status-text-danger  { color: var(--theme-accent); }
+  .status-text-cooked  { color: var(--theme-secondary); }
+
+  .status-bg-safe   { background-color: color-mix(in srgb, var(--theme-highlight) 12%, transparent); }
+  .status-bg-danger { background-color: color-mix(in srgb, var(--theme-accent) 12%, transparent); }
+  .status-bg-cooked { background-color: color-mix(in srgb, var(--theme-secondary) 12%, transparent); }
+
+  .status-border-safe   { border-color: color-mix(in srgb, var(--theme-highlight) 35%, transparent); }
+  .status-border-danger { border-color: color-mix(in srgb, var(--theme-accent)    35%, transparent); }
+  .status-border-cooked { border-color: color-mix(in srgb, var(--theme-secondary) 35%, transparent); }
+
+  .status-boxbg-safe   { background-color: color-mix(in srgb, var(--theme-highlight) 18%, var(--theme-bg)); }
+  .status-boxbg-danger { background-color: color-mix(in srgb, var(--theme-accent)    18%, var(--theme-bg)); }
+  .status-boxbg-cooked { background-color: color-mix(in srgb, var(--theme-secondary) 18%, var(--theme-bg)); }
+
+  /* Alpha opacity helpers for theme colors */
+  .bg-theme-border-line  { background-color: var(--border-color); }
+  .bg-theme-text-5       { background-color: color-mix(in srgb, var(--theme-text)  5%,  transparent); }
+  .bg-theme-text-10      { background-color: color-mix(in srgb, var(--theme-text)  10%, transparent); }
+  .bg-theme-text-20      { background-color: color-mix(in srgb, var(--theme-text)  20%, transparent); }
+  .bg-theme-bg-alpha     { background-color: color-mix(in srgb, var(--theme-bg)    15%, transparent); }
+  .text-theme-text-70    { color: color-mix(in srgb, var(--theme-text) 70%, transparent); }
+  .text-theme-bg-70      { color: color-mix(in srgb, var(--theme-bg)   70%, transparent); }
+  .text-theme-bg-30      { color: color-mix(in srgb, var(--theme-bg)   30%, transparent); }
+  .text-theme-bg-60      { color: color-mix(in srgb, var(--theme-bg)   60%, transparent); }
+  .bg-theme-text-8       { background-color: color-mix(in srgb, var(--theme-text)  8%,  transparent); }
+  .border-theme-bg-10    { border-color: color-mix(in srgb, var(--theme-bg) 10%, transparent); }
+}
+
+/* ─── COMPONENT UTILITIES ────────────────────────────────────────────────── */
+.custom-dotted {
+  border: 1.5px dashed;
+  border-color: color-mix(in srgb, var(--theme-text) 20%, transparent);
+  border-radius: 14px;
+}
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+.break-dotted {
+  border: 1.5px dashed;
+  border-color: color-mix(in srgb, var(--theme-text) 15%, transparent);
+  border-radius: 20px;
+}
+
+/* ─── ANIMATIONS ─────────────────────────────────────────────────────────── */
+@keyframes lightning {
+  0%, 90%, 100% { opacity: 1; }
+  92%, 96%      { opacity: 0.2; }
+  94%, 98%      { opacity: 0.9; }
+}
+@keyframes sunrise {
+  0%   { transform: translateY(6px); opacity: 0; }
+  100% { transform: translateY(0);   opacity: 1; }
+}
+@keyframes flicker {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.75; }
+}
+@keyframes ominous {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+.animate-lightning { animation: lightning 4s ease-in-out infinite; }
+.animate-sunrise   { animation: sunrise  1.2s ease-out forwards; }
+.animate-flicker   { animation: flicker  3s ease-in-out infinite; }
+.animate-ominous   { animation: ominous  5s ease-in-out infinite; }

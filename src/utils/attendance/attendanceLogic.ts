@@ -19,9 +19,9 @@ export const getAcronym = (name: string) => {
 
 export const getPercentColor = (percent: string) => {
   const pVal = parseFloat(percent);
-  if (pVal < 75) return "#FF4D4D";
-  if (pVal < 85) return "#F97316";
-  return "#85a818";
+  if (pVal < 75) return "var(--theme-secondary)";
+  if (pVal < 85) return "var(--theme-accent)";
+  return "var(--theme-highlight)";
 };
 
 export const getBaseAttendance = (rawAttendance: any[], coursesData?: Record<string, any>) => {

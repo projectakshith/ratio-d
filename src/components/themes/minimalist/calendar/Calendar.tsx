@@ -31,17 +31,14 @@ const CalendarDay = memo(
   ({
     item,
     onClick,
-    isDark,
   }: {
     item: any;
     onClick: (date: Date) => void;
-    isDark: boolean;
   }) => {
     let bg = "bg-transparent";
     let border = "border-[1.5px] border-transparent";
-    let text = isDark ? "text-white" : "text-[#111111]";
-    let dateColor = isDark ? "text-white/30" : "text-[#111111]/30";
-    let orderColor = isDark ? "text-white/30" : "text-[#111111]/30";
+    let dateColor = "text-theme-subtle";
+    let orderColor = "text-theme-subtle";
     let scaleClass = "scale-100";
     let shadowClass = "";
 
@@ -50,38 +47,35 @@ const CalendarDay = memo(
         ? "bg-[#8b5cf6]"
         : item.isDayHoliday
           ? "bg-[#FF4D4D]"
-          : isDark
-            ? "bg-white"
-            : "bg-[#111111]";
-      text = isDark ? "text-black" : "text-white";
-      dateColor = text;
-      orderColor = isDark ? "text-black/70" : "text-white/70";
+          : "bg-theme-text";
+      dateColor = "text-theme-bg";
+      orderColor = "text-theme-bg-70";
       scaleClass = "scale-105";
       shadowClass = item.isDayExam
         ? "shadow-[0_8px_16px_rgba(139,92,246,0.3)] z-10"
         : item.isDayHoliday
           ? "shadow-[0_8px_16px_rgba(255,77,77,0.3)] z-10"
-          : `shadow-[0_8px_16px_rgba(${isDark ? "255,255,255" : "17,17,17"},0.2)] z-10`;
+          : "shadow-[0_8px_16px_rgba(0,0,0,0.15)] z-10";
       border = "border-transparent";
     } else if (item.isDayExam) {
-      bg = isDark ? "bg-[#8b5cf6]/20" : "bg-[#8b5cf6]/10";
-      border = isDark ? "border-[#8b5cf6]/40" : "border-[#8b5cf6]/30";
+      bg = "bg-[#8b5cf6]/10";
+      border = "border-[#8b5cf6]/30";
       dateColor = "text-[#8b5cf6]";
       orderColor = "text-[#8b5cf6]/60";
     } else if (item.isToday) {
-      border = isDark ? "border-white" : "border-[#111111]";
-      dateColor = isDark ? "text-white" : "text-[#111111]";
-      orderColor = isDark ? "text-white/50" : "text-[#111111]/50";
+      border = "border-theme-text";
+      dateColor = "text-theme-text";
+      orderColor = "text-theme-muted";
     } else if (item.isDayHoliday) {
-      bg = isDark ? "bg-[#FF4D4D]/10" : "bg-[#FFEDED]/60";
-      border = isDark ? "border-[#FF4D4D]/30" : "border-[#FF4D4D]/20";
+      bg = "bg-[#FF4D4D]/10";
+      border = "border-[#FF4D4D]/20";
       dateColor = "text-[#FF4D4D]";
       orderColor = "text-[#FF4D4D]/50";
     } else if (item.dayOrder) {
-      bg = isDark ? "bg-white/5" : "bg-white";
-      border = isDark ? "border-white/10" : "border-[#111111]/10";
-      dateColor = isDark ? "text-white" : "text-[#111111]";
-      orderColor = isDark ? "text-white/50" : "text-[#111111]/50";
+      bg = "bg-theme-surface";
+      border = "border-theme-subtle";
+      dateColor = "text-theme-text";
+      orderColor = "text-theme-muted";
     }
 
     return (
@@ -101,7 +95,7 @@ const CalendarDay = memo(
             </span>
           ) : item.isDayHoliday ? (
             <div
-              className={`w-1.5 h-1.5 rounded-full ${item.isSelected ? (isDark ? "bg-black" : "bg-white") : "bg-[#FF4D4D]"}`}
+              className={`w-1.5 h-1.5 rounded-full ${item.isSelected ? "bg-theme-bg" : "bg-[#FF4D4D]"}`}
             />
           ) : null}
         </div>
@@ -120,12 +114,11 @@ const CalendarDay = memo(
     prev.item.isSelected === next.item.isSelected &&
     prev.item.isToday === next.item.isToday &&
     prev.item.dayOrder === next.item.dayOrder &&
-    prev.item.dateObj?.getTime() === next.item.dateObj?.getTime() &&
-    prev.isDark === next.isDark,
+    prev.item.dateObj?.getTime() === next.item.dateObj?.getTime(),
 );
 CalendarDay.displayName = "CalendarDay";
 
-const Calendar = ({ data, academia, isDark }: any) => {
+const Calendar = ({ data, academia }: any) => {
   const [mounted, setMounted] = useState(false);
   const activeData = academia?.calendarData || data?.calendarData || [];
   const profile = data?.profile || {};
@@ -153,53 +146,12 @@ const Calendar = ({ data, academia, isDark }: any) => {
   }, []);
   if (!mounted) return null;
 
-  const bgClass = isDark ? "bg-[#111111]" : "bg-[#F7F7F7]";
-  const textClass = isDark ? "text-white" : "text-[#111111]";
-  const subTextClass = isDark ? "text-white/40" : "text-[#111111]/40";
-  const cardBg = isDark ? "bg-white/5" : "bg-white";
-  const cardBorder = isDark ? "border-white/10" : "border-[#111111]/10";
-
-  const getHeaderTheme = () => {
-    if (!isDark)
-      return {
-        bg: theme.bg,
-        border: theme.border,
-        text: theme.text,
-        accent: theme.accent,
-      };
-    if (theme.bg === "#8b5cf6")
-      return {
-        bg: "rgba(139,92,246,0.15)",
-        border: "border-[#8b5cf6]/40",
-        text: "text-[#8b5cf6]",
-        accent: "bg-[#8b5cf6]/20",
-      };
-    if (theme.bg === "#FF4D4D")
-      return {
-        bg: "rgba(255,77,77,0.15)",
-        border: "border-[#FF4D4D]/40",
-        text: "text-[#FF4D4D]",
-        accent: "bg-[#FF4D4D]/20",
-      };
-    return {
-      bg: "rgba(255,255,255,0.05)",
-      border: "border-white/10",
-      text: "text-white",
-      accent: "bg-white/10",
-    };
-  };
-
-  const header = getHeaderTheme();
+  const header = theme;
 
   return (
     <>
-      <style
-        dangerouslySetInnerHTML={{
-          __html: `.no-scrollbar::-webkit-scrollbar { display: none; } .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }`,
-        }}
-      />
       <div
-        className={`absolute inset-0 ${bgClass} overflow-hidden flex flex-col`}
+        className="absolute inset-0 bg-theme-bg overflow-hidden flex flex-col"
       >
         <motion.div
           variants={containerVariants}
@@ -271,11 +223,11 @@ const Calendar = ({ data, academia, isDark }: any) => {
           </motion.div>
           <motion.div
             variants={itemVariants}
-            className={`flex-1 ${cardBg} ${cardBorder} border-[1.5px] rounded-[32px] p-5 flex flex-col shadow-sm shrink-0`}
+            className="flex-1 bg-theme-surface border-theme-subtle border-[1.5px] rounded-[32px] p-5 flex flex-col shadow-sm shrink-0"
           >
             <div className="flex justify-between items-center mb-6 w-full shrink-0">
               <span
-                className={`text-[20px] font-black uppercase tracking-widest ${textClass} ml-2`}
+                className="text-[20px] font-black uppercase tracking-widest text-theme-text ml-2"
                 style={{ fontFamily: "'Montserrat', sans-serif" }}
               >
                 {monthTitle}
@@ -283,19 +235,19 @@ const Calendar = ({ data, academia, isDark }: any) => {
               <div className="flex items-center gap-2">
                 <button
                   onClick={handlePrevMonth}
-                  className={`w-10 h-10 ${isDark ? "bg-white/5" : "bg-[#F7F7F7]"} rounded-full flex items-center justify-center ${textClass} active:scale-95 transition-all hover:bg-opacity-10`}
+                  className="w-10 h-10 bg-theme-card rounded-full flex items-center justify-center text-theme-text active:scale-95 transition-all"
                 >
                   <ChevronLeft size={20} strokeWidth={2.5} />
                 </button>
                 <button
                   onClick={goToToday}
-                  className={`w-10 h-10 ${isDark ? "bg-white text-black" : "bg-[#111111] text-white"} rounded-full flex items-center justify-center active:scale-95 transition-all hover:opacity-90`}
+                  className="w-10 h-10 bg-theme-text text-theme-bg rounded-full flex items-center justify-center active:scale-95 transition-all hover:opacity-90"
                 >
                   <Target size={18} strokeWidth={2.5} />
                 </button>
                 <button
                   onClick={handleNextMonth}
-                  className={`w-10 h-10 ${isDark ? "bg-white/5" : "bg-[#F7F7F7]"} rounded-full flex items-center justify-center ${textClass} active:scale-95 transition-all hover:bg-opacity-10`}
+                  className="w-10 h-10 bg-theme-card rounded-full flex items-center justify-center text-theme-text active:scale-95 transition-all"
                 >
                   <ChevronRight size={20} strokeWidth={2.5} />
                 </button>
@@ -305,7 +257,7 @@ const Calendar = ({ data, academia, isDark }: any) => {
               {["m", "t", "w", "t", "f", "s", "s"].map((d, i) => (
                 <div
                   key={i}
-                  className={`text-center text-[12px] font-bold ${subTextClass} uppercase tracking-widest`}
+                  className="text-center text-[12px] font-bold text-theme-muted uppercase tracking-widest"
                   style={{ fontFamily: "'Afacad', sans-serif" }}
                 >
                   {d}
@@ -321,7 +273,6 @@ const Calendar = ({ data, academia, isDark }: any) => {
                     key={item.key}
                     item={item}
                     onClick={handleDateClick}
-                    isDark={isDark}
                   />
                 ),
               )}
@@ -329,15 +280,16 @@ const Calendar = ({ data, academia, isDark }: any) => {
           </motion.div>
         </motion.div>
         <div
-          className={`absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t ${isDark ? "from-[#111111] via-[#111111]/80" : "from-[#F7F7F7] via-[#F7F7F7]/80"} to-transparent z-20 pointer-events-none`}
+          className="absolute bottom-0 left-0 right-0 h-48 z-20 pointer-events-none"
+          style={{ background: 'linear-gradient(to top, var(--theme-bg) 0%, color-mix(in srgb, var(--theme-bg) 80%, transparent) 60%, transparent 100%)' }}
         />
         <div
-          className={`absolute bottom-0 left-0 right-0 px-6 pb-[30px] z-30 flex justify-between items-end pointer-events-none`}
+          className="absolute bottom-0 left-0 right-0 px-6 pb-[30px] z-30 flex justify-between items-end pointer-events-none"
         >
           {"calendar".split("").map((char, i) => (
             <span
               key={i}
-              className={`text-[3.2rem] leading-[0.75] lowercase ${textClass}`}
+              className="text-[3.2rem] leading-[0.75] lowercase text-theme-text"
               style={{ fontFamily: "'Afacad', sans-serif", fontWeight: 400 }}
             >
               {char}

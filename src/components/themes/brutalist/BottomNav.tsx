@@ -26,7 +26,7 @@ export const BottomNav = memo(({ activeTab, setActiveTab }: BottomNavProps) => {
   return (
     <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] pb-safe w-[90%] max-w-[400px]">
       {/* Floating Glass Pill */}
-      <nav className="relative flex items-center justify-between p-1.5 bg-[#050505]/80 backdrop-blur-xl border border-white/10 rounded-[2rem] shadow-[0_10px_40px_rgba(0,0,0,0.5)]">
+      <nav className="relative flex items-center justify-between p-1.5 bg-theme-bg/80 backdrop-blur-xl border border-white/10 rounded-[2rem] shadow-[0_10px_40px_rgba(0,0,0,0.5)]">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -42,7 +42,7 @@ export const BottomNav = memo(({ activeTab, setActiveTab }: BottomNavProps) => {
               {isActive && (
                 <motion.div
                   layoutId="active-indicator"
-                  className="absolute inset-0 bg-[#ceff1c] rounded-full shadow-[0_0_15px_rgba(206,255,28,0.2)]"
+                  className="absolute inset-0 bg-theme-highlight rounded-full"
                   transition={{
                     type: "spring",
                     stiffness: 500,
@@ -58,7 +58,7 @@ export const BottomNav = memo(({ activeTab, setActiveTab }: BottomNavProps) => {
                 strokeWidth={isActive ? 2.5 : 2}
                 className={`relative z-10 transition-colors duration-300 ${
                   isActive
-                    ? "text-[#050505]"
+                    ? "text-theme-bg"
                     : "text-white/40 hover:text-white/80"
                 }`}
               />

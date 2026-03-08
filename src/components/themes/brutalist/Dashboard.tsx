@@ -147,7 +147,7 @@ const HomeDashboard = ({
   };
 
   return (
-    <div className="h-full w-full bg-[#050505] relative overflow-hidden">
+    <div className="h-full w-full bg-theme-bg relative overflow-hidden">
       <div className="absolute top-0 left-0 w-full h-[200px] bg-[#fdfdfd] z-0" />
 
       <div
@@ -252,7 +252,7 @@ const HomeDashboard = ({
                     </span>
                     <div className="flex flex-col mt-2 w-full break-words">
                       <span
-                        className="text-[#3233ff] truncate text-[4.5vw] md:text-[3rem] leading-[0.8] font-black tracking-tight"
+                        className="text-[4.5vw] md:text-[3rem] leading-[0.8] font-black tracking-tight text-theme-primary truncate"
                         style={{ fontFamily: "Akira" }}
                       >
                         {displayNext.top}
@@ -323,7 +323,7 @@ const HomeDashboard = ({
                   setIsAlertExpanded(!isAlertExpanded);
                   if (isMetricExpanded) setIsMetricExpanded(false);
                 }}
-                className={`bg-[#ff003c] !px-8 flex flex-col text-white rounded-[32px] cursor-pointer overflow-hidden ${
+                className={`bg-theme-secondary !px-8 flex flex-col text-white rounded-[32px] cursor-pointer overflow-hidden ${
                   isAlertExpanded ? "h-[250px]" : "h-[75px]"
                 }`}
               >
@@ -373,7 +373,7 @@ const HomeDashboard = ({
                                 {alert.description}
                               </span>
                               {alert.type === "exam" && (
-                                <span className="bg-[#ff003c] text-white text-[9px] font-black px-1.5 py-0.5 rounded-md ml-2 flex-shrink-0">
+                                <span className="bg-theme-secondary text-white text-[9px] font-black px-1.5 py-0.5 rounded-md ml-2 flex-shrink-0">
                                   EXAM
                                 </span>
                               )}
@@ -407,7 +407,7 @@ const HomeDashboard = ({
                   setIsMetricExpanded(!isMetricExpanded);
                   if (isAlertExpanded) setIsAlertExpanded(false);
                 }}
-                className={`bg-[#ceff1c] flex-1 flex flex-col relative -top-8 rounded-t-[48px] !px-5 !pb-[60vh] -mb-[40vh] overflow-hidden cursor-pointer ${
+                className={`bg-theme-highlight flex-1 flex flex-col relative -top-8 rounded-t-[48px] !px-5 !pb-[60vh] -mb-[40vh] overflow-hidden cursor-pointer ${
                   isMetricExpanded
                     ? "min-h-[400px]"
                     : "min-h-[220px] md:min-h-[250px]"
@@ -421,13 +421,13 @@ const HomeDashboard = ({
                     {metricMode === "attendance" ? (
                       <Zap
                         size={20}
-                        className="text-[#ceff1c]"
+                        className="text-theme-bg"
                         fill="currentColor"
                       />
                     ) : (
                       <GraduationCap
                         size={20}
-                        className="text-[#ceff1c]"
+                        className="text-theme-bg"
                         fill="currentColor"
                       />
                     )}
@@ -441,7 +441,7 @@ const HomeDashboard = ({
                       onClick={() => setMetricMode("attendance")}
                       className={`px-4 py-2 rounded-full cursor-pointer transition-colors ${
                         metricMode === "attendance"
-                          ? "bg-[#ceff1c] text-black shadow-sm"
+                          ? "bg-theme-highlight text-theme-bg shadow-sm"
                           : "text-white/40 hover:text-white"
                       }`}
                     >
@@ -451,7 +451,7 @@ const HomeDashboard = ({
                       onClick={() => setMetricMode("marks")}
                       className={`px-4 py-2 rounded-full cursor-pointer transition-colors ${
                         metricMode === "marks"
-                          ? "bg-[#ceff1c] text-black shadow-sm"
+                          ? "bg-theme-highlight text-theme-bg shadow-sm"
                           : "text-white/40 hover:text-white"
                       }`}
                     >
@@ -495,7 +495,7 @@ const HomeDashboard = ({
                                   {subj.displayName}
                                 </span>
                                 <div className="flex flex-col items-end">
-                                  <div className="flex items-center gap-1 text-[#ff003c]">
+                                  <div className="flex items-center gap-1 text-theme-secondary">
                                     <AlertTriangle size={14} />
                                     <span
                                       className="font-black text-[14px] lowercase"

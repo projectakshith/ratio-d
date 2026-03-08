@@ -117,7 +117,7 @@ const MobileAttendance = ({
         pct: 0,
         badge: "safe",
         tagline: "all good",
-        color: "text-[#ceff1c]",
+        color: "text-theme-highlight",
       };
     let totalConducted = 0;
     let totalPresent = 0;
@@ -136,10 +136,10 @@ const MobileAttendance = ({
     if (category === "danger") tagline = "treading on thin ice";
     const color =
       category === "safe"
-        ? "text-[#ceff1c]"
+        ? "text-theme-highlight"
         : category === "danger"
-          ? "text-[#ffb800]"
-          : "text-[#ff003c]";
+          ? "text-theme-secondary"
+          : "text-theme-accent";
     return { pct: overallPct, badge, tagline, color };
   }, [baseAttendance]);
 
@@ -340,16 +340,16 @@ const MobileAttendance = ({
       : parseFloat(activeSubject.percentage || "0");
   const themeColorClass =
     activePct < 75
-      ? "text-[#ff003c]"
+      ? "text-theme-accent"
       : activePct < 85
-        ? "text-[#ffb800]"
-        : "text-[#ceff1c]";
+        ? "text-theme-secondary"
+        : "text-theme-highlight";
   const barColorClass =
     activePct < 75
-      ? "bg-[#ff003c]"
+      ? "bg-theme-accent"
       : activePct < 85
-        ? "bg-[#ffb800]"
-        : "bg-[#ceff1c]";
+        ? "bg-theme-secondary"
+        : "bg-theme-highlight";
 
   // Smooth RequestAnimationFrame scroll logic tuned for "snap-start"
   const handleScroll = () => {
@@ -395,8 +395,8 @@ const MobileAttendance = ({
   const stopProp = (e) => e.stopPropagation();
 
   return (
-    <div className="h-full w-full flex flex-col bg-[#050505] text-white font-sans relative overflow-hidden touch-pan-y">
-      <div className="absolute inset-0 w-full h-full z-0 bg-[#050505]">
+    <div className="h-full w-full flex flex-col bg-theme-bg text-theme-text font-sans relative overflow-hidden touch-pan-y">
+      <div className="absolute inset-0 w-full h-full z-0 bg-theme-bg">
         <div className="absolute inset-0 pointer-events-none opacity-20 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] bg-repeat mix-blend-screen" />
       </div>
 
@@ -432,7 +432,7 @@ const MobileAttendance = ({
                 </div>
                 <button
                   onClick={() => setPredictMode(true)}
-                  className="flex items-center gap-2 bg-white text-black px-4 py-2 rounded-full active:scale-95 transition-transform"
+                  className="flex items-center gap-2 bg-theme-surface text-theme-text px-4 py-2 rounded-full active:scale-95 transition-transform"
                 >
                   <CalendarIcon size={12} />
                   <span className="font-mono text-[10px] lowercase tracking-widest font-bold">
@@ -458,7 +458,7 @@ const MobileAttendance = ({
               </div>
               <div className="pb-1">
                 <h3
-                  className="text-2xl md:text-3xl font-bold lowercase leading-tight mb-3 line-clamp-1 text-white"
+                  className="text-2xl md:text-3xl font-bold lowercase leading-tight mb-3 line-clamp-1 text-theme-text"
                   style={{ fontFamily: "Aonic" }}
                 >
                   {activeSubject.title?.toLowerCase()}
@@ -473,7 +473,7 @@ const MobileAttendance = ({
                     transition={{ duration: 0.8, ease: "circOut" }}
                   />
                 </div>
-                <span className="block text-[10px] font-mono font-bold lowercase mt-1 text-white/50">
+                <span className="block text-[10px] font-mono font-bold lowercase mt-1 text-theme-text/50">
                   {activeSubject.present}/{activeSubject.conducted} sessions
                 </span>
               </div>
@@ -484,7 +484,7 @@ const MobileAttendance = ({
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="w-full h-full flex flex-col p-6 text-white"
+              className="w-full h-full flex flex-col p-6 text-theme-text"
             >
               <div className="flex justify-between items-center mb-4">
                 <div className="flex items-center gap-2 opacity-60">
@@ -495,13 +495,13 @@ const MobileAttendance = ({
                 </div>
                 <div className="flex items-center gap-3">
                   {isRangeMode && (
-                    <span className="text-[9px] font-bold text-white/40 animate-pulse">
+                    <span className="text-[9px] font-bold text-theme-text/40 animate-pulse">
                       {rangeStart ? "Select end date" : "Select start date"}
                     </span>
                   )}
                   <button
                     onClick={() => setIsRangeMode(!isRangeMode)}
-                    className={`px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all border ${isRangeMode ? "bg-white text-black border-white" : "bg-transparent text-white/60 border-white/20"}`}
+                    className={`px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all border ${isRangeMode ? "bg-theme-surface text-theme-text border-theme-text/20" : "bg-transparent text-theme-text/60 border-theme-text/20"}`}
                   >
                     {isRangeMode ? "Range On" : "Select Range"}
                   </button>
@@ -558,7 +558,7 @@ const MobileAttendance = ({
                     {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => (
                       <span
                         key={i}
-                        className="text-[9px] font-bold text-white/30"
+                        className="text-[9px] font-bold text-theme-text/30"
                       >
                         {d}
                       </span>
@@ -605,7 +605,7 @@ const MobileAttendance = ({
                         <button
                           key={dateKey}
                           onClick={() => handleDateClick(d)}
-                          className={`w-8 h-8 flex items-center justify-center rounded-full text-[10px] font-bold transition-all relative ${isSelected ? "bg-[#ceff1c] text-black scale-105 z-10" : isRangeStart ? "bg-white/50 text-white" : isToday ? "bg-transparent text-white ring-2 ring-white" : "text-white/60 hover:bg-white/10"}`}
+                          className={`w-8 h-8 flex items-center justify-center rounded-full text-[10px] font-bold transition-all relative ${isSelected ? "bg-theme-highlight text-theme-bg scale-105 z-10" : isRangeStart ? "bg-theme-text/50 text-theme-bg" : isToday ? "bg-transparent text-theme-text ring-2 ring-theme-text" : "text-theme-text/60 hover:bg-theme-text/10"}`}
                         >
                           {d}
                         </button>
@@ -617,7 +617,7 @@ const MobileAttendance = ({
                   <div className="flex bg-white/10 border border-white/5 p-1 rounded-full w-full max-w-[200px] relative h-10">
                     <motion.div
                       layoutId="predToggle"
-                      className={`absolute rounded-full h-[calc(100%-8px)] top-1 ${predType === "attend" ? "bg-white" : "bg-[#ff003c]"}`}
+                      className={`absolute rounded-full h-[calc(100%-8px)] top-1 ${predType === "attend" ? "bg-theme-surface" : "bg-theme-accent"}`}
                       style={{
                         width: "calc(50% - 4px)",
                         left: predType === "attend" ? 4 : "50%",
@@ -625,13 +625,13 @@ const MobileAttendance = ({
                     />
                     <button
                       onClick={() => setPredType("attend")}
-                      className={`flex-1 text-[10px] font-black uppercase tracking-wider relative z-10 transition-colors ${predType === "attend" ? "text-black" : "text-white/40"}`}
+                      className={`flex-1 text-[10px] font-black uppercase tracking-wider relative z-10 transition-colors ${predType === "attend" ? "text-theme-text" : "text-theme-text/40"}`}
                     >
                       Attend
                     </button>
                     <button
                       onClick={() => setPredType("leave")}
-                      className={`flex-1 text-[10px] font-black uppercase tracking-wider relative z-10 transition-colors ${predType === "leave" ? "text-white" : "text-white/40"}`}
+                      className={`flex-1 text-[10px] font-black uppercase tracking-wider relative z-10 transition-colors ${predType === "leave" ? "text-theme-text" : "text-theme-text/40"}`}
                     >
                       Leave
                     </button>
@@ -663,13 +663,13 @@ const MobileAttendance = ({
         onTouchStart={stopProp}
         onTouchMove={stopProp}
         onTouchEnd={stopProp}
-        className={`absolute bottom-0 w-full overflow-y-auto bg-[#f5f6fc] text-black custom-scrollbar pb-32 rounded-t-[32px] shadow-[0_-10px_40px_rgba(0,0,0,0.3)] z-20 transition-transform duration-700 ease-in-out snap-y snap-mandatory ${
+        className={`absolute bottom-0 w-full overflow-y-auto bg-theme-surface text-theme-text custom-scrollbar pb-32 rounded-t-[32px] shadow-[0_-10px_40px_rgba(0,0,0,0.3)] z-20 transition-transform duration-700 ease-in-out snap-y snap-mandatory ${
           introMode ? "translate-y-[60%]" : "translate-y-0"
         } ${predictMode ? "h-[45%]" : "h-[55%]"}`}
         style={{ WebkitOverflowScrolling: "touch" }}
       >
         <div className="px-6 flex flex-col gap-4 pt-4">
-          <span className="font-mono text-[10px] lowercase tracking-widest text-[#050505]/40 mb-2 block sticky top-0 bg-[#f5f6fc] z-20 py-2">
+          <span className="font-mono text-[10px] lowercase tracking-widest text-theme-text/40 mb-2 block sticky top-0 bg-theme-surface z-20 py-2">
             /// {predictMode ? "predicted margin" : "watchlist"}
           </span>
 
@@ -718,7 +718,7 @@ const MobileAttendance = ({
                   </h4>
                   <div className="flex flex-col items-end min-w-[80px]">
                     <span
-                      className={`text-2xl font-black leading-none transition-colors duration-300 ${predictMode ? (isSafe ? "text-[#050505]" : "text-[#ff003c]") : currentActiveStat.safe ? "text-[#050505]" : "text-[#ff003c]"}`}
+                      className={`text-2xl font-black leading-none transition-colors duration-300 ${predictMode ? (isSafe ? "text-theme-text" : "text-theme-accent") : currentActiveStat.safe ? "text-theme-text" : "text-theme-accent"}`}
                       style={{ fontFamily: "Urbanosta" }}
                     >
                       {predictMode
@@ -728,12 +728,12 @@ const MobileAttendance = ({
                     {predictMode && (
                       <div className="flex flex-col items-end mt-1">
                         <span
-                          className={`text-[10px] font-bold lowercase transition-colors duration-300 ${isSafe ? "text-[#050505]" : "text-[#ff003c]"}`}
+                          className={`text-[10px] font-bold lowercase transition-colors duration-300 ${isSafe ? "text-theme-text" : "text-theme-accent"}`}
                         >
                           {predData.status.label}
                         </span>
                         {affected && predData.diffVal !== 0 && (
-                          <span className="text-[9px] font-bold text-black/40 mt-0.5 font-mono">
+                          <span className="text-[9px] font-bold text-theme-text/40 mt-0.5 font-mono">
                             {dStat.val}h &rarr; {predData.status.val}h
                           </span>
                         )}
@@ -741,7 +741,7 @@ const MobileAttendance = ({
                     )}
                   </div>
                 </div>
-                <div className="w-full h-[2px] bg-[#050505]/5 relative mb-3 rounded-full overflow-hidden">
+                <div className="w-full h-[2px] bg-theme-text/5 relative mb-3 rounded-full overflow-hidden">
                   {predictMode && (
                     <div
                       className="h-full absolute top-0 left-0 bg-black/10"
@@ -751,16 +751,16 @@ const MobileAttendance = ({
                     />
                   )}
                   <div
-                    className={`h-full absolute top-0 left-0 transition-all duration-300 ${predictMode ? (isSafe ? "bg-[#050505]" : "bg-[#ff003c]") : currentActiveStat.safe ? "bg-[#050505]" : "bg-[#ff003c]"}`}
+                    className={`h-full absolute top-0 left-0 transition-all duration-300 ${predictMode ? (isSafe ? "bg-theme-text" : "bg-theme-accent") : currentActiveStat.safe ? "bg-theme-text" : "bg-theme-accent"}`}
                     style={{
                       width: `${Math.min(predictMode ? predData.pct : parseFloat(subject.percentage), 100)}%`,
                     }}
                   />
                 </div>
-                <div className="flex justify-between items-center text-[10px] font-mono tracking-wide text-[#050505]/50 lowercase">
+                <div className="flex justify-between items-center text-[10px] font-mono tracking-wide text-theme-text/50 lowercase">
                   <div className="flex items-center gap-2">
                     <div
-                      className={`w-1.5 h-1.5 rounded-full transition-colors duration-300 ${predictMode ? (isSafe ? "bg-[#ceff1c]" : "bg-[#ff003c]") : currentActiveStat.safe ? "bg-[#ceff1c]" : "bg-[#ff003c]"}`}
+                      className={`w-1.5 h-1.5 rounded-full transition-colors duration-300 ${predictMode ? (isSafe ? "bg-theme-highlight" : "bg-theme-accent") : currentActiveStat.safe ? "bg-theme-highlight" : "bg-theme-accent"}`}
                     />
                     <span>{subject.code?.toLowerCase()}</span>
                   </div>
@@ -789,7 +789,7 @@ const MobileAttendance = ({
             initial={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.4 }}
-            className="absolute inset-0 flex flex-col justify-end items-start p-8 pb-[60%] z-50 bg-[#050505]"
+            className="absolute inset-0 flex flex-col justify-end items-start p-8 pb-[60%] z-50 bg-theme-bg"
           >
             <h1
               className={`text-6xl font-black lowercase tracking-tighter mb-2 ${overallStats.color}`}
@@ -798,7 +798,7 @@ const MobileAttendance = ({
               {overallStats.badge}
             </h1>
             <p
-              className="text-xl font-bold lowercase text-white/80 leading-tight max-w-[80%]"
+              className="text-xl font-bold lowercase text-theme-text/80 leading-tight max-w-[80%]"
               style={{ fontFamily: "Aonic" }}
             >
               {overallStats.tagline}

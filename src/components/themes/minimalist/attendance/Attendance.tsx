@@ -39,12 +39,10 @@ export default function Attendance({
   data,
   academia,
   setIsSwipeDisabled,
-  isDark,
 }: {
   data: AcademiaData;
   academia: any;
   setIsSwipeDisabled?: (disabled: boolean) => void;
-  isDark: boolean;
 }) {
   const [mounted, setMounted] = useState(false);
   const [isPredictOverlay, setIsPredictOverlay] = useState(false);
@@ -70,8 +68,8 @@ export default function Attendance({
   }, []);
 
   const baseAttendance = useMemo(
-    () => getBaseAttendance(data?.attendance || [], data?.courses, data?.slots),
-    [data?.attendance, data?.courses, data?.slots],
+    () => getBaseAttendance(data?.attendance || [], data?.courses),
+    [data?.attendance, data?.courses],
   );
 
   const impactMap = useMemo(() => {
@@ -82,9 +80,8 @@ export default function Attendance({
       calDataToUse,
       academia?.effectiveSchedule || data?.schedule || data?.timetable || {},
       baseAttendance,
-      data?.slots,
     );
-  }, [isPredicting, selectedDates, academia, baseAttendance, data?.slots, data?.schedule, data?.timetable]);
+  }, [isPredicting, selectedDates, academia, baseAttendance, data?.schedule, data?.timetable]);
 
   const processedList = useMemo(() => {
     const list = getProcessedList(
@@ -218,18 +215,14 @@ export default function Attendance({
 
   if (!mounted) return null;
 
-  const bgClass = isDark ? "bg-[#111111]" : "bg-[#F7F7F7]";
-  const textClass = isDark ? "text-white" : "text-[#111111]";
-  const subTextClass = isDark ? "text-white/40" : "text-[#111111]/40";
-
   return (
     <>
       <style
         dangerouslySetInnerHTML={{
-          __html: `.no-scrollbar::-webkit-scrollbar { display: none; } .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; } .warning-dotted-rect { background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='24' ry='14' stroke='%23FF4D4D' stroke-width='3' stroke-dasharray='6%2c 10' stroke-dashoffset='0' stroke-linecap='round'/%3e%3c/svg%3e"); border-radius: 24px; } .affected-dotted-border { border-style: dashed !important; border-width: 2px !important; border-color: ${isDark ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.4)"} !important; } .shift-bar { background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='12' ry='12' stroke='%23${isDark ? "ffffff" : "111111"}15' stroke-width='1.5' stroke-dasharray='4%2c 6' stroke-dashoffset='0' stroke-linecap='round'/%3e%3c/svg%3e"); border-radius: 12px; }`,
+          __html: `.warning-dotted-rect { background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='24' ry='14' stroke='%23FF4D4D' stroke-width='3' stroke-dasharray='6%2c 10' stroke-dashoffset='0' stroke-linecap='round'/%3e%3c/svg%3e"); border-radius: 24px; } .affected-dotted-border { border-style: dashed !important; border-width: 2px !important; border-color: color-mix(in srgb, var(--theme-text) 40%, transparent) !important; }`,
         }}
       />
-      <div className={`absolute inset-0 ${bgClass}`}>
+      <div className="absolute inset-0 bg-theme-bg">
         <motion.div
           variants={containerVariants}
           initial="hidden"
@@ -241,7 +234,7 @@ export default function Attendance({
             className="w-full flex flex-col items-center mt-2 mb-12 shrink-0"
           >
             <span
-              className={`text-[12px] font-bold lowercase tracking-[0.3em] mb-3 ${textClass}`}
+              className="text-[12px] font-bold lowercase tracking-[0.3em] mb-3 text-theme-text"
               style={{ fontFamily: "'Montserrat', sans-serif" }}
             >
               overall attendance
@@ -257,7 +250,7 @@ export default function Attendance({
                 {stats.percent}
               </span>
               <span
-                className={`text-[2.5rem] font-bold ${subTextClass}`}
+                className="text-[2.5rem] font-bold text-theme-muted"
                 style={{ fontFamily: "'Montserrat', sans-serif" }}
               >
                 %
@@ -275,19 +268,17 @@ export default function Attendance({
                 className="w-full relative group active:scale-[0.98] transition-all duration-200"
               >
                 <div
-                  className={`absolute inset-0 ${isDark ? "bg-white" : "bg-[#111111]"} rounded-[24px] translate-y-1.5 transition-transform group-hover:translate-y-2`}
+                  className="absolute inset-0 bg-theme-text rounded-[24px] translate-y-1.5 transition-transform group-hover:translate-y-2"
                 />
                 <div
-                  className={`relative w-full border-[1.5px] ${isDark ? "border-white bg-[#111111] text-white" : "border-[#111111] bg-white text-[#111111]"} rounded-[24px] p-4 flex items-center justify-between transition-transform group-hover:-translate-y-0.5 group-active:translate-y-1`}
+                  className="relative w-full border-[1.5px] border-theme-text bg-theme-bg text-theme-text rounded-[24px] p-4 flex items-center justify-between transition-transform group-hover:-translate-y-0.5 group-active:translate-y-1"
                 >
                   <div className="flex items-center gap-3">
-                    <div
-                      className={`w-10 h-10 rounded-full ${isDark ? "bg-white/5" : "bg-[#111111]/5"} flex items-center justify-center`}
-                    >
+                    <div className="w-10 h-10 rounded-full bg-theme-surface flex items-center justify-center">
                       <Calculator
                         size={20}
                         strokeWidth={2.5}
-                        className={isDark ? "text-white" : "text-[#111111]"}
+                        className="text-theme-text"
                       />
                     </div>
                     <div className="flex flex-col items-start">
@@ -298,7 +289,7 @@ export default function Attendance({
                         PREDICT
                       </span>
                       <span
-                        className={`text-[10px] font-bold lowercase tracking-wider ${isDark ? "text-white/40" : "text-[#111111]/40"} mt-1`}
+                        className="text-[10px] font-bold lowercase tracking-wider text-theme-muted mt-1"
                         style={{ fontFamily: "'Afacad', sans-serif" }}
                       >
                         calculate future attendance
@@ -306,12 +297,13 @@ export default function Attendance({
                     </div>
                   </div>
                   <div
-                    className={`w-9 h-9 rounded-full ${isDark ? "bg-white/5 border-white/20" : "bg-[#F7F7F7] border-[#111111]"} flex items-center justify-center shadow-[2px_2px_0px_${isDark ? "#ffffff" : "#111111"}]`}
+                    className="w-9 h-9 rounded-full bg-theme-surface border border-theme-border flex items-center justify-center"
+                    style={{ boxShadow: '2px 2px 0px var(--theme-text)' }}
                   >
                     <ChevronRightIcon
                       size={20}
                       strokeWidth={3}
-                      className={isDark ? "text-white" : "text-[#111111]"}
+                      className="text-theme-text"
                     />
                   </div>
                 </div>
@@ -319,24 +311,24 @@ export default function Attendance({
             ) : (
               <div className="w-full relative group transition-all duration-200">
                 <div
-                  className={`absolute inset-0 ${isDark ? "bg-white" : "bg-[#111111]"} rounded-[24px] translate-y-1.5`}
+                  className="absolute inset-0 bg-theme-text rounded-[24px] translate-y-1.5"
                 />
                 <div
-                  className={`relative w-full border-[1.5px] ${isDark ? "border-white bg-[#111111]" : "border-[#111111] bg-[#111111]"} rounded-[24px] p-4 flex items-center justify-between`}
+                  className="relative w-full border-[1.5px] border-theme-text bg-theme-text rounded-[24px] p-4 flex items-center justify-between"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
-                      <div className="w-2 h-2 rounded-full bg-white animate-pulse shadow-[0_0_8px_rgba(255,255,255,0.8)]" />
+                    <div className="w-10 h-10 rounded-full bg-theme-bg-alpha flex items-center justify-center">
+                      <div className="w-2 h-2 rounded-full bg-theme-bg animate-pulse" />
                     </div>
                     <div className="flex flex-col items-start">
                       <span
-                        className="text-[14px] font-black uppercase tracking-widest text-white leading-none"
+                        className="text-[14px] font-black uppercase tracking-widest text-theme-bg leading-none"
                         style={{ fontFamily: "'Montserrat', sans-serif" }}
                       >
                         predicting
                       </span>
                       <span
-                        className="text-[10px] font-bold lowercase tracking-wider text-white/50 mt-1"
+                        className="text-[10px] font-bold lowercase tracking-wider text-theme-bg-60 mt-1"
                         style={{ fontFamily: "'Afacad', sans-serif" }}
                       >
                         {selectedDates.length} days{" "}
@@ -347,7 +339,7 @@ export default function Attendance({
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => setIsPredictOverlay(true)}
-                      className="w-9 h-9 rounded-full bg-white/10 border border-white/10 flex items-center justify-center text-white active:scale-95 transition-all"
+                      className="w-9 h-9 rounded-full bg-theme-bg-alpha border border-theme-bg-10 flex items-center justify-center text-theme-bg active:scale-95 transition-all"
                     >
                       <ChevronRightIcon size={18} strokeWidth={2.5} />
                     </button>
@@ -371,7 +363,7 @@ export default function Attendance({
           {actionRequired.length > 0 && (
             <motion.div
               variants={itemVariants}
-              className={`w-full warning-dotted-rect p-5 flex flex-col gap-4 mb-12 ${isDark ? "bg-[#FFEDED]/5" : "bg-[#FFEDED]/30"} shrink-0`}
+              className="w-full warning-dotted-rect p-5 flex flex-col gap-4 mb-12 bg-[#FF4D4D]/5 shrink-0"
             >
               <div className="flex items-center gap-3 w-full">
                 <span
@@ -385,7 +377,7 @@ export default function Attendance({
               {actionRequired.map((sub: any) => (
                 <div
                   key={sub.id}
-                  className={`w-full ${isDark ? "bg-white/5" : "bg-white"} border-[1.5px] rounded-[18px] p-4 flex flex-col shadow-sm transition-all ${isPredicting && sub.hasChanged ? "affected-dotted-border" : "border-[#FF4D4D]/20"}`}
+                  className={`w-full bg-theme-surface border-[1.5px] rounded-[18px] p-4 flex flex-col shadow-sm transition-all ${isPredicting && sub.hasChanged ? "affected-dotted-border" : "border-[#FF4D4D]/20"}`}
                 >
                   <div className="flex items-center justify-between w-full">
                     <div className="flex flex-col items-center justify-center min-w-[80px] shrink-0">
@@ -491,27 +483,23 @@ export default function Attendance({
               className="flex items-center gap-3 mb-2 w-full px-1"
             >
               <span
-                className={`text-[12px] font-bold lowercase tracking-[0.25em] ${subTextClass} whitespace-nowrap`}
+                className="text-[12px] font-bold lowercase tracking-[0.25em] text-theme-muted whitespace-nowrap"
                 style={{ fontFamily: "'Montserrat', sans-serif" }}
               >
                 subjects
               </span>
               <div
-                className={`flex-1 h-[1.5px] ${isDark ? "bg-white/10" : "bg-[#111111]/10"} rounded-full`}
+                className="flex-1 h-[1.5px] bg-theme-text-10 rounded-full"
               />
             </motion.div>
             {safeSubjectsList.map((sub: any) => {
               const isPrac = sub.isPractical;
-              const baseColor = isPrac
-                ? "#0EA5E9"
-                : isDark
-                  ? "#ffffff"
-                  : "#111111";
+              const baseColor = isPrac ? "#0EA5E9" : "var(--theme-text)";
               return (
                 <motion.div
                   key={sub.id}
                   variants={itemVariants}
-                  className={`w-full ${isDark ? "bg-white/5" : "bg-white"} border-[1.5px] rounded-[24px] p-5 flex items-center justify-between shadow-sm transition-all ${isPredicting && sub.hasChanged ? "affected-dotted-border" : isDark ? "border-white/10" : "border-[#111111]/10"}`}
+                  className={`w-full bg-theme-surface border-[1.5px] rounded-[24px] p-5 flex items-center justify-between shadow-sm transition-all ${isPredicting && sub.hasChanged ? "affected-dotted-border" : "border-theme-subtle"}`}
                 >
                   <div className="flex flex-col items-center justify-center min-w-[80px] shrink-0">
                     <span
@@ -524,7 +512,7 @@ export default function Attendance({
                       {sub.val}
                     </span>
                     {isPredicting && sub.hasChanged ? (
-                      <div className={`flex items-center gap-1 mt-1.5 px-2 py-0.5 rounded-full border ${isDark ? "bg-white/10 border-white/20" : "bg-black/5 border-black/10"}`}>
+                      <div className="flex items-center gap-1 mt-1.5 px-2 py-0.5 rounded-full border bg-theme-surface border-theme-subtle">
                         <span className="text-[10px] font-bold opacity-40" style={{ color: baseColor }}>
                           {sub.originalVal}
                         </span>
@@ -538,11 +526,7 @@ export default function Attendance({
                         className="text-[10px] font-bold uppercase tracking-widest mt-1 text-center"
                         style={{
                           fontFamily: "'Afacad', sans-serif",
-                          color: isPrac
-                            ? `${baseColor}b3`
-                            : isDark
-                              ? "rgba(255,255,255,0.4)"
-                              : "#11111166",
+                          color: isPrac ? "#0EA5E9b3" : "color-mix(in srgb, var(--theme-text) 40%, transparent)",
                         }}
                       >
                         {sub.currentLabel}
@@ -578,11 +562,7 @@ export default function Attendance({
                       className={`text-[13px] font-medium lowercase tracking-wide leading-[1.1] truncate w-full`}
                       style={{
                         fontFamily: "'Afacad', sans-serif",
-                        color: isPrac
-                          ? `${baseColor}b3`
-                          : isDark
-                            ? "rgba(255,255,255,0.5)"
-                            : "#11111180",
+                        color: isPrac ? "#0EA5E9b3" : "color-mix(in srgb, var(--theme-text) 50%, transparent)",
                       }}
                     >
                       {sub.fullName}
@@ -616,12 +596,13 @@ export default function Attendance({
         </motion.div>
 
         <div
-          className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t ${isDark ? "from-[#111111] via-[#111111]" : "from-[#F7F7F7] via-[#F7F7F7]"} to-transparent px-6 pt-24 pb-[30px] z-20 flex justify-between items-end pointer-events-none`}
+          className="absolute bottom-0 left-0 right-0 px-6 pt-24 pb-[30px] z-20 flex justify-between items-end pointer-events-none"
+          style={{ background: 'linear-gradient(to top, var(--theme-bg) 0%, color-mix(in srgb, var(--theme-bg) 80%, transparent) 60%, transparent 100%)' }}
         >
           {"attendance".split("").map((char, i) => (
             <span
               key={i}
-              className={`text-[3.2rem] leading-[0.75] lowercase ${textClass}`}
+              className="text-[3.2rem] leading-[0.75] lowercase text-theme-text"
               style={{ fontFamily: "'Afacad', sans-serif", fontWeight: 400 }}
             >
               {char}
@@ -633,7 +614,6 @@ export default function Attendance({
       <Predict
         isOpen={isPredictOverlay}
         onClose={() => setIsPredictOverlay(false)}
-        isDark={isDark}
         predictAction={predictAction}
         setPredictAction={setPredictAction}
         calYear={calYear}

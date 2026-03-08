@@ -390,28 +390,28 @@ export default function Dashboard({
     alertPctNum < 75 ? "cooked" : alertPctNum >= 85 ? "safe" : "danger";
   const attStyles = {
     safe: {
-      bg: isDark ? "bg-[#F2FFDB]/10" : "bg-[#F2FFDB]",
-      border: isDark ? "border-[#85a818]/40" : "border-[#85a818]/30",
-      text: isDark ? "text-[#85a818]" : "text-[#4d6600]",
-      iconBg: isDark ? "bg-[#85a818]/20" : "bg-[#85a818]/10",
-      subText: isDark ? "text-[#85a818]/80" : "text-[#4d6600]/70",
-      arrow: isDark ? "text-[#85a818]/40" : "text-[#4d6600]/30",
+      bg: "status-boxbg-safe",
+      border: "status-border-safe",
+      text: "status-text-safe",
+      iconBg: "status-bg-safe",
+      subText: "status-text-safe",
+      arrow: "status-text-safe",
     },
     danger: {
-      bg: isDark ? "bg-[#FFF4E5]/10" : "bg-[#FFF4E5]",
-      border: isDark ? "border-[#F97316]/40" : "border-[#F97316]/30",
-      text: isDark ? "text-[#F97316]" : "text-[#EA580C]",
-      iconBg: isDark ? "bg-[#EA580C]/20" : "bg-[#EA580C]/10",
-      subText: isDark ? "text-[#F97316]/80" : "text-[#EA580C]/70",
-      arrow: isDark ? "text-[#F97316]/60" : "text-[#EA580C]/50",
+      bg: "status-boxbg-danger",
+      border: "status-border-danger",
+      text: "status-text-danger",
+      iconBg: "status-bg-danger",
+      subText: "status-text-danger",
+      arrow: "status-text-danger",
     },
     cooked: {
-      bg: isDark ? "bg-[#FFEDED]/10" : "bg-[#FFEDED]",
-      border: isDark ? "border-[#FF4D4D]/40" : "border-[#FF4D4D]/30",
-      text: isDark ? "text-[#FF4D4D]" : "text-[#FF4D4D]",
-      iconBg: isDark ? "bg-[#FF4D4D]/20" : "bg-[#FF4D4D]/10",
-      subText: isDark ? "text-[#FF4D4D]/80" : "text-[#FF4D4D]/70",
-      arrow: isDark ? "text-[#FF4D4D]/60" : "text-[#FF4D4D]/50",
+      bg: "status-boxbg-cooked",
+      border: "status-border-cooked",
+      text: "status-text-cooked",
+      iconBg: "status-bg-cooked",
+      subText: "status-text-cooked",
+      arrow: "status-text-cooked",
     },
   }[attendanceCategory];
 
@@ -532,10 +532,10 @@ export default function Dashboard({
     ? [...standardGrid, ...extraGrid]
     : standardGrid;
 
-  const bgClass = isDark ? "bg-[#111111]" : "bg-[#F7F7F7]";
-  const textClass = isDark ? "text-white" : "text-[#111111]";
-  const subTextClass = isDark ? "text-white/40" : "text-[#111111]/40";
-  const focusSubTextClass = isDark ? "text-white/50" : "text-[#111111]/50";
+  const bgClass = "bg-theme-bg";
+  const textClass = "text-theme-text";
+  const subTextClass = "text-theme-muted";
+  const focusSubTextClass = "text-theme-muted";
 
   if (!mounted) return null;
 
@@ -546,18 +546,7 @@ export default function Dashboard({
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      <style
-        dangerouslySetInnerHTML={{
-          __html: `
-          .custom-dotted {
-            background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='14' ry='14' stroke='%23${isDark ? "ffffff" : "111111"}' stroke-width='2' stroke-dasharray='4%2c 8' stroke-dashoffset='0' stroke-linecap='round' opacity='0.3'/%3e%3c/svg%3e");
-            border-radius: 14px;
-          }
-          .no-scrollbar::-webkit-scrollbar { display: none; }
-          .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        `,
-        }}
-      />
+
 
       <div
         className="fixed top-0 left-0 w-full flex justify-center pt-8 z-0 transition-opacity duration-300 pointer-events-none"
@@ -567,7 +556,7 @@ export default function Dashboard({
         }}
       >
         <Loader
-          className={`w-6 h-6 ${isDark ? "text-white/40" : "text-black/40"}`}
+          className="w-6 h-6 text-theme-muted"
           style={{
             animation: isRefreshing ? "spin 1s linear infinite" : "none",
             transform: `rotate(${pullY * 2}deg)`,
@@ -601,7 +590,7 @@ export default function Dashboard({
             </button>
             <div className="flex flex-col items-end">
               <span
-                className={`text-[16px] font-semibold lowercase tracking-widest ${isDark ? "text-white/50" : "text-[#111111]/50"} mb-[-4px]`}
+                className="text-[16px] font-semibold lowercase tracking-widest text-theme-muted mb-[-4px]"
                 style={{ fontFamily: "'Afacad', sans-serif" }}
               >
                 sup!
@@ -618,11 +607,11 @@ export default function Dashboard({
           {isHoliday && (
             <motion.div
               variants={itemVariants}
-              className={`w-full ${isDark ? "bg-[#85a818]/5 border-[#85a818]/20" : "bg-[#85a818]/10 border-[#85a818]/30"} border-[1.5px] rounded-[16px] p-3 mb-4 flex items-center gap-3 shrink-0`}
+              className="w-full status-bg-safe status-border-safe border-[1.5px] rounded-[16px] p-3 mb-4 flex items-center gap-3 shrink-0"
             >
               <span className="text-xl">🌴</span>
               <span
-                className={`text-[13px] font-bold ${isDark ? "text-[#85a818]" : "text-[#4d6600]"} lowercase tracking-wide`}
+                className="text-[13px] font-bold status-text-safe lowercase tracking-wide"
                 style={{ fontFamily: "'Afacad', sans-serif" }}
               >
                 holiday today! viewing upcoming classes.
@@ -633,11 +622,11 @@ export default function Dashboard({
           {!isHoliday && isTomorrowHoliday && (
             <motion.div
               variants={itemVariants}
-              className={`w-full ${isDark ? "bg-[#85a818]/5 border-[#85a818]/20" : "bg-[#85a818]/10 border-[#85a818]/30"} border-[1.5px] rounded-[16px] p-3 mb-4 flex items-center gap-3 shrink-0`}
+              className="w-full status-bg-safe status-border-safe border-[1.5px] rounded-[16px] p-3 mb-4 flex items-center gap-3 shrink-0"
             >
               <span className="text-xl">😉</span>
               <span
-                className={`text-[13px] font-bold ${isDark ? "text-[#85a818]" : "text-[#4d6600]"} lowercase tracking-wide`}
+                className="text-[13px] font-bold status-text-safe lowercase tracking-wide"
                 style={{ fontFamily: "'Afacad', sans-serif" }}
               >
                 holiday tomorrow! enjoy the break.
@@ -674,7 +663,7 @@ export default function Dashboard({
               {extraGrid.length > 0 && (
                 <button
                   onClick={() => setShowExtraSlots(!showExtraSlots)}
-                  className={`${isDark ? "bg-white/10 text-white/50" : "bg-[#111111]/5 text-[#111111]/50"} px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest active:scale-95 transition-all`}
+                  className="bg-theme-surface text-theme-muted px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest active:scale-95 transition-all"
                   style={{ fontFamily: "'Afacad', sans-serif" }}
                 >
                   {showExtraSlots ? "hide extra" : `+${extraGrid.length} extra`}
@@ -699,7 +688,6 @@ export default function Dashboard({
 
           <ScheduleGrid
             displayGrid={displayGrid}
-            isDark={isDark}
             selectedDay={selectedDay}
             currentDayOrder={currentDayOrder}
             isHoliday={isHoliday}
@@ -717,7 +705,7 @@ export default function Dashboard({
                 {focusLabel}
               </span>
               <div
-                className={`flex-1 h-[1.5px] ${isDark ? "bg-white/10" : "bg-[#111111]/15"} rounded-full`}
+                className="flex-1 h-[1.5px] bg-theme-border-line rounded-full"
               />
               <span
                 className={`text-[13px] font-black uppercase tracking-[0.2em] ${textClass} whitespace-nowrap`}
@@ -751,14 +739,14 @@ export default function Dashboard({
             </div>
 
             <div
-              className={`flex items-center justify-between mt-3 w-full ${isDark ? "bg-white/5 border-white/10" : "bg-white border-[#111111]/10"} px-4 py-3 rounded-full border-[1.5px] shadow-sm min-w-0`}
+              className="flex items-center justify-between mt-3 w-full bg-theme-card border-theme-subtle px-4 py-3 rounded-full border-[1.5px] shadow-sm min-w-0"
             >
               <div className="flex items-center gap-3 min-w-0 flex-1">
                 <span
-                  className={`w-2.5 h-2.5 rounded-full shrink-0 ${currentClass && !isHoliday ? (isDark ? "bg-white animate-pulse" : "bg-[#111111] animate-pulse") : isDark ? "bg-white/20" : "bg-[#111111]/20"}`}
+                  className={`w-2.5 h-2.5 rounded-full shrink-0 ${currentClass && !isHoliday ? "bg-theme-text animate-pulse" : "bg-theme-text-20"}`}
                 />
                 <span
-                  className={`text-[14px] font-bold lowercase ${isDark ? "text-white/70" : "text-[#111111]/70"} truncate`}
+                  className="text-[14px] font-bold lowercase text-theme-text-70 truncate"
                   style={{ fontFamily: "'Afacad', sans-serif" }}
                 >
                   {isHoliday ? "holiday • " : currentClass
@@ -830,20 +818,20 @@ export default function Dashboard({
 
             <div
               onClick={() => setIsAlertsOpen(true)}
-              className={`w-full ${isDark ? "bg-[#BBBBBB] text-black" : "bg-[#111111] text-white"} border-[1.5px] ${isDark ? "border-black/5" : "border-black/5"} rounded-[24px] p-2 pr-5 flex items-center gap-4 shadow-sm active:scale-[0.98] transition-transform cursor-pointer`}
+              className="w-full bg-theme-text text-theme-bg border-[1.5px] border-black/5 rounded-[24px] p-2 pr-5 flex items-center gap-4 shadow-sm active:scale-[0.98] transition-transform cursor-pointer"
             >
               <div
-                className={`w-[50px] h-[50px] rounded-[18px] ${isDark ? "bg-black/10" : "bg-white/10"} flex items-center justify-center shrink-0`}
+                className="w-[50px] h-[50px] rounded-[18px] bg-theme-bg-alpha flex items-center justify-center shrink-0"
               >
                 <Bell
                   size={20}
                   strokeWidth={2.5}
-                  className={isDark ? "text-black" : "text-white"}
+                  className="text-theme-bg"
                 />
               </div>
               <div className="flex-1 flex flex-col justify-center min-w-0 py-0.5">
                 <span
-                  className={`text-[15px] font-bold lowercase leading-tight truncate mb-0.5 ${isDark ? "text-black" : "text-white"}`}
+                  className="text-[15px] font-bold lowercase leading-tight truncate mb-0.5 text-theme-bg"
                   style={{ fontFamily: "'Montserrat', sans-serif" }}
                 >
                   academic alerts
@@ -854,7 +842,7 @@ export default function Dashboard({
                     initial={{ opacity: 0, x: 5 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -5 }}
-                    className={`text-[13px] font-medium lowercase ${isDark ? "text-black/60" : "text-white/70"} truncate`}
+                    className="text-[13px] font-medium lowercase text-theme-bg-70 truncate"
                     style={{ fontFamily: "'Afacad', sans-serif" }}
                   >
                     {allAlerts[currentAlertIndex]
@@ -868,16 +856,16 @@ export default function Dashboard({
               <ChevronRight
                 size={22}
                 strokeWidth={2}
-                className={`${isDark ? "text-black/20" : "text-white/30"} shrink-0`}
+                className="text-theme-bg-30 shrink-0"
               />
             </div>
 
             <div
               onClick={() => setActiveTab && setActiveTab("marks")}
-              className={`w-full ${isDark ? "bg-white/5 border-white/10" : "bg-white border-[#111111]/10"} border-[1.5px] rounded-[24px] p-2 pr-5 flex items-center gap-4 shadow-sm active:scale-[0.98] transition-transform cursor-pointer`}
+              className="w-full bg-theme-card border-theme-subtle border-[1.5px] rounded-[24px] p-2 pr-5 flex items-center gap-4 shadow-sm active:scale-[0.98] transition-transform cursor-pointer"
             >
               <div
-                className={`w-[50px] h-[50px] rounded-[18px] ${isDark ? "bg-white/5" : "bg-[#F4F4F4]"} flex items-center justify-center shrink-0`}
+                className="w-[50px] h-[50px] rounded-[18px] bg-theme-surface flex items-center justify-center shrink-0"
               >
                 <GraduationCap
                   size={20}
@@ -904,7 +892,7 @@ export default function Dashboard({
               <ChevronRight
                 size={22}
                 strokeWidth={2}
-                className={`${isDark ? "text-white/20" : "text-[#111111]/30"} shrink-0`}
+                className="text-theme-subtle shrink-0"
               />
             </div>
           </motion.div>
@@ -914,11 +902,8 @@ export default function Dashboard({
       <Alerts
         isOpen={isAlertsOpen}
         onClose={() => setIsAlertsOpen(false)}
-        isDark={isDark}
         exams={exams}
         upcomingBreaks={upcomingBreaks}
-        subTextClass={subTextClass}
-        textClass={textClass}
       />
     </div>
   );

@@ -67,11 +67,11 @@ export default function Timetable({ schedule, dayOrder, data }) {
   if (!mounted) return null;
 
   return (
-    <div className="h-screen w-full bg-[#050505] flex flex-col relative overflow-hidden font-sans">
+    <div className="h-screen w-full bg-theme-bg flex flex-col relative overflow-hidden font-sans">
       <div className="pt-16 px-8 absolute top-0 w-full z-0">
         <div className="flex flex-col text-white">
           <span
-            className="text-[#ceff1c] font-black text-sm tracking-[0.2em] uppercase mb-2 ml-1"
+            className="text-theme-highlight font-black text-sm tracking-[0.2em] uppercase mb-2 ml-1"
             style={{ fontFamily: "Aonic" }}
           >
             {dateDisplay.day}
@@ -123,7 +123,7 @@ export default function Timetable({ schedule, dayOrder, data }) {
                 Day Order
               </span>
               {parseInt(dayOrder) === activeDayOrder && (
-                <span className="text-[9px] font-bold uppercase tracking-widest text-black bg-[#ceff1c] px-2 py-0.5 rounded-sm">
+                <span className="text-[9px] font-bold uppercase tracking-widest text-black bg-theme-highlight px-2 py-0.5 rounded-sm">
                   Today
                 </span>
               )}
@@ -137,7 +137,7 @@ export default function Timetable({ schedule, dayOrder, data }) {
                   className={`flex-1 h-11 rounded-xl flex items-center justify-center text-lg font-bold transition-all
                     ${
                       activeDayOrder === num
-                        ? "bg-black text-[#ceff1c] shadow-lg scale-105"
+                        ? "bg-theme-text text-theme-highlight shadow-lg scale-105"
                         : "bg-white text-black/40 border border-black/5"
                     }
                   `}
