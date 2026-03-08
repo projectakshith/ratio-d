@@ -62,10 +62,10 @@ export default function Target({
               onClose();
             }
           }}
-          className={`fixed inset-0 ${isDark ? "bg-[#111111]" : "bg-white"} z-[60] flex flex-col overflow-hidden px-6 pt-10 pb-6`}
+          className="fixed inset-0 bg-theme-bg z-[60] flex flex-col overflow-hidden px-6 pt-10 pb-6"
         >
           <div
-            className={`w-12 h-1.5 ${isDark ? "bg-white/20" : "bg-black/10"} rounded-full mx-auto mb-6 shrink-0`}
+            className="w-12 h-1.5 bg-theme-text-10 rounded-full mx-auto mb-6 shrink-0"
           />
           <div className="flex justify-between items-start w-full shrink-0">
             <div className="flex flex-col">
@@ -76,7 +76,7 @@ export default function Target({
                 TARGET
               </span>
               <span
-                className="text-[10px] font-bold lowercase tracking-[0.2em] text-[#85a818] mt-1.5"
+                className="text-[10px] font-bold lowercase tracking-[0.2em] text-theme-highlight mt-1.5"
                 style={{ fontFamily: "'Afacad', sans-serif" }}
               >
                 sgpa prediction
@@ -84,26 +84,26 @@ export default function Target({
             </div>
             <button
               onClick={onClose}
-              className={`w-10 h-10 rounded-full ${isDark ? "bg-white/10" : "bg-[#111111]/5"} flex items-center justify-center ${textClass} active:scale-95 transition-all shrink-0`}
+              className={`w-10 h-10 rounded-full bg-theme-surface flex items-center justify-center ${textClass} active:scale-95 transition-all shrink-0`}
             >
               <X size={20} strokeWidth={2.5} />
             </button>
           </div>
           <div className="flex flex-col flex-1 justify-between mt-5 w-full overflow-y-auto no-scrollbar pb-4">
             <div
-              className={`w-full ${isDark ? "bg-white/5 border-white/10" : "bg-black/5 border-black/10"} border rounded-[16px] px-4 py-3.5 flex items-center gap-3 shrink-0`}
+              className="w-full bg-theme-surface border border-theme-subtle rounded-[16px] px-4 py-3.5 flex items-center gap-3 shrink-0"
             >
               <span
-                className={`text-[16px] font-black uppercase tracking-widest ${isDark ? "text-white/90" : "text-[#111111]"} shrink-0`}
+                className={`text-[16px] font-black uppercase tracking-widest ${textClass} shrink-0`}
                 style={{ fontFamily: "'Montserrat', sans-serif" }}
               >
                 {activePredSub.displayCode}
               </span>
               <div
-                className={`w-[1.5px] h-4 ${isDark ? "bg-white/20" : "bg-black/20"} shrink-0`}
+                className="w-[1.5px] h-4 bg-theme-text-20 shrink-0"
               />
               <span
-                className={`text-[13px] font-medium lowercase tracking-wide ${isDark ? "text-white/60" : "text-black/60"} truncate min-w-0`}
+                className="text-[13px] font-medium lowercase tracking-wide text-theme-muted truncate min-w-0"
                 style={{ fontFamily: "'Afacad', sans-serif" }}
               >
                 {activePredSub.displayName}
@@ -111,7 +111,7 @@ export default function Target({
             </div>
             <div className="flex flex-col items-center justify-center shrink-0">
               <span
-                className={`text-[11px] font-bold lowercase tracking-[0.2em] ${isDark ? "text-white/40" : "text-black/40"} mb-1`}
+                className="text-[11px] font-bold lowercase tracking-[0.2em] text-theme-muted mb-1"
                 style={{ fontFamily: "'Afacad', sans-serif" }}
               >
                 predicted sgpa
@@ -125,14 +125,14 @@ export default function Target({
             </div>
             <div className="flex flex-col items-center justify-center shrink-0">
               <span
-                className={`text-[11px] font-bold lowercase tracking-widest ${isDark ? "text-white/40" : "text-black/40"} mb-1`}
+                className="text-[11px] font-bold lowercase tracking-widest text-theme-muted mb-1"
                 style={{ fontFamily: "'Afacad', sans-serif" }}
               >
                 sem marks needed
               </span>
               <div className="flex items-baseline gap-1">
                 <span
-                  className={`leading-[0.85] font-black tracking-tighter text-center ${semRequiredOutOf75 > 75 ? "text-[4rem] text-[#FF4D4D]" : "text-[5rem] text-[#85a818]"}`}
+                  className={`leading-[0.85] font-black tracking-tighter text-center ${semRequiredOutOf75 > 75 ? "text-[4rem] text-status-text-cooked" : "text-[5rem] text-theme-highlight"}`}
                   style={{ fontFamily: "'Montserrat', sans-serif" }}
                 >
                   {semRequiredOutOf75 > 75
@@ -143,7 +143,7 @@ export default function Target({
                 </span>
                 {semRequiredOutOf75 > 0 && semRequiredOutOf75 <= 75 && (
                   <span
-                    className={`text-[20px] font-bold ${isDark ? "text-white/30" : "text-black/30"}`}
+                    className="text-[20px] font-bold text-theme-subtle"
                     style={{ fontFamily: "'Montserrat', sans-serif" }}
                   >
                     /75
@@ -154,7 +154,7 @@ export default function Target({
             <div className="flex justify-between items-start w-full px-2 shrink-0">
               <div className="flex flex-col items-start w-1/2">
                 <span
-                  className={`text-[11px] font-bold lowercase tracking-widest ${isDark ? "text-white/50" : "text-black/50"} mb-1.5`}
+                  className="text-[11px] font-bold lowercase tracking-widest text-theme-muted mb-1.5"
                   style={{ fontFamily: "'Afacad', sans-serif" }}
                 >
                   current internals
@@ -169,7 +169,7 @@ export default function Target({
                       : currentInternals.toFixed(1)}
                   </span>
                   <span
-                    className={`text-[12px] font-bold ${isDark ? "text-white/40" : "text-black/40"}`}
+                    className="text-[12px] font-bold text-theme-subtle"
                     style={{ fontFamily: "'Montserrat', sans-serif" }}
                   >
                     /60
@@ -178,19 +178,19 @@ export default function Target({
               </div>
               <div className="flex flex-col items-end w-1/2">
                 <span
-                  className={`text-[11px] font-bold lowercase tracking-widest ${isDark ? "text-white/50" : "text-black/50"} mb-1.5 text-right`}
+                  className="text-[11px] font-bold lowercase tracking-widest text-theme-muted mb-1.5 text-right"
                   style={{ fontFamily: "'Afacad', sans-serif" }}
                 >
                   expected remaining
                 </span>
                 <div
-                  className={`flex items-center gap-1 ${isDark ? "bg-white/10" : "bg-black/10"} rounded-[12px] px-1.5 py-1.5 h-10`}
+                  className="flex items-center gap-1 bg-theme-surface rounded-[12px] px-1.5 py-1.5 h-10"
                 >
                   <button
                     onClick={() =>
                       setExpectedMarks((prev: any) => Math.max(0, (typeof prev === "function" ? prev(expectedMarks) : prev) - 1))
                     }
-                    className={`w-7 h-7 rounded-[8px] ${isDark ? "bg-white/10" : "bg-black/10"} flex items-center justify-center ${textClass} font-bold active:scale-95 transition-all`}
+                    className={`w-7 h-7 rounded-[8px] bg-theme-text-10 flex items-center justify-center ${textClass} font-bold active:scale-95 transition-all`}
                   >
                     -
                   </button>
@@ -201,11 +201,11 @@ export default function Target({
                       value={expectedMarks === 0 ? "" : expectedMarks}
                       onChange={handleExpectedChange}
                       placeholder="0"
-                      className={`w-6 bg-transparent text-[18px] font-black ${textClass} text-center outline-none [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [appearance:textfield] placeholder:${isDark ? "text-white/30" : "text-black/30"}`}
+                      className={`w-6 bg-transparent text-[18px] font-black ${textClass} text-center outline-none [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [appearance:textfield] placeholder:text-theme-subtle`}
                       style={{ fontFamily: "'Montserrat', sans-serif" }}
                     />
                     <span
-                      className={`text-[11px] font-bold ${isDark ? "text-white/30" : "text-black/30"}`}
+                      className="text-[11px] font-bold text-theme-subtle"
                       style={{ fontFamily: "'Montserrat', sans-serif" }}
                     >
                       /{maxPossibleExpected}
@@ -215,7 +215,7 @@ export default function Target({
                     onClick={() =>
                       setExpectedMarks((prev: any) => Math.min(maxPossibleExpected, (typeof prev === "function" ? prev(expectedMarks) : prev) + 1))
                     }
-                    className={`w-7 h-7 rounded-[8px] ${isDark ? "bg-white text-[#111111]" : "bg-[#111111] text-white"} flex items-center justify-center font-bold active:scale-95 transition-all`}
+                    className="w-7 h-7 rounded-[8px] bg-theme-emphasis text-theme-bg flex items-center justify-center font-bold active:scale-95 transition-all"
                   >
                     +
                   </button>
@@ -224,7 +224,7 @@ export default function Target({
             </div>
             <div className="flex flex-col w-full shrink-0 mt-2">
               <span
-                className={`text-[10px] font-bold lowercase tracking-[0.2em] ${isDark ? "text-white/50" : "text-black/50"} mb-2 px-2`}
+                className="text-[10px] font-bold lowercase tracking-[0.2em] text-theme-muted mb-2 px-2"
                 style={{ fontFamily: "'Montserrat', sans-serif" }}
               >
                 target grade
@@ -234,7 +234,7 @@ export default function Target({
                   <button
                     key={g.label}
                     onClick={() => setTargetGrade(g.min)}
-                    className={`py-3 rounded-[16px] flex flex-col items-center justify-center transition-all ${targetGrade === g.min ? (isDark ? "bg-white text-[#111111]" : "bg-[#111111] text-white") : isDark ? "bg-white/10 text-white/60 hover:bg-white/20" : "bg-black/10 text-black/60 hover:bg-black/20"}`}
+                    className={`py-3 rounded-[16px] flex flex-col items-center justify-center transition-all ${targetGrade === g.min ? "bg-theme-emphasis text-theme-bg" : "bg-theme-surface text-theme-muted hover:bg-theme-text-10"}`}
                   >
                     <span
                       className="text-[18px] font-black"
@@ -254,7 +254,7 @@ export default function Target({
             </div>
             <div className="flex flex-col w-full shrink-0 mt-2 pb-2">
               <span
-                className={`text-[10px] font-bold lowercase tracking-[0.2em] ${isDark ? "text-white/50" : "text-black/50"} mb-2 px-2`}
+                className="text-[10px] font-bold lowercase tracking-[0.2em] text-theme-muted mb-2 px-2"
                 style={{ fontFamily: "'Montserrat', sans-serif" }}
               >
                 select subject
@@ -267,7 +267,7 @@ export default function Target({
                       setPredSubjectId(sub.id);
                       setExpectedMarks(0);
                     }}
-                    className={`px-4 py-2.5 rounded-[12px] text-[12px] font-bold uppercase tracking-widest transition-all whitespace-nowrap shrink-0 flex flex-col items-center gap-0.5 ${predSubjectId === sub.id ? (isDark ? "bg-[#ceff1c] text-[#111111]" : "bg-[#111111] text-white") : isDark ? "bg-white/10 text-white hover:bg-white/20" : "bg-black/10 text-black hover:bg-black/20"}`}
+                    className={`px-4 py-2.5 rounded-[12px] text-[12px] font-bold uppercase tracking-widest transition-all whitespace-nowrap shrink-0 flex flex-col items-center gap-0.5 ${predSubjectId === sub.id ? "bg-theme-highlight text-theme-bg" : "bg-theme-surface text-theme-text hover:bg-theme-text-10"}`}
                     style={{ fontFamily: "'Afacad', sans-serif" }}
                   >
                     <span>{sub.displayCode}</span>
