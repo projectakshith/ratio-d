@@ -3,7 +3,6 @@ import React from "react";
 
 interface ScheduleGridProps {
   displayGrid: any[];
-  isDark: boolean;
   selectedDay: number;
   currentDayOrder: number;
   isHoliday: boolean;
@@ -11,7 +10,6 @@ interface ScheduleGridProps {
 
 export default function ScheduleGrid({
   displayGrid,
-  isDark,
   selectedDay,
   currentDayOrder,
   isHoliday,
@@ -21,17 +19,15 @@ export default function ScheduleGrid({
       return (
         <div
           key={slot.id}
-          className={`aspect-square ${isDark ? "bg-white/5" : "bg-[#EFEFEF]/50"} custom-dotted`}
+          className={`aspect-square bg-theme-text/5 custom-dotted`}
         />
       );
     }
 
-    let boxClass = isDark
-      ? "bg-white/5 border-white/10"
-      : "bg-white border-[#111111]/20";
-    let topText = isDark ? "text-white/40" : "text-[#111111]/50";
-    let midText = isDark ? "text-white" : "text-[#111111]";
-    let botText = isDark ? "text-white/60" : "text-[#111111]/70";
+    let boxClass = "bg-theme-surface border-theme-text/10";
+    let topText = "text-theme-text/50";
+    let midText = "text-theme-text";
+    let botText = "text-theme-text/60";
 
     const isActuallyCurrent =
       slot.isCurrent &&
@@ -39,19 +35,15 @@ export default function ScheduleGrid({
       !isHoliday;
 
     if (isActuallyCurrent) {
-      boxClass = isDark
-        ? "bg-white border-white shadow-[0_6px_16px_rgba(255,255,255,0.2)] scale-105 z-10"
-        : "bg-[#111111] border-[#111111] shadow-[0_6px_16px_rgba(0,0,0,0.2)] scale-105 z-10";
-      topText = isDark ? "text-black/60" : "text-white/80";
-      midText = isDark ? "text-black" : "text-white";
-      botText = isDark ? "text-black/60" : "text-white/80";
+      boxClass = "bg-theme-text border-theme-text shadow-lg scale-105 z-10";
+      topText = "text-theme-bg/60";
+      midText = "text-theme-bg";
+      botText = "text-theme-bg/60";
     } else if (slot.isPractical) {
-      boxClass = isDark
-        ? "bg-[#0ea5e9]/10 border-[#0ea5e9]/30"
-        : "bg-[#e0f2fe]/60 border-[#0EA5E9]/20";
-      topText = isDark ? "text-[#0ea5e9]/60" : "text-[#0ea5e9]/70";
-      midText = isDark ? "text-[#0ea5e9]" : "text-[#0ea5e9]";
-      botText = isDark ? "text-[#0ea5e9]/60" : "text-[#0ea5e9]/70";
+      boxClass = "bg-theme-primary/10 border-theme-primary/30";
+      topText = "text-theme-primary/60";
+      midText = "text-theme-primary";
+      botText = "text-theme-primary/60";
     }
 
     return (

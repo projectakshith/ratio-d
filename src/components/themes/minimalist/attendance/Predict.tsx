@@ -6,7 +6,6 @@ import { X, ChevronLeft, ChevronRight, Check } from "lucide-react";
 interface PredictProps {
   isOpen: boolean;
   onClose: () => void;
-  isDark: boolean;
   predictAction: "leave" | "attend";
   setPredictAction: (action: "leave" | "attend") => void;
   calYear: number;
@@ -32,7 +31,6 @@ interface PredictProps {
 export default function Predict({
   isOpen,
   onClose,
-  isDark,
   predictAction,
   setPredictAction,
   calYear,
@@ -54,7 +52,6 @@ export default function Predict({
   handleDateClick,
   setIsPredicting,
 }: PredictProps) {
-  const textClass = isDark ? "text-white" : "text-[#111111]";
 
   return (
     <AnimatePresence>
@@ -70,21 +67,21 @@ export default function Predict({
           onDragEnd={(e, info) => {
             if (info.offset.y > 150 || info.velocity.y > 500) onClose();
           }}
-          className={`fixed inset-0 ${isDark ? "bg-[#111111]" : "bg-white"} z-[60] flex flex-col overflow-hidden px-6 pt-10 pb-6`}
+          className="fixed inset-0 bg-theme-bg z-[60] flex flex-col overflow-hidden px-6 pt-10 pb-6"
         >
           <div
-            className={`w-12 h-1.5 ${isDark ? "bg-white/20" : "bg-black/10"} rounded-full mx-auto mb-6 shrink-0`}
+            className="w-12 h-1.5 bg-theme-text-10 rounded-full mx-auto mb-6 shrink-0"
           />
           <div className="flex justify-between items-start w-full shrink-0">
             <div className="flex flex-col">
               <span
-                className={`text-[32px] leading-[1] font-black uppercase tracking-[0.15em] ${textClass}`}
+                className="text-[32px] leading-[1] font-black uppercase tracking-[0.15em] text-theme-text"
                 style={{ fontFamily: "'Montserrat', sans-serif" }}
               >
                 PREDICT
               </span>
               <span
-                className="text-[10px] font-bold lowercase tracking-[0.2em] text-[#85a818] mt-1.5"
+                className="text-[10px] font-bold lowercase tracking-[0.2em] text-theme-highlight mt-1.5"
                 style={{ fontFamily: "'Afacad', sans-serif" }}
               >
                 {predictAction === "leave"
@@ -94,25 +91,25 @@ export default function Predict({
             </div>
             <button
               onClick={onClose}
-              className={`w-10 h-10 rounded-full ${isDark ? "bg-white/10" : "bg-[#111111]/5"} flex items-center justify-center ${textClass} active:scale-95 transition-all shrink-0`}
+              className="w-10 h-10 rounded-full bg-theme-surface flex items-center justify-center text-theme-text active:scale-95 transition-all shrink-0"
             >
               <X size={20} strokeWidth={2.5} />
             </button>
           </div>
           <div className="flex flex-col flex-1 justify-center w-full mt-6">
             <div
-              className={`flex items-center gap-2 ${isDark ? "bg-white/5" : "bg-black/5"} p-1 rounded-[16px] mb-3 shrink-0`}
+              className="flex items-center gap-2 bg-theme-surface p-1 rounded-[16px] mb-3 shrink-0"
             >
               <button
                 onClick={() => setPredictAction("leave")}
-                className={`flex-1 py-2.5 rounded-[12px] text-[11px] font-bold uppercase transition-all ${predictAction === "leave" ? "bg-[#ceff1c] text-[#111111]" : isDark ? "text-white/50" : "text-black/50"}`}
+                className={`flex-1 py-2.5 rounded-[12px] text-[11px] font-bold uppercase transition-all ${predictAction === "leave" ? "bg-theme-highlight text-theme-text" : "text-theme-muted"}`}
                 style={{ fontFamily: "'Montserrat', sans-serif" }}
               >
                 leaves
               </button>
               <button
                 onClick={() => setPredictAction("attend")}
-                className={`flex-1 py-2.5 rounded-[12px] text-[11px] font-bold uppercase transition-all ${predictAction === "attend" ? "bg-[#ceff1c] text-[#111111]" : isDark ? "text-white/50" : "text-black/50"}`}
+                className={`flex-1 py-2.5 rounded-[12px] text-[11px] font-bold uppercase transition-all ${predictAction === "attend" ? "bg-theme-highlight text-theme-text" : "text-theme-muted"}`}
                 style={{ fontFamily: "'Montserrat', sans-serif" }}
               >
                 attending
@@ -123,12 +120,12 @@ export default function Predict({
                 onClick={() =>
                   setCurrentCalDate(new Date(calYear, calMonth - 1, 1))
                 }
-                className={`w-10 h-10 ${isDark ? "bg-white/5" : "bg-black/5"} rounded-full flex items-center justify-center ${textClass}`}
+                className="w-10 h-10 bg-theme-surface rounded-full flex items-center justify-center text-theme-text"
               >
                 <ChevronLeft />
               </button>
               <span
-                className={`text-[16px] font-black uppercase ${textClass}`}
+                className="text-[16px] font-black uppercase text-theme-text"
                 style={{ fontFamily: "'Montserrat', sans-serif" }}
               >
                 {monthName} {calYear}
@@ -137,19 +134,19 @@ export default function Predict({
                 onClick={() =>
                   setCurrentCalDate(new Date(calYear, calMonth + 1, 1))
                 }
-                className={`w-10 h-10 ${isDark ? "bg-white/5" : "bg-black/5"} rounded-full flex items-center justify-center ${textClass}`}
+                className="w-10 h-10 bg-theme-surface rounded-full flex items-center justify-center text-theme-text"
               >
                 <ChevronRight />
               </button>
             </div>
             <div
-              className={`w-full flex flex-col ${isDark ? "bg-white/5 border-white/10" : "bg-black/5 border-black/10"} border rounded-[24px] p-5 mb-4 shrink-0`}
+              className="w-full flex flex-col bg-theme-surface border border-theme-subtle rounded-[24px] p-5 mb-4 shrink-0"
             >
               <div className="grid grid-cols-7 gap-2 mb-3">
                 {["m", "t", "w", "t", "f", "s", "s"].map((d, i) => (
                   <div
                     key={i}
-                    className={`text-center text-[11px] font-bold ${isDark ? "text-white/40" : "text-black/40"} uppercase`}
+                    className="text-center text-[11px] font-bold text-theme-muted uppercase"
                     style={{ fontFamily: "'Montserrat', sans-serif" }}
                   >
                     {d}
@@ -182,7 +179,7 @@ export default function Predict({
                       <button
                         onClick={() => handleDateClick(day)}
                         disabled={isDisabled}
-                        className={`w-full h-full rounded-[12px] flex items-center justify-center text-[15px] font-black transition-all ${isDisabled ? (isDark ? "text-white/10" : "text-black/10") : selected ? "bg-[#ceff1c] text-[#111111] shadow-lg" : isToday ? (isDark ? "bg-[#0EA5E9]/20 text-[#0EA5E9] border border-[#0EA5E9]/40" : "bg-[#0EA5E9]/10 text-[#0EA5E9] border border-[#0EA5E9]/30") : isDark ? "bg-white/10 text-white" : "bg-black/10 text-black"}`}
+                        className={`w-full h-full rounded-[12px] flex items-center justify-center text-[15px] font-black transition-all ${isDisabled ? "text-theme-subtle" : selected ? "bg-theme-highlight text-theme-text shadow-lg" : isToday ? "bg-[#0EA5E9]/10 text-[#0EA5E9] border border-[#0EA5E9]/30" : "bg-theme-surface text-theme-text"}`}
                         style={{ fontFamily: "'Montserrat', sans-serif" }}
                       >
                         {day}
@@ -199,7 +196,7 @@ export default function Predict({
               </div>
             </div>
             <div
-              className={`flex items-center gap-2 shrink-0 ${isDark ? "bg-white/5" : "bg-black/5"} p-1 rounded-[16px]`}
+              className="flex items-center gap-2 shrink-0 bg-theme-surface p-1 rounded-[16px]"
             >
               <button
                 onClick={() => {
@@ -208,7 +205,7 @@ export default function Predict({
                   setRangeEnd(null);
                   setSelectedDates([]);
                 }}
-                className={`flex-1 py-2.5 rounded-[12px] text-[10px] font-bold uppercase tracking-widest transition-all ${!isRangeMode ? (isDark ? "bg-white/20 text-white" : "bg-black/20 text-black") : isDark ? "bg-transparent text-white/40" : "bg-transparent text-black/40"}`}
+                className={`flex-1 py-2.5 rounded-[12px] text-[10px] font-bold uppercase tracking-widest transition-all ${!isRangeMode ? "bg-theme-text-20 text-theme-text" : "text-theme-muted"}`}
                 style={{ fontFamily: "'Montserrat', sans-serif" }}
               >
                 Single Day
@@ -218,7 +215,7 @@ export default function Predict({
                   setIsRangeMode(true);
                   setSelectedDates([]);
                 }}
-                className={`flex-1 py-2.5 rounded-[12px] text-[10px] font-bold uppercase tracking-widest transition-all ${isRangeMode ? (isDark ? "bg-white/20 text-white" : "bg-black/20 text-black") : isDark ? "bg-transparent text-white/40" : "bg-transparent text-black/40"}`}
+                className={`flex-1 py-2.5 rounded-[12px] text-[10px] font-bold uppercase tracking-widest transition-all ${isRangeMode ? "bg-theme-text-20 text-theme-text" : "text-theme-muted"}`}
                 style={{ fontFamily: "'Montserrat', sans-serif" }}
               >
                 Date Range
@@ -226,17 +223,17 @@ export default function Predict({
             </div>
           </div>
           <div
-            className={`w-full flex justify-between items-center ${isDark ? "bg-white/5 border-white/10" : "bg-black/5 border-black/10"} p-4 border rounded-[24px] shrink-0 mt-auto`}
+              className="w-full flex justify-between items-center bg-theme-surface border border-theme-subtle p-4 rounded-[24px] shrink-0 mt-auto"
           >
             <div className="flex flex-col ml-2">
               <span
-                className={`text-[12px] font-bold lowercase tracking-widest ${isDark ? "text-white/50" : "text-black/50"} mb-0.5`}
+                className="text-[12px] font-bold lowercase tracking-widest text-theme-muted mb-0.5"
                 style={{ fontFamily: "'Afacad', sans-serif" }}
               >
                 total days
               </span>
               <span
-                className={`text-[28px] font-black ${textClass}`}
+                className="text-[28px] font-black text-theme-text"
                 style={{ fontFamily: "'Montserrat', sans-serif" }}
               >
                 {selectedDates.length}
@@ -247,7 +244,7 @@ export default function Predict({
                 setIsPredicting(true);
                 onClose();
               }}
-              className="bg-[#ceff1c] text-[#111111] px-8 py-4 rounded-[16px] flex items-center gap-3 active:scale-95 shadow-xl transition-all"
+              className="bg-theme-highlight text-theme-text px-8 py-4 rounded-[16px] flex items-center gap-3 active:scale-95 shadow-xl transition-all"
             >
               <span
                 className="text-[14px] font-black uppercase"

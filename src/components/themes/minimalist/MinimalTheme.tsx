@@ -15,7 +15,7 @@ interface MinimalThemeProps {
   academia: any;
   onOpenSettings: () => void;
   startEntrance: boolean;
-  isDark: boolean;
+  isDark?: boolean;
 }
 
 export default function MinimalTheme(props: MinimalThemeProps) {
@@ -23,7 +23,6 @@ export default function MinimalTheme(props: MinimalThemeProps) {
   const [isAlertsOpen, setIsAlertsOpen] = useState(false);
   const [isSwipeDisabled, setIsSwipeDisabled] = useState(false);
   const { activeTab, direction } = tabState;
-  const isDark = props.isDark;
 
   const tabs = ["marks", "attendance", "home", "timetable", "calendar"];
 
@@ -96,7 +95,7 @@ export default function MinimalTheme(props: MinimalThemeProps) {
     }),
   };
 
-  const baseBg = isDark ? "bg-[#111111]" : "bg-[#F7F7F7]";
+  const baseBg = "bg-theme-bg";
 
   return (
     <div
@@ -126,16 +125,13 @@ export default function MinimalTheme(props: MinimalThemeProps) {
               <Marks
                 data={props.data}
                 setIsSwipeDisabled={setIsSwipeDisabled}
-                isDark={isDark}
               />
             )}
             {activeTab === "attendance" && (
               <Attendance
                 data={props.data}
                 academia={props.academia}
-                setIsSwipeDisabled={setIsSwipeDisabled}
-                isDark={isDark}
-              />
+                setIsSwipeDisabled={setIsSwipeDisabled}              />
             )}
             {activeTab === "home" && (
               <div className="h-full w-full overflow-y-auto no-scrollbar">
@@ -147,9 +143,7 @@ export default function MinimalTheme(props: MinimalThemeProps) {
                   isAlertsOpen={isAlertsOpen}
                   setIsAlertsOpen={setIsAlertsOpen}
                   setIsSwipeDisabled={setIsSwipeDisabled}
-                  startEntrance={props.startEntrance}
-                  isDark={isDark}
-                />
+                  startEntrance={props.startEntrance} isDark={false}                />
               </div>
             )}
             {activeTab === "timetable" && (
@@ -157,15 +151,12 @@ export default function MinimalTheme(props: MinimalThemeProps) {
                 data={props.data}
                 academia={props.academia}
                 setIsSwipeDisabled={setIsSwipeDisabled}
-                startEntrance={props.startEntrance}
-                isDark={isDark}
-              />
+                startEntrance={props.startEntrance} isDark={false}              />
             )}
             {activeTab === "calendar" && (
               <Calendar
                 data={props.data}
                 academia={props.academia}
-                isDark={isDark}
               />
             )}
           </motion.div>
@@ -184,7 +175,6 @@ export default function MinimalTheme(props: MinimalThemeProps) {
             <Navbar
               activeTab={activeTab}
               setActiveTab={handleTabChange}
-              isDark={isDark}
             />
           </motion.div>
         )}

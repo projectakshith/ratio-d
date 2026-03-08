@@ -4,18 +4,19 @@ import { AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
 import SettingsPage from "@/components/shared/SettingsPage";
 import { useAcademiaData } from "@/hooks/useAcademiaData";
+import { migrateTheme, parseTheme } from "@/utils/theme/themeUtils";
 
 const BrutalistTheme = dynamic(
   () => import("./themes/brutalist/BrutalistTheme"),
   {
-    loading: () => <div className="h-[100dvh] w-full bg-[#F7F7F7]" />,
+    loading: () => <div className="h-[100dvh] w-full bg-theme-bg" />,
   },
 );
 
 const MinimalistTheme = dynamic(
   () => import("./themes/minimalist/MinimalTheme"),
   {
-    loading: () => <div className="h-[100dvh] w-full bg-[#F7F7F7]" />,
+    loading: () => <div className="h-[100dvh] w-full bg-theme-bg" />,
   },
 );
 
@@ -27,40 +28,43 @@ export default function ThemeRouter({
   startEntrance,
   isUpdating,
 }: any) {
-  const [theme, setTheme] = useState<string>("minimalist_dark");
+  const [theme, setTheme] = useState<string>("minimalist_baal");
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const academia = useAcademiaData(data);
 
   useEffect(() => {
     try {
-      const savedTheme = localStorage.getItem("ratiod_theme");
-      if (savedTheme) {
-        setTheme(savedTheme);
-      } else {
-        setTheme("minimalist_dark");
-      }
+      const savedRaw = localStorage.getItem("ratiod_theme");
+      const migrated = migrateTheme(savedRaw);
+      setTheme(migrated);
+      // Apply data-theme attribute so CSS variables resolve
+      const { colorTheme } = parseTheme(migrated);
+      document.documentElement.setAttribute("data-theme", colorTheme);
     } catch (error) {
-      setTheme("minimalist_dark");
+      setTheme("minimalist_baal");
+      document.documentElement.setAttribute("data-theme", "baal");
     } finally {
       setMounted(true);
     }
   }, []);
 
   const handleThemeChange = (newTheme: string) => {
-    setTheme(newTheme);
+    const migrated = migrateTheme(newTheme);
+    setTheme(migrated);
+    const { colorTheme } = parseTheme(migrated);
+    document.documentElement.setAttribute("data-theme", colorTheme);
     try {
-      localStorage.setItem("ratiod_theme", newTheme);
+      localStorage.setItem("ratiod_theme", migrated);
     } catch (error) {}
     setIsSettingsOpen(false);
   };
 
   if (!mounted) {
-    return <main className="h-[100dvh] w-full bg-[#F7F7F7]" />;
+    return <main className="h-[100dvh] w-full bg-theme-bg" />;
   }
 
-  const isDark = theme === "minimalist_dark";
-  const themeMode = theme.startsWith("minimalist") ? "minimalist" : "brutalist";
+  const { uiStyle, isDark } = parseTheme(theme);
 
   const sharedProps = {
     data,
@@ -74,8 +78,8 @@ export default function ThemeRouter({
   };
 
   return (
-    <main className="h-[100dvh] w-full bg-[#F7F7F7] overflow-hidden relative">
-      {themeMode === "brutalist" ? (
+    <main className="h-[100dvh] w-full bg-theme-bg overflow-hidden relative">
+      {uiStyle === "brutalist" ? (
         <BrutalistTheme {...sharedProps} />
       ) : (
         <MinimalistTheme {...sharedProps} />

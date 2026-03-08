@@ -113,29 +113,29 @@ const MarksPage = ({ data }: { data: any }) => {
 
   const themeColorClass =
     activeSubject.status === "safe"
-      ? "text-[#ceff1c]"
+      ? "text-theme-highlight"
       : activeSubject.status === "danger"
-        ? "text-[#ffb800]"
-        : "text-[#ff003c]";
+        ? "text-theme-secondary"
+        : "text-theme-accent";
 
   const barColorClass =
     activeSubject.status === "safe"
-      ? "bg-[#ceff1c]"
+      ? "bg-theme-highlight"
       : activeSubject.status === "danger"
-        ? "bg-[#ffb800]"
-        : "bg-[#ff003c]";
+        ? "bg-theme-secondary"
+        : "bg-theme-accent";
 
   if (sortedMarks.length === 0) {
     return (
-      <div className="h-full w-full bg-[#050505] flex items-center justify-center text-white/50 font-mono text-sm">
+      <div className="h-full w-full bg-theme-bg flex items-center justify-center text-theme-text/50 font-mono text-sm">
         NO DATA AVAILABLE
       </div>
     );
   }
 
   return (
-    <div className="h-full w-full flex flex-col bg-[#050505] text-white font-sans relative overflow-hidden">
-      <div className="absolute inset-0 w-full h-full z-0 bg-[#050505]">
+    <div className="h-full w-full flex flex-col bg-theme-bg text-theme-text font-sans relative overflow-hidden">
+      <div className="absolute inset-0 w-full h-full z-0 bg-theme-bg">
         <div className="absolute inset-0 pointer-events-none opacity-10 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] bg-repeat mix-blend-screen" />
       </div>
 
@@ -200,7 +200,7 @@ const MarksPage = ({ data }: { data: any }) => {
 
         <div className="pb-1">
           <h3
-            className="text-xl md:text-2xl font-bold lowercase leading-tight mb-4 line-clamp-1 text-white"
+            className="text-xl md:text-2xl font-bold lowercase leading-tight mb-4 line-clamp-1 text-theme-text"
             style={{ fontFamily: "Aonic" }}
           >
             {activeSubject.title?.toLowerCase()}
@@ -240,7 +240,7 @@ const MarksPage = ({ data }: { data: any }) => {
             />
           </div>
           {!activeSubject.isNA && (
-            <span className="block text-[10px] font-mono font-bold lowercase mt-1 opacity-60 text-white/80">
+            <span className="block text-[10px] font-mono font-bold lowercase mt-1 opacity-60 text-theme-text/80">
               {currentRoast}
             </span>
           )}
@@ -250,30 +250,30 @@ const MarksPage = ({ data }: { data: any }) => {
       <div
         ref={listContainerRef}
         onScroll={handleScroll}
-        className={`absolute bottom-0 w-full overflow-y-auto bg-[#f5f6fc] text-black custom-scrollbar pb-32 h-[55%] rounded-t-[32px] shadow-[0_-10px_40px_rgba(0,0,0,0.3)] z-20 transition-transform duration-700 ease-in-out snap-y snap-mandatory ${
+        className={`absolute bottom-0 w-full overflow-y-auto bg-theme-surface text-theme-text custom-scrollbar pb-32 h-[55%] rounded-t-[32px] shadow-[0_-10px_40px_rgba(0,0,0,0.3)] z-20 transition-transform duration-700 ease-in-out snap-y snap-mandatory ${
           introMode ? "translate-y-[60%]" : "translate-y-0"
         }`}
         style={{ WebkitOverflowScrolling: "touch" }}
       >
         <div className="px-6 flex flex-col gap-4 pt-4">
-          <span className="font-mono text-[10px] lowercase tracking-widest text-[#050505]/40 mb-2 block sticky top-0 bg-[#f5f6fc] z-20 py-2">
+          <span className="font-mono text-[10px] lowercase tracking-widest text-theme-text/40 mb-2 block sticky top-0 bg-theme-surface z-20 py-2">
             /// full records
           </span>
 
           {sortedMarks.map((subject: any, index: number) => {
             const isSelected = subject.id === selectedId;
-            let itemColor = "text-[#050505]";
-            let barColor = "bg-[#050505]";
-            let pillColor = "bg-[#ceff1c]";
+            let itemColor = "text-theme-text";
+            let barColor = "bg-theme-text";
+            let pillColor = "bg-theme-highlight";
 
             if (subject.status === "cooked") {
-              itemColor = "text-[#ff003c]";
-              pillColor = "bg-[#ff003c]";
-              barColor = "bg-[#ff003c]";
+              itemColor = "status-text-cooked";
+              pillColor = "status-bg-cooked";
+              barColor = "status-bg-cooked";
             } else if (subject.status === "danger") {
-              itemColor = "text-[#ffb800]";
-              pillColor = "bg-[#ffb800]";
-              barColor = "bg-[#ffb800]";
+              itemColor = "status-text-danger";
+              pillColor = "status-bg-danger";
+              barColor = "status-bg-danger";
             }
 
             return (
@@ -311,7 +311,7 @@ const MarksPage = ({ data }: { data: any }) => {
                     )}
                   </div>
                 </div>
-                <div className="w-full h-[2px] bg-[#050505]/5 relative mb-3 rounded-full overflow-hidden">
+                <div className="w-full h-[2px] bg-theme-text/5 relative mb-3 rounded-full overflow-hidden">
                   <div
                     className={`h-full absolute top-0 left-0 transition-colors duration-300 ease-out ${barColor}`}
                     style={{
@@ -319,7 +319,7 @@ const MarksPage = ({ data }: { data: any }) => {
                     }}
                   />
                 </div>
-                <div className="flex justify-between items-center text-[10px] font-mono tracking-wide text-[#050505]/50 lowercase mt-2">
+                <div className="flex justify-between items-center text-[10px] font-mono tracking-wide text-theme-text/50 lowercase mt-2">
                   <div className="flex items-center gap-2">
                     <div
                       className={`w-1.5 h-1.5 rounded-full transition-colors duration-300 ${pillColor}`}
@@ -347,16 +347,16 @@ const MarksPage = ({ data }: { data: any }) => {
             initial={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.4 }}
-            className="absolute inset-0 flex flex-col justify-end items-start p-8 pb-[60%] z-50 bg-[#050505]"
+            className="absolute inset-0 flex flex-col justify-end items-start p-8 pb-[60%] z-50 bg-theme-bg"
           >
             <h1
-              className="text-6xl font-black lowercase tracking-tighter text-white mb-2"
+              className="text-6xl font-black lowercase tracking-tighter text-theme-text mb-2"
               style={{ fontFamily: "Aonic" }}
             >
               marks
             </h1>
             <p
-              className="text-xl font-bold lowercase text-white/80 leading-tight max-w-[80%]"
+              className="text-xl font-bold lowercase text-theme-text/80 leading-tight max-w-[80%]"
               style={{ fontFamily: "Aonic" }}
             >
               {currentRoast}

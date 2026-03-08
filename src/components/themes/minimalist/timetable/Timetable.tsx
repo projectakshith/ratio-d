@@ -207,26 +207,12 @@ export default function Timetable({
   if (!mounted) return null;
   const overview = getDayOverview(currentSchedule);
 
-  const bgClass = isDark ? "bg-[#111111]" : "bg-[#F7F7F7]";
-  const textClass = isDark ? "text-white" : "text-[#111111]";
-  const subTextClass = isDark ? "text-white/40" : "text-[#111111]/40";
-  const cardBg = isDark ? "bg-white/5" : "bg-white";
-  const cardBorder = isDark ? "border-white/10" : "border-[#111111]/5";
+  const bgClass = "bg-theme-bg";
+  const textClass = "text-theme-text";
+  const subTextClass = "text-theme-muted";
 
   return (
     <>
-      <style
-        dangerouslySetInnerHTML={{
-          __html: `
-          .no-scrollbar::-webkit-scrollbar { display: none; }
-          .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-          .break-dotted {
-            background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='20' ry='20' stroke='%23${isDark ? "ffffff20" : "111111"}' stroke-width='2' stroke-dasharray='6%2c 12' stroke-dashoffset='0' stroke-linecap='round' opacity='0.15'/%3e%3c/svg%3e");
-            border-radius: 20px;
-          }
-        `,
-        }}
-      />
 
       <div className={`absolute inset-0 ${bgClass}`}>
         <div
@@ -235,11 +221,11 @@ export default function Timetable({
         >
           {isHoliday && (
             <div
-              className={`w-full ${isDark ? "bg-[#85a818]/5 border-[#85a818]/20" : "bg-[#85a818]/10 border-[#85a818]/30"} border-[1.5px] rounded-[16px] p-3 mb-6 flex items-center justify-center gap-2 shrink-0`}
+              className="w-full status-bg-safe status-border-safe border-[1.5px] rounded-[16px] p-3 mb-6 flex items-center justify-center gap-2 shrink-0"
             >
               <span className="text-xl">🌴</span>
               <span
-                className={`text-[13px] font-bold ${isDark ? "text-[#85a818]" : "text-[#4d6600]"} lowercase tracking-wide`}
+                className="text-[13px] font-bold status-text-safe lowercase tracking-wide"
                 style={{ fontFamily: "'Afacad', sans-serif" }}
               >
                 holiday today! viewing upcoming track.
@@ -249,7 +235,7 @@ export default function Timetable({
 
           <div className="w-full flex flex-col items-center mt-2 mb-8 shrink-0 relative">
             <span
-              className={`text-[12px] font-bold lowercase tracking-[0.3em] mb-3 text-center transition-colors ${isViewingToday ? subTextClass : isViewingNext ? "text-[#85a818]" : subTextClass}`}
+              className={`text-[12px] font-bold lowercase tracking-[0.3em] mb-3 text-center transition-colors ${isViewingToday ? subTextClass : isViewingNext ? "text-theme-highlight" : subTextClass}`}
               style={{ fontFamily: "'Montserrat', sans-serif" }}
             >
               {isViewingToday
@@ -274,19 +260,19 @@ export default function Timetable({
               className="w-full relative group active:scale-[0.98] transition-all duration-200"
             >
               <div
-                className={`absolute inset-0 ${isDark ? "bg-white" : "bg-[#111111]"} rounded-[24px] translate-y-1.5 transition-transform group-hover:translate-y-2`}
+                className="absolute inset-0 bg-theme-text rounded-[24px] translate-y-1.5 transition-transform group-hover:translate-y-2"
               />
               <div
-                className={`relative w-full border-[1.5px] ${isDark ? "border-white bg-[#111111] text-white" : "border-[#111111] bg-white text-[#111111]"} rounded-[24px] p-4 flex items-center justify-between transition-transform group-hover:-translate-y-0.5 group-active:translate-y-1`}
+                className="relative w-full border-[1.5px] border-theme-text bg-theme-bg text-theme-text rounded-[24px] p-4 flex items-center justify-between transition-transform group-hover:-translate-y-0.5 group-active:translate-y-1"
               >
                 <div className="flex items-center gap-3">
                   <div
-                    className={`w-10 h-10 rounded-full ${isDark ? "bg-white/5" : "bg-[#111111]/5"} flex items-center justify-center`}
+                    className="w-10 h-10 rounded-full bg-theme-text-8 flex items-center justify-center"
                   >
                     <Plus
                       size={20}
                       strokeWidth={2.5}
-                      className={isDark ? "text-white" : "text-[#111111]"}
+                      className="text-theme-text"
                     />
                   </div>
                   <div className="flex flex-col items-start">
@@ -297,7 +283,7 @@ export default function Timetable({
                       CUSTOM CLASS
                     </span>
                     <span
-                      className={`text-[10px] font-bold lowercase tracking-wider ${isDark ? "text-white/40" : "text-[#111111]/40"} mt-1`}
+                      className="text-[10px] font-bold lowercase tracking-wider text-theme-muted mt-1"
                       style={{ fontFamily: "'Afacad', sans-serif" }}
                     >
                       add to your schedule
@@ -305,12 +291,12 @@ export default function Timetable({
                   </div>
                 </div>
                 <div
-                  className={`w-9 h-9 rounded-full ${isDark ? "bg-white/5 border-white/20" : "bg-[#F7F7F7] border-[#111111]"} border flex items-center justify-center shadow-[2px_2px_0px_${isDark ? "#ffffff" : "#111111"}]`}
+                  className="w-9 h-9 rounded-full bg-theme-surface border-theme-text border flex items-center justify-center shadow-[2px_2px_0px_var(--theme-text)]"
                 >
                   <ChevronRight
                     size={20}
                     strokeWidth={3}
-                    className={isDark ? "text-white" : "text-[#111111]"}
+                    className="text-theme-text"
                   />
                 </div>
               </div>
@@ -328,30 +314,30 @@ export default function Timetable({
             >
               <motion.div
                 variants={itemVariants}
-                className={`w-full ${isDark ? "bg-[#85a818]/5 border-[#85a818]/20" : "bg-[#F2FFDB] border-[#85a818]/30"} border-[1.5px] rounded-[24px] p-5 mb-8 flex items-center justify-between shadow-sm`}
+                className="w-full status-bg-safe status-border-safe border-[1.5px] rounded-[24px] p-5 mb-8 flex items-center justify-between shadow-sm"
               >
                 <div className="flex flex-col">
                   <span
-                    className={`text-[10px] font-bold lowercase tracking-[0.2em] ${isDark ? "text-[#85a818]/60" : "text-[#4d6600]/60"} mb-1`}
+                    className="text-[10px] font-bold lowercase tracking-[0.2em] status-text-safe mb-1"
                     style={{ fontFamily: "'Afacad', sans-serif" }}
                   >
                     day overview
                   </span>
                   <div className="flex items-baseline gap-2">
                     <span
-                      className={`text-[24px] font-black tracking-tighter ${isDark ? "text-[#85a818]" : "text-[#4d6600]"}`}
+                      className="text-[24px] font-black tracking-tighter status-text-safe"
                       style={{ fontFamily: "'Montserrat', sans-serif" }}
                     >
                       {overview.start}
                     </span>
                     <span
-                      className={`text-[14px] font-bold ${isDark ? "text-[#85a818]/40" : "text-[#4d6600]/40"}`}
+                      className="text-[14px] font-bold status-text-safe opacity-40"
                       style={{ fontFamily: "'Montserrat', sans-serif" }}
                     >
                       to
                     </span>
                     <span
-                      className={`text-[24px] font-black tracking-tighter ${isDark ? "text-[#85a818]" : "text-[#4d6600]"}`}
+                      className="text-[24px] font-black tracking-tighter status-text-safe"
                       style={{ fontFamily: "'Montserrat', sans-serif" }}
                     >
                       {overview.end}
@@ -360,13 +346,13 @@ export default function Timetable({
                 </div>
                 <div className="flex flex-col items-end">
                   <span
-                    className={`text-[32px] leading-[0.8] font-black ${isDark ? "text-[#85a818]" : "text-[#4d6600]"}`}
+                    className="text-[32px] leading-[0.8] font-black status-text-safe"
                     style={{ fontFamily: "'Montserrat', sans-serif" }}
                   >
                     {overview.count}
                   </span>
                   <span
-                    className={`text-[10px] font-bold uppercase tracking-widest ${isDark ? "text-[#85a818]/60" : "text-[#4d6600]/60"} mt-1.5`}
+                    className="text-[10px] font-bold uppercase tracking-widest status-text-safe opacity-60 mt-1.5"
                     style={{ fontFamily: "'Afacad', sans-serif" }}
                   >
                     classes
@@ -376,7 +362,7 @@ export default function Timetable({
 
               <div className="flex flex-col gap-4 w-full relative">
                 <div
-                  className={`absolute left-[23px] top-6 bottom-6 w-[2px] ${isDark ? "bg-white/5" : "bg-[#111111]/5"} rounded-full z-0`}
+                  className="absolute left-[23px] top-6 bottom-6 w-[2px] bg-theme-text-5 rounded-full z-0"
                 />
 
                 {currentSchedule.map((item) => {
@@ -389,18 +375,18 @@ export default function Timetable({
                       >
                         <div className="w-12 flex justify-center shrink-0">
                           <div
-                            className={`w-2.5 h-2.5 rounded-full ${isDark ? "bg-white/10" : "bg-[#111111]/10"} ring-4 ${isDark ? "ring-[#111111]" : "ring-[#F7F7F7]"}`}
+                            className="w-2.5 h-2.5 rounded-full bg-theme-text-10 ring-4 ring-[var(--theme-bg)]"
                           />
                         </div>
                         <div className="flex-1 break-dotted p-4 flex items-center justify-between">
                           <span
-                            className={`text-[14px] font-bold lowercase tracking-widest ${isDark ? "text-white/20" : "text-[#111111]/40"}`}
+                            className="text-[14px] font-bold lowercase tracking-widest text-theme-faint"
                             style={{ fontFamily: "'Afacad', sans-serif" }}
                           >
                             {item.title}
                           </span>
                           <span
-                            className={`text-[11px] font-bold tracking-widest ${isDark ? "text-white/20" : "text-[#111111]/40"}`}
+                            className="text-[11px] font-bold tracking-widest text-theme-faint"
                             style={{ fontFamily: "'Montserrat', sans-serif" }}
                           >
                             {item.time}
@@ -414,32 +400,18 @@ export default function Timetable({
                   const isActuallyCurrent = item.isCurrent && isViewingToday;
 
                   const currentTheme = isActuallyCurrent
-                    ? isDark
-                      ? "bg-white/10 border-white shadow-xl scale-[1.02] transform-gpu"
-                      : "bg-[#111111] border-transparent shadow-lg scale-[1.02] transform-gpu"
+                    ? "bg-theme-text border-transparent shadow-xl scale-[1.02] transform-gpu"
                     : isLab
-                      ? isDark
-                        ? "border-[#0EA5E9]/20 bg-[#0EA5E9]/5"
-                        : "border-[#0EA5E9]/20 bg-[#E0F2FE]/50"
-                      : item.isCustom
-                        ? isDark
-                          ? "bg-white/5 border-white/10 shadow-sm"
-                          : "bg-white border-[#111111]/5 shadow-sm"
-                        : `${cardBg} ${cardBorder}`;
+                      ? "border-[#0EA5E9]/20 bg-[#0EA5E9]/10"
+                      : "bg-theme-card border-theme-subtle";
 
                   const textTheme = isActuallyCurrent
-                    ? isDark
-                      ? "text-white"
-                      : "text-white"
+                    ? "text-theme-bg"
                     : textClass;
                   const subTextTheme = isActuallyCurrent
-                    ? isDark
-                      ? "text-white/60"
-                      : "text-white/60"
+                    ? "text-theme-bg-60"
                     : isLab
-                      ? isDark
-                        ? "text-[#0ea5e9]/60"
-                        : "text-[#111111]/60"
+                      ? "text-[#0ea5e9]/60"
                       : subTextClass;
 
                   return (
@@ -453,7 +425,7 @@ export default function Timetable({
                     >
                       <div className="w-12 flex justify-center pt-6 shrink-0 relative">
                         <div
-                          className={`w-3.5 h-3.5 rounded-full ring-4 ${isDark ? "ring-[#111111]" : "ring-[#F7F7F7]"} z-10 ${isActuallyCurrent ? "bg-[#85a818] animate-pulse shadow-[0_0_12px_rgba(133,168,24,0.8)]" : isLab ? "bg-[#0EA5E9]" : isDark ? "bg-white/20" : "bg-[#111111]"}`}
+                          className={`w-3.5 h-3.5 rounded-full ring-4 ring-[var(--theme-bg)] z-10 ${isActuallyCurrent ? "bg-[#85a818] animate-pulse shadow-[0_0_12px_rgba(133,168,24,0.8)]" : isLab ? "bg-[#0EA5E9]" : "bg-theme-text"}`}
                         />
                         {isActuallyCurrent && (
                           <div className="absolute top-6 w-3.5 h-3.5 rounded-full bg-[#85a818] animate-ping opacity-50" />
@@ -468,7 +440,7 @@ export default function Timetable({
                             onClick={() =>
                               handleDeleteCustom(activeDay, item.time)
                             }
-                            className={`absolute top-3 right-3 w-8 h-8 ${isDark ? "bg-[#FF4D4D]/5" : "bg-[#FF4D4D]/10"} text-[#FF4D4D] rounded-full flex items-center justify-center hover:bg-[#FF4D4D]/20 active:scale-95 transition-all z-20`}
+                            className="absolute top-3 right-3 w-8 h-8 bg-[#FF4D4D]/10 text-[#FF4D4D] rounded-full flex items-center justify-center hover:bg-[#FF4D4D]/20 active:scale-95 transition-all z-20"
                           >
                             <X size={16} strokeWidth={2.5} />
                           </button>
@@ -476,7 +448,7 @@ export default function Timetable({
 
                         <div className="flex justify-between items-start mb-4 pr-10">
                           <div
-                            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-[10px] ${isActuallyCurrent ? (isDark ? "bg-[#111111]/5" : "bg-white/10") : isLab ? (isDark ? "bg-[#0EA5E9]/10" : "bg-[#0EA5E9]/10") : isDark ? "bg-white/5" : "bg-[#F7F7F7]"}`}
+                            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-[10px] ${isActuallyCurrent ? "bg-theme-bg-alpha" : isLab ? "bg-[#0EA5E9]/10" : "bg-theme-surface"}`}
                           >
                             <Clock
                               size={12}
@@ -507,7 +479,7 @@ export default function Timetable({
                             )}
                             {isActuallyCurrent && (
                               <span
-                                className={`text-[9px] font-bold uppercase tracking-[0.25em] ${isDark ? "text-[#111111] bg-[#85a818]" : "text-white bg-[#85a818]"} px-2 py-1 rounded-md shrink-0`}
+                                className={`text-[9px] font-bold uppercase tracking-[0.25em] text-white bg-[#85a818] px-2 py-1 rounded-md shrink-0`}
                                 style={{ fontFamily: "'Afacad', sans-serif" }}
                               >
                                 live
@@ -530,7 +502,7 @@ export default function Timetable({
                         </span>
 
                         <div
-                          className={`flex items-center justify-between pt-4 mt-auto border-t ${isActuallyCurrent ? (isDark ? "border-[#111111]/5" : "border-white/10") : isLab ? "border-[#0EA5E9]/20" : isDark ? "border-white/5" : "border-[#111111]/5"}`}
+                          className={`flex items-center justify-between pt-4 mt-auto border-t ${isActuallyCurrent ? "border-theme-bg-10" : isLab ? "border-[#0EA5E9]/20" : "border-theme-subtle"}`}
                         >
                           <div className="flex items-center gap-3 flex-wrap">
                             <div className="flex items-center gap-1.5">
@@ -538,9 +510,7 @@ export default function Timetable({
                                 size={12}
                                 className={
                                   isActuallyCurrent
-                                    ? isDark
-                                      ? "text-white/40"
-                                      : "text-white/40"
+                                    ? "text-theme-bg-60"
                                     : isLab
                                       ? "text-[#0EA5E9]/50"
                                       : subTextClass
@@ -556,23 +526,21 @@ export default function Timetable({
                               </span>
                             </div>
                             <div
-                              className={`w-1 h-1 rounded-full ${isActuallyCurrent ? (isDark ? "bg-white/20" : "bg-white/20") : isLab ? "bg-[#0EA5E9]/30" : isDark ? "bg-white/10" : "bg-[#111111]/20"}`}
+                              className={`w-1 h-1 rounded-full ${isActuallyCurrent ? "bg-theme-bg-alpha" : isLab ? "bg-[#0EA5E9]/30" : "bg-theme-text-20"}`}
                             />
                             <div className="flex items-center gap-1.5">
                               <User
                                 size={12}
                                 className={
                                   isActuallyCurrent
-                                    ? isDark
-                                      ? "text-white/40"
-                                      : "text-white/40"
+                                    ? "text-theme-bg-60"
                                     : isLab
                                       ? "text-[#0EA5E9]/50"
                                       : subTextClass
                                 }
                               />
                               <span
-                                className={`text-[11px] font-bold lowercase tracking-wider ${isActuallyCurrent ? (isDark ? "text-white/80" : "text-white/80") : isLab ? textClass : subTextClass}`}
+                                className={`text-[11px] font-bold lowercase tracking-wider ${isActuallyCurrent ? "text-theme-bg-60" : isLab ? textClass : subTextClass}`}
                                 style={{ fontFamily: "'Afacad', sans-serif" }}
                               >
                                 {item.faculty}
@@ -590,16 +558,16 @@ export default function Timetable({
         </div>
 
         <div
-          className={`fixed bottom-[85px] left-1/2 -translate-x-1/2 ${isDark ? "bg-white/10" : "bg-[#111111]/95"} backdrop-blur-md p-1.5 pr-2 rounded-full flex items-center gap-1 z-40 shadow-[0_8px_32px_rgba(0,0,0,0.3)] border ${isDark ? "border-white/20" : "border-white/10"}`}
+          className="fixed bottom-[85px] left-1/2 -translate-x-1/2 bg-theme-text/90 backdrop-blur-md p-1.5 pr-2 rounded-full flex items-center gap-1 z-40 shadow-[0_8px_32px_rgba(0,0,0,0.3)] border border-theme-bg-10"
         >
           <span
-            className={`text-[11px] font-bold ${isDark ? "text-white/60" : "text-white/40"} ml-3 mr-1 tracking-widest`}
+            className="text-[11px] font-bold text-theme-bg-30 ml-3 mr-1 tracking-widest"
             style={{ fontFamily: "'Montserrat', sans-serif" }}
           >
             DO
           </span>
           <div
-            className={`w-[1.5px] h-5 ${isDark ? "bg-white/20" : "bg-white/20"} mx-1 rounded-full`}
+            className="w-[1.5px] h-5 bg-theme-bg-alpha mx-1 rounded-full"
           />
           {[1, 2, 3, 4, 5].map((day) => (
             <button
@@ -608,7 +576,7 @@ export default function Timetable({
               className={`w-10 h-10 flex items-center justify-center rounded-full transition-all duration-300 ${
                 activeDay === day
                   ? "bg-[#85a818] text-white scale-105 shadow-[0_0_12px_rgba(133,168,24,0.4)]"
-                  : `bg-transparent ${isDark ? "text-white/60" : "text-white/40"} hover:text-white hover:bg-white/10`
+                  : "bg-transparent text-theme-bg-30 hover:text-theme-bg hover:bg-theme-bg-alpha"
               }`}
             >
               <span
@@ -622,7 +590,7 @@ export default function Timetable({
         </div>
 
         <div
-          className={`absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t ${isDark ? "from-[#111111] via-[#111111]/80" : "from-[#F7F7F7] via-[#F7F7F7]/80"} to-transparent px-6 pb-[30px] z-20 flex justify-between items-end pointer-events-none`}
+          className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-[var(--theme-bg)] via-[var(--theme-bg)]/80 to-transparent px-6 pb-[30px] z-20 flex justify-between items-end pointer-events-none"
         >
           {"timetable".split("").map((char, i) => (
             <span
@@ -639,7 +607,6 @@ export default function Timetable({
       <CustomClass
         isOpen={isAddingClass}
         onClose={() => setIsAddingClass(false)}
-        isDark={isDark}
         newSub={newSub}
         setNewSub={setNewSub}
         newRoom={newRoom}

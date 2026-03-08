@@ -20,7 +20,9 @@ export default function Home() {
 
   const checkVersion = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/version`);
+      const response = await fetch(`/api/version`);
+      const ct = response.headers.get("content-type") ?? "";
+      if (!ct.includes("application/json")) return;
       const { version } = await response.json();
       const currentVersion = localStorage.getItem("ratio_app_version");
       if (currentVersion !== version) {
@@ -89,22 +91,21 @@ export default function Home() {
         !existingData.schedule || 
         Object.keys(existingData.schedule).length === 0;
       const endpoint = isMissingData ? "login" : "refresh";
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/${endpoint}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            username: creds.username,
-            password: creds.password,
-            cookies: savedCookies,
-          }),
-        },
-      );
+      const response = await fetch(`/api/${endpoint}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: creds.username,
+          password: creds.password,
+          cookies: savedCookies,
+        }),
+      });
       if (response.status === 401) {
         handleLogout();
         throw new Error("Session expired or invalid credentials");
       }
+      const ct = response.headers.get("content-type") ?? "";
+      if (!ct.includes("application/json")) throw new Error("Server returned non-JSON response");
       const result = await response.json();
       if (!result.success) throw new Error(`${endpoint} failed`);
       if (result.cookies) {
@@ -212,14 +213,7 @@ export default function Home() {
         className={`w-full h-full ${view === "loading" ? "opacity-0" : "opacity-100"}`}
       >
         {view === "onboarding" && (
-          <>
-            <button
-              onClick={handleDevBypass}
-              className="absolute top-0 right-0 w-24 h-24 z-[99] opacity-0"
-              aria-label="Developer Bypass"
-            />
-            <OnboardingPage />
-          </>
+          <OnboardingPage onDevBypass={handleDevBypass} />
         )}
         {view === "login" && (
           <LoginPage
