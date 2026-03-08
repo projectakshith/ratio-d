@@ -363,21 +363,21 @@ export default function Attendance({
           {actionRequired.length > 0 && (
             <motion.div
               variants={itemVariants}
-              className="w-full warning-dotted-rect p-5 flex flex-col gap-4 mb-12 bg-theme-secondary/5 shrink-0"
+              className="w-full warning-dotted-rect p-5 flex flex-col gap-4 mb-12 bg-[#FF4D4D]/5 shrink-0"
             >
               <div className="flex items-center gap-3 w-full">
                 <span
-                  className="text-[12px] font-bold lowercase tracking-[0.25em] text-theme-secondary whitespace-nowrap"
+                  className="text-[12px] font-bold lowercase tracking-[0.25em] text-[#FF4D4D] whitespace-nowrap"
                   style={{ fontFamily: "'Montserrat', sans-serif" }}
                 >
                   action required
                 </span>
-                <div className="flex-1 h-[1.5px] bg-theme-secondary/20 rounded-full" />
+                <div className="flex-1 h-[1.5px] bg-[#FF4D4D]/20 rounded-full" />
               </div>
               {actionRequired.map((sub: any) => (
                 <div
                   key={sub.id}
-                  className={`w-full bg-theme-surface border-[1.5px] rounded-[18px] p-4 flex flex-col shadow-sm transition-all ${isPredicting && sub.hasChanged ? "affected-dotted-border" : "border-theme-secondary/20"}`}
+                  className={`w-full bg-theme-surface border-[1.5px] rounded-[18px] p-4 flex flex-col shadow-sm transition-all ${isPredicting && sub.hasChanged ? "affected-dotted-border" : "border-[#FF4D4D]/20"}`}
                 >
                   <div className="flex items-center justify-between w-full">
                     <div className="flex flex-col items-center justify-center min-w-[80px] shrink-0">
@@ -385,18 +385,18 @@ export default function Attendance({
                         className="text-[3.2rem] leading-[0.8] font-black tracking-tighter"
                         style={{
                           fontFamily: "'Montserrat', sans-serif",
-                          color: "var(--theme-secondary)",
+                          color: "#FF4D4D",
                         }}
                       >
                         {sub.val}
                       </span>
                       {isPredicting && sub.hasChanged ? (
-                        <div className="flex items-center gap-1 mt-1.5 px-2 py-0.5 rounded-full bg-theme-secondary/10 border border-theme-secondary/20">
-                          <span className="text-[10px] font-bold opacity-40 text-theme-secondary">
+                        <div className="flex items-center gap-1 mt-1.5 px-2 py-0.5 rounded-full bg-[#FF4D4D]/10 border border-[#FF4D4D]/20">
+                          <span className="text-[10px] font-bold opacity-40 text-[#FF4D4D]">
                             {sub.originalVal}
                           </span>
-                          <ChevronRightIcon size={8} className="opacity-40 text-theme-secondary" />
-                          <span className="text-[10px] font-black text-theme-secondary">
+                          <ChevronRightIcon size={8} className="opacity-40 text-[#FF4D4D]" />
+                          <span className="text-[10px] font-black text-[#FF4D4D]">
                             {sub.val}
                           </span>
                         </div>
@@ -405,14 +405,14 @@ export default function Attendance({
                           className="text-[10px] font-bold uppercase tracking-widest mt-1 text-center"
                           style={{
                             fontFamily: "'Afacad', sans-serif",
-                            color: "color-mix(in srgb, var(--theme-secondary) 70%, transparent)",
+                            color: "#FF4D4Db3",
                           }}
                         >
                           {sub.currentLabel}
                         </span>
                       )}
                       {isPredicting && sub.hasChanged && sub.originalLabel !== sub.currentLabel && (
-                        <span className="text-[8px] font-black uppercase tracking-tighter mt-1 opacity-60 text-center text-theme-secondary">
+                        <span className="text-[8px] font-black uppercase tracking-tighter mt-1 text-[#FF4D4D]/60 text-center">
                           {sub.originalLabel} → {sub.currentLabel}
                         </span>
                       )}
@@ -428,35 +428,40 @@ export default function Attendance({
                           </span>
                         )}
                         <span
-                          className="text-[16px] font-black uppercase tracking-widest leading-[1.1] truncate text-theme-secondary"
+                          className="text-[16px] font-black uppercase tracking-widest leading-[1.1] truncate"
                           style={{
                             fontFamily: "'Montserrat', sans-serif",
+                            color: "#FF4D4D",
                           }}
                         >
                           {sub.displayCode}
                         </span>
                       </div>
                       <span
-                        className="text-[12px] font-medium lowercase tracking-wide leading-[1.1] truncate w-full text-theme-secondary/70"
+                        className="text-[12px] font-medium lowercase tracking-wide leading-[1.1] truncate w-full"
                         style={{
                           fontFamily: "'Afacad', sans-serif",
+                          color: "#FF4D4Db3",
                         }}
                       >
                         {sub.fullName}
                       </span>
                       <div className="flex items-center gap-2 mt-2">
                         <span
-                          className="text-[12px] font-bold opacity-70 text-theme-secondary"
+                          className="text-[12px] font-bold opacity-70"
+                          style={{ color: "#FF4D4D" }}
                         >
                           {sub.present}/{sub.conducted}
                         </span>
                         <div
-                          className="w-[3px] h-[3px] rounded-full opacity-40 bg-theme-secondary"
+                          className="w-[3px] h-[3px] rounded-full opacity-40"
+                          style={{ backgroundColor: "#FF4D4D" }}
                         />
                         <span
-                          className="text-[16px] font-black tracking-tighter text-theme-secondary"
+                          className="text-[16px] font-black tracking-tighter"
                           style={{
                             fontFamily: "'Montserrat', sans-serif",
+                            color: "#FF4D4D",
                           }}
                         >
                           {sub.percent}%
