@@ -525,7 +525,67 @@ const SettingsPage = ({
                             Default Presets
                           </p>
                           <div className="grid grid-cols-1 gap-2">
-                            {defaultThemes.map(renderThemeButton)}
+                            {defaultThemes.map((ct) => {
+                              const isActive = colorTheme === ct.id;
+                              const [bgSwatch, primarySwatch, hlSwatch] = ct.swatches;
+                              return (
+                                <button
+                                  key={ct.id}
+                                  onClick={() => {
+                                    const targetStyle = ct.id === "brutalist" ? "brutalist" : "minimalist";
+                                    setUiStyle(targetStyle);
+                                    setColorTheme(ct.id);
+                                    handleThemeApply(targetStyle, ct.id);
+                                  }}
+                                  className={`w-full flex items-start gap-4 p-3.5 rounded-2xl border-[1.5px] transition-all active:scale-[0.98] ${
+                                    isActive
+                                      ? "border-theme-highlight bg-theme-highlight/10"
+                                      : "border-theme-border bg-theme-surface"
+                                  }`}
+                                >
+                                  {/* Swatches */}
+                                  <div className="flex gap-1 shrink-0 mt-0.5">
+                                    {[bgSwatch, primarySwatch, hlSwatch].map((s, i) => (
+                                      <div
+                                        key={i}
+                                        className="w-6 h-6 rounded-full border border-black/10"
+                                        style={{ backgroundColor: s }}
+                                      />
+                                    ))}
+                                  </div>
+                                  {/* Labels */}
+                                  <div className="flex flex-col items-start min-w-0 flex-1">
+                                    <span
+                                      className={`text-[15px] font-bold leading-tight ${
+                                        isActive ? "text-theme-highlight" : "text-theme-text"
+                                      }`}
+                                    >
+                                      {ct.name}
+                                    </span>
+                                    <span className="text-[11px] text-theme-muted leading-snug mt-0.5">
+                                      {ct.deity}<br />{ct.description}
+                                    </span>
+                                  </div>
+                                  {/* Dark / Light badge */}
+                                  <span
+                                    className={`text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full shrink-0 mt-0.5 ${
+                                      ct.isDark
+                                        ? "bg-black/30 text-white/70"
+                                        : "bg-black/10 text-black/50"
+                                    }`}
+                                  >
+                                    {ct.isDark ? "dark" : "light"}
+                                  </span>
+                                  {isActive && (
+                                    <Check
+                                      className="text-theme-highlight shrink-0 mt-0.5"
+                                      size={18}
+                                      strokeWidth={3}
+                                    />
+                                  )}
+                                </button>
+                              );
+                            })}
                           </div>
                         </motion.div>
 

@@ -174,17 +174,16 @@ export function buildTheme(
 export function migrateTheme(raw: string | null): string {
   if (!raw) return "minimalist_baal";
   if (raw === "brutalist") return "brutalist_brutalist";
-  switch (raw) {
-    case "minimalist_dark":  return "minimalist_baal";
-    case "minimalist_light": return "minimalist_el";
-    default:
-      // Already in new format or recognisable – validate it
-      if (raw.includes("_")) {
-        const { uiStyle, colorTheme } = parseTheme(raw);
-        return buildTheme(uiStyle, colorTheme);
-      }
-      return "minimalist_baal";
+  if (raw === "minimalist_dark") return "minimalist_baal";
+  if (raw === "minimalist_light") return "minimalist_el";
+
+  // If it's already in the new format, just validate it
+  if (raw.includes("_")) {
+    const { uiStyle, colorTheme } = parseTheme(raw);
+    return buildTheme(uiStyle, colorTheme);
   }
+
+  return "minimalist_baal";
 }
 
 /** Human-readable display name for a full theme string */
