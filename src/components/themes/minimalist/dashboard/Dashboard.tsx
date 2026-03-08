@@ -818,7 +818,7 @@ export default function Dashboard({
 
             <div
               onClick={() => setIsAlertsOpen(true)}
-              className="w-full bg-theme-text text-theme-bg border-[1.5px] border-black/5 rounded-[24px] p-2 pr-5 flex items-center gap-4 shadow-sm active:scale-[0.98] transition-transform cursor-pointer"
+              className="w-full bg-theme-emphasis text-theme-bg border-[1.5px] border-black/5 rounded-[24px] p-2 pr-5 flex items-center gap-4 shadow-sm active:scale-[0.98] transition-transform cursor-pointer"
             >
               <div
                 className="w-[50px] h-[50px] rounded-[18px] bg-theme-bg-alpha flex items-center justify-center shrink-0"

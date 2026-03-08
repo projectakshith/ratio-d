@@ -558,7 +558,7 @@ export default function Timetable({
         </div>
 
         <div
-          className="fixed bottom-[85px] left-1/2 -translate-x-1/2 bg-theme-text/90 backdrop-blur-md p-1.5 pr-2 rounded-full flex items-center gap-1 z-40 shadow-[0_8px_32px_rgba(0,0,0,0.3)] border border-theme-bg-10"
+          className="fixed bottom-[85px] left-1/2 -translate-x-1/2 bg-theme-emphasis backdrop-blur-md p-1.5 pr-2 rounded-full flex items-center gap-1 z-40 shadow-[0_8px_32px_rgba(0,0,0,0.3)] border border-theme-bg-10"
         >
           <span
             className="text-[11px] font-bold text-theme-bg-30 ml-3 mr-1 tracking-widest"
@@ -576,7 +576,7 @@ export default function Timetable({
               className={`w-10 h-10 flex items-center justify-center rounded-full transition-all duration-300 ${
                 activeDay === day
                   ? "bg-[#85a818] text-white scale-105 shadow-[0_0_12px_rgba(133,168,24,0.4)]"
-                  : "bg-transparent text-theme-bg-30 hover:text-theme-bg hover:bg-theme-bg-alpha"
+                  : "bg-transparent text-theme-bg-70 hover:text-theme-bg hover:bg-theme-bg-alpha"
               }`}
             >
               <span
