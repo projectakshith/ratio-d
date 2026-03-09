@@ -39,6 +39,17 @@ export default function Home() {
   };
 
   useEffect(() => {
+    try {
+      const savedRaw = localStorage.getItem("ratiod_theme");
+      if (savedRaw) {
+        const parts = savedRaw.split("_");
+        const colorTheme = parts.length > 1 ? parts[1] : "baal";
+        document.documentElement.setAttribute("data-theme", colorTheme);
+      } else {
+        document.documentElement.setAttribute("data-theme", "baal");
+      }
+    } catch (e) {}
+
     EncryptionUtils.cleanOldKeys();
     checkVersion();
     const isStandalone =
@@ -173,7 +184,7 @@ export default function Home() {
   }, [view]);
 
   return (
-    <main className="bg-[#F7F7F7] min-h-[100dvh] w-full relative overflow-hidden">
+    <main className="bg-theme-bg min-h-[100dvh] w-full relative overflow-hidden">
       <AnimatePresence>
         {isOffline && (
           <motion.div
@@ -216,13 +227,15 @@ export default function Home() {
           <OnboardingPage onDevBypass={handleDevBypass} />
         )}
         {view === "login" && (
-          <LoginPage
-            onLogin={(data) => {
-              setUserData(data);
-              setView("app");
-              localStorage.setItem("ratio_data", JSON.stringify(data));
-            }}
-          />
+          <div data-theme="default" className="w-full h-full bg-[#F7F7F7]">
+            <LoginPage
+              onLogin={(data) => {
+                setUserData(data);
+                setView("app");
+                localStorage.setItem("ratio_data", JSON.stringify(data));
+              }}
+            />
+          </div>
         )}
         {view === "app" && (
           <ThemeRouter
@@ -242,13 +255,13 @@ export default function Home() {
             initial={{ opacity: 1 }}
             exit={{ y: "-100%" }}
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            className="fixed inset-0 bg-[#0c30ff] flex items-center justify-center z-[100]"
+            className="fixed inset-0 bg-theme-bg flex items-center justify-center z-[100]"
           >
             <motion.h1
               initial={{ opacity: 0, scale: 0.8, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-              className="text-5xl md:text-7xl lowercase tracking-tighter text-[#ceff1c]"
+              className="text-5xl md:text-7xl lowercase tracking-tighter text-theme-highlight"
               style={{ fontFamily: "Urbanosta, sans-serif" }}
             >
               ratio'd
