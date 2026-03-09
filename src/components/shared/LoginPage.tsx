@@ -8,8 +8,6 @@ interface LoginPageProps {
   onLogin: (data: any) => void;
 }
 
-const API_URL = `/api/login`;
-
 const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
@@ -34,7 +32,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
       EncryptionUtils.cleanOldKeys();
       const savedCookies = EncryptionUtils.loadDecrypted("academia_cookies");
 
-      const response = await fetch(API_URL, {
+      const response = await fetch("/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -44,10 +42,6 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
         }),
       });
 
-      const ct = response.headers.get("content-type") ?? "";
-      if (!ct.includes("application/json")) {
-        throw new Error("Unable to reach server. Check your connection or API URL.");
-      }
       const data = await response.json();
 
       if (!response.ok) throw new Error(data.detail || "Login failed");
@@ -77,11 +71,11 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
   };
 
   return (
-    <div className="h-screen w-full flex flex-col justify-between p-8 md:p-16 relative bg-theme-primary">
+    <div className="h-screen w-full flex flex-col justify-between p-8 md:p-16 relative bg-[#0c30ff]">
       <header className="relative z-10">
         <h1
-          className="text-5xl md:text-8xl lowercase leading-none tracking-tighter text-theme-highlight"
-          style={{ fontFamily: "Urbanosta" }}
+          className="text-5xl md:text-8xl lowercase leading-none tracking-tighter"
+          style={{ fontFamily: "Urbanosta", color: "#ceff1c" }}
         >
           ratio'd
         </h1>
@@ -90,21 +84,21 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
       <main className="relative z-10 w-full max-w-2xl mt-auto pb-12">
         <form onSubmit={handleSubmit} className="flex flex-col gap-10">
           <div className="group relative">
-            <label className="text-[10px] font-mono uppercase tracking-[0.3em] text-theme-bg/60">
+            <label className="text-[10px] font-mono uppercase tracking-[0.3em] text-white/60">
               Identification (NetID)
             </label>
-            <div className="relative flex items-center border-b-2 border-theme-bg focus-within:border-theme-highlight transition-colors">
+            <div className="relative flex items-center border-b-2 border-white focus-within:border-[#ceff1c] transition-colors">
               <input
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="w-full bg-transparent py-4 text-4xl md:text-6xl text-theme-bg outline-none placeholder:text-theme-bg/10"
+                className="w-full bg-transparent py-4 text-4xl md:text-6xl text-white outline-none placeholder:text-white/10"
                 placeholder="username"
                 style={{ fontFamily: "Aonic" }}
               />
               {!username.includes("@") && username.length > 0 && (
                 <span
-                  className="text-2xl md:text-4xl text-theme-bg/30 lowercase pointer-events-none pr-2 select-none"
+                  className="text-2xl md:text-4xl text-white/30 lowercase pointer-events-none pr-2 select-none"
                   style={{ fontFamily: "Aonic" }}
                 >
                   @srmist.edu.in
@@ -114,22 +108,22 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
           </div>
 
           <div className="group relative">
-            <label className="text-[10px] font-mono uppercase tracking-[0.3em] text-theme-bg/60">
+            <label className="text-[10px] font-mono uppercase tracking-[0.3em] text-white/60">
               Passkey
             </label>
-            <div className="relative flex items-center border-b-2 border-theme-bg focus-within:border-theme-highlight transition-colors">
+            <div className="relative flex items-center border-b-2 border-white focus-within:border-[#ceff1c] transition-colors">
               <input
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-transparent py-4 text-4xl md:text-6xl text-theme-bg outline-none placeholder:text-theme-bg/10"
+                className="w-full bg-transparent py-4 text-4xl md:text-6xl text-white outline-none placeholder:text-white/10"
                 placeholder="••••••••"
                 style={{ fontFamily: "Aonic" }}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="text-theme-bg/40 hover:text-theme-highlight pr-2"
+                className="text-white/40 hover:text-[#ceff1c] pr-2"
               >
                 {showPassword ? <EyeOff size={24} /> : <Eye size={24} />}
               </button>
@@ -152,20 +146,20 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex items-center justify-between border-t border-theme-bg pt-6 group disabled:opacity-30"
+            className="w-full flex items-center justify-between border-t border-white pt-6 group disabled:opacity-30"
           >
             <span
-              className="text-4xl md:text-6xl lowercase text-theme-bg group-hover:text-theme-highlight"
+              className="text-4xl md:text-6xl lowercase text-white group-hover:text-[#ceff1c]"
               style={{ fontFamily: "aonic" }}
             >
               {loading ? "WAIT_" : "signin"}
             </span>
             {loading ? (
-              <Loader2 className="animate-spin text-theme-bg" size={40} />
+              <Loader2 className="animate-spin text-white" size={40} />
             ) : (
               <ArrowRight
                 size={48}
-                className="text-theme-bg group-hover:text-theme-highlight group-hover:translate-x-4 transition-all"
+                className="text-white group-hover:text-[#ceff1c] group-hover:translate-x-4 transition-all"
               />
             )}
           </button>

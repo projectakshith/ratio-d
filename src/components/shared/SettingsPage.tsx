@@ -358,7 +358,7 @@ const SettingsPage = ({
         >
           <button
             onClick={onLogout}
-            className="w-full py-4 rounded-[26px] bg-theme-text text-theme-bg font-bold text-base hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
+            className="w-full py-4 rounded-[26px] bg-theme-emphasis text-theme-bg font-bold text-base hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
           >
             <LogOut className="w-5 h-5" /> Log Out
           </button>

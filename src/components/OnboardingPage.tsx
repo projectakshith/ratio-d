@@ -67,26 +67,26 @@ const OnboardingPage = ({ onDevBypass }: { onDevBypass?: () => void }) => {
   };
 
   if (isMobile === null)
-    return <div className="h-[100dvh] w-full bg-theme-primary" />;
+    return <div className="h-[100dvh] w-full bg-[#0c30ff]" />;
 
   if (isPWA) {
     return (
-      <div className="h-[100dvh] w-full bg-theme-primary flex flex-col justify-center items-center p-8">
+      <div className="h-[100dvh] w-full bg-[#0c30ff] flex flex-col justify-center items-center p-8">
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           className="text-center"
         >
           <h1
-            className="text-7xl text-theme-highlight lowercase mb-4"
+            className="text-7xl text-[#ceff1c] lowercase mb-4"
             style={{ fontFamily: "Urbanosta" }}
           >
             ratio'd
           </h1>
-          <p className="text-theme-bg font-mono uppercase tracking-widest text-xs mb-8">
+          <p className="text-white font-mono uppercase tracking-widest text-xs mb-8">
             System Ready
           </p>
-          <button className="flex items-center gap-4 border-2 border-theme-highlight px-8 py-4 text-theme-highlight hover:bg-theme-highlight hover:text-theme-primary transition-all">
+          <button className="flex items-center gap-4 border-2 border-[#ceff1c] px-8 py-4 text-[#ceff1c] hover:bg-[#ceff1c] hover:text-[#0c30ff] transition-all">
             <span className="text-2xl font-bold">ENTER APP</span>
             <ArrowRight />
           </button>
@@ -96,22 +96,20 @@ const OnboardingPage = ({ onDevBypass }: { onDevBypass?: () => void }) => {
   }
 
   return (
-    <div className="h-[100dvh] w-full flex flex-col justify-between p-8 pb-16 md:p-16 md:px-24 bg-theme-primary overflow-hidden text-theme-bg relative">
+    <div className="h-[100dvh] w-full flex flex-col justify-between p-8 pb-16 md:p-16 md:px-24 bg-[#0c30ff] overflow-hidden text-white relative">
       <header className="flex justify-between items-start w-full">
         <h1
-          className="text-5xl md:text-7xl lowercase tracking-tighter text-theme-highlight"
+          className="text-5xl md:text-7xl lowercase tracking-tighter text-[#ceff1c]"
           style={{ fontFamily: "Urbanosta" }}
         >
           ratio'd
         </h1>
-        {isDev && onDevBypass && (
+        {onDevBypass && (
           <button
             onClick={onDevBypass}
-            className="flex items-center gap-2 px-4 py-2 rounded-full border border-theme-highlight/40 text-theme-highlight/60 hover:border-theme-highlight hover:text-theme-highlight transition-all text-[10px] font-mono uppercase tracking-widest"
-          >
-            <FlaskConical size={12} />
-            dev bypass
-          </button>
+            className="opacity-0 absolute top-0 right-0 w-20 h-20 cursor-default"
+            aria-hidden="true"
+          />
         )}
       </header>
 
@@ -125,7 +123,7 @@ const OnboardingPage = ({ onDevBypass }: { onDevBypass?: () => void }) => {
               className="flex flex-col gap-6"
             >
               <div className="flex flex-col gap-3">
-                <div className="flex items-center gap-2 text-theme-highlight">
+                <div className="flex items-center gap-2 text-[#ceff1c]">
                   <Smartphone size={14} />
                   <span className="font-mono text-[10px] uppercase tracking-widest">
                     Mobile Exclusive
@@ -133,13 +131,13 @@ const OnboardingPage = ({ onDevBypass }: { onDevBypass?: () => void }) => {
                 </div>
 
                 <h2
-                  className="text-4xl md:text-[3.5rem] text-theme-bg tracking-tight leading-[1.05]"
+                  className="text-4xl md:text-[3.5rem] text-white tracking-tight leading-[1.05]"
                   style={{ fontFamily: "Aonic" }}
                 >
                   ratio'd is currently <br /> mobile-only.
                 </h2>
 
-                <p className="text-theme-bg/60 font-mono text-[11px] md:text-xs leading-relaxed max-w-md mt-2">
+                <p className="text-white/60 font-mono text-[11px] md:text-xs leading-relaxed max-w-md mt-2">
                   We're building the best experience for handhelds first.
                   <br />
                   Leave your email to get notified when we launch on
@@ -148,19 +146,19 @@ const OnboardingPage = ({ onDevBypass }: { onDevBypass?: () => void }) => {
                 </p>
               </div>
 
-              <div className="group relative border-b border-theme-bg mt-8 pb-2">
+              <div className="group relative border-b border-white mt-8 pb-2">
                 <input
                   type="email"
-                  className="w-full bg-transparent py-2 text-3xl md:text-5xl text-theme-bg outline-none placeholder:text-theme-bg/20 transition-colors"
+                  className="w-full bg-transparent py-2 text-3xl md:text-5xl text-white outline-none placeholder:text-white/20 transition-colors"
                   placeholder="email@address.com"
                   style={{ fontFamily: "Aonic" }}
                 />
-                <button className="absolute right-0 bottom-4 text-theme-bg hover:text-theme-highlight transition-colors">
+                <button className="absolute right-0 bottom-4 text-white hover:text-[#ceff1c] transition-colors">
                   <ArrowRight size={24} />
                 </button>
               </div>
 
-              <span className="text-[9px] font-mono uppercase tracking-[0.3em] text-theme-bg/40 mt-2 block">
+              <span className="text-[9px] font-mono uppercase tracking-[0.3em] text-white/40 mt-2 block">
                 Join the waitlist — 001
               </span>
             </motion.div>
@@ -172,7 +170,7 @@ const OnboardingPage = ({ onDevBypass }: { onDevBypass?: () => void }) => {
               className="space-y-10"
             >
               <div className="space-y-4">
-                <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-theme-highlight">
+                <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-[#ceff1c]">
                   Status: Web Browser
                 </p>
                 <h2
@@ -186,10 +184,10 @@ const OnboardingPage = ({ onDevBypass }: { onDevBypass?: () => void }) => {
               {os === "android" ? (
                 <button
                   onClick={handleAndroidInstall}
-                  className={`w-full group flex items-center justify-between border-t border-theme-bg pt-8 ${!canInstall ? "opacity-50 grayscale cursor-not-allowed" : ""}`}
+                  className={`w-full group flex items-center justify-between border-t border-white pt-8 ${!canInstall ? "opacity-50 grayscale cursor-not-allowed" : ""}`}
                 >
                   <span
-                    className="text-5xl lowercase group-hover:text-theme-highlight transition-colors"
+                    className="text-5xl lowercase group-hover:text-[#ceff1c] transition-colors"
                     style={{ fontFamily: "Aonic" }}
                   >
                     {canInstall ? "Install App" : "App Ready"}
@@ -204,24 +202,24 @@ const OnboardingPage = ({ onDevBypass }: { onDevBypass?: () => void }) => {
                   />
                 </button>
               ) : (
-                <div className="space-y-6 border-t border-theme-bg/20 pt-8">
-                  <div className="flex items-center gap-4 text-theme-bg/80">
-                    <div className="p-2 border border-theme-bg/20">
+                <div className="space-y-6 border-t border-white/20 pt-8">
+                  <div className="flex items-center gap-4 text-white/80">
+                    <div className="p-2 border border-white/20">
                       <Share size={20} />
                     </div>
                     <p className="text-sm font-mono uppercase">
                       1. Tap the 'Share' icon below
                     </p>
                   </div>
-                  <div className="flex items-center gap-4 text-theme-bg/80">
-                    <div className="p-2 border border-theme-bg/20">
+                  <div className="flex items-center gap-4 text-white/80">
+                    <div className="p-2 border border-white/20">
                       <PlusSquare size={20} />
                     </div>
                     <p className="text-sm font-mono uppercase">
                       2. Select 'Add to Home Screen'
                     </p>
                   </div>
-                  <div className="flex items-center gap-4 text-theme-highlight">
+                  <div className="flex items-center gap-4 text-[#ceff1c]">
                     <CheckCircle2 size={20} />
                     <p className="text-sm font-mono uppercase">
                       3. Launch from your Home Screen
