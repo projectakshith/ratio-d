@@ -22,6 +22,7 @@ class HTMLDecoder:
         soup = BeautifulSoup(raw_html, "html.parser")
         hidden = soup.find("div", class_="zc-pb-embed-placeholder-content")
         if hidden and hidden.has_attr("zmlvalue"):
-            return html.unescape(hidden["zmlvalue"])
+            unescaped = html.unescape(hidden["zmlvalue"])
+            return unescaped.replace("\\-", "-").replace("\\/", "/")
 
         return None
