@@ -15,7 +15,8 @@ class HTMLDecoder:
         match = re.search(r"pageSanitizer\.sanitize\('(.+?)'\)", raw_html)
         if match:
             try:
-                return match.group(1).encode("utf-8").decode("unicode_escape")
+                extracted = match.group(1).encode("utf-8").decode("unicode_escape")
+                return extracted.replace("\\-", "-").replace("\\/", "/")
             except:
                 pass
 

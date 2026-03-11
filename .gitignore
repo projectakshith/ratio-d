@@ -52,3 +52,7 @@ src/app/test
 #python
 **/__pycache__/
 *.pyc
+
+# Debugging scripts
+backend/debug_fetch.py
+backend/debug_*.html
