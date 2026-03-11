@@ -234,17 +234,16 @@ export default function Attendance({
             className="w-full flex flex-col items-center mt-2 mb-12 shrink-0"
           >
             <span
-              className="text-[12px] font-bold lowercase tracking-[0.3em] mb-3 text-theme-text"
+              className="text-[12px] font-bold lowercase tracking-[0.3em] mb-3 text-theme-muted"
               style={{ fontFamily: "'Montserrat', sans-serif" }}
             >
               overall attendance
             </span>
             <div className="flex items-baseline gap-1">
               <span
-                className="text-[7.5rem] leading-[0.8] font-black tracking-tighter transition-colors"
+                className="text-[7.5rem] leading-[0.8] font-black tracking-tighter text-theme-text"
                 style={{
                   fontFamily: "'Montserrat', sans-serif",
-                  color: getPercentColor(stats.percent),
                 }}
               >
                 {stats.percent}

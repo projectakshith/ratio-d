@@ -44,36 +44,32 @@ const CalendarDay = memo(
 
     if (item.isSelected) {
       bg = item.isDayExam
-        ? "bg-[#8b5cf6]"
+        ? "bg-theme-primary"
         : item.isDayHoliday
-          ? "bg-[#FF4D4D]"
-          : "bg-theme-text";
-      dateColor = "text-theme-bg";
-      orderColor = "text-theme-bg-70";
+          ? "bg-theme-secondary"
+          : "bg-theme-highlight";
+      dateColor = "text-theme-bg font-black";
+      orderColor = "text-theme-bg opacity-70";
       scaleClass = "scale-105";
-      shadowClass = item.isDayExam
-        ? "shadow-[0_8px_16px_rgba(139,92,246,0.3)] z-10"
-        : item.isDayHoliday
-          ? "shadow-[0_8px_16px_rgba(255,77,77,0.3)] z-10"
-          : "shadow-[0_8px_16px_rgba(0,0,0,0.15)] z-10";
+      shadowClass = "shadow-[0_8px_20px_var(--theme-highlight)] z-10 opacity-100";
       border = "border-transparent";
     } else if (item.isDayExam) {
-      bg = "bg-[#8b5cf6]/10";
-      border = "border-[#8b5cf6]/30";
-      dateColor = "text-[#8b5cf6]";
-      orderColor = "text-[#8b5cf6]/60";
+      bg = "bg-theme-primary/10";
+      border = "border-theme-primary/30";
+      dateColor = "text-theme-primary";
+      orderColor = "text-theme-primary/60";
     } else if (item.isToday) {
-      border = "border-theme-text";
+      border = "border-theme-highlight";
       dateColor = "text-theme-text";
       orderColor = "text-theme-muted";
     } else if (item.isDayHoliday) {
-      bg = "bg-[#FF4D4D]/10";
-      border = "border-[#FF4D4D]/20";
-      dateColor = "text-[#FF4D4D]";
-      orderColor = "text-[#FF4D4D]/50";
+      bg = "bg-theme-secondary/10";
+      border = "border-theme-secondary/20";
+      dateColor = "text-theme-secondary";
+      orderColor = "text-theme-secondary/50";
     } else if (item.dayOrder) {
       bg = "bg-theme-surface";
-      border = "border-theme-subtle";
+      border = "border-theme-border";
       dateColor = "text-theme-text";
       orderColor = "text-theme-muted";
     }

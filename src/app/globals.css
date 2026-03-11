@@ -15,7 +15,6 @@
   src: url("/fonts/Urbanosta.otf");
 }
 
-/* ─── FONT VARIABLES ─────────────────────────────────────────────────────── */
 :root {
   --font-montserrat: 'Montserrat', sans-serif;
   --font-afacad:    'Afacad', sans-serif;
@@ -25,7 +24,6 @@
   --transition-default: 0.3s ease;
   --transition-spring:  cubic-bezier(0.4, 0, 0.2, 1);
 
-  /* Semantic accent vars (fixed, not theme-dependent) */
   --accent-green:        #85a818;
   --accent-green-light:  #F2FFDB;
   --accent-green-dark:   #4d6600;
@@ -40,17 +38,14 @@
   --accent-purple:       #8b5cf6;
 }
 
-/* ─── THEME COLOR VARIABLES ─────────────────────────────────────────────── */
 :root,
 [data-theme="el"] {
-  /* Egyptian – warm browns / tans */
   --theme-primary:   #8B7355;
   --theme-secondary: #D2B48C;
   --theme-accent:    #C5A572;
   --theme-bg:        #F5E6D3;
   --theme-text:      #4A3B2A;
   --theme-highlight: #C5A572;
-  /* --bg-* / --text-* aliases for compatibility */
   --bg-primary:   var(--theme-bg);
   --bg-secondary: color-mix(in srgb, var(--theme-text) 6%, var(--theme-bg));
   --bg-tertiary:  color-mix(in srgb, var(--theme-text) 10%, var(--theme-bg));
@@ -78,7 +73,6 @@
 }
 
 [data-theme="asherah"] {
-  /* Canaanite mother goddess – soft pinks / greens */
   --theme-primary:   #2E7D32;
   --theme-secondary: #F06292;
   --theme-accent:    #FFB74D;
@@ -104,13 +98,12 @@
 }
 
 [data-theme="baal"] {
-  /* Storm god – dark stormy with gold */
   --theme-primary:   #37474F;
   --theme-secondary: #546E7A;
-  --theme-accent:    #FFD54F;
+  --theme-accent:    #D4AF37;
   --theme-bg:        #263238;
   --theme-text:      #ECEFF1;
-  --theme-highlight: #FFD54F;
+  --theme-highlight: #D4AF37;
   --bg-primary:   var(--theme-bg);
   --bg-secondary: #1A1A1A;
   --bg-tertiary:  #222222;
@@ -131,7 +124,6 @@
 }
 
 [data-theme="shapash"] {
-  /* Sun goddess – warm golden */
   --theme-primary:   #FFB300;
   --theme-secondary: #FF7043;
   --theme-accent:    #FFF176;
@@ -157,7 +149,6 @@
 }
 
 [data-theme="yhwh"] {
-  /* Abstract / transcendent – minimal black/white */
   --theme-primary:   #212121;
   --theme-secondary: #F5F5F5;
   --theme-accent:    #BDBDBD;
@@ -184,7 +175,6 @@
 }
 
 [data-theme="lucifer"] {
-  /* Light bearer – dark with blood red */
   --theme-primary:   #1A1A1A;
   --theme-secondary: #660000;
   --theme-accent:    #990000;
@@ -211,7 +201,6 @@
 }
 
 [data-theme="gad"] {
-  /* Fortune / god of luck – muted grays */
   --theme-primary:   #2A2A2A;
   --theme-secondary: #4A4A4A;
   --theme-accent:    #6A6A6A;
@@ -238,7 +227,6 @@
 }
 
 [data-theme="gabriel"] {
-  /* Archangel – blues / purples */
   --theme-primary:   #5C6BC0;
   --theme-secondary: #9FA8DA;
   --theme-accent:    #C5CAE9;
@@ -264,7 +252,6 @@
 }
 
 [data-theme="mot"] {
-  /* Death / Canaanite – dark teals */
   --theme-primary:   #607D8B;
   --theme-secondary: #546E7A;
   --theme-accent:    #80CBC4;
@@ -290,8 +277,6 @@
   --status-cooked: var(--accent-red); --status-cooked-bg: rgba(255,77,77,0.15); --status-cooked-text: var(--accent-red);
 }
 
-/* ─── LEGACY THEME ALIASES ───────────────────────────────────────────────── */
-/* These let consumers target the old naming convention */
 [data-theme="default"],
 [data-theme="minimalist-light"] {
   --theme-primary:   #555555;
@@ -377,7 +362,6 @@
   --status-cooked: var(--brutalist-red); --status-cooked-bg: rgba(255,0,60,0.15); --status-cooked-text: var(--brutalist-red);
 }
 
-/* ─── GLOBAL BODY ────────────────────────────────────────────────────────── */
 body {
   background-color: var(--theme-bg, #f7f7f7);
   color: var(--theme-text, #111111);
@@ -414,33 +398,26 @@ input:-webkit-autofill {
   color: transparent;
 }
 
-/* ─── THEME UTILITY CLASSES ──────────────────────────────────────────────── */
 @layer utilities {
-  /* Backgrounds */
   .bg-theme-primary    { background-color: var(--theme-primary); }
   .bg-theme-secondary  { background-color: var(--theme-secondary); }
   .bg-theme-accent     { background-color: var(--theme-accent); }
   .bg-theme-bg         { background-color: var(--theme-bg); }
   .bg-theme-highlight  { background-color: var(--theme-highlight); }
-  /* Surface = very slight tint of text over bg – adapts light/dark */
   .bg-theme-surface    { background-color: color-mix(in srgb, var(--theme-text) 6%, var(--theme-bg)); }
   .bg-theme-card       { background-color: color-mix(in srgb, var(--theme-text) 8%, var(--theme-bg)); }
-  /* Emphasis = text-color as background (inverted badge) */
   .bg-theme-emphasis   { background-color: var(--theme-text); }
 
-  /* Text */
   .text-theme-primary   { color: var(--theme-primary); }
   .text-theme-secondary { color: var(--theme-secondary); }
   .text-theme-accent    { color: var(--theme-accent); }
   .text-theme-text      { color: var(--theme-text); }
   .text-theme-bg        { color: var(--theme-bg); }
   .text-theme-highlight { color: var(--theme-highlight); }
-  /* Muted / subtle text opacity variants */
   .text-theme-muted     { color: color-mix(in srgb, var(--theme-text) 50%, transparent); }
   .text-theme-subtle    { color: color-mix(in srgb, var(--theme-text) 30%, transparent); }
   .text-theme-faint     { color: color-mix(in srgb, var(--theme-text) 20%, transparent); }
 
-  /* Borders */
   .border-theme-primary   { border-color: var(--theme-primary); }
   .border-theme-secondary { border-color: var(--theme-secondary); }
   .border-theme-accent    { border-color: var(--theme-accent); }
@@ -448,8 +425,6 @@ input:-webkit-autofill {
   .border-theme-border    { border-color: color-mix(in srgb, var(--theme-text) 12%, transparent); }
   .border-theme-subtle    { border-color: color-mix(in srgb, var(--theme-text) 8%, transparent); }
 
-  /* ── Status / semantic colors (attendance & marks) ── */
-  /* safe = highlight, danger = accent, cooked = secondary */
   .status-text-safe    { color: var(--theme-highlight); }
   .status-text-danger  { color: var(--theme-accent); }
   .status-text-cooked  { color: var(--theme-secondary); }
@@ -466,7 +441,6 @@ input:-webkit-autofill {
   .status-boxbg-danger { background-color: color-mix(in srgb, var(--theme-accent)    18%, var(--theme-bg)); }
   .status-boxbg-cooked { background-color: color-mix(in srgb, var(--theme-secondary) 18%, var(--theme-bg)); }
 
-  /* Alpha opacity helpers for theme colors */
   .bg-theme-border-line  { background-color: var(--border-color); }
   .bg-theme-text-5       { background-color: color-mix(in srgb, var(--theme-text)  5%,  transparent); }
   .bg-theme-text-10      { background-color: color-mix(in srgb, var(--theme-text)  10%, transparent); }
@@ -480,7 +454,6 @@ input:-webkit-autofill {
   .border-theme-bg-10    { border-color: color-mix(in srgb, var(--theme-bg) 10%, transparent); }
 }
 
-/* ─── COMPONENT UTILITIES ────────────────────────────────────────────────── */
 .custom-dotted {
   border: 1.5px dashed;
   border-color: color-mix(in srgb, var(--theme-text) 20%, transparent);
@@ -494,7 +467,6 @@ input:-webkit-autofill {
   border-radius: 20px;
 }
 
-/* ─── ANIMATIONS ─────────────────────────────────────────────────────────── */
 @keyframes lightning {
   0%, 90%, 100% { opacity: 1; }
   92%, 96%      { opacity: 0.2; }

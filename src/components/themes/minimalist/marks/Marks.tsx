@@ -123,9 +123,18 @@ export default function Marks({
     setExpectedMarks(Math.min(maxPossibleExpected, Math.max(0, val)));
   };
 
-  const recentlyUpdated = subjects.filter(
-    (s: any, i: number) => i < 2 && s.assessments.length > 0,
-  );
+  const recentlyUpdated = useMemo(() => {
+    return [...subjects]
+      .filter((s: any) => s.assessments.length > 0)
+      .sort((a: any, b: any) => {
+        const aTime = a.assessments[a.assessments.length-1].updatedAt || 0;
+        const bTime = b.assessments[b.assessments.length-1].updatedAt || 0;
+        if (aTime !== bTime) return bTime - aTime;
+        return b.assessments.length - a.assessments.length;
+      })
+      .slice(0, 2);
+  }, [subjects]);
+
   const allMarks = subjects;
   const totalObtained = useMemo(
     () =>
@@ -232,14 +241,14 @@ export default function Marks({
             className="w-full flex flex-col items-center mt-2 mb-12 shrink-0"
           >
             <span
-              className="text-[12px] font-bold lowercase tracking-[0.3em] text-theme-text mb-3"
+              className="text-[12px] font-bold lowercase tracking-[0.3em] text-theme-muted mb-3"
               style={{ fontFamily: "'Montserrat', sans-serif" }}
             >
               total marks
             </span>
             <div className="flex items-baseline gap-1">
               <span
-                className={`text-[7.5rem] leading-[0.8] font-black tracking-tighter ${getMarkColor(totalObtained, maxTotal)}`}
+                className={`text-[7.5rem] leading-[0.8] font-black tracking-tighter text-theme-text`}
                 style={{ fontFamily: "'Montserrat', sans-serif" }}
               >
                 {Number.isInteger(totalObtained)
@@ -304,28 +313,28 @@ export default function Marks({
           {recentlyUpdated.length > 0 && (
             <motion.div
               variants={itemVariants}
-              className={`w-full ${recentlyUpdated.some((s: any) => s.isPractical) ? "affected-dotted-rect" : recentlyUpdated[0].theme.dottedClass} p-5 flex flex-col gap-4 mb-8 shrink-0 ${recentlyUpdated.some((s: any) => s.isPractical) ? "bg-[#0EA5E9]/10" : recentlyUpdated[0].theme.wrapperBg}`}
+              className={`w-full p-5 flex flex-col gap-4 mb-8 shrink-0 rounded-[32px] border-[1.5px] ${recentlyUpdated.some((s: any) => s.isPractical) ? "border-[#0EA5E9]/20 bg-[#0EA5E9]/05" : "status-border-safe status-bg-safe"}`}
             >
               <div className="flex items-center gap-3 w-full">
                 <span
-                  className={`text-[12px] font-bold lowercase tracking-[0.25em] whitespace-nowrap ${recentlyUpdated.some((s: any) => s.isPractical) ? "text-[#0EA5E9]" : recentlyUpdated[0].theme.text}`}
+                  className={`text-[12px] font-bold lowercase tracking-[0.25em] whitespace-nowrap ${recentlyUpdated.some((s: any) => s.isPractical) ? "text-[#0EA5E9]" : "status-text-safe"}`}
                   style={{ fontFamily: "'Montserrat', sans-serif" }}
                 >
                   recently updated
                 </span>
                 <div
-                  className={`flex-1 h-[1.5px] rounded-full opacity-40 bg-current ${recentlyUpdated.some((s: any) => s.isPractical) ? "text-[#0EA5E9]" : recentlyUpdated[0].theme.text}`}
+                  className={`flex-1 h-[1.5px] rounded-full opacity-40 bg-current ${recentlyUpdated.some((s: any) => s.isPractical) ? "text-[#0EA5E9]" : "status-text-safe"}`}
                 />
               </div>
               {recentlyUpdated.map((sub: any) => (
                 <div
                   key={sub.id}
-                  className={`w-full border-[1.5px] rounded-[24px] p-4 flex flex-col shadow-sm transition-all gap-4 bg-theme-surface ${sub.isPractical ? "border-[#0EA5E9]/30" : sub.theme.border}`}
+                  className="w-full border-[1.5px] rounded-[24px] p-4 flex flex-col shadow-sm transition-all gap-4 bg-theme-surface border-theme-border"
                 >
                   <div className="flex justify-between items-center w-full">
                     <div className="flex flex-col items-center justify-center min-w-[85px] shrink-0 px-1">
                       <span
-                        className={`text-[3.2rem] leading-[0.8] font-black tracking-tighter ${sub.isPractical ? "text-[#0EA5E9]" : "text-theme-text"}`}
+                        className="text-[3.2rem] leading-[0.8] font-black tracking-tighter text-theme-text"
                         style={{ fontFamily: "'Montserrat', sans-serif" }}
                       >
                         {Number.isInteger(sub.totalGot)
@@ -333,7 +342,7 @@ export default function Marks({
                           : sub.totalGot.toFixed(1)}
                       </span>
                       <span
-                        className={`text-[10px] font-bold uppercase tracking-widest mt-1 text-center ${sub.theme.subText}`}
+                        className="text-[10px] font-bold uppercase tracking-widest mt-1 text-center text-theme-muted"
                         style={{ fontFamily: "'Afacad', sans-serif" }}
                       >
                         out of {sub.totalMax}
@@ -343,31 +352,31 @@ export default function Marks({
                       <div className="flex items-center gap-2 mb-1">
                         {sub.isPractical && (
                           <span
-                            className="text-[9px] font-bold uppercase tracking-[0.25em] text-[#0EA5E9] bg-[#0EA5E9]/10 px-2 py-0.5 rounded-md"
+                            className="text-[9px] font-bold uppercase tracking-[0.25em] text-theme-primary bg-theme-primary/10 px-2 py-0.5 rounded-md"
                             style={{ fontFamily: "'Afacad', sans-serif" }}
                           >
                             practical
                           </span>
                         )}
                         <span
-                          className={`text-[16px] font-black uppercase tracking-widest leading-[1.1] truncate w-full ${sub.isPractical ? "text-[#0EA5E9]" : "text-theme-text"}`}
+                          className="text-[16px] font-black uppercase tracking-widest leading-[1.1] truncate w-full text-theme-text"
                           style={{ fontFamily: "'Montserrat', sans-serif" }}
                         >
                           {sub.displayCode}
                         </span>
                       </div>
                       <span
-                        className={`text-[13px] font-medium lowercase tracking-wide leading-[1.1] mt-0.5 truncate w-full ${sub.theme.subText}`}
+                        className="text-[13px] font-medium lowercase tracking-wide leading-[1.1] mt-0.5 truncate w-full text-theme-muted"
                         style={{ fontFamily: "'Afacad', sans-serif" }}
                       >
                         {sub.displayName}
                       </span>
                       {sub.recent && (
                         <div
-                          className={`border-[1px] px-3 py-1.5 rounded-full mt-2 flex items-center justify-center ${sub.isPractical ? "bg-[#0EA5E9]/10 border-[#0EA5E9]/30" : "status-bg-safe status-border-safe"}`}
+                          className="border-[1px] px-3 py-1.5 rounded-full mt-2 flex items-center justify-center border-theme-highlight/30 bg-theme-highlight/10"
                         >
                           <span
-                            className={`text-[9px] uppercase tracking-widest ${sub.isPractical ? "text-[#0EA5E9]" : "status-text-safe"}`}
+                            className="text-[9px] uppercase tracking-widest text-theme-highlight"
                             style={{ fontFamily: "'Afacad', sans-serif" }}
                           >
                             <strong className="font-black">
@@ -389,7 +398,7 @@ export default function Marks({
                       return (
                         <div
                           key={idx}
-                          className={`min-w-[65px] flex-1 rounded-[12px] p-2 flex flex-col items-center justify-center border-[1px] ${boxTheme.boxBg} ${sub.isPractical ? "border-[#0EA5E9]/10" : boxTheme.border}`}
+                          className={`min-w-[65px] flex-1 rounded-[12px] p-2 flex flex-col items-center justify-center border-[1.5px] ${boxTheme.boxBg} ${boxTheme.border}`}
                         >
                           <span
                             className={`text-[12px] font-bold uppercase tracking-widest mb-0.5 ${boxTheme.subText}`}
@@ -399,7 +408,7 @@ export default function Marks({
                           </span>
                           <div className="flex items-baseline justify-center gap-0.5 w-full">
                             <span
-                              className={`text-[18px] font-black leading-none tracking-tighter ${sub.isPractical ? "text-[#0EA5E9]" : boxTheme.text}`}
+                              className={`text-[18px] font-black leading-none tracking-tighter ${boxTheme.text}`}
                               style={{ fontFamily: "'Montserrat', sans-serif" }}
                             >
                               {Number.isInteger(box.got)
@@ -421,7 +430,7 @@ export default function Marks({
                     }).map((_, idx) => (
                       <div
                         key={`fill-${idx}`}
-                        className="min-w-[65px] flex-1 rounded-[12px] p-2 flex flex-col items-center justify-center border-[1px] border-dashed border-theme-subtle bg-theme-surface"
+                        className="min-w-[65px] flex-1 rounded-[12px] p-2 flex flex-col items-center justify-center border-[1.5px] border-dashed border-theme-border bg-theme-surface/50"
                       >
                         <span
                           className="text-[10px] font-bold text-theme-faint uppercase tracking-widest"
@@ -436,7 +445,7 @@ export default function Marks({
               ))}
               <div className="w-full flex justify-center mt-1">
                 <span
-                  className={`text-[11px] font-bold lowercase tracking-widest ${recentlyUpdated.some((s: any) => s.isPractical) ? "text-[#0EA5E9]" : recentlyUpdated[0].theme.text}`}
+                  className="text-[11px] font-bold lowercase tracking-widest text-theme-highlight opacity-80"
                   style={{ fontFamily: "'Afacad', sans-serif" }}
                 >
                   {gpaFlavorText}
@@ -467,12 +476,12 @@ export default function Marks({
               <motion.div
                 key={sub.id}
                 variants={itemVariants}
-                className={`w-full border-[1.5px] rounded-[24px] p-4 flex flex-col shadow-sm gap-4 transition-all ${sub.isPractical ? "bg-[#0EA5E9]/5 border-[#0EA5E9]/20" : "bg-theme-surface border-theme-subtle"}`}
+                className={`w-full border-[1.5px] rounded-[24px] p-4 flex flex-col shadow-sm gap-4 transition-all ${sub.isPractical ? "bg-theme-primary/[0.03] border-theme-primary/20" : "bg-theme-surface border-theme-border"}`}
               >
                 <div className="flex justify-between items-center w-full">
                   <div className="flex flex-col items-center justify-center min-w-[85px] shrink-0 px-1">
                     <span
-                      className={`text-[3.2rem] leading-[0.8] font-black tracking-tighter ${sub.isPractical ? "text-[#0EA5E9]" : "text-theme-text"}`}
+                      className={`text-[3.2rem] leading-[0.8] font-black tracking-tighter ${sub.isPractical ? "text-theme-primary" : "text-theme-text"}`}
                       style={{ fontFamily: "'Montserrat', sans-serif" }}
                     >
                       {Number.isInteger(sub.totalGot)
@@ -480,7 +489,7 @@ export default function Marks({
                         : sub.totalGot.toFixed(1)}
                     </span>
                     <span
-                      className={`text-[10px] font-bold uppercase tracking-widest mt-1 text-center ${sub.isPractical ? "text-[#0EA5E9]/50" : "text-theme-muted"}`}
+                      className={`text-[10px] font-bold uppercase tracking-widest mt-1 text-center ${sub.isPractical ? "text-theme-primary/60" : "text-theme-muted"}`}
                       style={{ fontFamily: "'Afacad', sans-serif" }}
                     >
                       out of {sub.totalMax}
@@ -490,21 +499,21 @@ export default function Marks({
                     <div className="flex items-center gap-2 mb-1">
                       {sub.isPractical && (
                         <span
-                          className="text-[9px] font-bold uppercase tracking-[0.25em] text-[#0EA5E9] bg-[#0EA5E9]/10 px-2 py-0.5 rounded-md"
+                          className="text-[9px] font-bold uppercase tracking-[0.25em] text-theme-primary bg-theme-primary/10 px-2 py-0.5 rounded-md"
                           style={{ fontFamily: "'Afacad', sans-serif" }}
                         >
                           practical
                         </span>
                       )}
                       <span
-                        className={`text-[16px] font-black uppercase tracking-widest leading-none truncate ${sub.isPractical ? "text-[#0EA5E9]" : "text-theme-text"}`}
+                        className={`text-[16px] font-black uppercase tracking-widest leading-none truncate w-full ${sub.isPractical ? "text-theme-primary" : "text-theme-text"}`}
                         style={{ fontFamily: "'Montserrat', sans-serif" }}
                       >
                         {sub.displayCode}
                       </span>
                     </div>
                     <span
-                      className={`text-[13px] font-medium lowercase tracking-wide leading-[1.1] mt-0.5 truncate w-full ${sub.isPractical ? "text-[#0EA5E9]/60" : "text-theme-muted"}`}
+                      className={`text-[13px] font-medium lowercase tracking-wide leading-[1.1] mt-0.5 truncate w-full ${sub.isPractical ? "text-theme-primary/70" : "text-theme-muted"}`}
                       style={{ fontFamily: "'Afacad', sans-serif" }}
                     >
                       {sub.displayName}
@@ -517,17 +526,17 @@ export default function Marks({
                       return (
                         <div
                           key={idx}
-                          className={`min-w-[65px] flex-1 rounded-[12px] p-2 flex flex-col items-center justify-center border-[1px] ${sub.isPractical ? "bg-[#0EA5E9]/10 border-[#0EA5E9]/20" : boxTheme.boxBg + " " + boxTheme.border}`}
+                          className={`min-w-[65px] flex-1 rounded-[12px] p-2 flex flex-col items-center justify-center border-[1px] ${sub.isPractical ? "bg-theme-primary/10 border-theme-primary/20" : boxTheme.boxBg + " " + boxTheme.border}`}
                       >
                         <span
-                          className={`text-[12px] font-bold uppercase tracking-widest mb-0.5 ${sub.isPractical ? "text-[#0EA5E9]/60" : boxTheme.subText}`}
+                          className={`text-[12px] font-bold uppercase tracking-widest mb-0.5 ${sub.isPractical ? "text-theme-primary/60" : boxTheme.subText}`}
                           style={{ fontFamily: "'Afacad', sans-serif" }}
                         >
                           {box.title}
                         </span>
                         <div className="flex items-baseline justify-center gap-0.5 w-full">
                           <span
-                            className={`text-[18px] font-black leading-none tracking-tighter ${sub.isPractical ? "text-[#0EA5E9]" : boxTheme.text}`}
+                            className={`text-[18px] font-black leading-none tracking-tighter ${sub.isPractical ? "text-theme-primary" : boxTheme.text}`}
                             style={{ fontFamily: "'Montserrat', sans-serif" }}
                           >
                             {Number.isInteger(box.got)
@@ -535,7 +544,7 @@ export default function Marks({
                               : box.got.toFixed(1)}
                           </span>
                           <span
-                            className={`text-[10px] font-bold ${sub.isPractical ? "text-[#0EA5E9]/40" : boxTheme.subText}`}
+                            className={`text-[10px] font-bold ${sub.isPractical ? "text-theme-primary/40" : boxTheme.subText}`}
                             style={{ fontFamily: "'Montserrat', sans-serif" }}
                           >
                             /{box.max}
@@ -549,7 +558,7 @@ export default function Marks({
                   }).map((_, idx) => (
                     <div
                       key={`fill-${idx}`}
-                      className="min-w-[65px] flex-1 rounded-[12px] p-2 flex flex-col items-center justify-center border-[1px] border-dashed border-theme-subtle bg-theme-surface"
+                      className="min-w-[65px] flex-1 rounded-[12px] p-2 flex flex-col items-center justify-center border-[1.5px] border-dashed border-theme-border bg-theme-surface/50"
                     >
                       <span
                         className="text-[10px] font-bold text-theme-faint uppercase tracking-widest"

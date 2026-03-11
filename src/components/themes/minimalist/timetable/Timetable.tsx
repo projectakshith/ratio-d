@@ -400,18 +400,18 @@ export default function Timetable({
                   const isActuallyCurrent = item.isCurrent && isViewingToday;
 
                   const currentTheme = isActuallyCurrent
-                    ? "bg-theme-text border-transparent shadow-xl scale-[1.02] transform-gpu"
+                    ? "bg-theme-highlight border-theme-highlight shadow-[0_0_20px_var(--theme-highlight)] scale-[1.02] transform-gpu"
                     : isLab
-                      ? "border-[#0EA5E9]/20 bg-[#0EA5E9]/10"
-                      : "bg-theme-card border-theme-subtle";
+                      ? "border-theme-primary/20 bg-theme-primary/10"
+                      : "bg-theme-surface border-theme-border";
 
                   const textTheme = isActuallyCurrent
-                    ? "text-theme-bg"
+                    ? "text-theme-bg font-black"
                     : textClass;
                   const subTextTheme = isActuallyCurrent
-                    ? "text-theme-bg-60"
+                    ? "text-theme-bg opacity-70"
                     : isLab
-                      ? "text-[#0ea5e9]/60"
+                      ? "text-theme-primary opacity-70"
                       : subTextClass;
 
                   return (
@@ -425,10 +425,10 @@ export default function Timetable({
                     >
                       <div className="w-12 flex justify-center pt-6 shrink-0 relative">
                         <div
-                          className={`w-3.5 h-3.5 rounded-full ring-4 ring-[var(--theme-bg)] z-10 ${isActuallyCurrent ? "bg-[#85a818] animate-pulse shadow-[0_0_12px_rgba(133,168,24,0.8)]" : isLab ? "bg-[#0EA5E9]" : "bg-theme-text"}`}
+                          className={`w-3.5 h-3.5 rounded-full ring-4 ring-[var(--theme-bg)] z-10 ${isActuallyCurrent ? "bg-theme-highlight animate-pulse shadow-[0_0_12px_var(--theme-highlight)]" : isLab ? "bg-theme-primary" : "bg-theme-text-20"}`}
                         />
                         {isActuallyCurrent && (
-                          <div className="absolute top-6 w-3.5 h-3.5 rounded-full bg-[#85a818] animate-ping opacity-50" />
+                          <div className="absolute top-6 w-3.5 h-3.5 rounded-full bg-theme-highlight animate-ping opacity-50" />
                         )}
                       </div>
 
@@ -440,7 +440,7 @@ export default function Timetable({
                             onClick={() =>
                               handleDeleteCustom(activeDay, item.time)
                             }
-                            className="absolute top-3 right-3 w-8 h-8 bg-[#FF4D4D]/10 text-[#FF4D4D] rounded-full flex items-center justify-center hover:bg-[#FF4D4D]/20 active:scale-95 transition-all z-20"
+                            className="absolute top-3 right-3 w-8 h-8 bg-theme-secondary/10 text-theme-secondary rounded-full flex items-center justify-center hover:bg-theme-secondary/20 active:scale-95 transition-all z-20"
                           >
                             <X size={16} strokeWidth={2.5} />
                           </button>
@@ -448,20 +448,20 @@ export default function Timetable({
 
                         <div className="flex justify-between items-start mb-4 pr-10">
                           <div
-                            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-[10px] ${isActuallyCurrent ? "bg-theme-bg-alpha" : isLab ? "bg-[#0EA5E9]/10" : "bg-theme-surface"}`}
+                            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-[10px] ${isActuallyCurrent ? "bg-theme-bg/20" : isLab ? "bg-theme-primary/10" : "bg-theme-bg/40"}`}
                           >
                             <Clock
                               size={12}
                               className={
                                 isActuallyCurrent
-                                  ? "text-[#85a818]"
+                                  ? "text-theme-bg"
                                   : isLab
-                                    ? "text-[#0EA5E9]"
+                                    ? "text-theme-primary"
                                     : subTextClass
                               }
                             />
                             <span
-                              className={`text-[12px] font-bold tracking-widest ${textTheme}`}
+                              className={`text-[12px] font-bold tracking-widest ${isActuallyCurrent ? "text-theme-bg" : textTheme}`}
                               style={{ fontFamily: "'Montserrat', sans-serif" }}
                             >
                               {item.time}
@@ -471,7 +471,7 @@ export default function Timetable({
                           <div className="flex items-center gap-2 ml-auto">
                             {isLab && !isActuallyCurrent && (
                               <span
-                                className="text-[9px] font-bold uppercase tracking-[0.25em] text-[#0EA5E9] bg-[#0EA5E9]/10 px-2 py-1 rounded-md shrink-0"
+                                className="text-[9px] font-bold uppercase tracking-[0.25em] text-theme-primary bg-theme-primary/10 px-2 py-1 rounded-md shrink-0"
                                 style={{ fontFamily: "'Afacad', sans-serif" }}
                               >
                                 practical
@@ -479,7 +479,7 @@ export default function Timetable({
                             )}
                             {isActuallyCurrent && (
                               <span
-                                className={`text-[9px] font-bold uppercase tracking-[0.25em] text-white bg-[#85a818] px-2 py-1 rounded-md shrink-0`}
+                                className={`text-[9px] font-bold uppercase tracking-[0.25em] text-theme-highlight bg-theme-bg px-2 py-1 rounded-md shrink-0`}
                                 style={{ fontFamily: "'Afacad', sans-serif" }}
                               >
                                 live
@@ -502,7 +502,7 @@ export default function Timetable({
                         </span>
 
                         <div
-                          className={`flex items-center justify-between pt-4 mt-auto border-t ${isActuallyCurrent ? "border-theme-bg-10" : isLab ? "border-[#0EA5E9]/20" : "border-theme-subtle"}`}
+                          className={`flex items-center justify-between pt-4 mt-auto border-t ${isActuallyCurrent ? "border-theme-bg/10" : isLab ? "border-theme-primary/20" : "border-theme-border"}`}
                         >
                           <div className="flex items-center gap-3 flex-wrap">
                             <div className="flex items-center gap-1.5">
@@ -510,14 +510,14 @@ export default function Timetable({
                                 size={12}
                                 className={
                                   isActuallyCurrent
-                                    ? "text-theme-bg-60"
+                                    ? "text-theme-bg/60"
                                     : isLab
-                                      ? "text-[#0EA5E9]/50"
+                                      ? "text-theme-primary/60"
                                       : subTextClass
                                 }
                               />
                               <span
-                                className={`text-[11px] font-bold uppercase tracking-wider ${textTheme}`}
+                                className={`text-[11px] font-bold uppercase tracking-wider ${isActuallyCurrent ? "text-theme-bg/80" : textTheme}`}
                                 style={{
                                   fontFamily: "'Montserrat', sans-serif",
                                 }}
@@ -526,21 +526,21 @@ export default function Timetable({
                               </span>
                             </div>
                             <div
-                              className={`w-1 h-1 rounded-full ${isActuallyCurrent ? "bg-theme-bg-alpha" : isLab ? "bg-[#0EA5E9]/30" : "bg-theme-text-20"}`}
+                              className={`w-1 h-1 rounded-full ${isActuallyCurrent ? "bg-theme-bg/20" : isLab ? "bg-theme-primary/30" : "bg-theme-border"}`}
                             />
                             <div className="flex items-center gap-1.5">
                               <User
                                 size={12}
                                 className={
                                   isActuallyCurrent
-                                    ? "text-theme-bg-60"
+                                    ? "text-theme-bg/60"
                                     : isLab
-                                      ? "text-[#0EA5E9]/50"
+                                      ? "text-theme-primary/60"
                                       : subTextClass
                                 }
                               />
                               <span
-                                className={`text-[11px] font-bold lowercase tracking-wider ${isActuallyCurrent ? "text-theme-bg-60" : isLab ? textClass : subTextClass}`}
+                                className={`text-[11px] font-bold lowercase tracking-wider ${isActuallyCurrent ? "text-theme-bg/60" : isLab ? textClass : subTextClass}`}
                                 style={{ fontFamily: "'Afacad', sans-serif" }}
                               >
                                 {item.faculty}

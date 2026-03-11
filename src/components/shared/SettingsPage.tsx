@@ -21,6 +21,7 @@ import {
   buildTheme,
   getThemeDisplayName,
   type UiStyle,
+  type ColorTheme,
 } from "@/utils/theme/themeUtils";
 
 const backdropVariants: any = {
@@ -148,7 +149,7 @@ const SettingsPage = ({
   onUpdateName,
   onTestNotification,
   onSelectTheme,
-  currentTheme = "minimalist_el",
+  currentTheme = "minimalist_minimalist-dark",
   isDark = false,
 }: SettingsPageProps) => {
   const [isEditing, setIsEditing] = useState(false);
@@ -157,10 +158,9 @@ const SettingsPage = ({
   const [showThemes, setShowThemes] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState(currentTheme);
 
-  const { uiStyle: currentUiStyle, colorTheme: currentColor } =
-    parseTheme(selectedTheme);
-  const [uiStyle, setUiStyle] = useState<UiStyle>(currentUiStyle);
-  const [colorTheme, setColorTheme] = useState(currentColor);
+  const { uiStyle: initialStyle, colorTheme: initialColor } = parseTheme(selectedTheme);
+  const [uiStyle, setUiStyle] = useState<UiStyle>(initialStyle);
+  const [colorTheme, setColorTheme] = useState<ColorTheme>(initialColor);
 
   useEffect(() => {
     if ("Notification" in window) {
@@ -197,6 +197,9 @@ const SettingsPage = ({
       onSelectTheme?.(combined);
     }, 300);
   };
+
+  const defaultThemes = COLOR_THEMES.filter(t => ["default", "minimalist-dark", "brutalist"].includes(t.id));
+  const namedThemes = COLOR_THEMES.filter(t => !["default", "minimalist-dark", "brutalist"].includes(t.id));
 
   return (
     <>
@@ -369,16 +372,15 @@ const SettingsPage = ({
         </motion.div>
       </motion.div>
 
-      {/* ── Theme Picker Panel ─────────────────────────────── */}
       <AnimatePresence>
         {showThemes && (
           <>
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              className="fixed inset-0 z-[60] bg-theme-bg"
+              variants={backdropVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              className="fixed inset-0 z-[60] bg-black/20"
               onClick={() => setShowThemes(false)}
             />
             <motion.div
@@ -386,27 +388,20 @@ const SettingsPage = ({
               initial="hidden"
               animate="visible"
               exit="exit"
-              className="fixed inset-0 z-[70] bg-theme-bg text-theme-text flex flex-col"
+              className="fixed inset-y-0 right-0 w-[85%] md:w-[400px] z-[70] bg-theme-bg border-l border-theme-border flex flex-col overflow-hidden"
             >
-              <motion.div
-                variants={themeItemVariants}
-                className="pt-12 pb-6 px-6 flex items-center gap-4"
-              >
+              <div className="pt-12 pb-4 px-6 flex items-center gap-4">
                 <button
                   onClick={() => setShowThemes(false)}
                   className="w-10 h-10 rounded-full bg-theme-surface flex items-center justify-center active:scale-90 transition-transform"
                 >
                   <ChevronLeft className="w-6 h-6" strokeWidth={2.5} />
                 </button>
-                <h1 className="text-[26px] font-semibold tracking-tight">
-                  Themes
-                </h1>
-              </motion.div>
+                <h1 className="text-xl font-bold tracking-tight">Select Theme</h1>
+              </div>
 
-              <div className="flex-1 overflow-y-auto px-6 pb-10">
-                <div className="space-y-8 mt-2">
-
-                  {/* ── Style Selector ── */}
+              <div className="flex-1 overflow-y-auto no-scrollbar">
+                <div className="px-6 py-6 space-y-10 pb-20">
                   <motion.div variants={themeItemVariants} className="space-y-3">
                     <p className="text-[11px] uppercase tracking-[0.2em] text-theme-muted px-1">
                       Style
@@ -451,157 +446,135 @@ const SettingsPage = ({
                     </div>
                   </motion.div>
 
-                  {/* ── Color Themes Grid ── */}
-                  {(() => {
-                    const DEFAULT_IDS = ["default", "minimalist-dark", "brutalist"];
-                    const defaultThemes = COLOR_THEMES.filter((ct) => DEFAULT_IDS.includes(ct.id));
-                    const namedThemes  = COLOR_THEMES.filter((ct) => !DEFAULT_IDS.includes(ct.id));
-
-                    const renderThemeButton = (ct: typeof COLOR_THEMES[number]) => {
-                      const isActive = colorTheme === ct.id;
-                      const [bgSwatch, primarySwatch, hlSwatch] = ct.swatches;
-                      return (
-                        <button
-                          key={ct.id}
-                          onClick={() => {
-                            setColorTheme(ct.id);
-                            handleThemeApply(uiStyle, ct.id);
-                          }}
-                          className={`w-full flex items-start gap-4 p-3.5 rounded-2xl border-[1.5px] transition-all active:scale-[0.98] ${
-                            isActive
-                              ? "border-theme-highlight bg-theme-highlight/10"
-                              : "border-theme-border bg-theme-surface"
-                          }`}
-                        >
-                          {/* Swatches */}
-                          <div className="flex gap-1 shrink-0 mt-0.5">
-                            {[bgSwatch, primarySwatch, hlSwatch].map((s, i) => (
-                              <div
-                                key={i}
-                                className="w-6 h-6 rounded-full border border-black/10"
-                                style={{ backgroundColor: s }}
-                              />
-                            ))}
-                          </div>
-                          {/* Labels */}
-                          <div className="flex flex-col items-start min-w-0 flex-1">
-                            <span
-                              className={`text-[15px] font-bold leading-tight ${
-                                isActive ? "text-theme-highlight" : "text-theme-text"
-                              }`}
-                            >
-                              {ct.name}
-                            </span>
-                            <span className="text-[11px] text-theme-muted leading-snug mt-0.5">
-                              {ct.deity}<br />{ct.description}
-                            </span>
-                          </div>
-                          {/* Dark / Light badge */}
-                          <span
-                            className={`text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full shrink-0 mt-0.5 ${
-                              ct.isDark
-                                ? "bg-black/30 text-white/70"
-                                : "bg-black/10 text-black/50"
+                  <motion.div variants={themeItemVariants} className="space-y-3">
+                    <p className="text-[11px] uppercase tracking-[0.2em] text-theme-muted px-1">
+                      Default Presets
+                    </p>
+                    <div className="grid grid-cols-1 gap-2">
+                      {defaultThemes.map((ct) => {
+                        const isActive = colorTheme === ct.id;
+                        const [bgSwatch, primarySwatch, hlSwatch] = ct.swatches;
+                        return (
+                          <button
+                            key={ct.id}
+                            onClick={() => {
+                              const targetStyle = ct.id === "brutalist" ? "brutalist" : "minimalist";
+                              setUiStyle(targetStyle);
+                              setColorTheme(ct.id);
+                              handleThemeApply(targetStyle, ct.id);
+                            }}
+                            className={`w-full flex items-start gap-4 p-3.5 rounded-2xl border-[1.5px] transition-all active:scale-[0.98] ${
+                              isActive
+                                ? "border-theme-highlight bg-theme-highlight/10"
+                                : "border-theme-border bg-theme-surface"
                             }`}
                           >
-                            {ct.isDark ? "dark" : "light"}
-                          </span>
-                          {isActive && (
-                            <Check
-                              className="text-theme-highlight shrink-0 mt-0.5"
-                              size={18}
-                              strokeWidth={3}
-                            />
-                          )}
-                        </button>
-                      );
-                    };
+                            <div className="flex gap-1 shrink-0 mt-0.5">
+                              {[bgSwatch, primarySwatch, hlSwatch].map((s, i) => (
+                                <div
+                                  key={i}
+                                  className="w-6 h-6 rounded-full border border-black/10"
+                                  style={{ backgroundColor: s }}
+                                />
+                              ))}
+                            </div>
+                            <div className="flex flex-col items-start min-w-0 flex-1">
+                              <span
+                                className={`text-[15px] font-bold leading-tight ${
+                                  isActive ? "text-theme-highlight" : "text-theme-text"
+                                }`}
+                              >
+                                {ct.name}
+                              </span>
+                              <span className="text-[11px] text-theme-muted leading-snug mt-0.5">
+                                {ct.deity}<br />{ct.description}
+                              </span>
+                            </div>
+                            <span
+                              className={`text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full shrink-0 mt-0.5 ${
+                                ct.isDark
+                                  ? "bg-black/30 text-white/70"
+                                  : "bg-black/10 text-black/50"
+                              }`}
+                            >
+                              {ct.isDark ? "dark" : "light"}
+                            </span>
+                            {isActive && (
+                              <Check
+                                className="text-theme-highlight shrink-0 mt-0.5"
+                                size={18}
+                                strokeWidth={3}
+                              />
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </motion.div>
 
-                    return (
-                      <>
-                        {/* Default presets */}
-                        <motion.div variants={themeItemVariants} className="space-y-3">
-                          <p className="text-[11px] uppercase tracking-[0.2em] text-theme-muted px-1">
-                            Default Presets
-                          </p>
-                          <div className="grid grid-cols-1 gap-2">
-                            {defaultThemes.map((ct) => {
-                              const isActive = colorTheme === ct.id;
-                              const [bgSwatch, primarySwatch, hlSwatch] = ct.swatches;
-                              return (
-                                <button
-                                  key={ct.id}
-                                  onClick={() => {
-                                    const targetStyle = ct.id === "brutalist" ? "brutalist" : "minimalist";
-                                    setUiStyle(targetStyle);
-                                    setColorTheme(ct.id);
-                                    handleThemeApply(targetStyle, ct.id);
-                                  }}
-                                  className={`w-full flex items-start gap-4 p-3.5 rounded-2xl border-[1.5px] transition-all active:scale-[0.98] ${
-                                    isActive
-                                      ? "border-theme-highlight bg-theme-highlight/10"
-                                      : "border-theme-border bg-theme-surface"
-                                  }`}
-                                >
-                                  {/* Swatches */}
-                                  <div className="flex gap-1 shrink-0 mt-0.5">
-                                    {[bgSwatch, primarySwatch, hlSwatch].map((s, i) => (
-                                      <div
-                                        key={i}
-                                        className="w-6 h-6 rounded-full border border-black/10"
-                                        style={{ backgroundColor: s }}
-                                      />
-                                    ))}
-                                  </div>
-                                  {/* Labels */}
-                                  <div className="flex flex-col items-start min-w-0 flex-1">
-                                    <span
-                                      className={`text-[15px] font-bold leading-tight ${
-                                        isActive ? "text-theme-highlight" : "text-theme-text"
-                                      }`}
-                                    >
-                                      {ct.name}
-                                    </span>
-                                    <span className="text-[11px] text-theme-muted leading-snug mt-0.5">
-                                      {ct.deity}<br />{ct.description}
-                                    </span>
-                                  </div>
-                                  {/* Dark / Light badge */}
-                                  <span
-                                    className={`text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full shrink-0 mt-0.5 ${
-                                      ct.isDark
-                                        ? "bg-black/30 text-white/70"
-                                        : "bg-black/10 text-black/50"
-                                    }`}
-                                  >
-                                    {ct.isDark ? "dark" : "light"}
-                                  </span>
-                                  {isActive && (
-                                    <Check
-                                      className="text-theme-highlight shrink-0 mt-0.5"
-                                      size={18}
-                                      strokeWidth={3}
-                                    />
-                                  )}
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </motion.div>
-
-                        {/* Named palettes */}
-                        <motion.div variants={themeItemVariants} className="space-y-3">
-                          <p className="text-[11px] uppercase tracking-[0.2em] text-theme-muted px-1">
-                            Color Palette
-                          </p>
-                          <div className="grid grid-cols-1 gap-2">
-                            {namedThemes.map(renderThemeButton)}
-                          </div>
-                        </motion.div>
-                      </>
-                    );
-                  })()}
-
+                  <motion.div variants={themeItemVariants} className="space-y-3">
+                    <p className="text-[11px] uppercase tracking-[0.2em] text-theme-muted px-1">
+                      Named Palettes
+                    </p>
+                    <div className="grid grid-cols-1 gap-2">
+                      {namedThemes.map((ct) => {
+                        const isActive = colorTheme === ct.id;
+                        const [bgSwatch, primarySwatch, hlSwatch] = ct.swatches;
+                        return (
+                          <button
+                            key={ct.id}
+                            onClick={() => {
+                              setColorTheme(ct.id);
+                              handleThemeApply(uiStyle, ct.id);
+                            }}
+                            className={`w-full flex items-start gap-4 p-3.5 rounded-2xl border-[1.5px] transition-all active:scale-[0.98] ${
+                              isActive
+                                ? "border-theme-highlight bg-theme-highlight/10"
+                                : "border-theme-border bg-theme-surface"
+                            }`}
+                          >
+                            <div className="flex gap-1 shrink-0 mt-0.5">
+                              {[bgSwatch, primarySwatch, hlSwatch].map((s, i) => (
+                                <div
+                                  key={i}
+                                  className="w-6 h-6 rounded-full border border-black/10"
+                                  style={{ backgroundColor: s }}
+                                />
+                              ))}
+                            </div>
+                            <div className="flex flex-col items-start min-w-0 flex-1">
+                              <span
+                                className={`text-[15px] font-bold leading-tight ${
+                                  isActive ? "text-theme-highlight" : "text-theme-text"
+                                }`}
+                              >
+                                {ct.name}
+                              </span>
+                              <span className="text-[11px] text-theme-muted leading-snug mt-0.5">
+                                {ct.deity}<br />{ct.description}
+                              </span>
+                            </div>
+                            <span
+                              className={`text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full shrink-0 mt-0.5 ${
+                                ct.isDark
+                                  ? "bg-black/30 text-white/70"
+                                  : "bg-black/10 text-black/50"
+                              }`}
+                            >
+                              {ct.isDark ? "dark" : "light"}
+                            </span>
+                            {isActive && (
+                              <Check
+                                className="text-theme-highlight shrink-0 mt-0.5"
+                                size={18}
+                                strokeWidth={3}
+                              />
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </motion.div>
                 </div>
               </div>
             </motion.div>

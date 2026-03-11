@@ -19,15 +19,15 @@ export default function ScheduleGrid({
       return (
         <div
           key={slot.id}
-          className={`aspect-square bg-theme-text/5 custom-dotted`}
+          className="aspect-square bg-theme-text-[0.03] rounded-[14px] border border-theme-text-[0.05] flex items-center justify-center opacity-40"
         />
       );
     }
 
-    let boxClass = "bg-theme-surface border-theme-text/10";
-    let topText = "text-theme-text/50";
+    let boxClass = "bg-theme-surface border-theme-border";
+    let topText = "text-theme-muted";
     let midText = "text-theme-text";
-    let botText = "text-theme-text/60";
+    let botText = "text-theme-muted";
 
     const isActuallyCurrent =
       slot.isCurrent &&
@@ -35,10 +35,10 @@ export default function ScheduleGrid({
       !isHoliday;
 
     if (isActuallyCurrent) {
-      boxClass = "bg-theme-text border-theme-text shadow-lg scale-105 z-10";
-      topText = "text-theme-bg/60";
-      midText = "text-theme-bg";
-      botText = "text-theme-bg/60";
+      boxClass = "bg-theme-highlight border-theme-highlight shadow-[0_0_15px_var(--theme-highlight)] scale-105 z-10 opacity-100";
+      topText = "text-theme-bg opacity-70";
+      midText = "text-theme-bg font-black";
+      botText = "text-theme-bg opacity-70";
     } else if (slot.isPractical) {
       boxClass = "bg-theme-primary/10 border-theme-primary/30";
       topText = "text-theme-primary/60";

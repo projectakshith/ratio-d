@@ -1,11 +1,3 @@
-/**
- * Theme Utilities
- * Central helper for the CSS custom-property based theming system.
- * Each "full theme" is a combination of:
- *   - UI style:     "minimalist" | "brutalist"
- *   - Color theme:  one of the 10 named palettes below
- */
-
 export type ColorTheme =
   | "el"
   | "asherah"
@@ -28,7 +20,6 @@ export interface ThemeMeta {
   deity: string;
   description: string;
   isDark: boolean;
-  /** Representative swatches: [bg, primary, highlight] */
   swatches: [string, string, string];
 }
 
@@ -55,7 +46,7 @@ export const COLOR_THEMES: ThemeMeta[] = [
     deity: "Storm God",
     description: "Dark stormy with gold",
     isDark: true,
-    swatches: ["#263238", "#37474F", "#FFD54F"],
+    swatches: ["#263238", "#37474F", "#D4AF37"],
   },
   {
     id: "shapash",
@@ -131,7 +122,6 @@ export const COLOR_THEMES: ThemeMeta[] = [
   },
 ];
 
-/** Themes whose --theme-bg is dark */
 export const DARK_COLOR_THEMES = new Set<ColorTheme>([
   "baal",
   "lucifer",
@@ -141,7 +131,6 @@ export const DARK_COLOR_THEMES = new Set<ColorTheme>([
   "brutalist",
 ]);
 
-/** Parse a full theme string like "minimalist_baal" into its parts */
 export function parseTheme(fullTheme: string): {
   uiStyle: UiStyle;
   colorTheme: ColorTheme;
@@ -157,7 +146,6 @@ export function parseTheme(fullTheme: string): {
   return { uiStyle, colorTheme, isDark: DARK_COLOR_THEMES.has(colorTheme) };
 }
 
-/** Build a full theme string */
 export function buildTheme(
   uiStyle: UiStyle,
   colorTheme: ColorTheme,
@@ -165,28 +153,20 @@ export function buildTheme(
   return `${uiStyle}_${colorTheme}`;
 }
 
-/**
- * Migrate legacy theme strings to the new combined format.
- * "minimalist_dark"  → "minimalist_baal"
- * "minimalist_light" → "minimalist_el"
- * "brutalist"        → "brutalist_el"
- */
 export function migrateTheme(raw: string | null): string {
-  if (!raw) return "minimalist_baal";
+  if (!raw) return "minimalist_minimalist-dark";
   if (raw === "brutalist") return "brutalist_brutalist";
-  if (raw === "minimalist_dark") return "minimalist_baal";
-  if (raw === "minimalist_light") return "minimalist_el";
+  if (raw === "minimalist_dark") return "minimalist_minimalist-dark";
+  if (raw === "minimalist_light") return "minimalist_default";
 
-  // If it's already in the new format, just validate it
   if (raw.includes("_")) {
     const { uiStyle, colorTheme } = parseTheme(raw);
     return buildTheme(uiStyle, colorTheme);
   }
 
-  return "minimalist_baal";
+  return "minimalist_minimalist-dark";
 }
 
-/** Human-readable display name for a full theme string */
 export function getThemeDisplayName(fullTheme: string): string {
   const { uiStyle, colorTheme } = parseTheme(fullTheme);
   const meta = COLOR_THEMES.find((t) => t.id === colorTheme);
@@ -194,26 +174,18 @@ export function getThemeDisplayName(fullTheme: string): string {
   return meta ? `${meta.name} · ${styleName}` : styleName;
 }
 
-/**
- * Return semantic color CSS-variable strings based on the current theme.
- * These resolve at runtime via CSS custom properties.
- */
 export const getThemeColors = () => ({
-  // Status
   success: "var(--theme-highlight)",
   warning: "var(--theme-accent)",
   error: "var(--theme-secondary)",
   info: "var(--theme-primary)",
-  // UI
   background: "var(--theme-bg)",
   foreground: "var(--theme-text)",
   border: "var(--theme-primary)",
-  // Brutalist
   brutalistBg: "var(--theme-bg)",
   brutalistAccent: "var(--theme-highlight)",
   brutalistDanger: "var(--theme-secondary)",
   brutalistExam: "var(--theme-primary)",
-  // Minimalist
   minimalistCardBg: "var(--theme-bg)",
   minimalistCardBorder: "var(--theme-primary)",
   minimalistMutedText:

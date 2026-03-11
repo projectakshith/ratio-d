@@ -28,7 +28,7 @@ export default function ThemeRouter({
   startEntrance,
   isUpdating,
 }: any) {
-  const [theme, setTheme] = useState<string>("minimalist_baal");
+  const [theme, setTheme] = useState<string>("minimalist_minimalist-dark");
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const academia = useAcademiaData(data);
@@ -38,12 +38,11 @@ export default function ThemeRouter({
       const savedRaw = localStorage.getItem("ratiod_theme");
       const migrated = migrateTheme(savedRaw);
       setTheme(migrated);
-      // Apply data-theme attribute so CSS variables resolve
       const { colorTheme } = parseTheme(migrated);
       document.documentElement.setAttribute("data-theme", colorTheme);
     } catch (error) {
-      setTheme("minimalist_baal");
-      document.documentElement.setAttribute("data-theme", "baal");
+      setTheme("minimalist_minimalist-dark");
+      document.documentElement.setAttribute("data-theme", "minimalist-dark");
     } finally {
       setMounted(true);
     }
