@@ -3,6 +3,9 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/react";
 import { Geist, Geist_Mono, Afacad, Montserrat } from "next/font/google";
 import "./globals.css";
+import { AppProvider } from "@/context/AppContext";
+import { ThemeProvider } from "@/context/ThemeContext";
+import AppWrapper from "@/components/shared/AppWrapper";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -62,7 +65,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" style={{ colorScheme: "light" }}>
+    <html lang="en" style={{ colorScheme: "light" }} className="h-full">
       <head>
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -91,11 +94,17 @@ export default function RootLayout({
           ${montserrat.variable}
           antialiased
           bg-[#F7F7F7]
-          overflow-hidden
           h-full
+          min-h-screen
         `}
       >
-        {children}
+        <AppProvider>
+          <ThemeProvider>
+            <AppWrapper>
+              {children}
+            </AppWrapper>
+          </ThemeProvider>
+        </AppProvider>
         <Analytics />
         <SpeedInsights />
       </body>

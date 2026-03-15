@@ -1,22 +1,12 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
-import Dashboard from "./Dashboard";
 import { BottomNav } from "./BottomNav";
-import Timetable from "./Timetable";
-import MobileAttendance from "./MobileAttendance";
-import CalendarPage from "./CalendarPage";
-import MarksPage from "./MarksPage";
 import { flavorText } from "@/utils/shared/flavortext";
-import { AcademiaData } from "@/types";
+import { usePathname } from "next/navigation";
 
 interface BrutalistThemeProps {
-  data: AcademiaData;
-  academia: any;
-  onLogout: () => void;
-  customDisplayName?: string;
-  onUpdateName?: (name: string) => void;
-  onOpenSettings: () => void;
+  children: React.ReactNode;
 }
 
 const LoadingScreen = ({ onComplete }: { onComplete: () => void }) => {
@@ -101,24 +91,12 @@ const LoadingScreen = ({ onComplete }: { onComplete: () => void }) => {
   );
 };
 
-export default function BrutalistTheme({
-  data,
-  academia,
-  customDisplayName,
-  onOpenSettings,
-}: BrutalistThemeProps) {
-  const [[activeTab, direction], setTabState] = useState(["home", 0]);
+export default function BrutalistTheme({ children }: BrutalistThemeProps) {
   const [isLoading, setIsLoading] = useState(true);
-
-  const setPage = (newTab: string) => {
-    const tabs = ["marks", "attendance", "home", "timetable", "calendar"];
-    const newIndex = tabs.indexOf(newTab);
-    const currentIndex = tabs.indexOf(activeTab);
-    setTabState([newTab, newIndex > currentIndex ? 1 : -1]);
-  };
+  const pathname = usePathname();
 
   return (
-    <div className="h-[100dvh] w-full bg-theme-bg relative overflow-hidden">
+    <div className="h-screen w-full bg-theme-bg relative overflow-hidden">
       <LayoutGroup>
         <AnimatePresence mode="popLayout">
           {isLoading ? (
@@ -127,45 +105,12 @@ export default function BrutalistTheme({
               onComplete={() => setIsLoading(false)}
             />
           ) : (
-            <motion.div
-              key={activeTab}
-              custom={direction}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
+            <div
+              key={pathname}
               className="absolute top-0 left-0 w-full h-full bg-theme-bg"
             >
-              {activeTab === "home" && (
-                <Dashboard
-                  profile={data?.profile}
-                  attendance={data?.attendance}
-                  displayName={customDisplayName}
-                  timeStatus={academia.timeStatus}
-                  upcomingAlerts={academia.upcomingAlerts}
-                  overallAttendance={academia.overallAttendance}
-                  criticalAttendance={academia.criticalAttendance}
-                  onProfileClick={onOpenSettings}
-                />
-              )}
-              {activeTab === "timetable" && (
-                <Timetable
-                  schedule={academia.effectiveSchedule}
-                  dayOrder={academia.effectiveDayOrder}
-                  data={data}
-                />
-              )}
-              {activeTab === "attendance" && (
-                <MobileAttendance
-                  data={data}
-                  schedule={academia.effectiveSchedule}
-                />
-              )}
-              {activeTab === "marks" && <MarksPage data={data} />}
-              {activeTab === "calendar" && (
-                <CalendarPage data={data} academia={academia} />
-              )}
-            </motion.div>
+              {children}
+            </div>
           )}
         </AnimatePresence>
       </LayoutGroup>
@@ -173,7 +118,7 @@ export default function BrutalistTheme({
       {!isLoading && (
         <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none">
           <div className="pointer-events-auto">
-            <BottomNav activeTab={String(activeTab)} setActiveTab={setPage} />
+            <BottomNav />
           </div>
         </div>
       )}

@@ -2,7 +2,6 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { sendNotification } from "@/utils/shared/notifs";
 import calendarDataJson from "@/data/calendar_data.json";
 import {
-  parseTimeValues,
   getScheduleStatus,
   calculateOverallAttendance,
   getCriticalAttendance,
@@ -14,8 +13,10 @@ import {
   ScheduleSlot,
 } from "@/types";
 
-export const useAcademiaData = (data: AcademiaData) => {
-  const initialSchedule = data?.schedule || {};
+const EMPTY_SCHEDULE: ScheduleData = {};
+
+export const useAcademiaData = (data: AcademiaData | null) => {
+  const initialSchedule = useMemo(() => data?.schedule || EMPTY_SCHEDULE, [data?.schedule]);
   const [schedule, setSchedule] = useState<ScheduleData>(initialSchedule);
   const [timeStatus, setTimeStatus] = useState<{
     nextClass: ScheduleSlot | null;
@@ -52,9 +53,13 @@ export const useAcademiaData = (data: AcademiaData) => {
           });
         });
       }
-      setSchedule(mergedSchedule);
+      
+      const isSame = JSON.stringify(mergedSchedule) === JSON.stringify(schedule);
+      if (!isSame) {
+        setSchedule(mergedSchedule);
+      }
     } catch (e) {}
-  }, [initialSchedule]);
+  }, [initialSchedule, schedule]);
 
   useEffect(() => {
     mergeSchedule();
@@ -65,13 +70,17 @@ export const useAcademiaData = (data: AcademiaData) => {
 
   useEffect(() => {
     const updateStatus = () => {
-      if (schedule)
-        setTimeStatus(getScheduleStatus(schedule, effectiveDayOrder));
+      if (schedule && Object.keys(schedule).length > 0) {
+        const newStatus = getScheduleStatus(schedule, effectiveDayOrder);
+        if (JSON.stringify(newStatus) !== JSON.stringify(timeStatus)) {
+          setTimeStatus(newStatus);
+        }
+      }
     };
     updateStatus();
     const interval = setInterval(updateStatus, 60000);
     return () => clearInterval(interval);
-  }, [schedule, effectiveDayOrder]);
+  }, [schedule, effectiveDayOrder, timeStatus]);
 
   const overallAttendance = useMemo(() => {
     return calculateOverallAttendance(data?.attendance || []);
@@ -89,7 +98,7 @@ export const useAcademiaData = (data: AcademiaData) => {
     );
   }, []);
 
-  return {
+  return useMemo(() => ({
     timeStatus,
     overallAttendance,
     criticalAttendance,
@@ -97,5 +106,5 @@ export const useAcademiaData = (data: AcademiaData) => {
     effectiveSchedule: schedule,
     calendarData,
     triggerTestClass,
-  };
+  }), [timeStatus, overallAttendance, criticalAttendance, effectiveDayOrder, schedule, triggerTestClass]);
 };
