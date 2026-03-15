@@ -10,7 +10,10 @@ export type ColorTheme =
   | "mot"
   | "default"
   | "minimalist-dark"
-  | "brutalist";
+  | "brutalist"
+  | "yam"
+  | "gojo"
+  | "eren";
 
 export type UiStyle = "minimalist" | "brutalist";
 
@@ -120,6 +123,30 @@ export const COLOR_THEMES: ThemeMeta[] = [
     isDark: true,
     swatches: ["#050505", "#3b82f6", "#ceff1c"],
   },
+  {
+    id: "yam",
+    name: "Yam",
+    deity: "River God",
+    description: "Minimal white with stark lines",
+    isDark: false,
+    swatches: ["#FFFFFF", "#000000", "#333333"],
+  },
+  {
+    id: "gojo",
+    name: "Gojo",
+    deity: "Six Eyes",
+    description: "Deep void with electric teal",
+    isDark: true,
+    swatches: ["#00001A", "#000033", "#00FFFF"],
+  },
+  {
+    id: "eren",
+    name: "Eren",
+    deity: "Founding Titan",
+    description: "Earthy charcoal with blood red",
+    isDark: true,
+    swatches: ["#1A1A1A", "#4B3621", "#8B0000"],
+  },
 ];
 
 export const DARK_COLOR_THEMES = new Set<ColorTheme>([
@@ -129,6 +156,8 @@ export const DARK_COLOR_THEMES = new Set<ColorTheme>([
   "mot",
   "minimalist-dark",
   "brutalist",
+  "gojo",
+  "eren",
 ]);
 
 export function parseTheme(fullTheme: string): {
@@ -142,7 +171,7 @@ export function parseTheme(fullTheme: string): {
   const colorPart = parts.slice(1).join("_") as ColorTheme;
   const colorTheme: ColorTheme = COLOR_THEMES.some((t) => t.id === colorPart)
     ? colorPart
-    : "el";
+    : "minimalist-dark";
   return { uiStyle, colorTheme, isDark: DARK_COLOR_THEMES.has(colorTheme) };
 }
 

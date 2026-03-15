@@ -594,7 +594,10 @@ export default function Attendance({
           </motion.div>
         </motion.div>
 
-        <div
+        <motion.div
+          variants={itemVariants}
+          initial="hidden"
+          animate="show"
           className="absolute bottom-0 left-0 right-0 px-6 pt-24 pb-[30px] z-20 flex justify-between items-end pointer-events-none"
           style={{ background: 'linear-gradient(to top, var(--theme-bg) 0%, color-mix(in srgb, var(--theme-bg) 80%, transparent) 60%, transparent 100%)' }}
         >
@@ -607,7 +610,7 @@ export default function Attendance({
               {char}
             </span>
           ))}
-        </div>
+        </motion.div>
       </div>
 
       <Predict

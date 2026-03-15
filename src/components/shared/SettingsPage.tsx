@@ -1,3 +1,4 @@
+"use client";
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -195,11 +196,11 @@ const SettingsPage = ({
     setShowThemes(false);
     setTimeout(() => {
       onSelectTheme?.(combined);
-    }, 300);
+    }, 400);
   };
 
   const defaultThemes = COLOR_THEMES.filter(t => ["default", "minimalist-dark", "brutalist"].includes(t.id));
-  const namedThemes = COLOR_THEMES.filter(t => !["default", "minimalist-dark", "brutalist"].includes(t.id));
+  const namedThemes = COLOR_THEMES.filter(t => !["default", "minimalist-dark", "brutalist", "yam"].includes(t.id));
 
   return (
     <>
@@ -388,7 +389,7 @@ const SettingsPage = ({
               initial="hidden"
               animate="visible"
               exit="exit"
-              className="fixed inset-y-0 right-0 w-[85%] md:w-[400px] z-[70] bg-theme-bg border-l border-theme-border flex flex-col overflow-hidden"
+              className="fixed inset-0 z-[70] bg-theme-bg flex flex-col overflow-hidden"
             >
               <div className="pt-12 pb-4 px-6 flex items-center gap-4">
                 <button
@@ -403,7 +404,7 @@ const SettingsPage = ({
               <div className="flex-1 overflow-y-auto no-scrollbar">
                 <div className="px-6 py-6 space-y-10 pb-20">
                   <motion.div variants={themeItemVariants} className="space-y-3">
-                    <p className="text-[11px] uppercase tracking-[0.2em] text-theme-muted px-1">
+                    <p className="text-[11px] uppercase tracking-[0.2em] text-theme-muted px-1 text-left">
                       Style
                     </p>
                     <div className="grid grid-cols-2 gap-3">
@@ -423,12 +424,12 @@ const SettingsPage = ({
                               className={`text-[15px] font-bold capitalize ${
                                 isActive
                                   ? "text-theme-highlight"
-                                  : "text-theme-muted"
+                                  : "text-theme-text"
                               }`}
                             >
                               {s}
                             </span>
-                            <span className="text-[11px] text-theme-muted mt-0.5">
+                            <span className="text-[11px] text-theme-muted mt-0.5 text-left">
                               {s === "minimalist"
                                 ? "Clean & airy"
                                 : "Raw & bold"}
@@ -447,7 +448,7 @@ const SettingsPage = ({
                   </motion.div>
 
                   <motion.div variants={themeItemVariants} className="space-y-3">
-                    <p className="text-[11px] uppercase tracking-[0.2em] text-theme-muted px-1">
+                    <p className="text-[11px] uppercase tracking-[0.2em] text-theme-muted px-1 text-left">
                       Default Presets
                     </p>
                     <div className="grid grid-cols-1 gap-2">
@@ -478,7 +479,7 @@ const SettingsPage = ({
                                 />
                               ))}
                             </div>
-                            <div className="flex flex-col items-start min-w-0 flex-1">
+                            <div className="flex flex-col items-start min-w-0 flex-1 text-left">
                               <span
                                 className={`text-[15px] font-bold leading-tight ${
                                   isActive ? "text-theme-highlight" : "text-theme-text"
@@ -513,8 +514,8 @@ const SettingsPage = ({
                   </motion.div>
 
                   <motion.div variants={themeItemVariants} className="space-y-3">
-                    <p className="text-[11px] uppercase tracking-[0.2em] text-theme-muted px-1">
-                      Named Palettes
+                    <p className="text-[11px] uppercase tracking-[0.2em] text-theme-muted px-1 text-left">
+                      Named Collections
                     </p>
                     <div className="grid grid-cols-1 gap-2">
                       {namedThemes.map((ct) => {
@@ -542,7 +543,7 @@ const SettingsPage = ({
                                 />
                               ))}
                             </div>
-                            <div className="flex flex-col items-start min-w-0 flex-1">
+                            <div className="flex flex-col items-start min-w-0 flex-1 text-left">
                               <span
                                 className={`text-[15px] font-bold leading-tight ${
                                   isActive ? "text-theme-highlight" : "text-theme-text"
@@ -550,9 +551,10 @@ const SettingsPage = ({
                               >
                                 {ct.name}
                               </span>
-                              <span className="text-[11px] text-theme-muted leading-snug mt-0.5">
-                                {ct.deity}<br />{ct.description}
-                              </span>
+                              <div className="flex flex-col items-start">
+                                <span className="text-[10px] text-theme-muted uppercase tracking-widest">{ct.deity}</span>
+                                <span className="text-[11px] text-theme-muted leading-tight">{ct.description}</span>
+                              </div>
                             </div>
                             <span
                               className={`text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full shrink-0 mt-0.5 ${

@@ -75,9 +75,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 regNo: userData?.profile?.regNo || "",
               }}
               onUpdateName={handleUpdateName}
-              onSelectTheme={setTheme}
-              currentTheme={theme}
-              onTestNotification={academia?.triggerTestClass}
+              onSelectTheme={(newTheme) => {
+                setTheme(newTheme);
+                setIsSettingsOpen(false);
+              }}
+              currentTheme={theme}              onTestNotification={academia?.triggerTestClass}
               isDark={isDark}
             />
           )}

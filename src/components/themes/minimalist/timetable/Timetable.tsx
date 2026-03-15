@@ -1,7 +1,15 @@
 "use client";
 import React, { useEffect, useState, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MapPin, Clock, User, Plus, X, ChevronRight, Layers } from "lucide-react";
+import {
+  MapPin,
+  Clock,
+  User,
+  Plus,
+  X,
+  ChevronRight,
+  Layers,
+} from "lucide-react";
 import {
   buildCourseMap,
   processSchedule,
@@ -53,11 +61,25 @@ export default function Timetable({
   const [mounted, setMounted] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const initialSet = useRef(false);
-  const schedule = academia?.effectiveSchedule || data?.timetable || data?.schedule || {};
-  
+  const schedule =
+    academia?.effectiveSchedule || data?.timetable || data?.schedule || {};
+
   const todayStr = useMemo(() => {
     const now = new Date();
-    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
     const d = String(now.getDate()).padStart(2, "0");
     const m = months[now.getMonth()];
     const y = now.getFullYear();
@@ -69,7 +91,8 @@ export default function Timetable({
     return calData.find((ev: any) => ev.date === todayStr);
   }, [academia?.calendarData, todayStr]);
 
-  const dayOrderStr = todayEntry?.dayOrder || todayEntry?.order || data?.dayOrder || "0";
+  const dayOrderStr =
+    todayEntry?.dayOrder || todayEntry?.order || data?.dayOrder || "0";
   const dayOrder = parseInt(String(dayOrderStr)) || 0;
 
   const isHoliday = dayOrder === 0;
@@ -184,8 +207,14 @@ export default function Timetable({
   }, [schedule, customClasses, activeDay, dayOrder, courseMap, refreshKey]);
 
   const isViewingToday = String(activeDay) === String(dayOrder) && !isHoliday;
-  const nextScheduledDay = isHoliday ? nextWorkingDayOrder : (dayOrder < 5 ? dayOrder + 1 : 1);
-  const isViewingNext = String(activeDay) === String(nextScheduledDay) && (isHoliday || !isViewingToday);
+  const nextScheduledDay = isHoliday
+    ? nextWorkingDayOrder
+    : dayOrder < 5
+      ? dayOrder + 1
+      : 1;
+  const isViewingNext =
+    String(activeDay) === String(nextScheduledDay) &&
+    (isHoliday || !isViewingToday);
 
   useEffect(() => {
     if (mounted && isViewingToday) {
@@ -213,14 +242,17 @@ export default function Timetable({
 
   return (
     <>
-
       <div className={`absolute inset-0 ${bgClass}`}>
-        <div
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate="show"
           ref={scrollContainerRef}
           className="h-full w-full overflow-y-auto no-scrollbar px-6 pt-10 pb-[280px] flex flex-col relative z-10"
         >
           {isHoliday && (
-            <div
+            <motion.div
+              variants={itemVariants}
               className="w-full status-bg-safe status-border-safe border-[1.5px] rounded-[16px] p-3 mb-6 flex items-center justify-center gap-2 shrink-0"
             >
               <span className="text-xl">🌴</span>
@@ -230,10 +262,13 @@ export default function Timetable({
               >
                 holiday today! viewing upcoming track.
               </span>
-            </div>
+            </motion.div>
           )}
 
-          <div className="w-full flex flex-col items-center mt-2 mb-8 shrink-0 relative">
+          <motion.div
+            variants={itemVariants}
+            className="w-full flex flex-col items-center mt-2 mb-8 shrink-0 relative"
+          >
             <span
               className={`text-[12px] font-bold lowercase tracking-[0.3em] mb-3 text-center transition-colors ${isViewingToday ? subTextClass : isViewingNext ? "text-theme-highlight" : subTextClass}`}
               style={{ fontFamily: "'Montserrat', sans-serif" }}
@@ -252,23 +287,20 @@ export default function Timetable({
                 {String(activeDay).padStart(2, "0")}
               </span>
             </div>
-          </div>
+          </motion.div>
 
-          <div className="flex flex-col mb-8 w-full shrink-0">
+          <motion.div
+            variants={itemVariants}
+            className="flex flex-col mb-8 w-full shrink-0"
+          >
             <button
               onClick={() => setIsAddingClass(true)}
               className="w-full relative group active:scale-[0.98] transition-all duration-200"
             >
-              <div
-                className="absolute inset-0 bg-theme-text rounded-[24px] translate-y-1.5 transition-transform group-hover:translate-y-2"
-              />
-              <div
-                className="relative w-full border-[1.5px] border-theme-text bg-theme-bg text-theme-text rounded-[24px] p-4 flex items-center justify-between transition-transform group-hover:-translate-y-0.5 group-active:translate-y-1"
-              >
+              <div className="absolute inset-0 bg-theme-text rounded-[24px] translate-y-1.5 transition-transform group-hover:translate-y-2" />
+              <div className="relative w-full border-[1.5px] border-theme-text bg-theme-bg text-theme-text rounded-[24px] p-4 flex items-center justify-between transition-transform group-hover:-translate-y-0.5 group-active:translate-y-1">
                 <div className="flex items-center gap-3">
-                  <div
-                    className="w-10 h-10 rounded-full bg-theme-text-8 flex items-center justify-center"
-                  >
+                  <div className="w-10 h-10 rounded-full bg-theme-text-8 flex items-center justify-center">
                     <Plus
                       size={20}
                       strokeWidth={2.5}
@@ -290,9 +322,7 @@ export default function Timetable({
                     </span>
                   </div>
                 </div>
-                <div
-                  className="w-9 h-9 rounded-full bg-theme-surface border-theme-text border flex items-center justify-center shadow-[2px_2px_0px_var(--theme-text)]"
-                >
+                <div className="w-9 h-9 rounded-full bg-theme-surface border-theme-text border flex items-center justify-center shadow-[2px_2px_0px_var(--theme-text)]">
                   <ChevronRight
                     size={20}
                     strokeWidth={3}
@@ -301,7 +331,7 @@ export default function Timetable({
                 </div>
               </div>
             </button>
-          </div>
+          </motion.div>
 
           <AnimatePresence mode="wait">
             <motion.div
@@ -361,9 +391,7 @@ export default function Timetable({
               </motion.div>
 
               <div className="flex flex-col gap-4 w-full relative">
-                <div
-                  className="absolute left-[23px] top-6 bottom-6 w-[2px] bg-theme-text-5 rounded-full z-0"
-                />
+                <div className="absolute left-[23px] top-6 bottom-6 w-[2px] bg-theme-text-5 rounded-full z-0" />
 
                 {currentSchedule.map((item) => {
                   if (item.type === "break") {
@@ -374,9 +402,7 @@ export default function Timetable({
                         className="flex items-center gap-4 w-full z-10"
                       >
                         <div className="w-12 flex justify-center shrink-0">
-                          <div
-                            className="w-2.5 h-2.5 rounded-full bg-theme-text-10 ring-4 ring-[var(--theme-bg)]"
-                          />
+                          <div className="w-2.5 h-2.5 rounded-full bg-theme-text-10 ring-4 ring-[var(--theme-bg)]" />
                         </div>
                         <div className="flex-1 break-dotted p-4 flex items-center justify-between">
                           <span
@@ -555,20 +581,16 @@ export default function Timetable({
               </div>
             </motion.div>
           </AnimatePresence>
-        </div>
+        </motion.div>
 
-        <div
-          className="fixed bottom-[85px] left-1/2 -translate-x-1/2 bg-theme-emphasis backdrop-blur-md p-1.5 pr-2 rounded-full flex items-center gap-1 z-40 shadow-[0_8px_32px_rgba(0,0,0,0.3)] border border-theme-bg-10"
-        >
+        <div className="fixed bottom-[85px] left-1/2 -translate-x-1/2 bg-theme-emphasis backdrop-blur-md p-1.5 pr-2 rounded-full flex items-center gap-1 z-40 shadow-[0_8px_32px_rgba(0,0,0,0.3)] border border-theme-bg-10">
           <span
             className="text-[11px] font-bold text-theme-bg-30 ml-3 mr-1 tracking-widest"
             style={{ fontFamily: "'Montserrat', sans-serif" }}
           >
             DO
           </span>
-          <div
-            className="w-[1.5px] h-5 bg-theme-bg-alpha mx-1 rounded-full"
-          />
+          <div className="w-[1.5px] h-5 bg-theme-bg-alpha mx-1 rounded-full" />
           {[1, 2, 3, 4, 5].map((day) => (
             <button
               key={day}
@@ -589,7 +611,10 @@ export default function Timetable({
           ))}
         </div>
 
-        <div
+        <motion.div
+          variants={itemVariants}
+          initial="hidden"
+          animate="show"
           className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-[var(--theme-bg)] via-[var(--theme-bg)]/80 to-transparent px-6 pb-[30px] z-20 flex justify-between items-end pointer-events-none"
         >
           {"timetable".split("").map((char, i) => (
@@ -601,7 +626,7 @@ export default function Timetable({
               {char}
             </span>
           ))}
-        </div>
+        </motion.div>
       </div>
 
       <CustomClass

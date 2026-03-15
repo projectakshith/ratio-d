@@ -225,9 +225,8 @@ const HomeDashboard = ({
                   </h1>
                   <button
                     onClick={onProfileClick}
-                    className="w-9 h-9 rounded-full overflow-hidden border-2 border-black/5 active:scale-90 transition-transform shadow-sm"
-                  >
-                    <img
+                    className="w-9 h-9 rounded-full overflow-hidden active:scale-90 transition-transform"
+                  >                    <img
                       src="/image.png"
                       className="object-cover w-full h-full"
                       alt="Profile"

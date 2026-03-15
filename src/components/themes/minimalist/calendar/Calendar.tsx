@@ -59,21 +59,23 @@ const CalendarDay = memo(
       dateColor = "text-theme-primary";
       orderColor = "text-theme-primary/60";
     } else if (item.isToday) {
-      border = "border-theme-highlight";
+      border = "border-theme-highlight border-[2px]";
       dateColor = "text-theme-text";
       orderColor = "text-theme-muted";
     } else if (item.isDayHoliday) {
       bg = "bg-theme-secondary/10";
       border = "border-theme-secondary/20";
-      dateColor = "text-theme-secondary";
+      dateColor = "text-theme-secondary font-bold";
       orderColor = "text-theme-secondary/50";
     } else if (item.dayOrder) {
       bg = "bg-theme-surface";
       border = "border-theme-border";
+      dateColor = "text-theme-highlight font-black";
+      orderColor = "text-theme-highlight opacity-60";
+    } else {
       dateColor = "text-theme-text";
       orderColor = "text-theme-muted";
     }
-
     return (
       <motion.button
         variants={itemVariants}
@@ -279,7 +281,10 @@ const Calendar = ({ data, academia }: any) => {
           className="absolute bottom-0 left-0 right-0 h-48 z-20 pointer-events-none"
           style={{ background: 'linear-gradient(to top, var(--theme-bg) 0%, color-mix(in srgb, var(--theme-bg) 80%, transparent) 60%, transparent 100%)' }}
         />
-        <div
+        <motion.div
+          variants={itemVariants}
+          initial="hidden"
+          animate="show"
           className="absolute bottom-0 left-0 right-0 px-6 pb-[30px] z-30 flex justify-between items-end pointer-events-none"
         >
           {"calendar".split("").map((char, i) => (
@@ -291,8 +296,7 @@ const Calendar = ({ data, academia }: any) => {
               {char}
             </span>
           ))}
-        </div>
-      </div>
+        </motion.div>      </div>
     </>
   );
 };

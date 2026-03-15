@@ -18,8 +18,12 @@ export default function ScheduleGrid({
     if (!slot.active) {
       return (
         <div
-          key={slot.id}
-          className="aspect-square bg-theme-text-[0.03] rounded-[14px] border border-theme-text-[0.05] flex items-center justify-center opacity-40"
+          key={slot.id || index}
+          className="aspect-square rounded-[14px] flex items-center justify-center relative"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='14' ry='14' stroke='currentColor' stroke-width='1.5' stroke-dasharray='4%2c 8' stroke-dashoffset='0' stroke-linecap='round'/%3e%3c/svg%3e")`,
+            color: "color-mix(in srgb, var(--theme-text) 15%, transparent)",
+          }}
         />
       );
     }
