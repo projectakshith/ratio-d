@@ -88,15 +88,18 @@ export default function RootLayout({
 
       <body
         className={`
-          ${geistSans.variable}
-          ${geistMono.variable}
-          ${afacad.variable}
-          ${montserrat.variable}
           antialiased
           bg-[#F7F7F7]
           h-full
           min-h-screen
         `}
+        style={{
+          // @ts-ignore
+          "--font-geist-sans": geistSans.style.fontFamily,
+          "--font-geist-mono": geistMono.style.fontFamily,
+          "--font-afacad": afacad.style.fontFamily,
+          "--font-montserrat": montserrat.style.fontFamily,
+        }}
       >
         <AppProvider>
           <ThemeProvider>

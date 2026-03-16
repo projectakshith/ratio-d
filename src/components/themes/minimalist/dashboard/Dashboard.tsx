@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState, useMemo, useRef } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ChevronRight,
@@ -12,7 +12,6 @@ import {
 import {
   calculateOverallAttendance,
   getCriticalAttendance,
-  parseTimeValues,
 } from "@/utils/academia/academiaLogic";
 import { processAndSortMarks, buildCourseMap } from "@/utils/marks/marksLogic";
 import { getAcronym } from "@/utils/dashboard/timetableLogic";
@@ -24,6 +23,9 @@ import {
   getStatusLogic,
 } from "@/utils/dashboard/dashboardLogic";
 import { AcademiaData, ScheduleSlot } from "@/types";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
+import { useDashboardCalendar } from "@/hooks/useDashboardCalendar";
+import { useDashboardAlerts } from "@/hooks/useDashboardAlerts";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -67,12 +69,23 @@ export default function Dashboard({
   startEntrance: boolean;
   isDark: boolean;
 }) {
-  const [mounted, setMounted] = useState(false);
-  const [pullY, setPullY] = useState(0);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
-  const startY = useRef(0);
-  const startX = useRef(0);
+  const {
+    pullY,
+    isRefreshing,
+    handleTouchStart,
+    handleTouchMove,
+    handleTouchEnd,
+  } = usePullToRefresh(isAlertsOpen);
+
+  const {
+    mounted,
+    currentDayOrder,
+    isHoliday,
+    selectedDay,
+    nextWorkingDayOrder,
+    isTomorrowHoliday,
+    handleDaySwitch,
+  } = useDashboardCalendar(academia, data);
 
   useEffect(() => {
     if (setIsSwipeDisabled) {
@@ -82,6 +95,21 @@ export default function Dashboard({
 
   const [showExtraSlots, setShowExtraSlots] = useState(false);
   const [customClasses, setCustomClasses] = useState<Record<number, any[]>>({});
+
+  useEffect(() => {
+    const fetchCustoms = () => {
+      const stored = localStorage.getItem("ratio_custom_classes");
+      if (stored) {
+        try {
+          setCustomClasses(JSON.parse(stored));
+        } catch (e) {}
+      }
+    };
+    fetchCustoms();
+    window.addEventListener("custom_classes_updated", fetchCustoms);
+    return () =>
+      window.removeEventListener("custom_classes_updated", fetchCustoms);
+  }, []);
 
   const globalAlias =
     typeof window !== "undefined"
@@ -100,146 +128,8 @@ export default function Dashboard({
       .includes("computer science and engineering") &&
     String(profile.semester) === "4";
 
-  const todayStr = useMemo(() => {
-    const now = new Date();
-    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    const d = String(now.getDate()).padStart(2, "0");
-    const m = months[now.getMonth()];
-    const y = now.getFullYear();
-    return `${d} ${m} ${y}`;
-  }, []);
-
-  const todayCalendarEntry = useMemo(() => {
-    const calData = academia?.calendarData || calendarDataJson || [];
-    return calData.find((ev: any) => ev.date === todayStr);
-  }, [academia?.calendarData, todayStr]);
-
-  const currentDayOrderStr = todayCalendarEntry?.dayOrder || todayCalendarEntry?.order || data?.dayOrder || "-";
-  const currentDayOrder = parseInt(String(currentDayOrderStr)) || 0;
-
-  const isHoliday =
-    !currentDayOrderStr ||
-    currentDayOrderStr === "-" ||
-    currentDayOrderStr === "0" ||
-    isNaN(currentDayOrder) ||
-    currentDayOrder === 0;
-
-  const [selectedDay, setSelectedDay] = useState(1);
-
-  const nextWorkingDayOrder = useMemo(() => {
-    const calData = academia?.calendarData || calendarDataJson || [];
-    const now = new Date();
-    now.setHours(0, 0, 0, 0);
-
-    const futureDays = calData
-      .filter((ev: any) => {
-        const evDate = new Date(ev.date);
-        evDate.setHours(0, 0, 0, 0);
-        return evDate > now;
-      })
-      .sort(
-        (a: any, b: any) =>
-          new Date(a.date).getTime() - new Date(b.date).getTime(),
-      );
-
-    for (const ev of futureDays) {
-      const dOrder = parseInt(ev.dayOrder || ev.day_order || ev.order);
-      if (!isNaN(dOrder) && dOrder >= 1 && dOrder <= 5) {
-        return dOrder;
-      }
-    }
-    return null;
-  }, [academia?.calendarData]);
-
-  const isTomorrowHoliday = useMemo(() => {
-    const calData = academia?.calendarData || calendarDataJson || [];
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-
-    const months = [
-      "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
-    ];
-    const d = String(tomorrow.getDate()).padStart(2, "0");
-    const m = months[tomorrow.getMonth()];
-    const y = tomorrow.getFullYear();
-    const tomorrowStr = `${d} ${m} ${y}`;
-
-    const entry = calData.find((ev: any) => ev.date === tomorrowStr);
-    return (
-      !entry ||
-      entry.order === "-" ||
-      entry.order === "0" ||
-      entry.description.toLowerCase().includes("holiday")
-    );
-  }, [academia?.calendarData]);
-
-  const hasInitialized = useRef(false);
-
-  useEffect(() => {
-    if (hasInitialized.current) return;
-    const scheduleData =
-      academia?.effectiveSchedule || data?.timetable || data?.schedule || {};
-
-    if (isHoliday) {
-      setSelectedDay(nextWorkingDayOrder || 1);
-    } else {
-      const dayKey = `Day ${currentDayOrder}`;
-      const todayData = scheduleData[dayKey];
-
-      let lastEnd = 0;
-      if (todayData) {
-        Object.values(todayData).forEach((item: any) => {
-          if (!item) return;
-          const timeStr = item.time || "";
-          const endStr = timeStr.split("-")[1];
-          if (endStr) {
-            const endMins = parseTimeValues(endStr);
-            if (endMins > lastEnd) lastEnd = endMins;
-          }
-        });
-      }
-
-      const nowMins = new Date().getHours() * 60 + new Date().getMinutes();
-
-      if (lastEnd > 0 && nowMins >= lastEnd) {
-        setSelectedDay(
-          nextWorkingDayOrder ||
-            (currentDayOrder < 5 ? currentDayOrder + 1 : 1),
-        );
-      } else {
-        setSelectedDay(currentDayOrder);
-      }
-    }
-
-    setMounted(true);
-    hasInitialized.current = true;
-
-    const fetchCustoms = () => {
-      const stored = localStorage.getItem("ratio_custom_classes");
-      if (stored) {
-        try {
-          setCustomClasses(JSON.parse(stored));
-        } catch (e) {}
-      }
-    };
-    fetchCustoms();
-    window.addEventListener("custom_classes_updated", fetchCustoms);
-    return () =>
-      window.removeEventListener("custom_classes_updated", fetchCustoms);
-  }, [
-    currentDayOrder,
-    isHoliday,
-    nextWorkingDayOrder,
-    academia?.effectiveSchedule,
-    data?.timetable,
-    data?.schedule,
-  ]);
-
-  const handleDaySwitch = (dir: "prev" | "next") => {
-    setSelectedDay((prev) =>
-      dir === "prev" ? (prev > 1 ? prev - 1 : 5) : prev < 5 ? prev + 1 : 1,
-    );
-  };
+  const { exams, upcomingBreaks, allAlerts, currentAlertIndex } =
+    useDashboardAlerts(academia, isTargetAudience);
 
   const courseMap = useMemo(() => buildCourseMap(data), [data]);
 
@@ -384,7 +274,7 @@ export default function Dashboard({
         alertLabel: isSafe ? "margin" : "recover",
         scheduledHoursToday,
       };
-    }, [data?.attendance, nextClass, currentClass]);
+    }, [data?.attendance, nextClass, currentClass, currentDayOrder, academia?.effectiveSchedule, data?.timetable]);
 
   const attendanceCategory =
     alertPctNum < 75 ? "cooked" : alertPctNum >= 85 ? "safe" : "danger";
@@ -419,109 +309,6 @@ export default function Dashboard({
   const sortedMarks = processAndSortMarks(data?.marks || [], courseMap);
   const latestMark = sortedMarks.length > 0 ? sortedMarks[0] : null;
 
-  const exams = useMemo(() => {
-    const calData = academia?.calendarData || calendarDataJson || [];
-    const now = new Date();
-    now.setHours(0, 0, 0, 0);
-
-    return calData
-      .filter((ev: any) => {
-        const d = new Date(ev.date);
-        d.setHours(0, 0, 0, 0);
-        return d >= now && ev.type === "exam" && isTargetAudience;
-      })
-      .sort(
-        (a: any, b: any) =>
-          new Date(a.date).getTime() - new Date(b.date).getTime(),
-      )
-      .slice(0, 2)
-      .map((ev: any, i: number) => ({
-        id: `exam-${i}`,
-        title: "Assessment",
-        desc: ev.description,
-        type: "exam",
-        date: ev.date,
-      }));
-  }, [academia?.calendarData, isTargetAudience]);
-
-  const upcomingBreaks = useMemo(() => {
-    const calData = academia?.calendarData || calendarDataJson || [];
-    const now = new Date();
-    now.setHours(0, 0, 0, 0);
-
-    return calData
-      .filter((ev: any) => {
-        const d = new Date(ev.date);
-        d.setHours(0, 0, 0, 0);
-        return (
-          d.getTime() > now.getTime() &&
-          ev.description.toLowerCase().includes("holiday")
-        );
-      })
-      .sort(
-        (a: any, b: any) =>
-          new Date(a.date).getTime() - new Date(b.date).getTime(),
-      )
-      .slice(0, 2)
-      .map((ev: any, i: number) => ({
-        id: `holiday-${i}`,
-        title: "Upcoming Break",
-        desc: ev.description,
-        type: "holiday",
-        date: ev.date,
-      }));
-  }, [academia?.calendarData]);
-
-  const allAlerts = useMemo(
-    () => [...exams, ...upcomingBreaks],
-    [exams, upcomingBreaks],
-  );
-
-  const [currentAlertIndex, setCurrentAlertIndex] = useState(0);
-
-  useEffect(() => {
-    if (allAlerts.length <= 1) return;
-    const interval = setInterval(() => {
-      setCurrentAlertIndex((prev) => (prev + 1) % allAlerts.length);
-    }, 3000);
-    return () => clearInterval(interval);
-  }, [allAlerts]);
-
-  const handleTouchStart = (e: any) => {
-    if (window.scrollY <= 0 && !isAlertsOpen) {
-      startY.current = e.touches[0].clientY;
-      startX.current = e.touches[0].clientX;
-      setIsDragging(true);
-    }
-  };
-
-  const handleTouchMove = (e: any) => {
-    if (!isDragging || isRefreshing) return;
-    const currentY = e.touches[0].clientY;
-    const currentX = e.touches[0].clientX;
-    const diffY = currentY - startY.current;
-    const diffX = currentX - startX.current;
-    if (Math.abs(diffX) > Math.abs(diffY)) return;
-    if (window.scrollY <= 0 && diffY > 0) {
-      if (e.cancelable) e.preventDefault();
-      setPullY(Math.pow(diffY, 0.8));
-    }
-  };
-
-  const handleTouchEnd = () => {
-    setIsDragging(false);
-    if (pullY > 80) {
-      setIsRefreshing(true);
-      setPullY(80);
-      if (navigator.vibrate) navigator.vibrate(20);
-      setTimeout(() => {
-        window.location.reload();
-      }, 800);
-    } else {
-      setPullY(0);
-    }
-  };
-
   const nextScheduledDay =
     nextWorkingDayOrder || (currentDayOrder < 5 ? currentDayOrder + 1 : 1);
   const isViewingNext =
@@ -540,13 +327,13 @@ export default function Dashboard({
   if (!mounted) return null;
 
   return (
-    <div
-      className={`relative w-full h-full ${bgClass}`}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-    >
-      <div className="absolute inset-0 overflow-y-auto no-scrollbar">
+    <div className={`relative w-full h-full ${bgClass} overflow-hidden`}>
+      <div 
+        className="absolute inset-0 overflow-y-auto no-scrollbar"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
         <div
           className="fixed top-0 left-0 w-full flex justify-center pt-8 z-0 transition-opacity duration-300 pointer-events-none"
           style={{
@@ -590,13 +377,13 @@ export default function Dashboard({
               <div className="flex flex-col items-end">
                 <span
                   className="text-[16px] font-semibold lowercase tracking-widest text-theme-muted mb-[-4px]"
-                  style={{ fontFamily: "'Afacad', sans-serif" }}
+                  style={{ fontFamily: "var(--font-afacad), sans-serif" }}
                 >
                   sup!
                 </span>
                 <span
                   className={`text-[25px] leading-none font-medium lowercase tracking-tight ${textClass}`}
-                  style={{ fontFamily: "'Montserrat', sans-serif" }}
+                  style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
                 >
                   {userName}
                 </span>
@@ -611,7 +398,7 @@ export default function Dashboard({
                 <span className="text-xl">🌴</span>
                 <span
                   className="text-[13px] font-bold status-text-safe lowercase tracking-wide"
-                  style={{ fontFamily: "'Afacad', sans-serif" }}
+                  style={{ fontFamily: "var(--font-afacad), sans-serif" }}
                 >
                   holiday today! viewing upcoming classes.
                 </span>
@@ -626,7 +413,7 @@ export default function Dashboard({
                 <span className="text-xl">😉</span>
                 <span
                   className="text-[13px] font-bold status-text-safe lowercase tracking-wide"
-                  style={{ fontFamily: "'Afacad', sans-serif" }}
+                  style={{ fontFamily: "var(--font-afacad), sans-serif" }}
                 >
                   holiday tomorrow! enjoy the break.
                 </span>
@@ -640,7 +427,7 @@ export default function Dashboard({
               <div className="flex items-center gap-3">
                 <span
                   className={`text-[11px] font-bold uppercase tracking-[0.2em] ${subTextClass} flex items-center gap-1.5`}
-                  style={{ fontFamily: "'Montserrat', sans-serif" }}
+                  style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
                 >
                   {`Day Order ${selectedDay}`}
                   {String(selectedDay) === String(currentDayOrder) && !isHoliday ? (
@@ -663,7 +450,7 @@ export default function Dashboard({
                   <button
                     onClick={() => setShowExtraSlots(!showExtraSlots)}
                     className="bg-theme-surface text-theme-muted px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest active:scale-95 transition-all"
-                    style={{ fontFamily: "'Afacad', sans-serif" }}
+                    style={{ fontFamily: "var(--font-afacad), sans-serif" }}
                   >
                     {showExtraSlots ? "hide extra" : `+${extraGrid.length} extra`}
                   </button>
@@ -701,7 +488,7 @@ export default function Dashboard({
               <div className="flex items-center gap-3 mb-2 w-full">
                 <span
                   className={`text-[14px] font-bold lowercase tracking-[0.25em] ${focusSubTextClass} whitespace-nowrap`}
-                  style={{ fontFamily: "'Montserrat', sans-serif" }}
+                  style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
                 >
                   {focusLabel}
                 </span>
@@ -710,7 +497,7 @@ export default function Dashboard({
                 />
                 <span
                   className={`text-[13px] font-black uppercase tracking-[0.2em] ${textClass} whitespace-nowrap`}
-                  style={{ fontFamily: "'Afacad', sans-serif" }}
+                  style={{ fontFamily: "var(--font-afacad), sans-serif" }}
                 >
                   {focusClass?.room || "FREE"}
                 </span>
@@ -719,20 +506,20 @@ export default function Dashboard({
               <div className="flex flex-col max-w-full">
                 <span
                   className={`text-[4.5rem] font-black tracking-tighter lowercase ${textClass} truncate pt-3`}
-                  style={{ fontFamily: "'Montserrat', sans-serif", lineHeight: 0.85 }}
+                  style={{ fontFamily: "var(--font-montserrat), sans-serif", lineHeight: 0.85 }}
                 >
                   {displayCourseWords[0]}
                 </span>
                 <div className="flex items-baseline gap-3 w-full pb-3">
                   <span
                     className={`text-[4.5rem] font-black tracking-tighter lowercase ${textClass} truncate flex-1 min-w-0`}
-                    style={{ fontFamily: "'Montserrat', sans-serif", lineHeight: 0.85 }}
+                    style={{ fontFamily: "var(--font-montserrat), sans-serif", lineHeight: 0.85 }}
                   >
                     {displayCourseWords.slice(1).join(" ")}
                   </span>
                   <span
                     className={`text-[1.25rem] font-bold uppercase tracking-widest ${subTextClass} shrink-0`}
-                    style={{ fontFamily: "'Afacad', sans-serif" }}
+                    style={{ fontFamily: "var(--font-afacad), sans-serif" }}
                   >
                     {displayTiming}
                   </span>
@@ -748,7 +535,7 @@ export default function Dashboard({
                   />
                   <span
                     className="text-[14px] font-bold lowercase text-theme-text-70 truncate"
-                    style={{ fontFamily: "'Afacad', sans-serif" }}
+                    style={{ fontFamily: "var(--font-afacad), sans-serif" }}
                   >
                     {isHoliday ? "holiday • " : currentClass
                       ? "current class • "
@@ -768,7 +555,7 @@ export default function Dashboard({
                 </div>
                 <span
                   className={`text-[12px] font-bold lowercase ${subTextClass} shrink-0 ml-2`}
-                  style={{ fontFamily: "'Afacad', sans-serif" }}
+                  style={{ fontFamily: "var(--font-afacad), sans-serif" }}
                 >
                   {isHoliday ? "no classes today" : statusClass
                     ? currentClass
@@ -799,13 +586,13 @@ export default function Dashboard({
                 <div className="flex-1 flex flex-col justify-center min-w-0 py-0.5">
                   <span
                     className={`text-[15px] font-bold lowercase leading-tight truncate mb-0.5 ${attStyles.text}`}
-                    style={{ fontFamily: "'Montserrat', sans-serif" }}
+                    style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
                   >
                     {alertName}
                   </span>
                   <span
                     className={`text-[13px] font-medium lowercase truncate ${attStyles.subText}`}
-                    style={{ fontFamily: "'Afacad', sans-serif" }}
+                    style={{ fontFamily: "var(--font-afacad), sans-serif" }}
                   >
                     {alertPct}% • {alertMargin} {alertLabel}
                   </span>
@@ -833,7 +620,7 @@ export default function Dashboard({
                 <div className="flex-1 flex flex-col justify-center min-w-0 py-0.5">
                   <span
                     className="text-[15px] font-bold lowercase leading-tight truncate mb-0.5 text-theme-bg"
-                    style={{ fontFamily: "'Montserrat', sans-serif" }}
+                    style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
                   >
                     academic alerts
                   </span>
@@ -844,7 +631,7 @@ export default function Dashboard({
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: -5 }}
                       className="text-[13px] font-medium lowercase text-theme-bg-70 truncate"
-                      style={{ fontFamily: "'Afacad', sans-serif" }}
+                      style={{ fontFamily: "var(--font-afacad), sans-serif" }}
                     >
                       {allAlerts[currentAlertIndex]
                         ? `${allAlerts[currentAlertIndex].title}: ${allAlerts[currentAlertIndex].desc.split(" / ")[0].substring(0, 20)}...`
@@ -877,13 +664,13 @@ export default function Dashboard({
                 <div className="flex-1 flex flex-col justify-center min-w-0 py-0.5">
                   <span
                     className={`text-[15px] font-bold lowercase leading-tight ${textClass} truncate mb-0.5`}
-                    style={{ fontFamily: "'Montserrat', sans-serif" }}
+                    style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
                   >
                     recent marks
                   </span>
                   <span
                     className={`text-[13px] font-medium lowercase ${subTextClass} truncate`}
-                    style={{ fontFamily: "'Afacad', sans-serif" }}
+                    style={{ fontFamily: "var(--font-afacad), sans-serif" }}
                   >
                     {latestMark
                       ? `${getAcronym(latestMark.title || latestMark.courseTitle || latestMark.code || "")} • ${latestMark.displayScore}/${latestMark.max}`

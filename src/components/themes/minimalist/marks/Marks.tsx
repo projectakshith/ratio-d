@@ -1,7 +1,8 @@
 "use client";
 import React, { useEffect, useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Calculator, ChevronRight } from "lucide-react";
+import { Calculator, ChevronRight, Loader } from "lucide-react";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import {
   processAndSortMarks,
   buildCourseMap,
@@ -45,8 +46,16 @@ export default function Marks({
   data: AcademiaData;
   setIsSwipeDisabled?: (disabled: boolean) => void;
 }) {
-  const [mounted, setMounted] = useState(false);
   const [predictMode, setPredictMode] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  const {
+    pullY,
+    isRefreshing,
+    handleTouchStart,
+    handleTouchMove,
+    handleTouchEnd,
+  } = usePullToRefresh(predictMode);
 
   useEffect(() => {
     if (setIsSwipeDisabled) {
@@ -229,12 +238,32 @@ export default function Marks({
           __html: `.warning-dotted { background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='24' ry='24' stroke='%23FF4D4D' stroke-opacity='0.4' stroke-width='3' stroke-dasharray='6%2c 10' stroke-dashoffset='0' stroke-linecap='round'/%3e%3c/svg%3e"); border-radius: 24px; } .safe-dotted { background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='24' ry='24' stroke='%2385a818' stroke-opacity='0.4' stroke-width='3' stroke-dasharray='6%2c 10' stroke-dashoffset='0' stroke-linecap='round'/%3e%3c/svg%3e"); border-radius: 24px; } .danger-dotted { background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='24' ry='24' stroke='%23F97316' stroke-opacity='0.4' stroke-width='3' stroke-dasharray='6%2c 10' stroke-dashoffset='0' stroke-linecap='round'/%3e%3c/svg%3e"); border-radius: 24px; } .affected-dotted-rect { background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='24' ry='14' stroke='%230EA5E9' stroke-width='3' stroke-dasharray='6%2c 10' stroke-dashoffset='0' stroke-linecap='round'/%3e%3c/svg%3e"); border-radius: 24px; }`,
         }}
       />
-      <div className="absolute inset-0 bg-theme-bg">
+      <div className="absolute inset-0 bg-theme-bg overflow-hidden">
+        <div
+          className="fixed top-0 left-0 w-full flex justify-center pt-8 z-50 transition-opacity duration-300 pointer-events-none"
+          style={{
+            opacity: Math.min(pullY / 60, 1),
+            transform: `translateY(${pullY * 0.3}px)`,
+          }}
+        >
+          <Loader
+            className="w-6 h-6 text-theme-muted"
+            style={{
+              animation: isRefreshing ? "spin 1s linear infinite" : "none",
+              transform: `rotate(${pullY * 2}deg)`,
+            }}
+          />
+        </div>
+
         <motion.div
           variants={containerVariants}
           initial="hidden"
           animate="show"
+          style={{ y: pullY }}
           className="h-full w-full overflow-y-auto no-scrollbar px-6 pt-10 pb-[220px] flex flex-col relative z-10"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
         >
           <motion.div
             variants={itemVariants}

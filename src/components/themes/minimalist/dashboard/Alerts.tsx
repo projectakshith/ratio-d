@@ -97,13 +97,13 @@ export default function Alerts({
             <div className="flex flex-col">
               <span
                 className="text-[32px] leading-[1] font-black uppercase tracking-[0.15em] text-theme-text"
-                style={{ fontFamily: "'Montserrat', sans-serif" }}
+                style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
               >
                 ALERTS
               </span>
               <span
                 className="text-[10px] font-bold lowercase tracking-[0.2em] text-[#85a818] mt-1.5"
-                style={{ fontFamily: "'Afacad', sans-serif" }}
+                style={{ fontFamily: "var(--font-afacad), sans-serif" }}
               >
                 official & personal
               </span>
@@ -127,7 +127,7 @@ export default function Alerts({
               <div className="flex items-center gap-3 w-full">
                 <span
                   className="text-[11px] font-bold lowercase tracking-[0.2em] text-[#85a818] whitespace-nowrap"
-                  style={{ fontFamily: "'Montserrat', sans-serif" }}
+                  style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
                 >
                   my private notes
                 </span>
@@ -163,13 +163,13 @@ export default function Alerts({
                     </button>
                     <span
                       className="text-[15px] font-bold text-theme-text lowercase leading-snug mb-3 pr-8"
-                      style={{ fontFamily: "'Afacad', sans-serif" }}
+                      style={{ fontFamily: "var(--font-afacad), sans-serif" }}
                     >
                       {note.text}
                     </span>
                     <span
                       className="text-[10px] font-bold tracking-widest uppercase text-theme-muted"
-                      style={{ fontFamily: "'Montserrat', sans-serif" }}
+                      style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
                     >
                       {note.date}
                     </span>
@@ -182,7 +182,7 @@ export default function Alerts({
               <div className="flex items-center gap-3 w-full">
                 <span
                   className="text-[11px] font-bold lowercase tracking-[0.25em] text-[#8b5cf6] whitespace-nowrap"
-                  style={{ fontFamily: "'Montserrat', sans-serif" }}
+                  style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
                 >
                   assessments
                 </span>
@@ -214,20 +214,20 @@ export default function Alerts({
                     <div className="flex items-center gap-3 mb-4 z-10">
                       <span
                         className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full shrink-0 bg-[#8b5cf6] text-white"
-                        style={{ fontFamily: "'Afacad', sans-serif" }}
+                        style={{ fontFamily: "var(--font-afacad), sans-serif" }}
                       >
                         exam
                       </span>
                       <span
                         className="text-[12px] font-bold text-theme-muted tracking-wider uppercase"
-                        style={{ fontFamily: "'Montserrat', sans-serif" }}
+                        style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
                       >
                         {alert.date}
                       </span>
                     </div>
                     <span
                       className="text-[20px] font-black tracking-wide text-theme-text leading-tight mb-4 z-10"
-                      style={{ fontFamily: "'Montserrat', sans-serif" }}
+                      style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
                     >
                       {alert.title}
                     </span>
@@ -244,7 +244,7 @@ export default function Alerts({
                             )}
                             <span
                               className="text-[15px] font-bold text-theme-text lowercase leading-snug"
-                              style={{ fontFamily: "'Afacad', sans-serif" }}
+                              style={{ fontFamily: "var(--font-afacad), sans-serif" }}
                             >
                               {sub.trim()}
                             </span>
@@ -260,7 +260,7 @@ export default function Alerts({
               <div className="flex items-center gap-3 w-full">
                 <span
                   className="text-[11px] font-bold lowercase tracking-[0.25em] text-[#FF4D4D] whitespace-nowrap"
-                  style={{ fontFamily: "'Montserrat', sans-serif" }}
+                  style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
                 >
                   upcoming breaks
                 </span>
@@ -292,20 +292,20 @@ export default function Alerts({
                     <div className="flex items-center gap-3 mb-4 z-10">
                       <span
                         className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full shrink-0 bg-[#FF4D4D] text-white"
-                        style={{ fontFamily: "'Afacad', sans-serif" }}
+                        style={{ fontFamily: "var(--font-afacad), sans-serif" }}
                       >
                         holiday
                       </span>
                       <span
                         className="text-[12px] font-bold text-theme-muted tracking-wider uppercase"
-                        style={{ fontFamily: "'Montserrat', sans-serif" }}
+                        style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
                       >
                         {alert.date}
                       </span>
                     </div>
                     <span
                       className="text-[20px] font-black tracking-wide text-theme-text leading-tight mb-4 z-10"
-                      style={{ fontFamily: "'Montserrat', sans-serif" }}
+                      style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
                     >
                       {alert.title}
                     </span>
@@ -322,7 +322,7 @@ export default function Alerts({
                             )}
                             <span
                               className="text-[15px] font-bold text-theme-text lowercase leading-snug"
-                              style={{ fontFamily: "'Afacad', sans-serif" }}
+                              style={{ fontFamily: "var(--font-afacad), sans-serif" }}
                             >
                               {sub.trim()}
                             </span>
@@ -354,7 +354,7 @@ export default function Alerts({
                 placeholder="add a private note..."
                 className="flex-1 bg-transparent outline-none px-2 text-[14px] font-bold placeholder:font-medium placeholder:opacity-25 lowercase text-theme-text"
                 style={{
-                  fontFamily: "'Afacad', sans-serif",
+                  fontFamily: "var(--font-afacad), sans-serif",
                 }}
               />
               <button
@@ -367,7 +367,7 @@ export default function Alerts({
             <div className="flex justify-center mt-2 pb-2">
               <span
                 className="text-[10px] font-bold tracking-[0.1em] lowercase text-theme-muted"
-                style={{ fontFamily: "'Afacad', sans-serif" }}
+                style={{ fontFamily: "var(--font-afacad), sans-serif" }}
               >
                 note will only be visible to you
               </span>

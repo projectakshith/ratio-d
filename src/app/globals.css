@@ -181,6 +181,17 @@ body {
   --theme-highlight: #8B0000;
 }
 
+[data-theme="steve"] {
+  --theme-primary:   #35801C;
+  --theme-secondary: #5D4037;
+  --theme-accent:    #7A5C4F;
+  --theme-bg:        #1D1D1D;
+  --theme-text:      #FFFFFF;
+  --theme-highlight: #35801C;
+  --font-montserrat: "Courier New", Courier, monospace;
+  --font-afacad: "Courier New", Courier, monospace;
+}
+
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-montserrat), sans-serif;
 }

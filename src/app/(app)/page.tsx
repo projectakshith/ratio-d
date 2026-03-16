@@ -5,7 +5,7 @@ import { useTheme } from "@/context/ThemeContext";
 import DashboardMinimalist from "@/components/themes/minimalist/dashboard/Dashboard";
 import DashboardBrutalist from "@/components/themes/brutalist/Dashboard";
 import { useAcademiaData } from "@/hooks/useAcademiaData";
-import { useAppLayout } from "./layout";
+import { useAppLayout } from "@/context/AppLayoutContext";
 
 export default function DashboardPage() {
   const { userData, customDisplayName } = useApp();

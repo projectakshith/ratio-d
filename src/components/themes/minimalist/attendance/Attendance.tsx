@@ -1,7 +1,8 @@
 "use client";
 import React, { useEffect, useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Calculator, X, ChevronRight as ChevronRightIcon } from "lucide-react";
+import { Calculator, X, ChevronRight as ChevronRightIcon, Loader } from "lucide-react";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import {
   getBaseAttendance,
   getImpactMap,
@@ -44,9 +45,17 @@ export default function Attendance({
   academia: any;
   setIsSwipeDisabled?: (disabled: boolean) => void;
 }) {
-  const [mounted, setMounted] = useState(false);
   const [isPredictOverlay, setIsPredictOverlay] = useState(false);
   const [isPredicting, setIsPredicting] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  const {
+    pullY,
+    isRefreshing,
+    handleTouchStart,
+    handleTouchMove,
+    handleTouchEnd,
+  } = usePullToRefresh(isPredictOverlay);
 
   useEffect(() => {
     if (setIsSwipeDisabled) {
@@ -222,12 +231,32 @@ export default function Attendance({
           __html: `.warning-dotted-rect { background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='24' ry='14' stroke='%23FF4D4D' stroke-width='3' stroke-dasharray='6%2c 10' stroke-dashoffset='0' stroke-linecap='round'/%3e%3c/svg%3e"); border-radius: 24px; } .affected-dotted-border { border-style: dashed !important; border-width: 2px !important; border-color: color-mix(in srgb, var(--theme-text) 40%, transparent) !important; }`,
         }}
       />
-      <div className="absolute inset-0 bg-theme-bg">
+      <div className="absolute inset-0 bg-theme-bg overflow-hidden">
+        <div
+          className="fixed top-0 left-0 w-full flex justify-center pt-8 z-50 transition-opacity duration-300 pointer-events-none"
+          style={{
+            opacity: Math.min(pullY / 60, 1),
+            transform: `translateY(${pullY * 0.3}px)`,
+          }}
+        >
+          <Loader
+            className="w-6 h-6 text-theme-muted"
+            style={{
+              animation: isRefreshing ? "spin 1s linear infinite" : "none",
+              transform: `rotate(${pullY * 2}deg)`,
+            }}
+          />
+        </div>
+
         <motion.div
           variants={containerVariants}
           initial="hidden"
           animate="show"
+          style={{ y: pullY }}
           className="h-full w-full overflow-y-auto no-scrollbar px-6 pt-10 pb-[180px] flex flex-col relative z-10"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
         >
           <motion.div
             variants={itemVariants}

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, createContext, useContext } from "react";
+import React, { useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
 import SettingsPage from "@/components/shared/SettingsPage";
@@ -17,17 +17,7 @@ const MinimalistThemeLayout = dynamic(
   { loading: () => <div className="h-screen w-full bg-theme-bg" /> }
 );
 
-interface AppLayoutContextType {
-  onOpenSettings: () => void;
-}
-
-const AppLayoutContext = createContext<AppLayoutContextType | undefined>(undefined);
-
-export function useAppLayout() {
-  const context = useContext(AppLayoutContext);
-  if (!context) throw new Error("useAppLayout must be used within AppLayout");
-  return context;
-}
+import { AppLayoutContext } from "@/context/AppLayoutContext";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { userData, logout, customDisplayName, setCustomDisplayName, isUpdating } = useApp();

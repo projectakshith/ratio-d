@@ -13,7 +13,8 @@ export type ColorTheme =
   | "brutalist"
   | "yam"
   | "gojo"
-  | "eren";
+  | "eren"
+  | "steve";
 
 export type UiStyle = "minimalist" | "brutalist";
 
@@ -147,6 +148,14 @@ export const COLOR_THEMES: ThemeMeta[] = [
     isDark: true,
     swatches: ["#1A1A1A", "#4B3621", "#8B0000"],
   },
+  {
+    id: "steve",
+    name: "Steve",
+    deity: "The Miner",
+    description: "Minecraft grass & dirt blocks",
+    isDark: true,
+    swatches: ["#35801C", "#5D4037", "#1D1D1D"],
+  },
 ];
 
 export const DARK_COLOR_THEMES = new Set<ColorTheme>([
@@ -158,6 +167,7 @@ export const DARK_COLOR_THEMES = new Set<ColorTheme>([
   "brutalist",
   "gojo",
   "eren",
+  "steve",
 ]);
 
 export function parseTheme(fullTheme: string): {
