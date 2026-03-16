@@ -14,6 +14,10 @@
   font-family: "Urbanosta";
   src: url("/fonts/Urbanosta.otf");
 }
+@font-face {
+  font-family: "Minecraft";
+  src: url("/fonts/Minecraft.ttf");
+}
 
 :root {
   --font-montserrat: 'Montserrat', sans-serif;
@@ -188,8 +192,29 @@ body {
   --theme-bg:        #1D1D1D;
   --theme-text:      #FFFFFF;
   --theme-highlight: #35801C;
-  --font-montserrat: "Courier New", Courier, monospace;
-  --font-afacad: "Courier New", Courier, monospace;
+  --font-montserrat: "Minecraft", monospace !important;
+  --font-afacad: "Minecraft", monospace !important;
+}
+
+[data-theme="steve"] body,
+[data-theme="steve"] span,
+[data-theme="steve"] div,
+[data-theme="steve"] p,
+[data-theme="steve"] h1,
+[data-theme="steve"] h2,
+[data-theme="steve"] h3,
+[data-theme="steve"] h4,
+[data-theme="steve"] h5,
+[data-theme="steve"] h6 {
+  font-family: "Minecraft", monospace !important;
+  text-transform: lowercase;
+  letter-spacing: 0.02em;
+  line-height: 1.1;
+}
+
+[data-theme="steve"] *:active {
+  transform: scale(0.96) !important;
+  transition: transform 0.05s ease-out !important;
 }
 
 h1, h2, h3, h4, h5, h6 {

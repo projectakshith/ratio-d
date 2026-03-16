@@ -92,14 +92,11 @@ export default function RootLayout({
           bg-[#F7F7F7]
           h-full
           min-h-screen
+          ${geistSans.variable}
+          ${geistMono.variable}
+          ${afacad.variable}
+          ${montserrat.variable}
         `}
-        style={{
-          // @ts-ignore
-          "--font-geist-sans": geistSans.style.fontFamily,
-          "--font-geist-mono": geistMono.style.fontFamily,
-          "--font-afacad": afacad.style.fontFamily,
-          "--font-montserrat": montserrat.style.fontFamily,
-        }}
       >
         <AppProvider>
           <ThemeProvider>

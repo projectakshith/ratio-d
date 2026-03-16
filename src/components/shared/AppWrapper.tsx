@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useApp } from "@/context/AppContext";
 import { WifiOff } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
+import MinecraftParticles from "./MinecraftParticles";
 
 export default function AppWrapper({ children }: { children: React.ReactNode }) {
   const { isOffline } = useApp();
@@ -91,6 +92,8 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
       <div className="w-full h-full min-h-screen relative z-10">
         {children}
       </div>
+
+      <MinecraftParticles />
 
       <AnimatePresence mode="wait">
         {showSplash && (
