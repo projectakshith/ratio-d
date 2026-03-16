@@ -184,13 +184,12 @@ body {
   --theme-text:      #D2B48C;
   --theme-highlight: #8B0000;
 }
-
 [data-theme="steve"] {
   --theme-primary:   #35801C;
   --theme-secondary: #5D4037;
   --theme-accent:    #7A5C4F;
-  --theme-bg:        #1D1D1D;
-  --theme-text:      #FFFFFF;
+  --theme-bg:        #F7F7F7;
+  --theme-text:      #1D1D1D;
   --theme-highlight: #35801C;
   --font-montserrat: "Minecraft", monospace !important;
   --font-afacad: "Minecraft", monospace !important;

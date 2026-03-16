@@ -152,9 +152,9 @@ export const COLOR_THEMES: ThemeMeta[] = [
     id: "steve",
     name: "Steve",
     deity: "The Miner",
-    description: "Minecraft grass & dirt blocks",
-    isDark: true,
-    swatches: ["#35801C", "#5D4037", "#1D1D1D"],
+    description: "Minecraft aesthetics with Ghast",
+    isDark: false,
+    swatches: ["#35801C", "#5D4037", "#F7F7F7"],
   },
 ];
 
@@ -167,7 +167,6 @@ export const DARK_COLOR_THEMES = new Set<ColorTheme>([
   "brutalist",
   "gojo",
   "eren",
-  "steve",
 ]);
 
 export function parseTheme(fullTheme: string): {
