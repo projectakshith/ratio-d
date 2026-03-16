@@ -233,19 +233,19 @@ const Calendar = ({ data, academia }: any) => {
               <div className="flex items-center gap-2">
                 <button
                   onClick={handlePrevMonth}
-                  className="w-10 h-10 bg-theme-card rounded-full flex items-center justify-center text-theme-text active:scale-95 transition-all"
+                  className="w-10 h-10 bg-theme-card rounded-full flex items-center justify-center text-theme-text transition-all"
                 >
                   <ChevronLeft size={20} strokeWidth={2.5} />
                 </button>
                 <button
                   onClick={goToToday}
-                  className="w-10 h-10 bg-theme-text text-theme-bg rounded-full flex items-center justify-center active:scale-95 transition-all hover:opacity-90"
+                  className="w-10 h-10 bg-theme-text text-theme-bg rounded-full flex items-center justify-center transition-all hover:opacity-90"
                 >
                   <Target size={18} strokeWidth={2.5} />
                 </button>
                 <button
                   onClick={handleNextMonth}
-                  className="w-10 h-10 bg-theme-card rounded-full flex items-center justify-center text-theme-text active:scale-95 transition-all"
+                  className="w-10 h-10 bg-theme-card rounded-full flex items-center justify-center text-theme-text transition-all"
                 >
                   <ChevronRight size={20} strokeWidth={2.5} />
                 </button>

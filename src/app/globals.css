@@ -211,11 +211,6 @@ body {
   line-height: 1.1;
 }
 
-[data-theme="steve"] *:active {
-  transform: scale(0.96) !important;
-  transition: transform 0.05s ease-out !important;
-}
-
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-montserrat), sans-serif;
 }

@@ -293,7 +293,7 @@ export default function Attendance({
             {!isPredicting ? (
               <button
                 onClick={() => setIsPredictOverlay(true)}
-                className="w-full relative group active:scale-[0.98] transition-all duration-200"
+                className="w-full relative group transition-all duration-200"
               >
                 <div
                   className="absolute inset-0 bg-theme-text rounded-[24px] translate-y-1.5 transition-transform group-hover:translate-y-2"
@@ -367,7 +367,7 @@ export default function Attendance({
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => setIsPredictOverlay(true)}
-                      className="w-9 h-9 rounded-full bg-theme-bg-alpha border border-theme-bg-10 flex items-center justify-center text-theme-bg active:scale-95 transition-all"
+                      className="w-9 h-9 rounded-full bg-theme-bg-alpha border border-theme-bg-10 flex items-center justify-center text-theme-bg transition-all"
                     >
                       <ChevronRightIcon size={18} strokeWidth={2.5} />
                     </button>
@@ -378,7 +378,7 @@ export default function Attendance({
                         setRangeStart(null);
                         setRangeEnd(null);
                       }}
-                      className="w-9 h-9 rounded-full bg-[#FF4D4D]/20 border border-[#FF4D4D]/20 flex items-center justify-center text-[#FF4D4D] active:scale-95 transition-all"
+                      className="w-9 h-9 rounded-full bg-[#FF4D4D]/20 border border-[#FF4D4D]/20 flex items-center justify-center text-[#FF4D4D] transition-all"
                     >
                       <X size={18} strokeWidth={2.5} />
                     </button>

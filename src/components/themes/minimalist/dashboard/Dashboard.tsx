@@ -366,7 +366,7 @@ export default function Dashboard({
             >
               <button
                 onClick={onOpenSettings}
-                className="w-[50px] h-[50px] rounded-[16px] overflow-hidden active:scale-95 transition-all mt-3 bg-transparent border-none"
+                className="w-[50px] h-[50px] rounded-[16px] overflow-hidden transition-all mt-3 bg-transparent border-none"
               >
                 <img
                   src="/image.png"
@@ -449,7 +449,7 @@ export default function Dashboard({
                 {extraGrid.length > 0 && (
                   <button
                     onClick={() => setShowExtraSlots(!showExtraSlots)}
-                    className="bg-theme-surface text-theme-muted px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest active:scale-95 transition-all"
+                    className="bg-theme-surface text-theme-muted px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest transition-all"
                     style={{ fontFamily: "var(--font-afacad), sans-serif" }}
                   >
                     {showExtraSlots ? "hide extra" : `+${extraGrid.length} extra`}
@@ -459,13 +459,13 @@ export default function Dashboard({
               <div className="flex gap-2">
                 <button
                   onClick={() => handleDaySwitch("prev")}
-                  className="active:scale-75 transition-transform"
+                  className="transition-transform"
                 >
                   <ChevronLeft size={18} className={subTextClass} />
                 </button>
                 <button
                   onClick={() => handleDaySwitch("next")}
-                  className="active:scale-75 transition-transform"
+                  className="transition-transform"
                 >
                   <ChevronRight size={18} className={subTextClass} />
                 </button>
@@ -572,7 +572,7 @@ export default function Dashboard({
             >
               <div
                 onClick={() => setActiveTab && setActiveTab("attendance")}
-                className={`w-full border-[1.5px] rounded-[24px] p-2 pr-5 flex items-center gap-4 shadow-sm transition-all active:scale-[0.98] cursor-pointer ${attStyles.bg} ${attStyles.border}`}
+                className={`w-full border-[1.5px] rounded-[24px] p-2 pr-5 flex items-center gap-4 shadow-sm transition-all cursor-pointer ${attStyles.bg} ${attStyles.border}`}
               >
                 <div
                   className={`w-[50px] h-[50px] rounded-[18px] flex items-center justify-center shrink-0 ${attStyles.iconBg}`}
@@ -606,7 +606,7 @@ export default function Dashboard({
 
               <div
                 onClick={() => setIsAlertsOpen(true)}
-                className="w-full bg-theme-emphasis text-theme-bg border-[1.5px] border-black/5 rounded-[24px] p-2 pr-5 flex items-center gap-4 shadow-sm active:scale-[0.98] transition-transform cursor-pointer"
+                className="w-full bg-theme-emphasis text-theme-bg border-[1.5px] border-black/5 rounded-[24px] p-2 pr-5 flex items-center gap-4 shadow-sm transition-transform cursor-pointer"
               >
                 <div
                   className="w-[50px] h-[50px] rounded-[18px] bg-theme-bg-alpha flex items-center justify-center shrink-0"
@@ -650,7 +650,7 @@ export default function Dashboard({
 
               <div
                 onClick={() => setActiveTab && setActiveTab("marks")}
-                className="w-full bg-theme-card border-theme-subtle border-[1.5px] rounded-[24px] p-2 pr-5 flex items-center gap-4 shadow-sm active:scale-[0.98] transition-transform cursor-pointer"
+                className="w-full bg-theme-card border-theme-subtle border-[1.5px] rounded-[24px] p-2 pr-5 flex items-center gap-4 shadow-sm transition-transform cursor-pointer"
               >
                 <div
                   className="w-[50px] h-[50px] rounded-[18px] bg-theme-surface flex items-center justify-center shrink-0"

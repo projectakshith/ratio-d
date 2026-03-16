@@ -91,7 +91,7 @@ export default function Predict({
             </div>
             <button
               onClick={onClose}
-              className="w-10 h-10 rounded-full bg-theme-surface flex items-center justify-center text-theme-text active:scale-95 transition-all shrink-0"
+              className="w-10 h-10 rounded-full bg-theme-surface flex items-center justify-center text-theme-text transition-all shrink-0"
             >
               <X size={20} strokeWidth={2.5} />
             </button>

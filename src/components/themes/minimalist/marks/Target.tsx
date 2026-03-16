@@ -84,7 +84,7 @@ export default function Target({
             </div>
             <button
               onClick={onClose}
-              className={`w-10 h-10 rounded-full bg-theme-surface flex items-center justify-center ${textClass} active:scale-95 transition-all shrink-0`}
+              className={`w-10 h-10 rounded-full bg-theme-surface flex items-center justify-center ${textClass} transition-all shrink-0`}
             >
               <X size={20} strokeWidth={2.5} />
             </button>
@@ -190,7 +190,7 @@ export default function Target({
                     onClick={() =>
                       setExpectedMarks((prev: any) => Math.max(0, (typeof prev === "function" ? prev(expectedMarks) : prev) - 1))
                     }
-                    className={`w-7 h-7 rounded-[8px] bg-theme-text-10 flex items-center justify-center ${textClass} font-bold active:scale-95 transition-all`}
+                    className={`w-7 h-7 rounded-[8px] bg-theme-text-10 flex items-center justify-center ${textClass} font-bold transition-all`}
                   >
                     -
                   </button>
@@ -215,7 +215,7 @@ export default function Target({
                     onClick={() =>
                       setExpectedMarks((prev: any) => Math.min(maxPossibleExpected, (typeof prev === "function" ? prev(expectedMarks) : prev) + 1))
                     }
-                    className="w-7 h-7 rounded-[8px] bg-theme-emphasis text-theme-bg flex items-center justify-center font-bold active:scale-95 transition-all"
+                    className="w-7 h-7 rounded-[8px] bg-theme-emphasis text-theme-bg flex items-center justify-center font-bold transition-all"
                   >
                     +
                   </button>

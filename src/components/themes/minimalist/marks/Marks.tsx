@@ -302,7 +302,7 @@ export default function Marks({
                 setPredictMode(true);
                 setExpectedMarks(0);
               }}
-              className="w-full relative group active:scale-[0.98] transition-all duration-200"
+              className="w-full relative group transition-all duration-200"
             >
               <div
                 className="absolute inset-0 bg-theme-text rounded-[24px] translate-y-1.5 transition-transform group-hover:translate-y-2"

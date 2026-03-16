@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "@/context/ThemeContext";
 
@@ -16,6 +16,7 @@ interface Particle {
 export default function MinecraftParticles() {
   const { theme } = useTheme();
   const [particles, setParticles] = useState<Particle[]>([]);
+  const particleCounter = useRef(0);
   const isSteve = theme.includes("steve");
 
   const colors = ["#35801C", "#5D4037", "#7A5C4F", "#1D1D1D", "#FFFFFF"];
@@ -30,7 +31,7 @@ export default function MinecraftParticles() {
       const velocity = 2 + Math.random() * 4;
       
       newParticles.push({
-        id: Date.now() + i,
+        id: ++particleCounter.current,
         x,
         y,
         color: colors[Math.floor(Math.random() * colors.length)],
