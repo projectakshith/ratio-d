@@ -271,14 +271,14 @@ export default function Marks({
           >
             <span
               className="text-[12px] font-bold lowercase tracking-[0.3em] text-theme-muted mb-3"
-              style={{ fontFamily: "'Montserrat', sans-serif" }}
+              style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
             >
               total marks
             </span>
             <div className="flex items-baseline gap-1">
               <span
                 className={`text-[7.5rem] leading-[0.8] font-black tracking-tighter text-theme-text`}
-                style={{ fontFamily: "'Montserrat', sans-serif" }}
+                style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
               >
                 {Number.isInteger(totalObtained)
                   ? totalObtained
@@ -286,7 +286,7 @@ export default function Marks({
               </span>
               <span
                 className="text-[2.5rem] font-bold text-theme-muted"
-                style={{ fontFamily: "'Montserrat', sans-serif" }}
+                style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
               >
                 /{maxTotal > 0 ? maxTotal : "0"}
               </span>
@@ -317,13 +317,13 @@ export default function Marks({
                   <div className="flex flex-col items-start">
                     <span
                       className="text-[14px] font-black uppercase tracking-widest leading-none"
-                      style={{ fontFamily: "'Montserrat', sans-serif" }}
+                      style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
                     >
                       TARGET
                     </span>
                     <span
                       className="text-[10px] font-bold lowercase tracking-wider text-theme-muted mt-1"
-                      style={{ fontFamily: "'Afacad', sans-serif" }}
+                      style={{ fontFamily: "var(--font-afacad), sans-serif" }}
                     >
                       predict your future grade
                     </span>
@@ -347,7 +347,7 @@ export default function Marks({
               <div className="flex items-center gap-3 w-full">
                 <span
                   className={`text-[12px] font-bold lowercase tracking-[0.25em] whitespace-nowrap ${recentlyUpdated.some((s: any) => s.isPractical) ? "text-[#0EA5E9]" : "status-text-safe"}`}
-                  style={{ fontFamily: "'Montserrat', sans-serif" }}
+                  style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
                 >
                   recently updated
                 </span>
@@ -364,7 +364,7 @@ export default function Marks({
                     <div className="flex flex-col items-center justify-center min-w-[85px] shrink-0 px-1">
                       <span
                         className="text-[3.2rem] leading-[0.8] font-black tracking-tighter text-theme-text"
-                        style={{ fontFamily: "'Montserrat', sans-serif" }}
+                        style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
                       >
                         {Number.isInteger(sub.totalGot)
                           ? sub.totalGot
@@ -372,7 +372,7 @@ export default function Marks({
                       </span>
                       <span
                         className="text-[10px] font-bold uppercase tracking-widest mt-1 text-center text-theme-muted"
-                        style={{ fontFamily: "'Afacad', sans-serif" }}
+                        style={{ fontFamily: "var(--font-afacad), sans-serif" }}
                       >
                         out of {sub.totalMax}
                       </span>
@@ -382,21 +382,21 @@ export default function Marks({
                         {sub.isPractical && (
                           <span
                             className="text-[9px] font-bold uppercase tracking-[0.25em] text-theme-primary bg-theme-primary/10 px-2 py-0.5 rounded-md"
-                            style={{ fontFamily: "'Afacad', sans-serif" }}
+                            style={{ fontFamily: "var(--font-afacad), sans-serif" }}
                           >
                             practical
                           </span>
                         )}
                         <span
                           className="text-[16px] font-black uppercase tracking-widest leading-[1.1] truncate w-full text-theme-text"
-                          style={{ fontFamily: "'Montserrat', sans-serif" }}
+                          style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
                         >
                           {sub.displayCode}
                         </span>
                       </div>
                       <span
                         className="text-[13px] font-medium lowercase tracking-wide leading-[1.1] mt-0.5 truncate w-full text-theme-muted"
-                        style={{ fontFamily: "'Afacad', sans-serif" }}
+                        style={{ fontFamily: "var(--font-afacad), sans-serif" }}
                       >
                         {sub.displayName}
                       </span>
@@ -406,7 +406,7 @@ export default function Marks({
                         >
                           <span
                             className="text-[9px] uppercase tracking-widest text-theme-highlight"
-                            style={{ fontFamily: "'Afacad', sans-serif" }}
+                            style={{ fontFamily: "var(--font-afacad), sans-serif" }}
                           >
                             <strong className="font-black">
                               {sub.recent.test}
@@ -431,14 +431,14 @@ export default function Marks({
                         >
                           <span
                             className={`text-[12px] font-bold uppercase tracking-widest mb-0.5 ${boxTheme.subText}`}
-                            style={{ fontFamily: "'Afacad', sans-serif" }}
+                            style={{ fontFamily: "var(--font-afacad), sans-serif" }}
                           >
                             {box.title}
                           </span>
                           <div className="flex items-baseline justify-center gap-0.5 w-full">
                             <span
                               className={`text-[18px] font-black leading-none tracking-tighter ${boxTheme.text}`}
-                              style={{ fontFamily: "'Montserrat', sans-serif" }}
+                              style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
                             >
                               {Number.isInteger(box.got)
                                 ? box.got
@@ -446,7 +446,7 @@ export default function Marks({
                             </span>
                             <span
                               className={`text-[10px] font-bold ${boxTheme.subText}`}
-                              style={{ fontFamily: "'Montserrat', sans-serif" }}
+                              style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
                             >
                               /{box.max}
                             </span>
@@ -463,7 +463,7 @@ export default function Marks({
                       >
                         <span
                           className="text-[10px] font-bold text-theme-faint uppercase tracking-widest"
-                          style={{ fontFamily: "'Afacad', sans-serif" }}
+                          style={{ fontFamily: "var(--font-afacad), sans-serif" }}
                         >
                           tba
                         </span>
@@ -475,7 +475,7 @@ export default function Marks({
               <div className="w-full flex justify-center mt-1">
                 <span
                   className="text-[11px] font-bold lowercase tracking-widest text-theme-highlight opacity-80"
-                  style={{ fontFamily: "'Afacad', sans-serif" }}
+                  style={{ fontFamily: "var(--font-afacad), sans-serif" }}
                 >
                   {gpaFlavorText}
                 </span>
@@ -493,7 +493,7 @@ export default function Marks({
             >
               <span
                 className="text-[12px] font-bold lowercase tracking-[0.25em] text-theme-muted whitespace-nowrap"
-                style={{ fontFamily: "'Montserrat', sans-serif" }}
+                style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
               >
                 all subjects
               </span>
@@ -511,7 +511,7 @@ export default function Marks({
                   <div className="flex flex-col items-center justify-center min-w-[85px] shrink-0 px-1">
                     <span
                       className={`text-[3.2rem] leading-[0.8] font-black tracking-tighter ${sub.isPractical ? "text-theme-primary" : "text-theme-text"}`}
-                      style={{ fontFamily: "'Montserrat', sans-serif" }}
+                      style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
                     >
                       {Number.isInteger(sub.totalGot)
                         ? sub.totalGot
@@ -519,7 +519,7 @@ export default function Marks({
                     </span>
                     <span
                       className={`text-[10px] font-bold uppercase tracking-widest mt-1 text-center ${sub.isPractical ? "text-theme-primary/60" : "text-theme-muted"}`}
-                      style={{ fontFamily: "'Afacad', sans-serif" }}
+                      style={{ fontFamily: "var(--font-afacad), sans-serif" }}
                     >
                       out of {sub.totalMax}
                     </span>
@@ -529,21 +529,21 @@ export default function Marks({
                       {sub.isPractical && (
                         <span
                           className="text-[9px] font-bold uppercase tracking-[0.25em] text-theme-primary bg-theme-primary/10 px-2 py-0.5 rounded-md"
-                          style={{ fontFamily: "'Afacad', sans-serif" }}
+                          style={{ fontFamily: "var(--font-afacad), sans-serif" }}
                         >
                           practical
                         </span>
                       )}
                       <span
                         className={`text-[16px] font-black uppercase tracking-widest leading-none truncate w-full ${sub.isPractical ? "text-theme-primary" : "text-theme-text"}`}
-                        style={{ fontFamily: "'Montserrat', sans-serif" }}
+                        style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
                       >
                         {sub.displayCode}
                       </span>
                     </div>
                     <span
                       className={`text-[13px] font-medium lowercase tracking-wide leading-[1.1] mt-0.5 truncate w-full ${sub.isPractical ? "text-theme-primary/70" : "text-theme-muted"}`}
-                      style={{ fontFamily: "'Afacad', sans-serif" }}
+                      style={{ fontFamily: "var(--font-afacad), sans-serif" }}
                     >
                       {sub.displayName}
                     </span>
@@ -559,14 +559,14 @@ export default function Marks({
                       >
                         <span
                           className={`text-[12px] font-bold uppercase tracking-widest mb-0.5 ${sub.isPractical ? "text-theme-primary/60" : boxTheme.subText}`}
-                          style={{ fontFamily: "'Afacad', sans-serif" }}
+                          style={{ fontFamily: "var(--font-afacad), sans-serif" }}
                         >
                           {box.title}
                         </span>
                         <div className="flex items-baseline justify-center gap-0.5 w-full">
                           <span
                             className={`text-[18px] font-black leading-none tracking-tighter ${sub.isPractical ? "text-theme-primary" : boxTheme.text}`}
-                            style={{ fontFamily: "'Montserrat', sans-serif" }}
+                            style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
                           >
                             {Number.isInteger(box.got)
                               ? box.got
@@ -574,7 +574,7 @@ export default function Marks({
                           </span>
                           <span
                             className={`text-[10px] font-bold ${sub.isPractical ? "text-theme-primary/40" : boxTheme.subText}`}
-                            style={{ fontFamily: "'Montserrat', sans-serif" }}
+                            style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
                           >
                             /{box.max}
                           </span>
@@ -591,7 +591,7 @@ export default function Marks({
                     >
                       <span
                         className="text-[10px] font-bold text-theme-faint uppercase tracking-widest"
-                        style={{ fontFamily: "'Afacad', sans-serif" }}
+                        style={{ fontFamily: "var(--font-afacad), sans-serif" }}
                       >
                         tba
                       </span>
@@ -614,7 +614,7 @@ export default function Marks({
             <span
               key={i}
               className="text-[3.2rem] leading-[0.75] lowercase text-theme-text"
-              style={{ fontFamily: "'Afacad', sans-serif", fontWeight: 400 }}
+              style={{ fontFamily: "var(--font-afacad), sans-serif", fontWeight: 400 }}
             >
               {char}
             </span>

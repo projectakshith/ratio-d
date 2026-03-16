@@ -264,7 +264,7 @@ export default function Attendance({
           >
             <span
               className="text-[12px] font-bold lowercase tracking-[0.3em] mb-3 text-theme-muted"
-              style={{ fontFamily: "'Montserrat', sans-serif" }}
+              style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
             >
               overall attendance
             </span>
@@ -272,14 +272,14 @@ export default function Attendance({
               <span
                 className="text-[7.5rem] leading-[0.8] font-black tracking-tighter text-theme-text"
                 style={{
-                  fontFamily: "'Montserrat', sans-serif",
+                  fontFamily: "var(--font-montserrat), sans-serif",
                 }}
               >
                 {stats.percent}
               </span>
               <span
                 className="text-[2.5rem] font-bold text-theme-muted"
-                style={{ fontFamily: "'Montserrat', sans-serif" }}
+                style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
               >
                 %
               </span>
@@ -312,13 +312,13 @@ export default function Attendance({
                     <div className="flex flex-col items-start">
                       <span
                         className="text-[14px] font-black uppercase tracking-widest leading-none"
-                        style={{ fontFamily: "'Montserrat', sans-serif" }}
+                        style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
                       >
                         PREDICT
                       </span>
                       <span
                         className="text-[10px] font-bold lowercase tracking-wider text-theme-muted mt-1"
-                        style={{ fontFamily: "'Afacad', sans-serif" }}
+                        style={{ fontFamily: "var(--font-afacad), sans-serif" }}
                       >
                         calculate future attendance
                       </span>
@@ -351,13 +351,13 @@ export default function Attendance({
                     <div className="flex flex-col items-start">
                       <span
                         className="text-[14px] font-black uppercase tracking-widest text-theme-bg leading-none"
-                        style={{ fontFamily: "'Montserrat', sans-serif" }}
+                        style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
                       >
                         predicting
                       </span>
                       <span
                         className="text-[10px] font-bold lowercase tracking-wider text-theme-bg-60 mt-1"
-                        style={{ fontFamily: "'Afacad', sans-serif" }}
+                        style={{ fontFamily: "var(--font-afacad), sans-serif" }}
                       >
                         {selectedDates.length} days{" "}
                         {predictAction === "leave" ? "off" : "present"}
@@ -396,7 +396,7 @@ export default function Attendance({
               <div className="flex items-center gap-3 w-full">
                 <span
                   className="text-[12px] font-bold lowercase tracking-[0.25em] text-[#FF4D4D] whitespace-nowrap"
-                  style={{ fontFamily: "'Montserrat', sans-serif" }}
+                  style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
                 >
                   action required
                 </span>
@@ -412,7 +412,7 @@ export default function Attendance({
                       <span
                         className="text-[3.2rem] leading-[0.8] font-black tracking-tighter"
                         style={{
-                          fontFamily: "'Montserrat', sans-serif",
+                          fontFamily: "var(--font-montserrat), sans-serif",
                           color: "#FF4D4D",
                         }}
                       >
@@ -432,7 +432,7 @@ export default function Attendance({
                         <span
                           className="text-[10px] font-bold uppercase tracking-widest mt-1 text-center"
                           style={{
-                            fontFamily: "'Afacad', sans-serif",
+                            fontFamily: "var(--font-afacad), sans-serif",
                             color: "#FF4D4Db3",
                           }}
                         >
@@ -450,7 +450,7 @@ export default function Attendance({
                         {sub.isPractical && (
                           <span
                             className="text-[9px] font-bold uppercase tracking-[0.25em] text-[#0EA5E9] bg-[#0EA5E9]/10 px-2 py-0.5 rounded-md"
-                            style={{ fontFamily: "'Afacad', sans-serif" }}
+                            style={{ fontFamily: "var(--font-afacad), sans-serif" }}
                           >
                             practical
                           </span>
@@ -458,7 +458,7 @@ export default function Attendance({
                         <span
                           className="text-[16px] font-black uppercase tracking-widest leading-[1.1] truncate"
                           style={{
-                            fontFamily: "'Montserrat', sans-serif",
+                            fontFamily: "var(--font-montserrat), sans-serif",
                             color: "#FF4D4D",
                           }}
                         >
@@ -468,7 +468,7 @@ export default function Attendance({
                       <span
                         className="text-[12px] font-medium lowercase tracking-wide leading-[1.1] truncate w-full"
                         style={{
-                          fontFamily: "'Afacad', sans-serif",
+                          fontFamily: "var(--font-afacad), sans-serif",
                           color: "#FF4D4Db3",
                         }}
                       >
@@ -488,7 +488,7 @@ export default function Attendance({
                         <span
                           className="text-[16px] font-black tracking-tighter"
                           style={{
-                            fontFamily: "'Montserrat', sans-serif",
+                            fontFamily: "var(--font-montserrat), sans-serif",
                             color: "#FF4D4D",
                           }}
                         >
@@ -512,7 +512,7 @@ export default function Attendance({
             >
               <span
                 className="text-[12px] font-bold lowercase tracking-[0.25em] text-theme-muted whitespace-nowrap"
-                style={{ fontFamily: "'Montserrat', sans-serif" }}
+                style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
               >
                 subjects
               </span>
@@ -533,7 +533,7 @@ export default function Attendance({
                     <span
                       className="text-[3.2rem] leading-[0.8] font-black tracking-tighter"
                       style={{
-                        fontFamily: "'Montserrat', sans-serif",
+                        fontFamily: "var(--font-montserrat), sans-serif",
                         color: baseColor,
                       }}
                     >
@@ -553,7 +553,7 @@ export default function Attendance({
                       <span
                         className="text-[10px] font-bold uppercase tracking-widest mt-1 text-center"
                         style={{
-                          fontFamily: "'Afacad', sans-serif",
+                          fontFamily: "var(--font-afacad), sans-serif",
                           color: isPrac ? "#0EA5E9b3" : "color-mix(in srgb, var(--theme-text) 40%, transparent)",
                         }}
                       >
@@ -571,7 +571,7 @@ export default function Attendance({
                       {isPrac && (
                         <span
                           className="text-[9px] font-bold uppercase tracking-[0.25em] text-[#0EA5E9] bg-[#0EA5E9]/10 px-2 py-0.5 rounded-md"
-                          style={{ fontFamily: "'Afacad', sans-serif" }}
+                          style={{ fontFamily: "var(--font-afacad), sans-serif" }}
                         >
                           practical
                         </span>
@@ -579,7 +579,7 @@ export default function Attendance({
                       <span
                         className="text-[16px] font-black uppercase tracking-widest leading-[1.1] truncate"
                         style={{
-                          fontFamily: "'Montserrat', sans-serif",
+                          fontFamily: "var(--font-montserrat), sans-serif",
                           color: baseColor,
                         }}
                       >
@@ -589,7 +589,7 @@ export default function Attendance({
                     <span
                       className={`text-[13px] font-medium lowercase tracking-wide leading-[1.1] truncate w-full`}
                       style={{
-                        fontFamily: "'Afacad', sans-serif",
+                        fontFamily: "var(--font-afacad), sans-serif",
                         color: isPrac ? "#0EA5E9b3" : "color-mix(in srgb, var(--theme-text) 50%, transparent)",
                       }}
                     >
@@ -609,7 +609,7 @@ export default function Attendance({
                       <span
                         className="text-[16px] font-black tracking-tighter"
                         style={{
-                          fontFamily: "'Montserrat', sans-serif",
+                          fontFamily: "var(--font-montserrat), sans-serif",
                           color: baseColor,
                         }}
                       >
@@ -634,7 +634,7 @@ export default function Attendance({
             <span
               key={i}
               className="text-[3.2rem] leading-[0.75] lowercase text-theme-text"
-              style={{ fontFamily: "'Afacad', sans-serif", fontWeight: 400 }}
+              style={{ fontFamily: "var(--font-afacad), sans-serif", fontWeight: 400 }}
             >
               {char}
             </span>
