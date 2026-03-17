@@ -15,6 +15,19 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<string>("minimalist_minimalist-dark");
   const [mounted, setMounted] = useState(false);
 
+  const updateSystemThemeColor = () => {
+    const bgColor = getComputedStyle(document.documentElement).getPropertyValue('--theme-bg').trim();
+    if (bgColor) {
+      let meta = document.querySelector('meta[name="theme-color"]');
+      if (!meta) {
+        meta = document.createElement('meta');
+        meta.setAttribute('name', 'theme-color');
+        document.head.appendChild(meta);
+      }
+      meta.setAttribute('content', bgColor);
+    }
+  };
+
   useEffect(() => {
     try {
       const savedRaw = localStorage.getItem("ratiod_theme");
@@ -22,6 +35,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       setThemeState(migrated);
       const { colorTheme } = parseTheme(migrated);
       document.documentElement.setAttribute("data-theme", colorTheme);
+      setTimeout(updateSystemThemeColor, 10);
     } catch (error) {
       document.documentElement.setAttribute("data-theme", "minimalist-dark");
     } finally {
@@ -34,6 +48,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     setThemeState(migrated);
     const { colorTheme } = parseTheme(migrated);
     document.documentElement.setAttribute("data-theme", colorTheme);
+    setTimeout(updateSystemThemeColor, 10);
     try {
       localStorage.setItem("ratiod_theme", migrated);
     } catch (error) {}

@@ -391,7 +391,12 @@ export default function Attendance({
           {actionRequired.length > 0 && (
             <motion.div
               variants={itemVariants}
-              className="w-full warning-dotted-rect p-5 flex flex-col gap-4 mb-12 bg-[#FF4D4D]/5 shrink-0"
+              className="w-full p-5 flex flex-col gap-4 mb-12 rounded-[32px] shrink-0 border-[2px] border-dashed"
+              style={{ 
+                borderColor: 'color-mix(in srgb, var(--theme-secondary) 50%, transparent)',
+                backgroundColor: 'color-mix(in srgb, var(--theme-secondary) 5%, transparent)',
+                borderDasharray: '12 16'
+              } as any}
             >
               <div className="flex items-center gap-3 w-full">
                 <span

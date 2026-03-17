@@ -342,7 +342,16 @@ export default function Marks({
           {recentlyUpdated.length > 0 && (
             <motion.div
               variants={itemVariants}
-              className={`w-full p-5 flex flex-col gap-4 mb-8 shrink-0 rounded-[32px] border-[1.5px] ${recentlyUpdated.some((s: any) => s.isPractical) ? "border-[#0EA5E9]/20 bg-[#0EA5E9]/05" : "status-border-safe status-bg-safe"}`}
+              className="w-full p-5 flex flex-col gap-4 mb-8 shrink-0 rounded-[32px] border-[2px] border-dashed"
+              style={{
+                borderColor: recentlyUpdated.some((s: any) => s.isPractical) 
+                  ? 'color-mix(in srgb, #0EA5E9 50%, transparent)' 
+                  : 'color-mix(in srgb, var(--theme-highlight) 50%, transparent)',
+                backgroundColor: recentlyUpdated.some((s: any) => s.isPractical) 
+                  ? 'color-mix(in srgb, #0EA5E9 5%, transparent)' 
+                  : 'color-mix(in srgb, var(--theme-highlight) 5%, transparent)',
+                borderDasharray: '12 16'
+              } as any}
             >
               <div className="flex items-center gap-3 w-full">
                 <span

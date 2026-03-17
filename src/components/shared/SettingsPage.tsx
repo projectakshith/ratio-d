@@ -16,6 +16,8 @@ import {
 } from "lucide-react";
 import { requestNotificationPermission } from "@/utils/shared/notifs";
 import { StudentProfile } from "@/types";
+import { useApp } from "@/context/AppContext";
+import { EncryptionUtils } from "@/utils/shared/Encryption";
 import {
   COLOR_THEMES,
   parseTheme,
@@ -153,6 +155,7 @@ const SettingsPage = ({
   currentTheme = "minimalist_minimalist-dark",
   isDark = false,
 }: SettingsPageProps) => {
+  const { userData, refreshData, isUpdating } = useApp();
   const [isEditing, setIsEditing] = useState(false);
   const [tempName, setTempName] = useState("");
   const [notifEnabled, setNotifEnabled] = useState(false);
@@ -197,6 +200,14 @@ const SettingsPage = ({
     setTimeout(() => {
       onSelectTheme?.(combined);
     }, 400);
+  };
+
+  const handleSync = async () => {
+    const creds = EncryptionUtils.loadDecrypted("ratio_credentials");
+    if (creds && userData) {
+      await refreshData(creds, userData);
+      window.location.reload();
+    }
   };
 
   const defaultThemes = COLOR_THEMES.filter(t => ["default", "minimalist-dark", "brutalist"].includes(t.id));
@@ -341,6 +352,8 @@ const SettingsPage = ({
                 <SettingItem
                   icon={<Cloud className="w-5 h-5 opacity-80 text-theme-text" />}
                   label="Sync Data"
+                  onClick={handleSync}
+                  value={isUpdating ? "Syncing..." : ""}
                 />
                 {onTestNotification && (
                   <SettingItem

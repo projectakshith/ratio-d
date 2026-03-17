@@ -82,7 +82,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         cookies: updatedCookies,
       };
 
-      const diff = compareData(existingData, updatedData);
+      const hasOldData = (existingData?.attendance?.length > 0) || (existingData?.marks?.length > 0);
+      const diff = hasOldData ? compareData(existingData, updatedData) : null;
+      
       if (diff) {
         setLatestDiff(diff);
       }

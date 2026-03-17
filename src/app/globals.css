@@ -47,14 +47,26 @@ html {
   height: 100%;
 }
 
-body {
+html, body {
   background-color: var(--theme-bg, #F7F7F7);
   color: var(--theme-text, #111111);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-family: var(--font-afacad), sans-serif;
   height: 100%;
-  overflow-x: hidden;
+  width: 100%;
+  overflow: hidden;
+  position: fixed;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none !important;
+}
+
+#__next, [data-reactroot] {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
 }
 
 :root,
@@ -150,9 +162,9 @@ body {
 }
 
 [data-theme="minimalist-dark"] {
-  --theme-primary:   #37474F;
+  --theme-primary:   #85a818;
   --theme-secondary: #FF4D4D;
-  --theme-accent:    #FFD54F;
+  --theme-accent:    #8A2BE2;
   --theme-bg:        #111111;
   --theme-text:      #FFFFFF;
   --theme-highlight: #85a818;
@@ -265,21 +277,33 @@ input:-webkit-autofill {
   .border-theme-border    { border-color: color-mix(in srgb, var(--theme-text) 12%, transparent); }
   .border-theme-subtle    { border-color: color-mix(in srgb, var(--theme-text) 8%, transparent); }
 
+  .border-dashed-wide {
+    background-image: 
+      linear-gradient(to right, currentColor 50%, transparent 50%),
+      linear-gradient(to right, currentColor 50%, transparent 50%),
+      linear-gradient(to bottom, currentColor 50%, transparent 50%),
+      linear-gradient(to bottom, currentColor 50%, transparent 50%);
+    background-position: left top, left bottom, left top, right top;
+    background-repeat: repeat-x, repeat-x, repeat-y, repeat-y;
+    background-size: 20px 2px, 20px 2px, 2px 20px, 2px 20px;
+  }
+
   .status-text-safe    { color: var(--theme-highlight); }
-  .status-text-danger  { color: var(--theme-accent); }
+  .status-text-danger  { color: var(--theme-highlight); }
   .status-text-cooked  { color: var(--theme-secondary); }
 
   .status-bg-safe   { background-color: color-mix(in srgb, var(--theme-highlight) 12%, transparent); }
-  .status-bg-danger { background-color: color-mix(in srgb, var(--theme-accent) 12%, transparent); }
+  .status-bg-danger { background-color: color-mix(in srgb, var(--theme-highlight) 12%, transparent); }
   .status-bg-cooked { background-color: color-mix(in srgb, var(--theme-secondary) 12%, transparent); }
 
   .status-border-safe   { border-color: color-mix(in srgb, var(--theme-highlight) 35%, transparent); }
-  .status-border-danger { border-color: color-mix(in srgb, var(--theme-accent)    35%, transparent); }
+  .status-border-danger { border-color: color-mix(in srgb, var(--theme-highlight) 35%, transparent); }
   .status-border-cooked { border-color: color-mix(in srgb, var(--theme-secondary) 35%, transparent); }
 
   .status-boxbg-safe   { background-color: color-mix(in srgb, var(--theme-highlight) 18%, var(--theme-bg)); }
-  .status-boxbg-danger { background-color: color-mix(in srgb, var(--theme-accent)    18%, var(--theme-bg)); }
+  .status-boxbg-danger { background-color: color-mix(in srgb, var(--theme-highlight) 18%, var(--theme-bg)); }
   .status-boxbg-cooked { background-color: color-mix(in srgb, var(--theme-secondary) 18%, var(--theme-bg)); }
+
 
   .bg-theme-border-line  { background-color: var(--border-color, rgba(0,0,0,0.1)); }
   .bg-theme-text-5       { background-color: color-mix(in srgb, var(--theme-text)  5%,  transparent); }

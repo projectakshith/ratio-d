@@ -33,12 +33,12 @@ export default function SyncStatusNotification() {
           initial={{ y: "100%" }}
           animate={{ y: 0 }}
           exit={{ y: "100%" }}
-          transition={{ type: "spring", damping: 30, stiffness: 250 }}
+          transition={{ type: "spring", damping: 25, stiffness: 300 }}
           drag="y"
           dragConstraints={{ top: 0, bottom: 0 }}
-          dragElastic={0.7}
+          dragElastic={0.8}
           onDragEnd={(e, info) => {
-            if (info.offset.y > 100 || info.velocity.y > 500) handleManualClose();
+            if (info.offset.y > 120 || info.velocity.y > 600) handleManualClose();
           }}
           className="fixed inset-0 z-[10000] bg-theme-bg/95 backdrop-blur-3xl flex flex-col pointer-events-auto overflow-hidden"
         >

@@ -599,8 +599,8 @@ export default function Timetable({
               onClick={() => setActiveDay(day)}
               className={`w-10 h-10 flex items-center justify-center rounded-full transition-all duration-300 ${
                 activeDay === day
-                  ? "bg-theme-highlight text-theme-bg scale-105 shadow-[0_0_15px_var(--theme-highlight)]"
-                  : "bg-transparent text-theme-accent hover:text-theme-bg hover:bg-theme-accent/40"
+                  ? "bg-theme-emphasis text-theme-bg scale-105 shadow-[0_0_15px_var(--theme-text)]"
+                  : "bg-transparent text-theme-text/40 hover:text-theme-text hover:bg-theme-text/10"
               }`}
             >
               <span
@@ -611,6 +611,7 @@ export default function Timetable({
               </span>
             </button>
           ))}
+
         </div>
 
         <motion.div

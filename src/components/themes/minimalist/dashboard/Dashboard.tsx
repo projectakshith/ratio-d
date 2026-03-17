@@ -27,6 +27,7 @@ import { AcademiaData, ScheduleSlot } from "@/types";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { useDashboardCalendar } from "@/hooks/useDashboardCalendar";
 import { useDashboardAlerts } from "@/hooks/useDashboardAlerts";
+import { useApp } from "@/context/AppContext";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -71,6 +72,7 @@ export default function Dashboard({
   isDark: boolean;
 }) {
   const router = useRouter();
+  const { customDisplayName } = useApp();
   const {
     pullY,
     isRefreshing,
@@ -118,6 +120,7 @@ export default function Dashboard({
       ? localStorage.getItem("app_alias_name")
       : null;
   const userName = (
+    customDisplayName ||
     globalAlias ||
     data?.profile?.name?.split(" ")[0] ||
     "student"
@@ -435,12 +438,12 @@ export default function Dashboard({
                   {String(selectedDay) === String(currentDayOrder) && !isHoliday ? (
                     <span>• today</span>
                   ) : isHoliday && selectedDay === nextWorkingDayOrder ? (
-                    <span className="text-[#85a818] font-black tracking-widest">
+                    <span className="text-theme-highlight font-black tracking-widest">
                       {" "}
                       • upcoming
                     </span>
                   ) : isViewingNext ? (
-                    <span className="text-[#85a818] font-black tracking-widest">
+                    <span className="text-theme-highlight font-black tracking-widest">
                       {" "}
                       • upcoming
                     </span>

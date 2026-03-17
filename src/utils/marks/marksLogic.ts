@@ -270,7 +270,7 @@ export const getMarksTheme = (status: string) => {
       };
     case "danger":
       return {
-        bg: "var(--theme-accent)",
+        bg: "var(--theme-highlight)",
         text: "text-theme-bg",
         bar: "bg-theme-bg",
       };

@@ -21,8 +21,9 @@ export default function ScheduleGrid({
           key={slot.id || index}
           className="aspect-square rounded-[14px] flex items-center justify-center relative border-[1.5px] border-dashed"
           style={{
-            borderColor: "color-mix(in srgb, var(--theme-text) 25%, transparent)",
-          }}
+            borderColor: "color-mix(in srgb, var(--theme-text) 30%, transparent)",
+            borderDasharray: "6 10"
+          } as any}
         />
       );
     }
