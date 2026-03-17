@@ -1,4 +1,4 @@
-import requests
+import httpx
 import json
 from urllib.parse import urljoin
 from bs4 import BeautifulSoup
@@ -6,14 +6,13 @@ from core.config import BASE_URL, LOGIN_URL, HEADERS
 
 class SessionHandler:
     def __init__(self, cookies=None):
-        self.session = requests.Session()
-        self.session.headers.update(HEADERS)
+        self.client = httpx.AsyncClient(headers=HEADERS, follow_redirects=True, timeout=30.0)
         if cookies:
-            print("  -> [SESSION] Injected existing cookies from frontend.")
-            self.session.cookies.update(cookies)
+            print("  -> [SESSION] Injected existing cookies from frontend.", flush=True)
+            self.client.cookies.update(cookies)
 
-    def force_logout_sessions(self, html_content):
-        print("  -> [SESSION] Parsing Concurrent Sessions Page...")
+    async def force_logout_sessions(self, html_content):
+        print("  -> [SESSION] Parsing Concurrent Sessions Page...", flush=True)
         soup = BeautifulSoup(html_content, 'html.parser')
         forms = soup.find_all('form')
         terminate_form = None
@@ -40,20 +39,17 @@ class SessionHandler:
                 data[submit_btn.get('name')] = submit_btn.get('value', '')
 
             try:
-                print("  -> [SESSION] Terminating ghost sessions...")
-                r = self.session.post(action_url, data=data)
+                print("  -> [SESSION] Terminating ghost sessions...", flush=True)
+                r = await self.client.post(action_url, data=data)
                 if r.status_code == 200:
-                    print("  -> [SESSION] Ghost sessions terminated successfully.")
+                    print("  -> [SESSION] Ghost sessions terminated successfully.", flush=True)
                     return True
             except:
                 pass
         return False
 
-    def login(self, username, password):
-        print(f"  -> [SESSION] Executing hard login for {username}...")
-        self.session = requests.Session()
-        self.session.headers.update(HEADERS)
-        
+    async def login(self, username, password):
+        print(f"  -> [SESSION] Executing hard login for {username}...", flush=True)
         payload = {
             'username': username, 'password': password, 'client_portal': 'true',
             'portal': '10002227248', 'servicename': 'ZohoCreator',
@@ -61,13 +57,13 @@ class SessionHandler:
             'grant_type': 'password', 'service_language': 'en'
         }
 
-        r = self.session.post(LOGIN_URL, data=payload)
+        r = await self.client.post(LOGIN_URL, data=payload)
         
         if "concurrent" in r.text.lower():
-            print("  -> [SESSION] Concurrent session limit reached!")
-            if self.force_logout_sessions(r.text):
-                print("  -> [SESSION] Retrying hard login...")
-                return self.login(username, password)  
+            print("  -> [SESSION] Concurrent session limit reached!", flush=True)
+            if await self.force_logout_sessions(r.text):
+                print("  -> [SESSION] Retrying hard login...", flush=True)
+                return await self.login(username, password)  
 
         try:
             data = json.loads(r.text)
@@ -76,17 +72,17 @@ class SessionHandler:
                 redirect_url = data['data']['oauthorize_uri']
                 final_auth_url = f"{redirect_url}&access_token={token}"
                 
-                print("  -> [SESSION] Access Token received. Exchanging for JSESSIONID...")
-                self.session.get(final_auth_url)
+                print("  -> [SESSION] Access Token received. Exchanging for JSESSIONID...", flush=True)
+                r = await self.client.get(final_auth_url)
                 
-                if 'JSESSIONID' in self.session.cookies:
-                    print("  -> [SESSION] SUCCESS: New cookies established.")
+                if 'JSESSIONID' in self.client.cookies:
+                    print("  -> [SESSION] SUCCESS: New cookies established.", flush=True)
                     return True
                 else:
-                    print("  -> [SESSION] ERROR: JSESSIONID not found.")
+                    print("  -> [SESSION] ERROR: JSESSIONID not found.", flush=True)
                     raise Exception("No JSESSIONID received")
             else:
-                print("  -> [SESSION] ERROR: Invalid credentials.")
+                print("  -> [SESSION] ERROR: Invalid credentials.", flush=True)
                 raise Exception("Invalid credentials")
         except Exception as e:
             raise e
