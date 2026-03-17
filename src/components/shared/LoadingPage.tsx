@@ -55,10 +55,10 @@ export default function LoadingPage() {
           <AnimatePresence mode="wait">
             <motion.p
               key={flavorIndex}
-              initial={{ opacity: 0, x: 10 }}
+              initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -10 }}
-              className="text-sm lowercase text-white opacity-80 text-right"
+              exit={{ opacity: 0, x: 10 }}
+              className="text-sm lowercase text-white opacity-80"
               style={{ fontFamily: "Aonic, sans-serif" }}
             >
               {flavorText.loading[flavorIndex]}
