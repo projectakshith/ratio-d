@@ -168,14 +168,14 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
   const [introStage, setIntroStage] = useState(0);
 
   useEffect(() => {
-    if (step === 0 && direction === 1) {
+    if (step === 0) {
       setIntroStage(0);
-      const t1 = setTimeout(() => setIntroStage(1), 1400);
+      const t1 = setTimeout(() => setIntroStage(1), 800);
       return () => clearTimeout(t1);
-    } else if (step === 0 && direction === -1) {
+    } else {
       setIntroStage(1);
     }
-  }, [step, direction]);
+  }, [step]);
 
   const handleNext = () => {
     if (step < slides.length - 1) {
@@ -186,17 +186,42 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
     }
   };
 
+  const handlePrev = () => {
+    if (step > 0) {
+      setDirection(-1);
+      setStep((prev) => prev - 1);
+    }
+  };
+
+  const swipeConfidenceThreshold = 10000;
+  const swipePower = (offset: number, velocity: number) => {
+    return Math.abs(offset) * velocity;
+  };
+
   const variants = {
     enter: (direction: number) => ({
       x: direction > 0 ? "100%" : "-100%",
       opacity: 0,
+      filter: "blur(20px)",
+      scale: 1.1,
     }),
-    center: { x: 0, opacity: 1 },
+    center: { 
+      x: 0, 
+      opacity: 1, 
+      filter: "blur(0px)",
+      scale: 1,
+      transition: { 
+        x: { type: "spring", stiffness: 300, damping: 30 },
+        opacity: { duration: 0.4 },
+        filter: { duration: 0.4 }
+      }
+    },
     exit: (direction: number) => ({
       x: direction < 0 ? "100%" : "-100%",
       opacity: 0,
-      scale: 0.95,
-      transition: { duration: 0.4 },
+      filter: "blur(20px)",
+      scale: 0.9,
+      transition: { duration: 0.4 }
     }),
   };
 
@@ -204,12 +229,12 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: { staggerChildren: 0.08, delayChildren: 0.2 },
+      transition: { staggerChildren: 0.05, delayChildren: 0.1 },
     },
   };
 
   const letterVariants = {
-    hidden: { opacity: 0, y: 20, scale: 0.8, filter: "blur(10px)" },
+    hidden: { opacity: 0, y: 15, scale: 0.9, filter: "blur(8px)" },
     visible: {
       opacity: 1,
       y: 0,
@@ -217,10 +242,20 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
       filter: "blur(0px)",
       transition: {
         type: "spring",
-        damping: 12,
-        stiffness: 200,
+        damping: 15,
+        stiffness: 250,
       } as const,
     },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20, filter: "blur(10px)" },
+    visible: { 
+      opacity: 1, 
+      y: 0, 
+      filter: "blur(0px)",
+      transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] }
+    }
   };
 
   return (
@@ -233,7 +268,17 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
           initial="enter"
           animate="center"
           exit="exit"
-          transition={{ type: "spring", stiffness: 350, damping: 35 }}
+          drag="x"
+          dragConstraints={{ left: 0, right: 0 }}
+          dragElastic={0.8}
+          onDragEnd={(e, { offset, velocity }) => {
+            const swipe = swipePower(offset.x, velocity.x);
+            if (swipe < -swipeConfidenceThreshold) {
+              handleNext();
+            } else if (swipe > swipeConfidenceThreshold) {
+              handlePrev();
+            }
+          }}
           className={`absolute inset-0 flex flex-col ${slides[step].bg} ${slides[step].text} px-8 pt-16 pb-32`}
         >
           {slides[step].isLogoPhase ? (
@@ -242,15 +287,15 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
                 layout
                 initial={{ height: "35vh" }}
                 animate={{ height: introStage === 0 ? "35vh" : "0vh" }}
-                transition={{ type: "spring", damping: 25, stiffness: 150 }}
+                transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
               />
               <div className="relative">
                 <motion.span
                   layout
-                  initial={{ opacity: 0, y: 10 }}
+                  initial={{ opacity: 0, filter: "blur(5px)" }}
                   animate={{
                     opacity: introStage === 1 ? 0.6 : 0,
-                    y: introStage === 1 ? 0 : 10,
+                    filter: introStage === 1 ? "blur(0px)" : "blur(5px)",
                   }}
                   className="text-[10px] font-bold uppercase tracking-[0.4em] mb-6 block"
                   style={{ fontFamily: "'Montserrat', sans-serif" }}
@@ -279,42 +324,51 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
                   </motion.span>
                 </motion.h1>
               </div>
-              {introStage === 1 && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="mt-8 space-y-9"
-                >
-                  {slides[step].points.map((point, i) => (
-                    <div key={i} className="flex gap-4">
-                      <div className="w-10 h-10 rounded-xl bg-black/10 flex items-center justify-center shrink-0 border border-current/20">
-                        <point.icon size={20} />
-                      </div>
-                      <div>
-                        <h3 className="font-bold text-sm uppercase tracking-wider">
-                          {point.label}
-                        </h3>
-                        <p className="text-xs opacity-70 mt-1">{point.desc}</p>
-                      </div>
-                    </div>
-                  ))}
-                </motion.div>
-              )}
+              <AnimatePresence>
+                {introStage === 1 && (
+                  <motion.div
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate="visible"
+                    className="mt-8 space-y-9"
+                  >
+                    {slides[step].points.map((point, i) => (
+                      <motion.div key={i} variants={itemVariants} className="flex gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-black/10 flex items-center justify-center shrink-0 border border-current/20">
+                          <point.icon size={20} />
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-sm uppercase tracking-wider">
+                            {point.label}
+                          </h3>
+                          <p className="text-xs opacity-70 mt-1">{point.desc}</p>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </>
           ) : (
-            <>
-              <span className="text-[10px] font-bold uppercase tracking-[0.4em] mb-6 opacity-40">
+            <motion.div
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              className="flex flex-col h-full"
+            >
+              <motion.span variants={itemVariants} className="text-[10px] font-bold uppercase tracking-[0.4em] mb-6 opacity-40">
                 {slides[step].subtitle}
-              </span>
-              <h1
+              </motion.span>
+              <motion.h1
+                variants={itemVariants}
                 className={slides[step].titleClass}
                 style={{ whiteSpace: "pre-line" }}
               >
                 {slides[step].title}
-              </h1>
+              </motion.h1>
               <div className="mt-8 space-y-9">
                 {slides[step].points.map((point, i) => (
-                  <div key={i} className="flex gap-4">
+                  <motion.div key={i} variants={itemVariants} className="flex gap-4">
                     <div className="w-10 h-10 rounded-xl bg-black/10 flex items-center justify-center shrink-0 border border-current/20">
                       <point.icon size={20} />
                     </div>
@@ -324,42 +378,55 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
                       </h3>
                       <p className="text-xs opacity-70 mt-1">{point.desc}</p>
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
-            </>
+            </motion.div>
           )}
         </motion.div>
       </AnimatePresence>
 
-      <motion.div
-        animate={{ opacity: step === 0 ? 0 : 1 }}
-        transition={{ duration: 0.3 }}
-        className={`absolute bottom-8 left-8 flex items-center h-14 font-['Urbanosta',sans-serif] lowercase text-2xl tracking-tighter z-[1000] pointer-events-none ${slides[step].text}`}
-      >
-        ratio'd
-      </motion.div>
+      <AnimatePresence>
+        {introStage === 1 && (
+          <>
+            <motion.div
+              initial={{ opacity: 0, filter: "blur(10px)" }}
+              animate={{ opacity: step === 0 ? 0 : 1, filter: step === 0 ? "blur(10px)" : "blur(0px)" }}
+              exit={{ opacity: 0, filter: "blur(10px)" }}
+              className={`absolute bottom-8 left-8 flex items-center h-14 font-['Urbanosta',sans-serif] lowercase text-2xl tracking-tighter z-[1000] pointer-events-none ${slides[step].text}`}
+            >
+              ratio'd
+            </motion.div>
 
-      <div
-        className={`absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-3 items-center h-14 z-[1000] ${slides[step].text}`}
-      >
-        {slides.map((_, i) => (
-          <div
-            key={i}
-            className={`h-1.5 transition-all duration-300 ${
-              i === step ? "w-10 bg-current" : "w-2 bg-current opacity-20"
-            }`}
-          />
-        ))}
-      </div>
+            <motion.div
+              initial={{ opacity: 0, y: 15, filter: "blur(10px)" }}
+              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+              exit={{ opacity: 0, y: 15, filter: "blur(10px)" }}
+              className={`absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-3 items-center h-14 z-[1000] ${slides[step].text}`}
+            >
+              {slides.map((_, i) => (
+                <div
+                  key={i}
+                  className={`h-1.5 transition-all duration-300 ${
+                    i === step ? "w-10 bg-current" : "w-2 bg-current opacity-20"
+                  }`}
+                />
+              ))}
+            </motion.div>
 
-      <motion.button
-        whileTap={{ scale: 0.9 }}
-        onClick={handleNext}
-        className="absolute bottom-8 right-8 w-14 h-14 rounded-full bg-white text-black flex items-center justify-center shadow-lg pointer-events-auto z-[1000]"
-      >
-        <ArrowRight size={24} strokeWidth={3} />
-      </motion.button>
+            <motion.button
+              initial={{ opacity: 0, scale: 0.8, filter: "blur(10px)" }}
+              animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+              exit={{ opacity: 0, scale: 0.8, filter: "blur(10px)" }}
+              whileTap={{ scale: 0.9 }}
+              onClick={handleNext}
+              className="absolute bottom-8 right-8 w-14 h-14 rounded-full bg-white text-black flex items-center justify-center shadow-lg pointer-events-auto z-[1000]"
+            >
+              <ArrowRight size={24} strokeWidth={3} />
+            </motion.button>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

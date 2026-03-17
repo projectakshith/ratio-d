@@ -58,7 +58,7 @@ export default function LoadingPage() {
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 10 }}
-              className="text-sm lowercase text-white opacity-80"
+              className="text-sm lowercase text-white opacity-40"
               style={{ fontFamily: "Aonic, sans-serif" }}
             >
               {flavorText.loading[flavorIndex]}
