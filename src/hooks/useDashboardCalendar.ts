@@ -56,27 +56,42 @@ export function useDashboardCalendar(academia: any, data: any) {
     return null;
   }, [academia?.calendarData]);
 
+  const isTodayFinished = useMemo(() => {
+    if (isHoliday) return true;
+    const scheduleData = academia?.effectiveSchedule || data?.timetable || data?.schedule || {};
+    const dayKey = `Day ${currentDayOrder}`;
+    const todayData = scheduleData[dayKey];
+    if (!todayData) return true;
+
+    let lastEnd = 0;
+    Object.keys(todayData).forEach((timeRange) => {
+      const endStr = timeRange.split(" - ")[1];
+      if (endStr) {
+        const endMins = parseTimeValues(endStr);
+        if (endMins > lastEnd) lastEnd = endMins;
+      }
+    });
+
+    const nowMins = new Date().getHours() * 60 + new Date().getMinutes();
+    return nowMins >= lastEnd;
+  }, [isHoliday, academia?.effectiveSchedule, data?.timetable, data?.schedule, currentDayOrder]);
+
   const isTomorrowHoliday = useMemo(() => {
+    if (!isTodayFinished) return false;
+
     const calData = academia?.calendarData || calendarDataJson || [];
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
 
-    const months = [
-      "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
-    ];
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     const d = String(tomorrow.getDate()).padStart(2, "0");
     const m = months[tomorrow.getMonth()];
     const y = tomorrow.getFullYear();
     const tomorrowStr = `${d} ${m} ${y}`;
 
     const entry = calData.find((ev: any) => ev.date === tomorrowStr);
-    return (
-      !entry ||
-      entry.order === "-" ||
-      entry.order === "0" ||
-      entry.description.toLowerCase().includes("holiday")
-    );
-  }, [academia?.calendarData]);
+    return !entry || entry.order === "-" || entry.order === "0" || entry.description.toLowerCase().includes("holiday");
+  }, [academia?.calendarData, isTodayFinished]);
 
   useEffect(() => {
     if (hasInitialized.current) return;

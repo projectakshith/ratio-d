@@ -1,9 +1,9 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, Loader2, AlertCircle, Eye, EyeOff } from "lucide-react";
 import { EncryptionUtils } from "@/utils/shared/Encryption";
-import { flavorText } from "@/utils/shared/flavortext";
+import LoadingPage from "./LoadingPage";
 
 interface LoginPageProps {
   onLogin: (data: any) => void;
@@ -15,17 +15,6 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
-  const [flavorIndex, setFlavorIndex] = useState(0);
-
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (loading) {
-      interval = setInterval(() => {
-        setFlavorIndex((prev) => (prev + 1) % flavorText.loading.length);
-      }, 1500);
-    }
-    return () => clearInterval(interval);
-  }, [loading]);
 
   const formatUsername = (val: string) => {
     const cleanVal = val.trim();
@@ -77,85 +66,88 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
       }
     } catch (err: any) {
       setError(err.message);
-    } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="h-screen w-full flex flex-col justify-between p-8 md:p-16 relative bg-[#0c30ff]">
-      <header className="relative z-10">
-        <h1
-          className="text-5xl md:text-8xl lowercase leading-none tracking-tighter"
-          style={{ fontFamily: "Urbanosta", color: "#ceff1c" }}
-        >
-          ratio'd
-        </h1>
-      </header>
+    <>
+      <AnimatePresence>
+        {loading && <LoadingPage />}
+      </AnimatePresence>
 
-      <main className="relative z-10 w-full max-w-2xl mt-auto pb-12">
-        <form onSubmit={handleSubmit} className="flex flex-col gap-10">
-          <div className="group relative">
-            <label className="text-[10px] font-mono uppercase tracking-[0.3em] text-white/60">
-              Identification (NetID)
-            </label>
-            <div className="relative flex items-center border-b-2 border-white focus-within:border-[#ceff1c] transition-colors">
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="w-full bg-transparent py-4 text-4xl md:text-6xl text-white outline-none placeholder:text-white/10"
-                placeholder="username"
-                style={{ fontFamily: "Aonic", color: 'white' }}
-              />
-              {!username.includes("@") && username.length > 0 && (
-                <span
-                  className="text-2xl md:text-4xl text-white/30 lowercase pointer-events-none pr-2 select-none"
-                  style={{ fontFamily: "Aonic" }}
+      <div className="h-screen w-full flex flex-col justify-between p-8 md:p-16 relative bg-[#0c30ff]">
+        <header className="relative z-10">
+          <h1
+            className="text-5xl md:text-8xl lowercase leading-none tracking-tighter"
+            style={{ fontFamily: "Urbanosta", color: "#ceff1c" }}
+          >
+            ratio'd
+          </h1>
+        </header>
+
+        <main className="relative z-10 w-full max-w-2xl mt-auto pb-12">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-10">
+            <div className="group relative">
+              <label className="text-[10px] font-mono uppercase tracking-[0.3em] text-white/60">
+                Identification (NetID)
+              </label>
+              <div className="relative flex items-center border-b-2 border-white focus-within:border-[#ceff1c] transition-colors">
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="w-full bg-transparent py-4 text-4xl md:text-6xl text-white outline-none placeholder:text-white/10"
+                  placeholder="username"
+                  style={{ fontFamily: "Aonic", color: 'white' }}
+                />
+                {!username.includes("@") && username.length > 0 && (
+                  <span
+                    className="text-2xl md:text-4xl text-white/30 lowercase pointer-events-none pr-2 select-none"
+                    style={{ fontFamily: "Aonic" }}
+                  >
+                    @srmist.edu.in
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <div className="group relative">
+              <label className="text-[10px] font-mono uppercase tracking-[0.3em] text-white/60">
+                Passkey
+              </label>
+              <div className="relative flex items-center border-b-2 border-white focus-within:border-[#ceff1c] transition-colors">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full bg-transparent py-4 text-4xl md:text-6xl text-white outline-none placeholder:text-white/10"
+                  placeholder="••••••••"
+                  style={{ fontFamily: "Aonic", color: 'white' }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="text-white/40 hover:text-[#ceff1c] pr-2"
                 >
-                  @srmist.edu.in
-                </span>
+                  {showPassword ? <EyeOff size={24} /> : <Eye size={24} />}
+                </button>
+              </div>
+            </div>
+
+            <AnimatePresence>
+              {error && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  className="text-red-400 font-mono text-xs uppercase flex items-center gap-2"
+                >
+                  <AlertCircle size={14} /> {error}
+                </motion.div>
               )}
-            </div>
-          </div>
+            </AnimatePresence>
 
-          <div className="group relative">
-            <label className="text-[10px] font-mono uppercase tracking-[0.3em] text-white/60">
-              Passkey
-            </label>
-            <div className="relative flex items-center border-b-2 border-white focus-within:border-[#ceff1c] transition-colors">
-              <input
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-transparent py-4 text-4xl md:text-6xl text-white outline-none placeholder:text-white/10"
-                placeholder="••••••••"
-                style={{ fontFamily: "Aonic", color: 'white' }}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="text-white/40 hover:text-[#ceff1c] pr-2"
-              >
-                {showPassword ? <EyeOff size={24} /> : <Eye size={24} />}
-              </button>
-            </div>
-          </div>
-
-          <AnimatePresence>
-            {error && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-                className="text-red-400 font-mono text-xs uppercase flex items-center gap-2"
-              >
-                <AlertCircle size={14} /> {error}
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          <div className="flex flex-col gap-2">
             <button
               type="submit"
               disabled={loading}
@@ -176,24 +168,10 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
                 />
               )}
             </button>
-            
-            <AnimatePresence mode="wait">
-              {loading && (
-                <motion.p
-                  key={flavorIndex}
-                  initial={{ opacity: 0, y: 5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -5 }}
-                  className="text-[10px] font-mono uppercase tracking-[0.2em] text-[#ceff1c]/60 mt-2"
-                >
-                  {flavorText.loading[flavorIndex]}
-                </motion.p>
-              )}
-            </AnimatePresence>
-          </div>
-        </form>
-      </main>
-    </div>
+          </form>
+        </main>
+      </div>
+    </>
   );
 };
 
