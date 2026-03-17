@@ -583,9 +583,10 @@ export default function Dashboard({
               className="flex flex-col gap-3 shrink-0 w-full"
             >
               <div
-                onClick={() => setActiveTab && setActiveTab("attendance")}
+                onClick={() => router.push("/attendance")}
                 className={`w-full border-[1.5px] rounded-[24px] p-2 pr-5 flex items-center gap-4 shadow-sm transition-all cursor-pointer ${attStyles.bg} ${attStyles.border}`}
               >
+
                 <div
                   className={`w-[50px] h-[50px] rounded-[18px] flex items-center justify-center shrink-0 ${attStyles.iconBg}`}
                 >
