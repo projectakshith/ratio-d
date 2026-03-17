@@ -12,6 +12,12 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
   const { isOffline } = useApp();
   const [showSplash, setShowSplash] = useState(true);
   const [showBigOffline, setShowBigOffline] = useState(false);
+  const [hasData, setHasData] = useState(() => {
+    if (typeof window !== "undefined") {
+      return !!localStorage.getItem("ratio_data");
+    }
+    return false;
+  });
   const pathname = usePathname();
   const router = useRouter();
 
@@ -20,13 +26,13 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
       setShowSplash(false);
     }, 1000);
 
+    const cachedData = localStorage.getItem("ratio_data");
+    const isPublicPage = pathname === "/login" || pathname === "/onboarding" || pathname === "/setup";
+
     const isStandalone = 
       window.matchMedia("(display-mode: standalone)").matches || 
       (window.navigator as any).standalone ||
       document.referrer.includes("android-app://");
-
-    const cachedData = localStorage.getItem("ratio_data");
-    const isPublicPage = pathname === "/login" || pathname === "/onboarding" || pathname === "/setup";
 
     if (isStandalone) {
       if (!isPublicPage && !cachedData) {
@@ -105,13 +111,13 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
             initial={{ opacity: 1 }}
             exit={{ y: "-100%" }}
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            className="fixed inset-0 bg-theme-bg flex items-center justify-center z-[9999]"
+            className={`fixed inset-0 flex items-center justify-center z-[9999] ${hasData ? "bg-theme-bg" : "bg-[#0c30ff]"}`}
           >
             <motion.h1
               initial={{ opacity: 0, scale: 0.8, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-              className="text-5xl md:text-7xl lowercase tracking-tighter text-theme-highlight"
+              className={`text-5xl md:text-7xl lowercase tracking-tighter ${hasData ? "text-theme-highlight" : "text-[#ceff1c]"}`}
               style={{ fontFamily: "Urbanosta, sans-serif" }}
             >
               ratio'd
