@@ -27,18 +27,10 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
         document.referrer.includes("android-app://"));
     
     const cachedData = localStorage.getItem("ratio_data");
-    const isOnboarded = localStorage.getItem("ratiod_onboarded") === "true";
-    const isSetupBypassed = localStorage.getItem("ratiod_setup_bypassed") === "true";
     const isPublicPage = pathname === "/login" || pathname === "/onboarding" || pathname === "/setup";
 
-    if (!isPublicPage) {
-      if (!isOnboarded) {
-        router.replace("/onboarding");
-      } else if (!isStandalone && !isSetupBypassed) {
-        router.replace("/setup");
-      } else if (!cachedData) {
-        router.replace("/login");
-      }
+    if (!isPublicPage && !cachedData) {
+      router.replace("/onboarding");
     }
 
     return () => clearTimeout(splashTimer);

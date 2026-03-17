@@ -33,40 +33,24 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     EncryptionUtils.flushAllStorage();
     localStorage.removeItem("ratiod_custom_name");
     setUserData(null);
-    setCustomDisplayName("");
-    router.push("/onboarding");
+    router.replace("/login");
   }, [router]);
 
   const refreshData = useCallback(async (creds: any, existingData: any) => {
-    if (!creds || !existingData || isUpdating) return;
+    if (isUpdating) return existingData;
     setIsUpdating(true);
     try {
       const savedCookies = EncryptionUtils.loadDecrypted("academia_cookies");
-      const isMissingData = 
-        !existingData.courses || 
-        Object.keys(existingData.courses).length === 0 ||
-        !existingData.profile?.name ||
-        !existingData.schedule || 
-        Object.keys(existingData.schedule).length === 0;
-      
-      const endpoint = isMissingData ? "login" : "refresh";
-      const response = await fetch(`/api/${endpoint}`, {
+      const response = await fetch("/api/refresh", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          username: creds.username,
-          password: creds.password,
-          cookies: savedCookies,
-        }),
+        body: JSON.stringify({ ...creds, cookies: savedCookies }),
       });
 
-      if (response.status === 401) {
-        logout();
-        return;
-      }
-
+      const endpoint = (existingData?.attendance && existingData?.marks) ? "refresh" : "login";
+      
       const result = await response.json();
-      if (!result.success) return;
+      if (!result.success) return existingData;
 
       let updatedCookies = savedCookies;
       if (result.cookies) {
@@ -75,29 +59,42 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         delete result.cookies;
       }
 
-      let updatedData = endpoint === "login" ? { ...result, cookies: updatedCookies } : {
+      let mergedData = endpoint === "login" ? { ...result, cookies: updatedCookies } : {
         ...existingData,
-        attendance: result.attendance,
-        marks: result.marks,
+        ...result,
         cookies: updatedCookies,
       };
 
       const hasOldData = (existingData?.attendance?.length > 0) || (existingData?.marks?.length > 0);
-      const diff = hasOldData ? compareData(existingData, updatedData) : null;
+      const diff = hasOldData ? compareData(existingData, mergedData) : null;
       
       if (diff) {
         setLatestDiff(diff);
+        const changedCourseIds = new Set([
+          ...diff.attendanceChanges.map(a => a.course),
+          ...diff.newMarks.map(m => m.course)
+        ]);
+
+        mergedData.attendance = mergedData.attendance?.map((a: any) => ({
+          ...a,
+          updatedAt: changedCourseIds.has(a.title || a.course || a.code) ? Date.now() : (a.updatedAt || 0)
+        }));
+
+        mergedData.marks = mergedData.marks?.map((m: any) => ({
+          ...m,
+          updatedAt: changedCourseIds.has(m.courseTitle || m.courseCode) ? Date.now() : (m.updatedAt || 0)
+        }));
       }
 
-      setUserData(updatedData);
-      localStorage.setItem("ratio_data", JSON.stringify(updatedData));
-      return updatedData;
+      setUserData(mergedData);
+      localStorage.setItem("ratio_data", JSON.stringify(mergedData));
+      return mergedData;
     } catch (err) {
       return existingData;
     } finally {
       setIsUpdating(false);
     }
-  }, [isUpdating, logout]);
+  }, [isUpdating]);
 
   useEffect(() => {
     const cachedData = localStorage.getItem("ratio_data");
@@ -108,7 +105,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         const parsed = JSON.parse(cachedData);
         setUserData(parsed);
         
-        // Auto-refresh on load
         const creds = EncryptionUtils.loadDecrypted("ratio_credentials");
         if (creds) {
           refreshData(creds, parsed);
@@ -118,10 +114,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
     const handleOnline = () => setIsOffline(false);
     const handleOffline = () => setIsOffline(true);
-    
     window.addEventListener("online", handleOnline);
     window.addEventListener("offline", handleOffline);
-    if (typeof navigator !== 'undefined' && !navigator.onLine) setIsOffline(true);
+    setIsOffline(!navigator.onLine);
 
     return () => {
       window.removeEventListener("online", handleOnline);

@@ -94,7 +94,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
                 onChange={(e) => setUsername(e.target.value)}
                 className="w-full bg-transparent py-4 text-4xl md:text-6xl text-white outline-none placeholder:text-white/10"
                 placeholder="username"
-                style={{ fontFamily: "Aonic" }}
+                style={{ fontFamily: "Aonic", color: 'white' }}
               />
               {!username.includes("@") && username.length > 0 && (
                 <span
@@ -118,7 +118,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full bg-transparent py-4 text-4xl md:text-6xl text-white outline-none placeholder:text-white/10"
                 placeholder="••••••••"
-                style={{ fontFamily: "Aonic" }}
+                style={{ fontFamily: "Aonic", color: 'white' }}
               />
               <button
                 type="button"

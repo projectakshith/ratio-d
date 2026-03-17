@@ -466,7 +466,7 @@ export default function OnboardingPage({
         
         {handleComplete && (
           <button
-            onClick={handleComplete}
+            onClick={() => setForceOnboarding(true)}
             className="opacity-0 absolute top-0 right-0 w-20 h-20 cursor-default"
             aria-hidden="true"
           />

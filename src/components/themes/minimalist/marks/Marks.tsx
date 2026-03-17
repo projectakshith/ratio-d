@@ -133,11 +133,11 @@ export default function Marks({
   };
 
   const recentlyUpdated = useMemo(() => {
-    return [...subjects]
-      .filter((s: any) => s.assessments.length > 0)
+    const valid = subjects.filter((s: any) => s.assessments.length > 0);
+    return [...valid]
       .sort((a: any, b: any) => {
-        const aTime = a.assessments[a.assessments.length-1].updatedAt || 0;
-        const bTime = b.assessments[b.assessments.length-1].updatedAt || 0;
+        const aTime = a.updatedAt || 0;
+        const bTime = b.updatedAt || 0;
         if (aTime !== bTime) return bTime - aTime;
         return b.assessments.length - a.assessments.length;
       })

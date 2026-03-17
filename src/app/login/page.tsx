@@ -9,14 +9,13 @@ export default function LoginRoute() {
   const router = useRouter();
 
   const handleLoginSuccess = (data: any) => {
-    localStorage.setItem("ratiod_onboarded", "true");
     setUserData(data);
     localStorage.setItem("ratio_data", JSON.stringify(data));
     router.replace("/");
   };
 
   return (
-    <div data-theme="default" className="w-full h-full bg-[#F7F7F7]">
+    <div data-theme="gojo" className="w-full h-full bg-[#0c30ff]">
       <LoginPage onLogin={handleLoginSuccess} />
     </div>
   );

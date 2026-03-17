@@ -7,8 +7,7 @@ export default function OnboardingRoute() {
   const router = useRouter();
 
   const handleComplete = () => {
-    localStorage.setItem("ratiod_onboarded", "true");
-    router.replace("/setup");
+    router.replace("/login");
   };
 
   return <OnboardingPage onComplete={handleComplete} />;
