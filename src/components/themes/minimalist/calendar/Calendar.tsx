@@ -67,14 +67,13 @@ const CalendarDay = memo(
       border = "border-theme-secondary/20";
       dateColor = "text-theme-secondary font-bold";
       orderColor = "text-theme-secondary/50";
-    } else if (item.dayOrder) {
-      bg = "bg-theme-surface";
-      border = "border-theme-border";
-      dateColor = "text-theme-highlight font-black";
-      orderColor = "text-theme-highlight opacity-60";
     } else {
       dateColor = "text-theme-text";
       orderColor = "text-theme-muted";
+      if (item.dayOrder) {
+        bg = "bg-theme-surface";
+        border = "border-theme-border";
+      }
     }
     return (
       <motion.button

@@ -141,7 +141,7 @@ export default function CustomClass({
                 <button
                   type="button"
                   onClick={() => setNewType("theory")}
-                  className={`flex-1 py-4 rounded-[16px] text-[13px] font-bold uppercase tracking-widest transition-all ${newType === "theory" ? "bg-theme-text text-theme-bg" : "bg-theme-surface text-theme-muted border border-theme-subtle"}`}
+                  className={`flex-1 py-4 rounded-[16px] text-[13px] font-bold uppercase tracking-widest transition-all ${newType === "theory" ? "bg-theme-emphasis text-theme-bg" : "bg-theme-surface text-theme-muted border border-theme-subtle"}`}
                   style={{ fontFamily: "'Montserrat', sans-serif" }}
                 >
                   Theory

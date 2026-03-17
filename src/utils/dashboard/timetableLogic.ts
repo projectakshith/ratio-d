@@ -57,7 +57,8 @@ export const processSchedule = (
 
   const rawItems = combined
     .map((details: any, idx: number) => {
-      const [startStr, endStr] = details.time.split(" - ");
+      const timeStr = details.time || "";
+      const [startStr, endStr] = timeStr.includes(" - ") ? timeStr.split(" - ") : [timeStr, timeStr];
       const code =
         details.courseCode || details.course || details.code || "N/A";
       const cleanCode = code.split("-")[0].trim();

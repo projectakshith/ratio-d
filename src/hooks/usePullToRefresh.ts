@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 
-export function usePullToRefresh(isAlertsOpen: boolean = false) {
+export function usePullToRefresh(isAlertsOpen: boolean = false, onRefresh?: () => Promise<void>) {
   const [pullY, setPullY] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -36,15 +36,24 @@ export function usePullToRefresh(isAlertsOpen: boolean = false) {
     }
   };
 
-  const handleTouchEnd = () => {
+  const handleTouchEnd = async () => {
     setIsDragging(false);
     if (pullY > 80) {
       setIsRefreshing(true);
       setPullY(80);
       if (navigator.vibrate) navigator.vibrate(20);
-      setTimeout(() => {
-        window.location.reload();
-      }, 800);
+      
+      if (onRefresh) {
+        try {
+          await onRefresh();
+        } catch (e) {}
+        setIsRefreshing(false);
+        setPullY(0);
+      } else {
+        setTimeout(() => {
+          window.location.reload();
+        }, 800);
+      }
     } else {
       setPullY(0);
     }

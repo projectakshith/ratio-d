@@ -44,10 +44,15 @@ export default function ScheduleGrid({
       midText = "text-theme-bg font-black";
       botText = "text-theme-bg opacity-70";
     } else if (slot.isPractical) {
-      boxClass = "bg-theme-primary/10 border-theme-primary/30";
-      topText = "text-theme-primary/60";
-      midText = "text-theme-primary";
-      botText = "text-theme-primary/60";
+      boxClass = "bg-[#0EA5E9]/10 border-[#0EA5E9]/20";
+      topText = "text-[#0EA5E9]/60";
+      midText = "text-[#0EA5E9] font-black";
+      botText = "text-[#0EA5E9]/60";
+    } else if (slot.isCustom) {
+      boxClass = "bg-theme-surface border-theme-border";
+      topText = "text-theme-muted";
+      midText = "text-theme-text font-black";
+      botText = "text-theme-muted";
     }
 
     return (

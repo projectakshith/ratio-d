@@ -64,15 +64,18 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const result = await response.json();
       if (!result.success) return;
 
+      let updatedCookies = savedCookies;
       if (result.cookies) {
         EncryptionUtils.saveEncrypted("academia_cookies", result.cookies);
+        updatedCookies = result.cookies;
         delete result.cookies;
       }
 
-      let updatedData = isMissingData ? { ...result } : {
+      let updatedData = endpoint === "login" ? { ...result, cookies: updatedCookies } : {
         ...existingData,
         attendance: result.attendance,
         marks: result.marks,
+        cookies: updatedCookies,
       };
 
       setUserData(updatedData);
@@ -91,7 +94,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (cachedName) setCustomDisplayName(cachedName);
     if (cachedData) {
       try {
-        setUserData(JSON.parse(cachedData));
+        const parsed = JSON.parse(cachedData);
+        setUserData(parsed);
+        
+        // Auto-refresh on load
+        const creds = EncryptionUtils.loadDecrypted("ratio_credentials");
+        if (creds) {
+          refreshData(creds, parsed);
+        }
       } catch (e) {}
     }
 
