@@ -1,6 +1,5 @@
 "use client";
 import React from "react";
-import InstallInstructions from "@/components/InstallInstructions";
 import { useRouter } from "next/navigation";
 
 export default function SetupPage() {
