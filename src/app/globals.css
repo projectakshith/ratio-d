@@ -60,7 +60,7 @@ body {
 :root,
 [data-theme="el"] {
   --theme-primary:   #8B7355;
-  --theme-secondary: #D2B48C;
+  --theme-secondary: #FF4D4D;
   --theme-accent:    #C5A572;
   --theme-bg:        #F5E6D3;
   --theme-text:      #4A3B2A;
@@ -69,7 +69,7 @@ body {
 
 [data-theme="asherah"] {
   --theme-primary:   #2E7D32;
-  --theme-secondary: #F06292;
+  --theme-secondary: #FF4D4D;
   --theme-accent:    #FFB74D;
   --theme-bg:        #FFF9E6;
   --theme-text:      #1B5E20;
@@ -78,7 +78,7 @@ body {
 
 [data-theme="baal"] {
   --theme-primary:   #37474F;
-  --theme-secondary: #546E7A;
+  --theme-secondary: #FF4D4D;
   --theme-accent:    #D4AF37;
   --theme-bg:        #263238;
   --theme-text:      #ECEFF1;
@@ -87,7 +87,7 @@ body {
 
 [data-theme="shapash"] {
   --theme-primary:   #FFB300;
-  --theme-secondary: #FF7043;
+  --theme-secondary: #FF4D4D;
   --theme-accent:    #FFF176;
   --theme-bg:        #FFF9C4;
   --theme-text:      #BF360C;
@@ -96,7 +96,7 @@ body {
 
 [data-theme="yhwh"] {
   --theme-primary:   #212121;
-  --theme-secondary: #F5F5F5;
+  --theme-secondary: #FF4D4D;
   --theme-accent:    #BDBDBD;
   --theme-bg:        #FFFFFF;
   --theme-text:      #000000;

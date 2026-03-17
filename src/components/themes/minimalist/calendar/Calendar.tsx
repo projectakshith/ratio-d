@@ -44,20 +44,20 @@ const CalendarDay = memo(
 
     if (item.isSelected) {
       bg = item.isDayExam
-        ? "bg-theme-primary"
+        ? "bg-theme-accent"
         : item.isDayHoliday
           ? "bg-theme-secondary"
           : "bg-theme-highlight";
       dateColor = "text-theme-bg font-black";
       orderColor = "text-theme-bg opacity-70";
       scaleClass = "scale-105";
-      shadowClass = "shadow-[0_8px_20px_var(--theme-highlight)] z-10 opacity-100";
+      shadowClass = `shadow-[0_8px_20px_var(${item.isDayExam ? "--theme-accent" : item.isDayHoliday ? "--theme-secondary" : "--theme-highlight"})] z-10 opacity-100`;
       border = "border-transparent";
     } else if (item.isDayExam) {
-      bg = "bg-theme-primary/10";
-      border = "border-theme-primary/30";
-      dateColor = "text-theme-primary";
-      orderColor = "text-theme-primary/60";
+      bg = "bg-theme-accent/20";
+      border = "border-theme-accent/40";
+      dateColor = "text-theme-accent";
+      orderColor = "text-theme-accent/60";
     } else if (item.isToday) {
       border = "border-theme-highlight border-[2px]";
       dateColor = "text-theme-text";
