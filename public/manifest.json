@@ -8,8 +8,8 @@
   "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
   "scope": "/",
   "orientation": "portrait",
-  "background_color": "#050505",
-  "theme_color": "#050505",
+  "background_color": "#0c30ff",
+  "theme_color": "#0c30ff",
   "icons": [
     {
       "src": "/icons/icon-192.png",
