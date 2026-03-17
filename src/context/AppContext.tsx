@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, useEffect, useMemo, useCall
 import { EncryptionUtils } from "@/utils/shared/Encryption";
 import { useRouter } from "next/navigation";
 import { AcademiaData } from "@/types";
+import { compareData, DataDiff } from "@/utils/shared/diffUtils";
 
 interface AppContextType {
   userData: AcademiaData | null;
@@ -14,6 +15,8 @@ interface AppContextType {
   isOffline: boolean;
   refreshData: (creds: any, existingData: any) => Promise<any>;
   logout: () => void;
+  latestDiff: DataDiff | null;
+  setLatestDiff: (diff: DataDiff | null) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -23,6 +26,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [customDisplayName, setCustomDisplayName] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
   const [isOffline, setIsOffline] = useState(false);
+  const [latestDiff, setLatestDiff] = useState<DataDiff | null>(null);
   const router = useRouter();
 
   const logout = useCallback(() => {
@@ -78,6 +82,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         cookies: updatedCookies,
       };
 
+      const diff = compareData(existingData, updatedData);
+      if (diff) {
+        setLatestDiff(diff);
+      }
+
       setUserData(updatedData);
       localStorage.setItem("ratio_data", JSON.stringify(updatedData));
       return updatedData;
@@ -128,7 +137,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     isOffline,
     refreshData,
     logout,
-  }), [userData, customDisplayName, isUpdating, isOffline, refreshData, logout]);
+    latestDiff,
+    setLatestDiff,
+  }), [userData, customDisplayName, isUpdating, isOffline, refreshData, logout, latestDiff]);
 
   return (
     <AppContext.Provider value={value}>

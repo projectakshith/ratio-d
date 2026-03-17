@@ -6,6 +6,7 @@ import { WifiOff } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import MinecraftParticles from "./MinecraftParticles";
 import MinecraftAmbience from "./MinecraftAmbience";
+import SyncStatusNotification from "./SyncStatusNotification";
 
 export default function AppWrapper({ children }: { children: React.ReactNode }) {
   const { isOffline } = useApp();
@@ -96,6 +97,7 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
 
       <MinecraftParticles />
       <MinecraftAmbience />
+      <SyncStatusNotification />
 
       <AnimatePresence mode="wait">
         {showSplash && (

@@ -260,6 +260,7 @@ input:-webkit-autofill {
   .border-theme-primary   { border-color: var(--theme-primary); }
   .border-theme-secondary { border-color: var(--theme-secondary); }
   .border-theme-accent    { border-color: var(--theme-accent); }
+  .border-theme-text      { border-color: var(--theme-text); }
   .border-theme-highlight { border-color: var(--theme-highlight); }
   .border-theme-border    { border-color: color-mix(in srgb, var(--theme-text) 12%, transparent); }
   .border-theme-subtle    { border-color: color-mix(in srgb, var(--theme-text) 8%, transparent); }
