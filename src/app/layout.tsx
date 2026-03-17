@@ -30,7 +30,6 @@ const montserrat = Montserrat({
 });
 
 export const viewport: Viewport = {
-  themeColor: "#F7F7F7",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -44,7 +43,7 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default",
+    statusBarStyle: "black-translucent",
     title: "Ratio'd",
   },
   formatDetection: {
@@ -65,31 +64,25 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" style={{ colorScheme: "light" }} className="h-full">
+    <html lang="en" className="h-full">
       <head>
-        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="application-name" content="Ratio'd" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="theme-color" content="#F7F7F7" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="Ratio'd" />
+        <meta name="format-detection" content="telephone=no" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="msapplication-tap-highlight" content="no" />
+        
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
-        <link
-          rel="icon"
-          type="image/png"
-          sizes="192x192"
-          href="/icons/icon-192.png"
-        />
-        <link
-          rel="icon"
-          type="image/png"
-          sizes="512x512"
-          href="/icons/icon-512.png"
-        />
+        <link rel="manifest" href="/manifest.json" />
+        <link rel="shortcut icon" href="/favicon.ico" />
       </head>
 
       <body
         className={`
           antialiased
-          bg-[#F7F7F7]
+          bg-theme-bg
           h-full
           min-h-screen
           ${geistSans.variable}

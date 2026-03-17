@@ -20,17 +20,24 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
       setShowSplash(false);
     }, 1000);
 
-    const isStandalone =
-      typeof window !== "undefined" &&
-      (window.matchMedia("(display-mode: standalone)").matches ||
-        (window.navigator as any).standalone ||
-        document.referrer.includes("android-app://"));
-    
+    const isStandalone = 
+      window.matchMedia("(display-mode: standalone)").matches || 
+      (window.navigator as any).standalone ||
+      document.referrer.includes("android-app://");
+
     const cachedData = localStorage.getItem("ratio_data");
     const isPublicPage = pathname === "/login" || pathname === "/onboarding" || pathname === "/setup";
 
-    if (!isPublicPage && !cachedData) {
-      router.replace("/onboarding");
+    if (isStandalone) {
+      if (!isPublicPage && !cachedData) {
+        router.replace("/onboarding");
+      } else if (isPublicPage && cachedData) {
+        router.replace("/");
+      }
+    } else {
+      if (!isPublicPage && !cachedData) {
+        router.replace("/onboarding");
+      }
     }
 
     return () => clearTimeout(splashTimer);

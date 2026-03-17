@@ -162,7 +162,6 @@ const slides = [
   },
 ];
 
- 
 function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
   const [step, setStep] = useState(0);
   const [direction, setDirection] = useState(1);
@@ -333,7 +332,6 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
         </motion.div>
       </AnimatePresence>
 
- 
       <motion.div
         animate={{ opacity: step === 0 ? 0 : 1 }}
         transition={{ duration: 0.3 }}
@@ -342,8 +340,9 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
         ratio'd
       </motion.div>
 
- 
-      <div className={`absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-3 items-center h-14 z-[1000] ${slides[step].text}`}>
+      <div
+        className={`absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-3 items-center h-14 z-[1000] ${slides[step].text}`}
+      >
         {slides.map((_, i) => (
           <div
             key={i}
@@ -354,7 +353,6 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
         ))}
       </div>
 
- 
       <motion.button
         whileTap={{ scale: 0.9 }}
         onClick={handleNext}
@@ -366,7 +364,6 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
   );
 }
 
- 
 export default function OnboardingPage({
   onComplete,
   onDevBypass,
@@ -426,12 +423,17 @@ export default function OnboardingPage({
   }, []);
 
   const handleAndroidInstall = async () => {
-    if (!deferredPrompt) return;
+    if (!deferredPrompt) {
+      alert("Installation is almost ready. If it doesn't pop up, please wait a few seconds or use the browser menu to 'Add to Home Screen'.");
+      return;
+    }
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
     if (outcome === "accepted") {
       setDeferredPrompt(null);
       setCanInstall(false);
+    } else {
+      setCanInstall(true);
     }
   };
 
@@ -439,12 +441,10 @@ export default function OnboardingPage({
     return <div className="fixed inset-0 bg-[#0c30ff] z-[999]" />;
   }
 
- 
   if (isPWA || forceOnboarding) {
     return <PwaSlideshow onComplete={onFinish || onComplete || onDevBypass} />;
   }
 
- 
   return (
     <div className="h-[100dvh] w-full flex flex-col justify-between p-8 pb-16 md:p-16 md:px-24 bg-[#0c30ff] overflow-hidden text-white relative">
       <header className="flex justify-between items-start w-full relative">
@@ -463,7 +463,7 @@ export default function OnboardingPage({
             />
           )}
         </div>
-        
+
         {handleComplete && (
           <button
             onClick={() => setForceOnboarding(true)}
@@ -530,31 +530,27 @@ export default function OnboardingPage({
               className="space-y-10"
             >
               <div className="space-y-4">
-                <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-[#ceff1c]">
-                  Status: Web Browser
+                <p className="font-mono text-[8px] tracking-[0.3em] text-[#ceff1c]">
+                  browser view lowkenuinely too smoll :/
                 </p>
                 <h2
                   className="text-5xl lowercase leading-tight"
                   style={{ fontFamily: "Aonic" }}
                 >
-                  Install ratio'd to <br /> unlock full access.
+                  drop ratio'd on your home screen.
                 </h2>
               </div>
 
               {os === "android" ? (
                 <button
                   onClick={handleAndroidInstall}
-                  className={`w-full group flex items-center justify-between border-t border-white pt-8 ${
-                    !canInstall
-                      ? "opacity-50 grayscale cursor-not-allowed"
-                      : ""
-                  }`}
+                  className="w-full group flex items-center justify-between border-t border-white pt-8"
                 >
                   <span
                     className="text-5xl lowercase group-hover:text-[#ceff1c] transition-colors"
                     style={{ fontFamily: "Aonic" }}
                   >
-                    {canInstall ? "Install App" : "App Ready"}
+                    Install App
                   </span>
                   <Download
                     size={48}
@@ -584,7 +580,9 @@ export default function OnboardingPage({
                     </p>
                   </div>
                   <div className="flex items-center gap-4 text-[#ceff1c]">
-                    <CheckCircle2 size={20} />
+                    <div className="p-2 border border-white/20">
+                      <CheckCircle2 size={20} />
+                    </div>
                     <p className="text-sm font-mono uppercase">
                       3. Launch from your Home Screen
                     </p>
