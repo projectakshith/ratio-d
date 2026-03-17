@@ -1,8 +1,9 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, Loader2, AlertCircle, Eye, EyeOff } from "lucide-react";
 import { EncryptionUtils } from "@/utils/shared/Encryption";
+import { flavorText } from "@/utils/shared/flavortext";
 
 interface LoginPageProps {
   onLogin: (data: any) => void;
@@ -14,6 +15,17 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
+  const [flavorIndex, setFlavorIndex] = useState(0);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (loading) {
+      interval = setInterval(() => {
+        setFlavorIndex((prev) => (prev + 1) % flavorText.loading.length);
+      }, 1500);
+    }
+    return () => clearInterval(interval);
+  }, [loading]);
 
   const formatUsername = (val: string) => {
     const cleanVal = val.trim();
@@ -143,26 +155,42 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
             )}
           </AnimatePresence>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full flex items-center justify-between border-t border-white pt-6 group disabled:opacity-30"
-          >
-            <span
-              className="text-4xl md:text-6xl lowercase text-white group-hover:text-[#ceff1c]"
-              style={{ fontFamily: "aonic" }}
+          <div className="flex flex-col gap-2">
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full flex items-center justify-between border-t border-white pt-6 group disabled:opacity-30"
             >
-              {loading ? "WAIT_" : "signin"}
-            </span>
-            {loading ? (
-              <Loader2 className="animate-spin text-white" size={40} />
-            ) : (
-              <ArrowRight
-                size={48}
-                className="text-white group-hover:text-[#ceff1c] group-hover:translate-x-4 transition-all"
-              />
-            )}
-          </button>
+              <span
+                className="text-4xl md:text-6xl lowercase text-white group-hover:text-[#ceff1c]"
+                style={{ fontFamily: "aonic" }}
+              >
+                {loading ? "WAIT_" : "signin"}
+              </span>
+              {loading ? (
+                <Loader2 className="animate-spin text-white" size={40} />
+              ) : (
+                <ArrowRight
+                  size={48}
+                  className="text-white group-hover:text-[#ceff1c] group-hover:translate-x-4 transition-all"
+                />
+              )}
+            </button>
+            
+            <AnimatePresence mode="wait">
+              {loading && (
+                <motion.p
+                  key={flavorIndex}
+                  initial={{ opacity: 0, y: 5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -5 }}
+                  className="text-[10px] font-mono uppercase tracking-[0.2em] text-[#ceff1c]/60 mt-2"
+                >
+                  {flavorText.loading[flavorIndex]}
+                </motion.p>
+              )}
+            </AnimatePresence>
+          </div>
         </form>
       </main>
     </div>
