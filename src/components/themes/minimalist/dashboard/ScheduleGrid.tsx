@@ -19,10 +19,9 @@ export default function ScheduleGrid({
       return (
         <div
           key={slot.id || index}
-          className="aspect-square rounded-[14px] flex items-center justify-center relative"
+          className="aspect-square rounded-[14px] flex items-center justify-center relative border-[1.5px] border-dashed"
           style={{
-            backgroundImage: `url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='14' ry='14' stroke='currentColor' stroke-width='1.5' stroke-dasharray='4%2c 8' stroke-dashoffset='0' stroke-linecap='round'/%3e%3c/svg%3e")`,
-            color: "color-mix(in srgb, var(--theme-text) 15%, transparent)",
+            borderColor: "color-mix(in srgb, var(--theme-text) 25%, transparent)",
           }}
         />
       );

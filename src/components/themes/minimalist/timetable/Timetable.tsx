@@ -453,7 +453,7 @@ export default function Timetable({
                     >
                       <div className="w-12 flex justify-center pt-6 shrink-0 relative">
                         <div
-                          className={`w-3.5 h-3.5 rounded-full ring-4 ring-[var(--theme-bg)] z-10 ${isActuallyCurrent ? "bg-theme-highlight animate-pulse shadow-[0_0_12px_var(--theme-highlight)]" : isLab ? "bg-theme-primary" : "bg-theme-text-20"}`}
+                          className={`w-3.5 h-3.5 rounded-full ring-4 ring-[var(--theme-bg)] z-10 ${isActuallyCurrent ? "bg-theme-highlight animate-pulse shadow-[0_0_12px_var(--theme-highlight)]" : isLab ? "bg-[#0EA5E9]" : "bg-theme-text-20"}`}
                         />
                         {isActuallyCurrent && (
                           <div className="absolute top-6 w-3.5 h-3.5 rounded-full bg-theme-highlight animate-ping opacity-50" />
@@ -484,12 +484,12 @@ export default function Timetable({
                                 isActuallyCurrent
                                   ? "text-theme-bg"
                                   : isLab
-                                    ? "text-theme-primary"
+                                    ? "text-[#0EA5E9]"
                                     : subTextClass
                               }
                             />
                             <span
-                              className={`text-[12px] font-bold tracking-widest ${isActuallyCurrent ? "text-theme-bg" : textTheme}`}
+                              className={`text-[12px] font-bold tracking-widest ${isActuallyCurrent ? "text-theme-bg" : isLab ? "text-[#0EA5E9]" : textTheme}`}
                               style={{ fontFamily: "'Montserrat', sans-serif" }}
                             >
                               {item.time}
@@ -499,7 +499,7 @@ export default function Timetable({
                           <div className="flex items-center gap-2 ml-auto">
                             {isLab && !isActuallyCurrent && (
                               <span
-                                className="text-[9px] font-bold uppercase tracking-[0.25em] text-theme-primary bg-theme-primary/10 px-2 py-1 rounded-md shrink-0"
+                                className="text-[9px] font-bold uppercase tracking-[0.25em] text-[#0EA5E9] bg-[#0EA5E9]/10 px-2 py-1 rounded-md shrink-0"
                                 style={{ fontFamily: "'Afacad', sans-serif" }}
                               >
                                 practical
@@ -540,7 +540,7 @@ export default function Timetable({
                                   isActuallyCurrent
                                     ? "text-theme-bg"
                                     : isLab
-                                      ? "text-[#0EA5E9]/60"
+                                      ? "text-[#0EA5E9]"
                                       : subTextClass
                                 }
                               />
@@ -563,12 +563,12 @@ export default function Timetable({
                                   isActuallyCurrent
                                     ? "text-theme-bg"
                                     : isLab
-                                      ? "text-[#0EA5E9]/60"
+                                      ? "text-[#0EA5E9]"
                                       : subTextClass
                                 }
                               />
                               <span
-                                className={`text-[11px] font-bold lowercase tracking-wider ${isActuallyCurrent ? "text-theme-bg" : isLab ? textClass : subTextClass}`}
+                                className={`text-[11px] font-bold lowercase tracking-wider ${isActuallyCurrent ? "text-theme-bg" : isLab ? "text-[#0EA5E9]" : subTextClass}`}
                                 style={{ fontFamily: "'Afacad', sans-serif" }}
                               >
                                 {item.faculty}

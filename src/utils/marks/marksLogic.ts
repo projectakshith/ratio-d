@@ -66,7 +66,7 @@ export const getTheme = (pct: number, max: number, _isDark?: boolean) => {
       boxBg: "status-boxbg-safe",
       dottedClass: "safe-dotted",
     };
-  if (pct >= 60)
+  if (pct >= 75)
     return {
       wrapperBg: "status-bg-danger",
       cardBg: "bg-theme-surface",
@@ -90,8 +90,8 @@ export const getTheme = (pct: number, max: number, _isDark?: boolean) => {
 export const getMarkColor = (got: number, max: number, _isDark?: boolean) => {
   if (max === 0) return "text-theme-text";
   const pct = (got / max) * 100;
-  if (pct >= 75) return "status-text-safe";
-  if (pct >= 50) return "status-text-danger";
+  if (pct >= 85) return "status-text-safe";
+  if (pct >= 75) return "status-text-danger";
   return "status-text-cooked";
 };
 
@@ -108,14 +108,14 @@ export const getBoxTheme = (
       border: "border-theme-subtle",
     };
   const pct = (got / max) * 100;
-  if (pct >= 75)
+  if (pct >= 85)
     return {
       boxBg: "status-boxbg-safe",
       text: "status-text-safe",
       subText: "status-text-safe opacity-60",
       border: "status-border-safe",
     };
-  if (pct >= 50)
+  if (pct >= 75)
     return {
       boxBg: "status-boxbg-danger",
       text: "status-text-danger",
@@ -195,10 +195,10 @@ export const processAndSortMarks = (
       let status: "cooked" | "danger" | "safe" | "neutral" = "neutral";
       let badge = "pending";
       if (!actualIsNA && max > 0) {
-        if (percentage >= 80) {
+        if (percentage >= 85) {
           status = "safe";
           badge = "outstanding";
-        } else if (percentage >= 60) {
+        } else if (percentage >= 75) {
           status = "danger";
           badge = "average";
         } else {

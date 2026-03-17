@@ -504,26 +504,38 @@ export default function Dashboard({
               </div>
 
               <div className="flex flex-col max-w-full">
-                <span
-                  className={`text-[4.5rem] font-black tracking-tighter lowercase ${textClass} truncate pt-3`}
-                  style={{ fontFamily: "var(--font-montserrat), sans-serif", lineHeight: 0.85 }}
-                >
-                  {displayCourseWords[0]}
-                </span>
-                <div className="flex items-baseline gap-3 w-full pb-3">
+                <div className="flex items-end justify-between gap-3 w-full pt-3">
                   <span
-                    className={`text-[4.5rem] font-black tracking-tighter lowercase ${textClass} truncate flex-1 min-w-0`}
+                    className={`text-[4.5rem] font-black tracking-tighter lowercase ${textClass} truncate min-w-0`}
                     style={{ fontFamily: "var(--font-montserrat), sans-serif", lineHeight: 0.85 }}
                   >
-                    {displayCourseWords.slice(1).join(" ")}
+                    {displayCourseWords[0]}
                   </span>
-                  <span
-                    className={`text-[1.25rem] font-bold uppercase tracking-widest ${subTextClass} shrink-0`}
-                    style={{ fontFamily: "var(--font-afacad), sans-serif" }}
-                  >
-                    {displayTiming}
-                  </span>
+                  {displayCourseWords.length === 1 && (
+                    <span
+                      className={`text-[1.25rem] font-bold uppercase tracking-widest ${subTextClass} shrink-0 mb-2`}
+                      style={{ fontFamily: "var(--font-afacad), sans-serif" }}
+                    >
+                      {displayTiming}
+                    </span>
+                  )}
                 </div>
+                {displayCourseWords.length > 1 && (
+                  <div className="flex items-baseline justify-between gap-3 w-full pb-3">
+                    <span
+                      className={`text-[4.5rem] font-black tracking-tighter lowercase ${textClass} truncate flex-1 min-w-0`}
+                      style={{ fontFamily: "var(--font-montserrat), sans-serif", lineHeight: 0.85 }}
+                    >
+                      {displayCourseWords.slice(1).join(" ")}
+                    </span>
+                    <span
+                      className={`text-[1.25rem] font-bold uppercase tracking-widest ${subTextClass} shrink-0`}
+                      style={{ fontFamily: "var(--font-afacad), sans-serif" }}
+                    >
+                      {displayTiming}
+                    </span>
+                  </div>
+                )}
               </div>
 
               <div

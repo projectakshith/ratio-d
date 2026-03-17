@@ -63,10 +63,10 @@ const CalendarDay = memo(
       dateColor = "text-theme-text";
       orderColor = "text-theme-muted";
     } else if (item.isDayHoliday) {
-      bg = "bg-theme-secondary/10";
-      border = "border-theme-secondary/20";
+      bg = "bg-theme-secondary/20";
+      border = "border-theme-secondary/40";
       dateColor = "text-theme-secondary font-bold";
-      orderColor = "text-theme-secondary/50";
+      orderColor = "text-theme-secondary/60";
     } else {
       dateColor = "text-theme-text";
       orderColor = "text-theme-muted";

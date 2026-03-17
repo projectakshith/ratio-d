@@ -105,7 +105,7 @@ body {
 
 [data-theme="lucifer"] {
   --theme-primary:   #FF4D4D;
-  --theme-secondary: #1A1A1A;
+  --theme-secondary: #FF4D4D;
   --theme-accent:    #FF4D4D;
   --theme-bg:        #000000;
   --theme-text:      #FFFFFF;
@@ -114,7 +114,7 @@ body {
 
 [data-theme="gad"] {
   --theme-primary:   #2A2A2A;
-  --theme-secondary: #4A4A4A;
+  --theme-secondary: #FF4D4D;
   --theme-accent:    #6A6A6A;
   --theme-bg:        #1A1A1A;
   --theme-text:      #AAAAAA;
@@ -123,7 +123,7 @@ body {
 
 [data-theme="gabriel"] {
   --theme-primary:   #5C6BC0;
-  --theme-secondary: #9FA8DA;
+  --theme-secondary: #FF4D4D;
   --theme-accent:    #C5CAE9;
   --theme-bg:        #EEF0FF;
   --theme-text:      #1A237E;
@@ -132,7 +132,7 @@ body {
 
 [data-theme="mot"] {
   --theme-primary:   #607D8B;
-  --theme-secondary: #546E7A;
+  --theme-secondary: #FF4D4D;
   --theme-accent:    #80CBC4;
   --theme-bg:        #1A1F2E;
   --theme-text:      #ECEFF1;
@@ -142,7 +142,7 @@ body {
 [data-theme="default"],
 [data-theme="minimalist-light"] {
   --theme-primary:   #555555;
-  --theme-secondary: #888888;
+  --theme-secondary: #FF4D4D;
   --theme-accent:    #F97316;
   --theme-bg:        #F7F7F7;
   --theme-text:      #111111;
@@ -151,7 +151,7 @@ body {
 
 [data-theme="minimalist-dark"] {
   --theme-primary:   #37474F;
-  --theme-secondary: #546E7A;
+  --theme-secondary: #FF4D4D;
   --theme-accent:    #FFD54F;
   --theme-bg:        #111111;
   --theme-text:      #FFFFFF;
@@ -186,7 +186,7 @@ body {
 }
 [data-theme="steve"] {
   --theme-primary:   #35801C;
-  --theme-secondary: #5D4037;
+  --theme-secondary: #FF4D4D;
   --theme-accent:    #7A5C4F;
   --theme-bg:        #F7F7F7;
   --theme-text:      #1D1D1D;
