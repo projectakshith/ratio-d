@@ -370,9 +370,11 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
 export default function OnboardingPage({
   onComplete,
   onDevBypass,
+  onFinish,
 }: {
   onComplete?: () => void;
   onDevBypass?: () => void;
+  onFinish?: () => void;
 }) {
   const [isMobile, setIsMobile] = useState<boolean | null>(null);
   const [isPWA, setIsPWA] = useState<boolean | null>(null);
@@ -380,6 +382,8 @@ export default function OnboardingPage({
   const [os, setOs] = useState<"android" | "ios" | "other" | null>(null);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [canInstall, setCanInstall] = useState<boolean>(false);
+
+  const handleComplete = onFinish || onComplete || onDevBypass;
 
   useEffect(() => {
     const checkPWAStatus = () => {
@@ -437,7 +441,7 @@ export default function OnboardingPage({
 
  
   if (isPWA || forceOnboarding) {
-    return <PwaSlideshow onComplete={onComplete || onDevBypass} />;
+    return <PwaSlideshow onComplete={onFinish || onComplete || onDevBypass} />;
   }
 
  
@@ -460,9 +464,9 @@ export default function OnboardingPage({
           )}
         </div>
         
-        {onDevBypass && (
+        {handleComplete && (
           <button
-            onClick={onDevBypass}
+            onClick={handleComplete}
             className="opacity-0 absolute top-0 right-0 w-20 h-20 cursor-default"
             aria-hidden="true"
           />
