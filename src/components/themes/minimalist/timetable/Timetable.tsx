@@ -433,14 +433,10 @@ export default function Timetable({
 
                   const textTheme = isActuallyCurrent
                     ? "text-theme-bg font-black"
-                    : isLab 
-                      ? "text-[#0EA5E9] font-black" 
-                      : textClass;
+                    : textClass;
                   const subTextTheme = isActuallyCurrent
                     ? "text-theme-bg font-bold"
-                    : isLab
-                      ? "text-[#0EA5E9]/70"
-                      : subTextClass;
+                    : subTextClass;
 
                   return (
                     <motion.div
@@ -483,13 +479,11 @@ export default function Timetable({
                               className={
                                 isActuallyCurrent
                                   ? "text-theme-bg"
-                                  : isLab
-                                    ? "text-[#0EA5E9]"
-                                    : subTextClass
+                                  : subTextClass
                               }
                             />
                             <span
-                              className={`text-[12px] font-bold tracking-widest ${isActuallyCurrent ? "text-theme-bg" : isLab ? "text-[#0EA5E9]" : textTheme}`}
+                              className={`text-[12px] font-bold tracking-widest ${isActuallyCurrent ? "text-theme-bg" : textTheme}`}
                               style={{ fontFamily: "'Montserrat', sans-serif" }}
                             >
                               {item.time}
@@ -539,9 +533,7 @@ export default function Timetable({
                                 className={
                                   isActuallyCurrent
                                     ? "text-theme-bg"
-                                    : isLab
-                                      ? "text-[#0EA5E9]"
-                                      : subTextClass
+                                    : subTextClass
                                 }
                               />
                               <span
@@ -562,13 +554,11 @@ export default function Timetable({
                                 className={
                                   isActuallyCurrent
                                     ? "text-theme-bg"
-                                    : isLab
-                                      ? "text-[#0EA5E9]"
-                                      : subTextClass
+                                    : subTextClass
                                 }
                               />
                               <span
-                                className={`text-[11px] font-bold lowercase tracking-wider ${isActuallyCurrent ? "text-theme-bg" : isLab ? "text-[#0EA5E9]" : subTextClass}`}
+                                className={`text-[11px] font-bold lowercase tracking-wider ${isActuallyCurrent ? "text-theme-bg" : subTextClass}`}
                                 style={{ fontFamily: "'Afacad', sans-serif" }}
                               >
                                 {item.faculty}
@@ -585,7 +575,7 @@ export default function Timetable({
           </AnimatePresence>
         </motion.div>
 
-        <div className="fixed bottom-[85px] left-1/2 -translate-x-1/2 bg-theme-accent/30 backdrop-blur-xl p-1.5 pr-2 rounded-full flex items-center gap-1 z-40 shadow-[0_8px_32px_rgba(0,0,0,0.3)] border border-theme-accent/40">
+        <div className="fixed bottom-[85px] left-1/2 -translate-x-1/2 bg-theme-accent/30 backdrop-blur-xl p-1.5 pr-2 rounded-full flex items-center gap-1 z-40 shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
           <span
             className="text-[11px] font-bold text-theme-accent ml-3 mr-1 tracking-widest"
             style={{ fontFamily: "'Montserrat', sans-serif" }}

@@ -88,7 +88,7 @@ export default function SyncStatusNotification() {
                               {change.course}
                             </span>
                             <div 
-                              className="px-3 py-1 rounded-full border"
+                              className="px-3 py-1 rounded-full border flex items-center justify-center"
                               style={{ backgroundColor: 'color-mix(in srgb, var(--theme-text) 10%, transparent)', borderColor: 'var(--theme-text)' }}
                             >
                               <span className="text-[8px] font-black uppercase tracking-[0.2em] text-theme-text">
@@ -145,7 +145,7 @@ export default function SyncStatusNotification() {
                             {mark.course}
                           </span>
                           <div 
-                            className="px-3 py-1 rounded-full border"
+                            className="px-3 py-1 rounded-full border flex items-center justify-center"
                             style={{ backgroundColor: 'color-mix(in srgb, var(--theme-text) 10%, transparent)', borderColor: 'var(--theme-text)' }}
                           >
                             <span className="text-[8px] font-black uppercase tracking-[0.2em] text-theme-text">
