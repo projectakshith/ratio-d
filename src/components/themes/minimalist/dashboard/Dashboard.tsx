@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useRouter } from "next/navigation";
 import {
   ChevronRight,
   ChevronLeft,
@@ -69,6 +70,7 @@ export default function Dashboard({
   startEntrance: boolean;
   isDark: boolean;
 }) {
+  const router = useRouter();
   const {
     pullY,
     isRefreshing,
@@ -662,7 +664,7 @@ export default function Dashboard({
               </div>
 
               <div
-                onClick={() => setActiveTab && setActiveTab("marks")}
+                onClick={() => router.push("/marks")}
                 className="w-full bg-theme-card border-theme-subtle border-[1.5px] rounded-[24px] p-2 pr-5 flex items-center gap-4 shadow-sm transition-transform cursor-pointer"
               >
                 <div
