@@ -75,7 +75,7 @@ class SessionHandler:
                 print("  -> [SESSION] Access Token received. Exchanging for JSESSIONID...", flush=True)
                 r = await self.client.get(final_auth_url)
                 
-                if 'JSESSIONID' in self.client.cookies:
+                if any(c.name == 'JSESSIONID' for c in self.client.cookies.jar):
                     print("  -> [SESSION] SUCCESS: New cookies established.", flush=True)
                     return True
                 else:

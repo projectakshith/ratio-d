@@ -17,7 +17,12 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "https://getratiod.lol",
+        "https://www.getratiod.lol",
+        "http://localhost:3000",
+        "http://localhost:9002",
+    ],
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -27,7 +32,7 @@ def get_now():
 
 @app.get("/version")
 async def get_version():
-    return {"version": "0.1.0"}
+    return {"version": "2.0.0"}
 
 @app.post("/refresh")
 async def refresh_data(creds: Credentials):
@@ -51,7 +56,7 @@ async def refresh_data(creds: Credentials):
         attendance = AttendanceService.parse_attendance(att_html)
         marks = MarksService.parse_test_performance(att_html)
         
-        current_cookies = {k: v for k, v in client.session_handler.client.cookies.items()}
+        current_cookies = {c.name: c.value for c in client.session_handler.client.cookies.jar}
         print(f"[API] Refresh completed in {time.time() - start_total:.2f}s", flush=True)
         return {
             "success": True,
@@ -88,10 +93,8 @@ async def login(creds: Credentials):
         user_batch_string = str(profile.get("batch", "1")).lower()
         formatted_batch = "Batch_1" if "1" in user_batch_string else "batch_2"
         
-        att_task = client.get_attendance_html()
-        grid_task = client.get_grid_html(formatted_batch)
-        
-        att_html, grid_html = await asyncio.gather(att_task, grid_task)
+        att_html = await client.get_attendance_html()
+        grid_html = await client.get_grid_html(formatted_batch)
         
         attendance = AttendanceService.parse_attendance(att_html)
         marks = MarksService.parse_test_performance(att_html)
@@ -100,7 +103,7 @@ async def login(creds: Credentials):
         if grid_html:
             schedule = TimetableService.parse_unified_grid(grid_html, course_map)
             
-        current_cookies = {k: v for k, v in client.session_handler.client.cookies.items()}
+        current_cookies = {c.name: c.value for c in client.session_handler.client.cookies.jar}
         print(f"[API] Login completed in {time.time() - start_total:.2f}s", flush=True)
         return {
             "success": True,

@@ -21,10 +21,30 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
   const pathname = usePathname();
   const router = useRouter();
 
+  const checkVersion = async () => {
+    try {
+      const response = await fetch("/api/version");
+      const data = await response.json();
+      if (!data.version) return;
+      
+      const currentVersion = localStorage.getItem("ratio_app_version");
+      if (currentVersion !== data.version) {
+        localStorage.clear();
+        localStorage.setItem("ratio_app_version", data.version);
+        window.location.reload();
+        return;
+      }
+    } catch (err) {
+      console.error("Version check failed", err);
+    }
+  };
+
   useEffect(() => {
+    checkVersion();
+
     const splashTimer = setTimeout(() => {
       setShowSplash(false);
-    }, 1000);
+    }, 500);
 
     const cachedData = localStorage.getItem("ratio_data");
     const isPublicPage = pathname === "/login" || pathname === "/onboarding" || pathname === "/setup";

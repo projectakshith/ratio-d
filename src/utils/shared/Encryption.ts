@@ -1,7 +1,10 @@
 import CryptoJS from "crypto-js";
 
-const SECRET_KEY =
-  process.env.NEXT_PUBLIC_COOKIE_ENCRYPTION_KEY || "fallback-secret";
+const SECRET_KEY = process.env.NEXT_PUBLIC_COOKIE_ENCRYPTION_KEY;
+
+if (!SECRET_KEY && typeof window !== 'undefined') {
+  console.warn("Security Warning: NEXT_PUBLIC_COOKIE_ENCRYPTION_KEY is missing.");
+}
 
 export const EncryptionUtils = {
   saveEncrypted: (key: string, data: any) => {
