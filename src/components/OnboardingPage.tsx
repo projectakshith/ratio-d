@@ -4,168 +4,495 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowRight,
   ShieldCheck,
-  KeyRound,
   Zap,
   CloudOff,
-  Fingerprint,
-  Target,
-  BookOpen,
   Smartphone,
-  LayoutDashboard,
   Activity,
   CalendarDays,
-  BatteryCharging,
   EyeOff,
   Calculator,
-  Archive,
-  Crosshair,
   Palette,
   Download,
   Share,
   PlusSquare,
   CheckCircle2,
+  Lock,
+  X,
+  MessageCircle,
+  BookOpen,
+  Bell,
+  RefreshCw,
 } from "lucide-react";
+import { useTheme } from "@/context/ThemeContext";
+import { COLOR_THEMES, buildTheme } from "@/utils/theme/themeUtils";
 
 const isDev = process.env.NODE_ENV === "development";
 
-const slides = [
+// --- MINIMALIST STYLE PREVIEWS ---
+
+const AlertCardPreview = () => {
+  return (
+    <motion.div 
+      initial={{ y: 20, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      className="w-full max-w-[320px] bg-white border-[#8b5cf6]/15 border-[1.5px] rounded-[24px] p-5 flex flex-col relative overflow-hidden shadow-xl mb-8 self-center"
+    >
+      <div className="absolute top-0 right-0 w-24 h-24 rounded-bl-[100px] bg-[#8b5cf6]/5 pointer-events-none" />
+      <div className="flex items-center justify-between mb-4 z-10">
+        <div className="flex items-center gap-3">
+          <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full shrink-0 bg-[#8b5cf6] text-white">
+            exam
+          </span>
+          <span className="text-[11px] font-bold text-black/40 tracking-wider uppercase">
+            tomorrow
+          </span>
+        </div>
+        <motion.div 
+          animate={{ scale: [1, 1.1, 1] }}
+          transition={{ repeat: Infinity, duration: 2 }}
+          className="w-8 h-8 rounded-full bg-[#8b5cf6]/10 flex items-center justify-center text-[#8b5cf6]"
+        >
+          <Bell size={14} />
+        </motion.div>
+      </div>
+      <span className="text-[20px] font-black tracking-tight text-black leading-tight mb-4 z-10" style={{ fontFamily: "var(--font-montserrat)" }}>
+        discrete mathematics
+      </span>
+      <div className="flex flex-col gap-2.5 z-10">
+        <div className="flex items-start gap-3 bg-black/[0.03] border-black/5 rounded-xl p-3 border">
+          <div className="mt-1.5 w-1.5 h-1.5 rounded-full shrink-0 bg-[#8b5cf6]" />
+          <span className="text-[14px] font-bold text-black/70 lowercase leading-tight">
+            ft-1 assessment @ 9:00 am
+          </span>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+const RefreshPreview = () => {
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [attendance, setAttendance] = useState(74.5);
+  
+  const handleRefresh = () => {
+    if (isSyncing) return;
+    setIsSyncing(true);
+    setTimeout(() => {
+      setAttendance(75.2);
+      setIsSyncing(false);
+    }, 450);
+  };
+
+  return (
+    <div className="w-full max-w-[320px] space-y-4 mb-8 self-center">
+      <div className="bg-white border-black/10 border-[1.5px] rounded-[24px] p-5 shadow-xl">
+        <div className="flex justify-between items-end mb-4">
+          <div>
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-black/40">Attendance</span>
+            <motion.h3 
+              key={attendance}
+              initial={{ y: 5, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              className={`text-4xl font-black tracking-tighter ${attendance >= 75 ? "text-[#85a818]" : "text-black"}`}
+              style={{ fontFamily: "var(--font-montserrat)" }}
+            >
+              {attendance}%
+            </motion.h3>
+          </div>
+          <div className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${attendance >= 75 ? "bg-[#85a818] text-white" : "bg-black/5 text-black/40"}`}>
+            {attendance >= 75 ? "Safe" : "Cooked"}
+          </div>
+        </div>
+        <div className="h-2 w-full bg-black/5 rounded-full overflow-hidden">
+          <motion.div 
+            animate={{ width: `${attendance}%` }}
+            transition={{ type: "spring", stiffness: 100 }}
+            className={`h-full rounded-full ${attendance >= 75 ? "bg-[#85a818]" : "bg-black/20"}`}
+          />
+        </div>
+      </div>
+      
+      <motion.button
+        whileTap={{ scale: 0.96 }}
+        onClick={handleRefresh}
+        className="w-full py-4 bg-white border-black border-[2px] text-black rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-3 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all"
+      >
+        <motion.div animate={isSyncing ? { rotate: 360 } : {}} transition={isSyncing ? { repeat: Infinity, duration: 1, ease: "linear" } : {}}>
+          <RefreshCw size={18} />
+        </motion.div>
+        {isSyncing ? "Syncing..." : "Refresh Now"}
+      </motion.button>
+    </div>
+  );
+};
+
+const ScramblerPreview = () => {
+  const [input, setInput] = useState("");
+  const scramble = (text: string) => {
+    if (!text) return "";
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    let res = "U2FsdGVkX1";
+    for(let i=0; i<15; i++) res += chars.charAt(Math.floor(Math.random() * chars.length));
+    return res + "...";
+  };
+
+  return (
+    <div className="w-full max-w-[320px] space-y-4 mb-8 self-center text-white">
+      <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-5 rounded-3xl min-h-[70px] flex flex-col justify-center">
+        <span className="text-[7px] font-mono uppercase tracking-widest opacity-40 mb-1">AES-256 encrypted stream</span>
+        <p className="font-mono text-[10px] break-all text-[#ceff1c] opacity-80 leading-tight">
+          {input ? scramble(input) : "Waiting for input..."}
+        </p>
+      </div>
+      
+      <div className="relative">
+        <input 
+          type="text" 
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="type your name to encrypt..."
+          className="w-full bg-white/10 border border-white/20 rounded-2xl py-4 px-5 text-sm text-white placeholder:text-white/30 outline-none focus:border-[#ceff1c]/50 transition-colors"
+        />
+        <Lock size={18} className="absolute right-5 top-1/2 -translate-y-1/2 text-white/20" />
+      </div>
+    </div>
+  );
+};
+
+// --- ORIGINAL STRUCTURE ---
+
+interface OnboardingSlide {
+  id: string;
+  bg: string;
+  text: string;
+  title: string | React.ReactNode;
+  subtitle: string;
+  isLogoPhase: boolean;
+  titleClass?: string;
+  isPrivacySlide?: boolean;
+  isCommunitySlide?: boolean;
+  isThemeSlide?: boolean;
+  interactiveComponent?: React.ReactNode;
+  points: { icon: any; label: string; desc: string }[];
+}
+
+const slides: OnboardingSlide[] = [
   {
     id: "core",
     bg: "bg-[#0c30ff]",
     text: "text-[#ceff1c]",
     title: "ratio'd",
-    subtitle: "THE ENGINE",
+    subtitle: "built for speed",
     isLogoPhase: true,
     points: [
       {
         icon: Zap,
-        label: "Bun-Powered Speed",
-        desc: "Sub-second refresh endpoints. Built for absolute velocity.",
-      },
-      {
-        icon: Smartphone,
-        label: "Mobile-First Web App",
-        desc: "Crafted specifically for your phone. Fast, fluid, and intuitive.",
+        label: "actually fast",
+        desc: "refreshes in like a second. no lag, no mid portal errors.",
       },
       {
         icon: CloudOff,
-        label: "Offline Caching",
-        desc: "Full offline mode. Your schedule and data, always accessible.",
+        label: "works offline",
+        desc: "access your schedule even when campus wifi is being mid.",
       },
       {
-        icon: BatteryCharging,
-        label: "Battery Optimized",
-        desc: "Ultra-lightweight background polling built for all-day campus life.",
-      },
-      {
-        icon: Palette,
-        label: "Dynamic Themes",
-        desc: "Multiple styles, colors, and dark modes to fully customize your interface.",
+        icon: Smartphone,
+        label: "gesture nav",
+        desc: "smooth transitions and fluid navigation. built for handhelds.",
       },
     ],
   },
   {
-    id: "tech",
-    bg: "bg-[#111111]",
+    id: "unique",
+    bg: "bg-[#FF4D4D]",
     text: "text-[#F7F7F7]",
-    title: "GHOST\nMODE",
+    title: (
+      <>
+        <span className="text-[2rem] block leading-none">built</span>
+        <span className="text-[4rem] md:text-[6rem] block leading-[0.8] tracking-tighter">different</span>
+      </>
+    ),
     titleClass:
-      "font-['Montserrat',sans-serif] font-black uppercase text-[4.5rem] md:text-[6.5rem] tracking-tighter leading-[0.85]",
-    subtitle: "SYSTEM ARCHITECTURE",
+      "font-['Montserrat',sans-serif] font-black uppercase tracking-tighter leading-[0.85]",
+    subtitle: "not your average dashboard",
     isLogoPhase: false,
+    interactiveComponent: <AlertCardPreview />,
     points: [
       {
-        icon: ShieldCheck,
-        label: "Encrypted Local-First",
-        desc: "100% device-level storage encryption. Zero external databases.",
+        icon: Zap,
+        label: "sub second refresh",
+        desc: "our custom endpoints fetch your data in under a second. no cap.",
       },
       {
-        icon: KeyRound,
-        label: "Failproof Auth",
-        desc: "Bypasses 'Session Expired' & concurrent login blocks seamlessly.",
-      },
-      {
-        icon: Fingerprint,
-        label: "Persistent State",
-        desc: "Background auto-logins. You never see a login screen again.",
-      },
-      {
-        icon: EyeOff,
-        label: "Zero Telemetry",
-        desc: "Absolute privacy. No trackers, no reporting back.",
-      },
-    ],
-  },
-  {
-    id: "dashboard",
-    bg: "bg-[#ceff1c]",
-    text: "text-[#111111]",
-    title: "OMNI\nDASH",
-    titleClass:
-      "font-['Montserrat',sans-serif] font-black uppercase text-[4.5rem] md:text-[6.5rem] tracking-tighter leading-[0.85]",
-    subtitle: "THE COMMAND CENTER",
-    isLogoPhase: false,
-    points: [
-      {
-        icon: LayoutDashboard,
-        label: "God's Eye View",
-        desc: "A singular dashboard with absolutely everything you want in it.",
-      },
-      {
-        icon: Activity,
-        label: "Real-Time Tracking",
-        desc: "Live syncing for attendance drops and marks the second they update.",
-      },
-      {
-        icon: Target,
-        label: "Predict & Target",
-        desc: "Set custom class targets and accurately predict future attendance.",
-      },
-      {
-        icon: Calculator,
-        label: "Bunk Meter",
-        desc: "Instantly calculates exactly how many classes you can afford to skip today.",
-      },
-    ],
-  },
-  {
-    id: "features",
-    bg: "bg-[#F7F7F7]",
-    text: "text-[#0c30ff]",
-    title: "STUDENT\nHUB",
-    titleClass:
-      "font-['Montserrat',sans-serif] font-black uppercase text-[4.5rem] md:text-[6.5rem] tracking-tighter leading-[0.85]",
-    subtitle: "ACADEMIC ARSENAL",
-    isLogoPhase: false,
-    points: [
-      {
-        icon: CalendarDays,
-        label: "Smart Calendar",
-        desc: "Visual test schedule indicators and synced academic deadlines.",
+        icon: CloudOff,
+        label: "offline caching",
+        desc: "your schedule and marks are always there, even without wifi.",
       },
       {
         icon: BookOpen,
-        label: "Unified Academics",
-        desc: "Test details, Google assignments, and exams—all in one place.",
+        label: "custom notes",
+        desc: "built-in private notes for every subject. stay organized lowkey.",
       },
       {
-        icon: Archive,
-        label: "Resource Vault",
-        desc: "Instant access to syllabus and past papers precisely mapped to your courses.",
-      },
-      {
-        icon: Crosshair,
-        label: "Deadline Radar",
-        desc: "Automatically extracts and ranks your upcoming submissions by urgency.",
+        icon: Activity,
+        label: "2nd yr cse alerts",
+        desc: "full ft/ct details for 2nd yr cse. (other courses? send us details!)",
       },
     ],
   },
+  {
+    id: "speed",
+    bg: "bg-[#8b5cf6]",
+    text: "text-[#F7F7F7]",
+    title: (
+      <>
+        <span className="text-[2rem] block leading-none">feel</span>
+        <span className="text-[4rem] md:text-[6rem] block leading-[0.8] tracking-tighter">the speed</span>
+      </>
+    ),
+    titleClass: "font-['Montserrat',sans-serif] font-black uppercase tracking-tighter leading-[0.85]",
+    subtitle: "actually fast",
+    isLogoPhase: false,
+    interactiveComponent: <RefreshPreview />,
+    points: [
+      {
+        icon: Zap,
+        label: "sub second sync",
+        desc: "tap the button above to see it in action. it's actually fast.",
+      },
+      {
+        icon: Activity,
+        label: "no more waiting",
+        desc: "skip the academia portal lag. our custom endpoints fetch data directly.",
+      },
+      {
+        icon: CloudOff,
+        label: "instant offline",
+        desc: "everything is cached instantly. access your marks even with zero bars.",
+      },
+    ]
+  },
+  {
+    id: "privacy",
+    bg: "bg-[#111111]",
+    text: "text-[#F7F7F7]",
+    title: (
+      <>
+        <span className="text-[2rem] block leading-none">lowkenuinely</span>
+        <span className="text-[5rem] md:text-[6rem] block leading-[0.8]">private</span>
+      </>
+    ),
+    titleClass:
+      "font-['Montserrat',sans-serif] font-black uppercase tracking-tighter leading-[0.85]",
+    subtitle: "the pinky promise",
+    isLogoPhase: false,
+    isPrivacySlide: true,
+    interactiveComponent: <ScramblerPreview />,
+    points: [
+      {
+        icon: Lock,
+        label: "on device only",
+        desc: "all your data stays on your phone. nowhere else.",
+      },
+      {
+        icon: EyeOff,
+        label: "no databases",
+        desc: "we dont store anything so we literally cant see your marks.",
+      },
+      {
+        icon: ShieldCheck,
+        label: "aes encrypted",
+        desc: "even if someone takes your phone, your data is locked down.",
+      },
+    ],
+  },
+  {
+    id: "community",
+    bg: "bg-[#8b5cf6]",
+    text: "text-[#F7F7F7]",
+    title: "the\nchefs",
+    titleClass:
+      "font-['Montserrat',sans-serif] font-black uppercase text-[4.5rem] md:text-[6.5rem] tracking-tighter leading-[0.85]",
+    subtitle: "built by students for students",
+    isLogoPhase: false,
+    isCommunitySlide: true,
+    points: [
+      {
+        icon: Zap,
+        label: "Akshith & Prethiv",
+        desc: "the ones who stayed up till 4am building this from scratch.",
+      },
+      {
+        icon: Palette,
+        label: "Debaditya",
+        desc: "the genius who made the themes look this good.",
+      },
+    ],
+  },
+  {
+    id: "themes",
+    bg: "bg-[#ceff1c]",
+    text: "text-[#111111]",
+    title: "vibe\ncheck",
+    titleClass:
+      "font-['Montserrat',sans-serif] font-black uppercase text-[4.5rem] md:text-[6.5rem] tracking-tighter leading-[0.85]",
+    subtitle: "pick your look",
+    isLogoPhase: false,
+    isThemeSlide: true,
+    points: [],
+  },
 ];
+
+function PrivacyOverlay({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ y: "100%" }}
+          animate={{ y: 0 }}
+          exit={{ y: "100%" }}
+          transition={{ type: "spring", damping: 25, stiffness: 200 }}
+          className="fixed inset-0 bg-[#0c30ff] text-[#ceff1c] z-[2000] p-8 flex flex-col"
+        >
+          <div className="flex justify-between items-center mb-12">
+            <span className="font-mono text-[10px] uppercase tracking-[0.4em]">Privacy Protocol</span>
+            <button onClick={onClose} className="w-12 h-12 flex items-center justify-center rounded-full bg-white/10">
+              <X size={24} />
+            </button>
+          </div>
+          
+          <h2 className="text-6xl font-black lowercase tracking-tighter leading-[0.9] mb-8" style={{ fontFamily: "Urbanosta" }}>
+            how it<br />works
+          </h2>
+          
+          <div className="space-y-8 flex-1 overflow-y-auto no-scrollbar">
+            <div className="space-y-2">
+              <h3 className="font-bold text-sm uppercase tracking-widest flex items-center gap-2">
+                <Lock size={16} /> Encryption
+              </h3>
+              <p className="text-sm opacity-80 leading-relaxed">
+                When you log in, we generate a unique key on your device. Your Academia credentials and marks are scrambled using AES-256 before being saved.
+              </p>
+            </div>
+            
+            <div className="space-y-2">
+              <h3 className="font-bold text-sm uppercase tracking-widest flex items-center gap-2">
+                <CloudOff size={16} /> Zero Servers
+              </h3>
+              <p className="text-sm opacity-80 leading-relaxed">
+                We don't have a backend database for users. Your data goes from the portal to your phone's memory. That's it.
+              </p>
+            </div>
+            
+            <div className="space-y-2">
+              <h3 className="font-bold text-sm uppercase tracking-widest flex items-center gap-2">
+                <Smartphone size={16} /> Local Only
+              </h3>
+              <p className="text-sm opacity-80 leading-relaxed">
+                Deleting the app or clearing browser cache permanently wipes all your data. We have no way to recover it because we never had it.
+              </p>
+            </div>
+          </div>
+          
+          <button 
+            onClick={onClose}
+            className="mt-8 w-full py-5 bg-[#ceff1c] text-[#0c30ff] font-black uppercase tracking-widest rounded-2xl"
+          >
+            got it
+          </button>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+function ThemeSelector({ onComplete }: { onComplete: () => void }) {
+  const { theme: currentTheme, setTheme } = useTheme();
+  
+  const handleThemePick = (colorId: string) => {
+    // Default to minimalist for onboarding selection
+    const newTheme = buildTheme("minimalist", colorId as any);
+    setTheme(newTheme);
+  };
+
+  return (
+    <div className="mt-8 flex-1 flex flex-col">
+      <div className="grid grid-cols-2 gap-3 flex-1 overflow-y-auto no-scrollbar pb-8">
+        {COLOR_THEMES.filter(t => ["minimalist-dark", "brutalist", "gabriel", "el", "steve", "lucifer"].includes(t.id)).map((t) => (
+          <motion.button
+            key={t.id}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => handleThemePick(t.id)}
+            className={`p-4 rounded-3xl border-2 transition-all flex flex-col justify-between h-32 ${
+              currentTheme.includes(t.id) ? "border-[#111111] bg-[#111111] text-white" : "border-[#111111]/10 bg-white/20 text-[#111111]"
+            }`}
+          >
+            <div className="flex justify-between items-start w-full">
+              <span className="font-bold text-xs uppercase tracking-tighter">{t.name}</span>
+              <div className="flex gap-1">
+                {t.swatches.map((s, i) => (
+                  <div key={i} className="w-2 h-2 rounded-full" style={{ backgroundColor: s }} />
+                ))}
+              </div>
+            </div>
+            <p className="text-[10px] opacity-60 text-left leading-tight">{t.description}</p>
+          </motion.button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function CommunityPreview() {
+  return (
+    <div className="relative w-full h-48 mt-4 flex flex-col justify-center items-center">
+      {/* Subtle background glow */}
+      <div className="absolute inset-0 opacity-20 pointer-events-none">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-white blur-[80px] rounded-full" />
+      </div>
+      
+      <div className="relative w-full max-w-[280px] h-full flex flex-col gap-4">
+        {/* User Bubble */}
+        <motion.div
+          initial={{ scale: 0, opacity: 0, rotate: -5, x: -20 }}
+          animate={{ scale: 1, opacity: 1, rotate: -8, x: 0 }}
+          transition={{ 
+            type: "spring", 
+            stiffness: 260, 
+            damping: 20,
+            delay: 0.5 
+          }}
+          className="bg-white/10 backdrop-blur-xl border border-white/10 p-4 rounded-3xl rounded-bl-none self-start shadow-2xl"
+        >
+          <span className="text-[8px] font-black uppercase tracking-widest opacity-40 block mb-1">Student</span>
+          <p className="text-[11px] leading-tight font-medium">yo, marks aren't updating...</p>
+        </motion.div>
+
+        {/* Dev Bubble */}
+        <motion.div
+          initial={{ scale: 0, opacity: 0, rotate: 5, x: 20 }}
+          animate={{ scale: 1, opacity: 1, rotate: 6, x: 0 }}
+          transition={{ 
+            type: "spring", 
+            stiffness: 260, 
+            damping: 20,
+            delay: 1.8 
+          }}
+          className="bg-[#ceff1c] text-[#111111] p-4 rounded-3xl rounded-br-none self-end shadow-2xl relative z-10"
+        >
+          <span className="text-[8px] font-black uppercase tracking-widest opacity-40 block mb-1">Devs</span>
+          <p className="text-[11px] leading-tight font-bold">fixed it. refresh blud!</p>
+        </motion.div>
+      </div>
+    </div>
+  );
+}
 
 function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
   const [step, setStep] = useState(0);
   const [direction, setDirection] = useState(1);
   const [introStage, setIntroStage] = useState(0);
+  const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
 
   useEffect(() => {
     if (step === 0) {
@@ -283,13 +610,34 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
         >
           {slides[step].isLogoPhase ? (
             <>
-              <motion.div
-                layout
-                initial={{ height: "35vh" }}
-                animate={{ height: introStage === 0 ? "35vh" : "0vh" }}
-                transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-              />
-              <div className="relative">
+              <div className="mt-8 space-y-9 flex-1">
+                <AnimatePresence>
+                  {introStage === 1 && (
+                    <motion.div
+                      variants={containerVariants}
+                      initial="hidden"
+                      animate="visible"
+                      className="space-y-9"
+                    >
+                      {slides[step].points.map((point, i) => (
+                        <motion.div key={i} variants={itemVariants} className="flex gap-4">
+                          <div className="w-10 h-10 rounded-xl bg-black/10 flex items-center justify-center shrink-0 border border-current/20">
+                            <point.icon size={20} />
+                          </div>
+                          <div>
+                            <h3 className="font-bold text-sm uppercase tracking-wider">
+                              {point.label}
+                            </h3>
+                            <p className="text-xs opacity-70 mt-1">{point.desc}</p>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              <div className="relative mt-auto">
                 <motion.span
                   layout
                   initial={{ opacity: 0, filter: "blur(5px)" }}
@@ -297,41 +645,55 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
                     opacity: introStage === 1 ? 0.6 : 0,
                     filter: introStage === 1 ? "blur(0px)" : "blur(5px)",
                   }}
-                  className="text-[10px] font-bold uppercase tracking-[0.4em] mb-6 block"
+                  className="text-[10px] font-bold uppercase tracking-[0.4em] mb-4 block"
                   style={{ fontFamily: "'Montserrat', sans-serif" }}
                 >
                   {slides[step].subtitle}
                 </motion.span>
                 <motion.h1
                   layout
-                  className="font-['Urbanosta',sans-serif] lowercase text-[5rem] md:text-[7rem] leading-[0.8] tracking-tighter"
+                  className="font-['Urbanosta',sans-serif] lowercase text-[5.5rem] md:text-[7rem] leading-[0.8] tracking-tighter"
                 >
-                  <motion.span
-                    initial="hidden"
-                    animate="visible"
-                    variants={containerVariants}
-                    className="flex"
-                  >
-                    {slides[step].title.split("").map((char, index) => (
-                      <motion.span
-                        key={index}
-                        variants={letterVariants}
-                        className="inline-block"
-                      >
-                        {char}
-                      </motion.span>
-                    ))}
-                  </motion.span>
+                  {typeof slides[step].title === "string" ? (
+                    <motion.span
+                      initial="hidden"
+                      animate="visible"
+                      variants={containerVariants}
+                      className="flex"
+                    >
+                      {(slides[step].title as string).split("").map((char, index) => (
+                        <motion.span
+                          key={index}
+                          variants={letterVariants}
+                          className="inline-block"
+                        >
+                          {char}
+                        </motion.span>
+                      ))}
+                    </motion.span>
+                  ) : (
+                    slides[step].title
+                  )}
                 </motion.h1>
               </div>
-              <AnimatePresence>
-                {introStage === 1 && (
-                  <motion.div
-                    variants={containerVariants}
-                    initial="hidden"
-                    animate="visible"
-                    className="mt-8 space-y-9"
-                  >
+            </>
+          ) : (
+            <motion.div
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              className="flex flex-col h-full"
+            >
+              <div className="space-y-6 flex-1 overflow-y-auto no-scrollbar pb-6">
+                {slides[step].isThemeSlide ? (
+                  <ThemeSelector onComplete={handleNext} />
+                ) : (
+                  <>
+                    {slides[step].interactiveComponent && (
+                      <motion.div variants={itemVariants} className="w-full flex justify-center">
+                        {slides[step].interactiveComponent}
+                      </motion.div>
+                    )}
                     {slides[step].points.map((point, i) => (
                       <motion.div key={i} variants={itemVariants} className="flex gap-4">
                         <div className="w-10 h-10 rounded-xl bg-black/10 flex items-center justify-center shrink-0 border border-current/20">
@@ -345,46 +707,57 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
                         </div>
                       </motion.div>
                     ))}
-                  </motion.div>
+                    
+                    {slides[step].isPrivacySlide && (
+                      <motion.button
+                        variants={itemVariants}
+                        onClick={() => setIsPrivacyOpen(true)}
+                        className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest bg-white/10 px-4 py-2 rounded-full border border-current/10"
+                      >
+                        how it works <ArrowRight size={12} />
+                      </motion.button>
+                    )}
+
+                    {slides[step].isCommunitySlide && (
+                      <motion.div variants={itemVariants} className="space-y-6">
+                        <p className="text-xs opacity-80 leading-relaxed max-w-[280px]">
+                          join our whatsapp community. it's where the vibes are. if something breaks, just shout in the group and we'll fix it literally immediately. no corporate ticket bs.
+                        </p>
+                        <motion.a
+                          whileTap={{ scale: 0.95 }}
+                          href="https://chat.whatsapp.com/your-invite-link" // REPLACEME
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-3 bg-white text-[#8b5cf6] px-6 py-4 rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl"
+                        >
+                          <MessageCircle size={20} fill="currentColor" />
+                          Join the group
+                        </motion.a>
+                      </motion.div>
+                    )}
+                  </>
                 )}
-              </AnimatePresence>
-            </>
-          ) : (
-            <motion.div
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible"
-              className="flex flex-col h-full"
-            >
-              <motion.span variants={itemVariants} className="text-[10px] font-bold uppercase tracking-[0.4em] mb-6 opacity-40">
-                {slides[step].subtitle}
-              </motion.span>
-              <motion.h1
-                variants={itemVariants}
-                className={slides[step].titleClass}
-                style={{ whiteSpace: "pre-line" }}
-              >
-                {slides[step].title}
-              </motion.h1>
-              <div className="mt-8 space-y-9">
-                {slides[step].points.map((point, i) => (
-                  <motion.div key={i} variants={itemVariants} className="flex gap-4">
-                    <div className="w-10 h-10 rounded-xl bg-black/10 flex items-center justify-center shrink-0 border border-current/20">
-                      <point.icon size={20} />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-sm uppercase tracking-wider">
-                        {point.label}
-                      </h3>
-                      <p className="text-xs opacity-70 mt-1">{point.desc}</p>
-                    </div>
-                  </motion.div>
-                ))}
+              </div>
+
+              <div className="mt-auto pt-8">
+                {slides[step].isCommunitySlide && <CommunityPreview />}
+                <motion.span variants={itemVariants} className="text-[10px] font-bold uppercase tracking-[0.4em] mb-4 opacity-40 block">
+                  {slides[step].subtitle}
+                </motion.span>
+                <motion.h1
+                  variants={itemVariants}
+                  className={slides[step].titleClass}
+                  style={{ whiteSpace: "pre-line" }}
+                >
+                  {typeof slides[step].title === "string" ? slides[step].title : slides[step].title}
+                </motion.h1>
               </div>
             </motion.div>
           )}
         </motion.div>
       </AnimatePresence>
+
+      <PrivacyOverlay isOpen={isPrivacyOpen} onClose={() => setIsPrivacyOpen(false)} />
 
       <AnimatePresence>
         {introStage === 1 && (
