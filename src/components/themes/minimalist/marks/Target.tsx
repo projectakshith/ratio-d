@@ -1,12 +1,11 @@
 "use client";
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Check } from "lucide-react";
+import { X } from "lucide-react";
 
 interface TargetProps {
   isOpen: boolean;
   onClose: () => void;
-  isDark: boolean;
   activePredSub: any;
   predictedGpa: string;
   gpaColor: string;
@@ -28,7 +27,6 @@ interface TargetProps {
 export default function Target({
   isOpen,
   onClose,
-  isDark,
   activePredSub,
   predictedGpa,
   gpaColor,

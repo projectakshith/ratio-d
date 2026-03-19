@@ -87,7 +87,6 @@ interface SettingsPageProps {
   onTestNotification?: () => void;
   onSelectTheme?: (id: string) => void;
   currentTheme?: string;
-  isDark?: boolean;
 }
 
 interface SettingItemProps {
@@ -153,7 +152,6 @@ const SettingsPage = ({
   onTestNotification,
   onSelectTheme,
   currentTheme = "minimalist_minimalist-dark",
-  isDark = false,
 }: SettingsPageProps) => {
   const { userData, refreshData, isUpdating } = useApp();
   const [isEditing, setIsEditing] = useState(false);

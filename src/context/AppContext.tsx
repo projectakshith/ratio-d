@@ -27,6 +27,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [isUpdating, setIsUpdating] = useState(false);
   const [isOffline, setIsOffline] = useState(false);
   const [latestDiff, setLatestDiff] = useState<DataDiff | null>(null);
+  const updateInProgress = React.useRef(false);
   const router = useRouter();
 
   const logout = useCallback(() => {
@@ -37,7 +38,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [router]);
 
   const refreshData = useCallback(async (creds: any, existingData: any) => {
-    if (isUpdating) return existingData;
+    if (updateInProgress.current) return existingData;
+    updateInProgress.current = true;
     setIsUpdating(true);
     try {
       const savedCookies = EncryptionUtils.loadDecrypted("academia_cookies");
@@ -50,8 +52,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const endpoint = (existingData?.attendance && existingData?.marks) ? "refresh" : "login";
       
       const result = await response.json();
-      if (!result.success) return existingData;
+      if (!result.success) {
+        if (response.status === 401) {
+          logout();
+        }
+        return existingData;
+      }
 
+      EncryptionUtils.setSessionCookie();
+      
       let updatedCookies = savedCookies;
       if (result.cookies) {
         EncryptionUtils.saveEncrypted("academia_cookies", result.cookies);
@@ -89,12 +98,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setUserData(mergedData);
       localStorage.setItem("ratio_data", JSON.stringify(mergedData));
       return mergedData;
-    } catch (err) {
+    } catch {
       return existingData;
     } finally {
       setIsUpdating(false);
+      updateInProgress.current = false;
     }
-  }, [isUpdating]);
+  }, [logout]);
 
   useEffect(() => {
     const cachedData = localStorage.getItem("ratio_data");
@@ -109,7 +119,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         if (creds) {
           refreshData(creds, parsed);
         }
-      } catch (e) {}
+      } catch {
+      }
     }
 
     const handleOnline = () => setIsOffline(false);
@@ -122,7 +133,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
     };
-  }, []);
+  }, [refreshData]);
 
   const value = useMemo(() => ({
     userData,

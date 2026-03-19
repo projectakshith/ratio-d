@@ -5,7 +5,6 @@ import { Zap, AlertCircle } from "lucide-react";
 import { getRandomRoast } from "@/utils/shared/flavortext";
 import {
   processAndSortMarks,
-  getMarksTheme,
   getActiveSubject,
   buildCourseMap,
 } from "@/utils/marks/marksLogic";
@@ -44,7 +43,7 @@ const MarksPage = ({ data }: { data: any }) => {
   const scrollTimeout = useRef<any>(null);
 
   const courseMap = useMemo(() => buildCourseMap(data), [data]);
-  const rawMarks = Array.isArray(data?.marks) ? data.marks : [];
+  const rawMarks = useMemo(() => Array.isArray(data?.marks) ? data.marks : [], [data]);
 
   const sortedMarks = useMemo(() => {
     return processAndSortMarks(rawMarks, courseMap);
@@ -58,13 +57,13 @@ const MarksPage = ({ data }: { data: any }) => {
     const category =
       activeSubject.status === "neutral" ? "safe" : activeSubject.status;
     return getRandomRoast(category as any);
-  }, [activeSubject.id]);
+  }, [activeSubject.status]);
 
   useEffect(() => {
     if (sortedMarks.length > 0 && selectedId === null) {
       setSelectedId(sortedMarks[0].id);
     }
-  }, [sortedMarks]);
+  }, [sortedMarks, selectedId]);
 
   useEffect(() => {
     const timer = setTimeout(() => setIntroMode(false), 1200);
@@ -257,7 +256,7 @@ const MarksPage = ({ data }: { data: any }) => {
       >
         <div className="px-6 flex flex-col gap-4 pt-4">
           <span className="font-mono text-[10px] lowercase tracking-widest text-theme-text/40 mb-2 block sticky top-0 bg-theme-surface z-20 py-2">
-            /// full records
+            {/* full records */}
           </span>
 
           {sortedMarks.map((subject: any, index: number) => {

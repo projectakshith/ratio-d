@@ -1,4 +1,4 @@
-import { MarksRecord, Assessment } from "@/types";
+import { MarksRecord } from "@/types";
 
 export const gradePoints: Record<string, number> = {
   O: 10,
@@ -45,7 +45,7 @@ export const getAcronym = (name: string) => {
   return parts.map((w) => w[0]).join("");
 };
 
-export const getTheme = (pct: number, max: number, _isDark?: boolean) => {
+export const getTheme = (pct: number, max: number) => {
   if (max === 0)
     return {
       wrapperBg: "bg-theme-surface",
@@ -87,7 +87,7 @@ export const getTheme = (pct: number, max: number, _isDark?: boolean) => {
   };
 };
 
-export const getMarkColor = (got: number, max: number, _isDark?: boolean) => {
+export const getMarkColor = (got: number, max: number) => {
   if (max === 0) return "text-theme-text";
   const pct = (got / max) * 100;
   if (pct >= 85) return "status-text-safe";
@@ -98,7 +98,6 @@ export const getMarkColor = (got: number, max: number, _isDark?: boolean) => {
 export const getBoxTheme = (
   got: number | null,
   max: number,
-  _isDark?: boolean,
 ) => {
   if (got === null || max === 0)
     return {

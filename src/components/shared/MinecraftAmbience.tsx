@@ -12,6 +12,7 @@ export default function MinecraftAmbience() {
 
   const [enderman, setEnderman] = useState<{ x: number; y: number } | null>(null);
   const [ghast, setGhast] = useState<{ x: number; y: number; dir: number } | null>(null);
+  const [particles, setParticles] = useState<any[]>([]);
 
   useEffect(() => {
     if (!isSteve) return;
@@ -53,6 +54,18 @@ export default function MinecraftAmbience() {
     const interval = setInterval(spawnGhast, 25000);
     return () => clearInterval(interval);
   }, [isSteve]);
+
+  useEffect(() => {
+    if (enderman) {
+      const newParticles = Array.from({ length: 10 }).map(() => ({
+        id: Math.random(),
+        y: [(Math.random() - 0.5) * 100, (Math.random() - 0.5) * 200],
+        x: [(Math.random() - 0.5) * 100, (Math.random() - 0.5) * 100],
+        duration: 0.8 + Math.random(),
+      }));
+      setParticles(newParticles);
+    }
+  }, [enderman]);
 
   if (!isSteve) return null;
 
@@ -113,18 +126,18 @@ export default function MinecraftAmbience() {
                 style={{ imageRendering: "pixelated" }}
               />
               <div className="absolute inset-0 flex items-center justify-center">
-                {Array.from({ length: 10 }).map((_, i) => (
+                {particles.map((p) => (
                   <motion.div
-                    key={Math.random() + i}
+                    key={p.id}
                     animate={{
-                      y: [(Math.random() - 0.5) * 100, (Math.random() - 0.5) * 200],
-                      x: [(Math.random() - 0.5) * 100, (Math.random() - 0.5) * 100],
+                      y: p.y,
+                      x: p.x,
                       opacity: [0, 1, 0],
                       scale: [0.5, 1.5, 0.2],
                     }}
                     transition={{
                       repeat: Infinity,
-                      duration: 0.8 + Math.random(),
+                      duration: p.duration,
                     }}
                     className="absolute w-2 h-2 bg-[#ff00ff] shadow-[0_0_8px_#ff00ff]"
                   />

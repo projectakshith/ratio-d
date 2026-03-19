@@ -1,4 +1,4 @@
-import { ScheduleData, ScheduleSlot } from "@/types";
+import { ScheduleData } from "@/types";
 import { parseTimetableTime } from "../dashboard/timetableLogic";
 
 export const getInitialActiveDay = (

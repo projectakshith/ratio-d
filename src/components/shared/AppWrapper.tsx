@@ -12,7 +12,7 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
   const { isOffline } = useApp();
   const [showSplash, setShowSplash] = useState(true);
   const [showBigOffline, setShowBigOffline] = useState(false);
-  const [hasData, setHasData] = useState(() => {
+  const [hasData] = useState(() => {
     if (typeof window !== "undefined") {
       return !!localStorage.getItem("ratio_data");
     }
@@ -30,44 +30,27 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
       const currentVersion = localStorage.getItem("ratio_app_version");
       if (currentVersion !== data.version) {
         localStorage.clear();
+        document.cookie = "ratio_session=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
         localStorage.setItem("ratio_app_version", data.version);
         window.location.reload();
         return;
       }
-    } catch (err) {
-      console.error("Version check failed", err);
+    } catch {
+      // Fail silently in production
     }
   };
 
   useEffect(() => {
     checkVersion();
+  }, []);
 
-    const splashTimer = setTimeout(() => {
+  useEffect(() => {
+    const safetyTimer = setTimeout(() => {
       setShowSplash(false);
-    }, 500);
+    }, 3500);
 
-    const cachedData = localStorage.getItem("ratio_data");
-    const isPublicPage = pathname === "/login" || pathname === "/onboarding" || pathname === "/setup";
-
-    const isStandalone = 
-      window.matchMedia("(display-mode: standalone)").matches || 
-      (window.navigator as any).standalone ||
-      document.referrer.includes("android-app://");
-
-    if (isStandalone) {
-      if (!isPublicPage && !cachedData) {
-        router.replace("/onboarding");
-      } else if (isPublicPage && cachedData) {
-        router.replace("/");
-      }
-    } else {
-      if (!isPublicPage && !cachedData) {
-        router.replace("/onboarding");
-      }
-    }
-
-    return () => clearTimeout(splashTimer);
-  }, [pathname, router]);
+    return () => clearTimeout(safetyTimer);
+  }, []);
 
   useEffect(() => {
     if (isOffline) {
@@ -131,17 +114,17 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
             initial={{ opacity: 1 }}
             exit={{ y: "-100%" }}
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            className={`fixed inset-0 flex items-center justify-center z-[9999] ${hasData ? "bg-theme-bg" : "bg-[#0c30ff]"}`}
+            className="fixed inset-0 flex items-center justify-center z-[9999] bg-[#0c30ff]"
           >
-            <motion.h1
-              initial={{ opacity: 0, scale: 0.8, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-              className={`text-5xl md:text-7xl lowercase tracking-tighter ${hasData ? "text-theme-highlight" : "text-[#ceff1c]"}`}
-              style={{ fontFamily: "Urbanosta, sans-serif" }}
+            <video
+              autoPlay
+              muted
+              playsInline
+              onEnded={() => setShowSplash(false)}
+              className="w-full h-full object-cover"
             >
-              ratio'd
-            </motion.h1>
+              <source src="/splash.mp4" type="video/mp4" />
+            </video>
           </motion.div>
         )}
       </AnimatePresence>

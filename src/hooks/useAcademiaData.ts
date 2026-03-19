@@ -23,7 +23,10 @@ export const useAcademiaData = (data: AcademiaData | null) => {
     currentClass: ScheduleSlot | null;
   }>({ nextClass: null, currentClass: null });
 
-  const calendarData = (calendarDataJson || []) as CalendarEvent[];
+  const calendarData = useMemo(() => 
+    (calendarDataJson || []) as CalendarEvent[], 
+    []
+  );
   const todayDate = new Date().toLocaleDateString("en-GB", {
     day: "2-digit",
     month: "short",
@@ -58,7 +61,8 @@ export const useAcademiaData = (data: AcademiaData | null) => {
       if (!isSame) {
         setSchedule(mergedSchedule);
       }
-    } catch (e) {}
+    } catch {
+    }
   }, [initialSchedule, schedule]);
 
   useEffect(() => {
@@ -106,5 +110,5 @@ export const useAcademiaData = (data: AcademiaData | null) => {
     effectiveSchedule: schedule,
     calendarData,
     triggerTestClass,
-  }), [timeStatus, overallAttendance, criticalAttendance, effectiveDayOrder, schedule, triggerTestClass]);
+  }), [timeStatus, overallAttendance, criticalAttendance, effectiveDayOrder, schedule, calendarData, triggerTestClass]);
 };

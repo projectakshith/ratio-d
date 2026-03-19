@@ -11,10 +11,9 @@ interface MinimalThemeProps {
 export default function MinimalTheme({ children }: MinimalThemeProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const [isAlertsOpen, setIsAlertsOpen] = useState(false);
-  const [isSwipeDisabled, setIsSwipeDisabled] = useState(false);
+  const [isAlertsOpen] = useState(false);
+  const [isSwipeDisabled] = useState(false);
 
-  const tabs = ["marks", "attendance", "home", "timetable", "calendar"];
   const paths = ["/marks", "/attendance", "/", "/timetable", "/calendar"];
 
   const getActiveTab = () => {
@@ -28,11 +27,6 @@ export default function MinimalTheme({ children }: MinimalThemeProps) {
     null,
   );
   const [isScrollingVertical, setIsScrollingVertical] = useState(false);
-
-  const handleTabChange = (newTab: string) => {
-    const route = newTab === "home" ? "/" : `/${newTab}`;
-    router.push(route);
-  };
 
   const handleTouchStart = (e: React.TouchEvent) => {
     if (isSwipeDisabled) return;

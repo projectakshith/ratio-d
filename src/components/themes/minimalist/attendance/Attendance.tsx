@@ -9,7 +9,6 @@ import {
   getProcessedList,
   getStatus,
   getAcronym,
-  getPercentColor,
 } from "@/utils/attendance/attendanceLogic";
 import calendarDataJson from "@/data/calendar_data.json";
 import Predict from "./Predict";
@@ -77,8 +76,8 @@ export default function Attendance({
   }, []);
 
   const baseAttendance = useMemo(
-    () => getBaseAttendance(data?.attendance || [], data?.courses),
-    [data?.attendance, data?.courses],
+    () => getBaseAttendance(data?.attendance || []),
+    [data?.attendance],
   );
 
   const impactMap = useMemo(() => {
@@ -179,7 +178,7 @@ export default function Attendance({
         map.set(normDate, true);
     });
     return map;
-  }, [academia?.calendarData]);
+  }, [academia]);
 
   const handleDateClick = (day: number) => {
     const dStr = formatDate(calYear, calMonth, day);

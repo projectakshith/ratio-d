@@ -8,7 +8,6 @@ import {
   Plus,
   X,
   ChevronRight,
-  Layers,
 } from "lucide-react";
 import {
   buildCourseMap,
@@ -22,7 +21,7 @@ import {
 } from "@/utils/timetable/timetableLogic";
 import calendarDataJson from "@/data/calendar_data.json";
 import CustomClass from "./CustomClass";
-import { AcademiaData, ScheduleSlot, CalendarEvent } from "@/types";
+import { AcademiaData } from "@/types";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -50,19 +49,19 @@ export default function Timetable({
   academia,
   setIsSwipeDisabled,
   startEntrance,
-  isDark,
 }: {
   data: AcademiaData;
   academia: any;
   setIsSwipeDisabled?: (disabled: boolean) => void;
   startEntrance: boolean;
-  isDark: boolean;
 }) {
   const [mounted, setMounted] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const initialSet = useRef(false);
-  const schedule =
-    academia?.effectiveSchedule || data?.timetable || data?.schedule || {};
+  const schedule = useMemo(() => 
+    academia?.effectiveSchedule || data?.timetable || data?.schedule || {}, 
+    [academia, data]
+  );
 
   const todayStr = useMemo(() => {
     const now = new Date();
@@ -89,7 +88,7 @@ export default function Timetable({
   const todayEntry = useMemo(() => {
     const calData = academia?.calendarData || calendarDataJson || [];
     return calData.find((ev: any) => ev.date === todayStr);
-  }, [academia?.calendarData, todayStr]);
+  }, [academia, todayStr]);
 
   const dayOrderStr =
     todayEntry?.dayOrder || todayEntry?.order || data?.dayOrder || "0";
@@ -139,7 +138,7 @@ export default function Timetable({
       }
     }
     return 1;
-  }, [academia?.calendarData]);
+  }, [academia]);
 
   useEffect(() => {
     setMounted(true);
@@ -159,7 +158,8 @@ export default function Timetable({
       if (stored) {
         try {
           setCustomClasses(JSON.parse(stored));
-        } catch (e) {}
+        } catch {
+        }
       }
     };
     updateCustomClasses();
@@ -204,7 +204,7 @@ export default function Timetable({
       dayOrder,
       courseMap,
     );
-  }, [schedule, customClasses, activeDay, dayOrder, courseMap, refreshKey]);
+  }, [schedule, customClasses, activeDay, dayOrder, courseMap]);
 
   const isViewingToday = String(activeDay) === String(dayOrder) && !isHoliday;
   const nextScheduledDay = isHoliday

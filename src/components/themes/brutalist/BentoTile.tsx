@@ -14,11 +14,11 @@ export const BentoTile = ({
   className,
   onClick,
   transition,
-  as,
+  as: Component = motion.div,
   ...props
 }: BentoTileProps) => {
   return (
-    <motion.div
+    <Component
       layout
       onClick={onClick}
       className={`rounded-[32px] p-8 shadow-sm cursor-pointer overflow-hidden bento-tile ${className || ""}`}
@@ -26,6 +26,6 @@ export const BentoTile = ({
       {...props}
     >
       {children}
-    </motion.div>
+    </Component>
   );
 };

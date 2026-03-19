@@ -46,14 +46,13 @@ export function usePullToRefresh(isAlertsOpen: boolean = false, onRefresh?: () =
       if (onRefresh) {
         try {
           await onRefresh();
-        } catch (e) {}
-        setIsRefreshing(false);
-        setPullY(0);
-      } else {
-        setTimeout(() => {
-          window.location.reload();
-        }, 800);
+        } catch {
+        }
       }
+      
+      setTimeout(() => {
+        window.location.reload();
+      }, 800);
     } else {
       setPullY(0);
     }

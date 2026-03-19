@@ -23,8 +23,8 @@ app.add_middleware(
         "http://localhost:3000",
         "http://localhost:9002",
     ],
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization", "Accept"],
 )
 
 def get_now():

@@ -10,7 +10,7 @@ import { EncryptionUtils } from "@/utils/shared/Encryption";
 
 export default function DashboardPage() {
   const { userData, customDisplayName, refreshData, isUpdating } = useApp();
-  const { uiStyle, isDark } = useTheme();
+  const { uiStyle } = useTheme();
   const { onOpenSettings } = useAppLayout();
   const [isAlertsOpen, setIsAlertsOpen] = useState(false);
   const academia = useAcademiaData(userData as any);
@@ -43,12 +43,10 @@ export default function DashboardPage() {
     <DashboardMinimalist 
       data={userData as any}
       academia={academia}
-      setActiveTab={() => {}}
       onOpenSettings={onOpenSettings}
       isAlertsOpen={isAlertsOpen}
       setIsAlertsOpen={setIsAlertsOpen}
       startEntrance={true}
-      isDark={isDark}
       onRefresh={handleRefresh}
       isRefreshing={isUpdating}
     />

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useMemo, useRef } from "react";
+import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { motion, AnimatePresence, animate } from "framer-motion";
 import {
   AlertCircle,
@@ -77,7 +77,7 @@ const MobileAttendance = ({
     return {};
   }, [data, schedule]);
 
-  const rawAttendance = Array.isArray(data?.attendance) ? data.attendance : [];
+  const rawAttendance = useMemo(() => Array.isArray(data?.attendance) ? data.attendance : [], [data]);
 
   const baseAttendance = useMemo(() => {
     return rawAttendance
@@ -147,7 +147,7 @@ const MobileAttendance = ({
     if (baseAttendance.length > 0 && selectedId === null) {
       setSelectedId(baseAttendance[0].id);
     }
-  }, [baseAttendance]);
+  }, [baseAttendance, selectedId]);
 
   useEffect(() => {
     const timer = setTimeout(() => setIntroMode(false), 800);
@@ -163,7 +163,7 @@ const MobileAttendance = ({
     }
   }, [predictMode]);
 
-  const getImpactMap = () => {
+  const getImpactMap = useCallback(() => {
     const impact: Record<string, number> = {};
     if (
       calendarData.length === 0 ||
@@ -214,21 +214,21 @@ const MobileAttendance = ({
       }
     });
     return impact;
-  };
+  }, [calendarData, effectiveSchedule, baseAttendance, selectedDates]);
 
   const predictionImpact = useMemo(
     () => getImpactMap(),
-    [selectedDates, calendarData, effectiveSchedule, baseAttendance],
+    [getImpactMap],
   );
 
-  const getStatus = (pct, conducted, present) => {
+  const getStatus = useCallback((pct: number, conducted: number, present: number) => {
     if (pct >= 75) {
       const margin = Math.floor(present / 0.75 - conducted);
       return { val: Math.max(0, margin), label: "margin", safe: true };
     }
     const needed = Math.ceil((0.75 * conducted - present) / 0.25);
     return { val: Math.max(0, needed), label: "recover", safe: false };
-  };
+  }, []);
 
   const processedList = useMemo(() => {
     const list = baseAttendance.map((subject) => {
@@ -270,7 +270,7 @@ const MobileAttendance = ({
     return list.sort(
       (a, b) => parseFloat(a.percentage) - parseFloat(b.percentage),
     );
-  }, [baseAttendance, predictionImpact, predType, predictMode]);
+  }, [baseAttendance, predictionImpact, predType, predictMode, getStatus]);
 
   useEffect(() => {
     if (predictMode && listContainerRef.current) {
@@ -279,7 +279,7 @@ const MobileAttendance = ({
         setSelectedId(processedList[0].id);
       }
     }
-  }, [predictMode]);
+  }, [predictMode, processedList]);
 
   const formatDateKey = (date: Date) => {
     const dayStr = String(date.getDate()).padStart(2, "0");
@@ -670,7 +670,7 @@ const MobileAttendance = ({
       >
         <div className="px-6 flex flex-col gap-4 pt-4">
           <span className="font-mono text-[10px] lowercase tracking-widest text-theme-text/40 mb-2 block sticky top-0 bg-theme-surface z-20 py-2">
-            /// {predictMode ? "predicted margin" : "watchlist"}
+            {/* {predictMode ? "predicted margin" : "watchlist"} */}
           </span>
 
           {processedList.map((subject, index) => {

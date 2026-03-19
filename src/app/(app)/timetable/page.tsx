@@ -8,7 +8,7 @@ import { useAcademiaData } from "@/hooks/useAcademiaData";
 
 export default function TimetablePage() {
   const { userData } = useApp();
-  const { uiStyle, isDark } = useTheme();
+  const { uiStyle } = useTheme();
   const academia = useAcademiaData(userData as any);
 
   if (uiStyle === "brutalist") {
@@ -26,7 +26,6 @@ export default function TimetablePage() {
       data={userData as any}
       academia={academia}
       startEntrance={true}
-      isDark={isDark}
     />
   );
 }

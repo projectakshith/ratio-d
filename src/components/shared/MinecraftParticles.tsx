@@ -1,6 +1,5 @@
 "use client";
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "@/context/ThemeContext";
 
 interface Particle {
@@ -13,13 +12,13 @@ interface Particle {
   vy: number;
 }
 
+const COLORS = ["#35801C", "#5D4037", "#7A5C4F", "#1D1D1D", "#FFFFFF"];
+
 export default function MinecraftParticles() {
   const { theme } = useTheme();
   const [particles, setParticles] = useState<Particle[]>([]);
   const particleCounter = useRef(0);
   const isSteve = theme.includes("steve");
-
-  const colors = ["#35801C", "#5D4037", "#7A5C4F", "#1D1D1D", "#FFFFFF"];
 
   const spawnParticles = useCallback((x: number, y: number) => {
     const newParticles: Particle[] = [];
@@ -34,7 +33,7 @@ export default function MinecraftParticles() {
         id: ++particleCounter.current,
         x,
         y,
-        color: colors[Math.floor(Math.random() * colors.length)],
+        color: COLORS[Math.floor(Math.random() * COLORS.length)],
         size,
         vx: Math.cos(angle) * velocity,
         vy: Math.sin(angle) * velocity - 2,

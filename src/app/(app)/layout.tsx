@@ -70,7 +70,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 setIsSettingsOpen(false);
               }}
               currentTheme={theme}              onTestNotification={academia?.triggerTestClass}
-              isDark={isDark}
             />
           )}
         </AnimatePresence>

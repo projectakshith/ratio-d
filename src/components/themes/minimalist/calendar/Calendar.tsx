@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, memo, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   ChevronLeft,
   ChevronRight,
@@ -117,8 +117,11 @@ CalendarDay.displayName = "CalendarDay";
 
 const Calendar = ({ data, academia }: any) => {
   const [mounted, setMounted] = useState(false);
-  const activeData = academia?.calendarData || data?.calendarData || [];
-  const profile = data?.profile || {};
+  const activeData = useMemo(() => 
+    academia?.calendarData || data?.calendarData || [], 
+    [academia?.calendarData, data?.calendarData]
+  );
+  const profile = useMemo(() => data?.profile || {}, [data?.profile]);
   const isTargetAudience = useMemo(
     () =>
       (profile.dept || "")

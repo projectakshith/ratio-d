@@ -84,12 +84,15 @@ const CalendarDay = memo(
 );
 CalendarDay.displayName = "CalendarDay";
 
-const CalendarPage = ({ calendarData, academia, data }: any) => {
+const CalendarPage = ({ calendarData, academia }: any) => {
   const [viewMonth, setViewMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [introMode, setIntroMode] = useState(true);
 
-  const activeData = calendarData || academia?.calendarData || [];
+  const activeData = useMemo(() => 
+    calendarData || academia?.calendarData || [], 
+    [calendarData, academia?.calendarData]
+  );
 
   useEffect(() => {
     const timer = setTimeout(() => setIntroMode(false), 800);
@@ -138,8 +141,6 @@ const CalendarPage = ({ calendarData, academia, data }: any) => {
 
   const viewYear = viewMonth.getFullYear();
   const viewMonthIndex = viewMonth.getMonth();
-  const todayZero = new Date();
-  todayZero.setHours(0, 0, 0, 0);
 
   const currentEvent: any = useMemo(
     () => eventsMap[selectedDate.toDateString()],
@@ -207,6 +208,8 @@ const CalendarPage = ({ calendarData, academia, data }: any) => {
   }, [selectedDate, hasOrder, isHoliday, isExam, currentEvent]);
 
   const gridData = useMemo(() => {
+    const todayZero = new Date();
+    todayZero.setHours(0, 0, 0, 0);
     const daysInMonth = getDaysInMonth(viewYear, viewMonthIndex);
     const startOffset = getFirstDayOfMonth(viewYear, viewMonthIndex);
     const slots: any[] = []; // Explicit type definition fixes the build error
@@ -244,7 +247,7 @@ const CalendarPage = ({ calendarData, academia, data }: any) => {
       });
     }
     return slots;
-  }, [viewMonth, viewMonthIndex, viewYear, eventsMap, selectedDate, todayZero]);
+  }, [viewMonthIndex, viewYear, eventsMap, selectedDate]);
 
   const monthTitle = useMemo(() => {
     const m = viewMonth.toLocaleString("default", { month: "long" });
@@ -356,7 +359,7 @@ const CalendarPage = ({ calendarData, academia, data }: any) => {
         </div>
         <div className="flex-1 overflow-y-auto custom-scrollbar">
           <div className="grid grid-cols-7 gap-2 gap-y-3 justify-items-center">
-            {gridData.map((item: any, i: number) => {
+            {gridData.map((item: any) => {
               if (item.type === "padding")
                 return <div key={item.key} className="w-full" />;
               return (

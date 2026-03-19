@@ -3,6 +3,7 @@ import React from "react";
 import LoginPage from "@/components/shared/LoginPage";
 import { useApp } from "@/context/AppContext";
 import { useRouter } from "next/navigation";
+import { EncryptionUtils } from "@/utils/shared/Encryption";
 
 export default function LoginRoute() {
   const { setUserData } = useApp();
@@ -11,6 +12,7 @@ export default function LoginRoute() {
   const handleLoginSuccess = (data: any) => {
     setUserData(data);
     localStorage.setItem("ratio_data", JSON.stringify(data));
+    EncryptionUtils.setSessionCookie();
     router.replace("/");
   };
 

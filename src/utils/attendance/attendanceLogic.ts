@@ -1,5 +1,5 @@
 import { flavorText } from "../shared/flavortext";
-import { AttendanceRecord, CalendarEvent, ScheduleData } from "@/types";
+import { CalendarEvent, ScheduleData } from "@/types";
 
 export const getEffectiveSchedule = (data: any, schedule: any) => {
   if (schedule) return schedule;
@@ -24,7 +24,7 @@ export const getPercentColor = (percent: string) => {
   return "var(--theme-highlight)";
 };
 
-export const getBaseAttendance = (rawAttendance: any[], coursesData?: Record<string, any>) => {
+export const getBaseAttendance = (rawAttendance: any[]) => {
   return rawAttendance
     .map((subject, index) => {
       const pct = parseFloat(subject?.percent || "0");

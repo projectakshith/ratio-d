@@ -15,10 +15,10 @@ export const useCalendarData = (
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [introMode, setIntroMode] = useState(true);
 
-  const calendarData =
+  const calendarData = useMemo(() => 
     (calendarDataProp?.length
       ? calendarDataProp
-      : (calendarDataJson as CalendarEvent[])) || [];
+      : (calendarDataJson as CalendarEvent[])) || [], [calendarDataProp]);
 
   useEffect(() => {
     const timer = setTimeout(() => setIntroMode(false), 800);
@@ -100,6 +100,8 @@ export const useCalendarData = (
   );
 
   const gridData = useMemo(() => {
+    const todayZero = new Date();
+    todayZero.setHours(0, 0, 0, 0);
     return getCalendarGrid(
       viewYear,
       viewMonthIndex,
@@ -107,7 +109,7 @@ export const useCalendarData = (
       selectedDate,
       todayZero,
     );
-  }, [viewMonth, viewMonthIndex, viewYear, eventsMap, selectedDate, todayZero]);
+  }, [viewYear, viewMonthIndex, eventsMap, selectedDate]);
 
   const monthTitle = useMemo(() => {
     const m = viewMonth.toLocaleString("default", { month: "long" });

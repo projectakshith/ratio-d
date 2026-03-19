@@ -41,14 +41,14 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       const { colorTheme } = parseTheme(migrated);
       document.documentElement.setAttribute("data-theme", colorTheme);
       updateSystemThemeColor();
-    } catch (error) {
+    } catch {
       document.documentElement.setAttribute("data-theme", "minimalist-dark");
     } finally {
       setMounted(true);
     }
   }, []);
 
-  const setTheme = (newTheme: string) => {
+  const setTheme = React.useCallback((newTheme: string) => {
     const migrated = migrateTheme(newTheme);
     setThemeState(migrated);
     const { colorTheme } = parseTheme(migrated);
@@ -56,8 +56,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     updateSystemThemeColor();
     try {
       localStorage.setItem("ratiod_theme", migrated);
-    } catch (error) {}
-  };
+    } catch {
+    }
+  }, []);
 
   const { uiStyle, isDark } = parseTheme(theme);
 
@@ -66,7 +67,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     setTheme,
     uiStyle,
     isDark
-  }), [theme, uiStyle, isDark]);
+  }), [theme, setTheme, uiStyle, isDark]);
 
   if (!mounted) return <div className="h-[100dvh] w-full bg-[#111111]" />;
 

@@ -1,4 +1,3 @@
-import { AttendanceRecord, MarksRecord } from "@/types";
 
 export interface DataDiff {
   attendanceChanges: {

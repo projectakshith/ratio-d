@@ -25,7 +25,8 @@ export default function Alerts({
     if (savedPrivate) {
       try {
         setPersonalNotes(JSON.parse(savedPrivate));
-      } catch (e) {}
+      } catch {
+      }
     }
   }, []);
 

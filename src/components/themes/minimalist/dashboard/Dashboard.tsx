@@ -53,33 +53,35 @@ const itemVariants = {
 export default function Dashboard({
   data,
   academia,
-  setActiveTab,
   onOpenSettings,
   isAlertsOpen,
   setIsAlertsOpen,
   setIsSwipeDisabled,
   startEntrance,
-  isDark,
+  onRefresh,
+  isRefreshing: isParentRefreshing,
 }: {
   data: AcademiaData;
   academia: any;
-  setActiveTab: (tab: string) => void;
   onOpenSettings: () => void;
   isAlertsOpen: boolean;
   setIsAlertsOpen: (open: boolean) => void;
   setIsSwipeDisabled?: (disabled: boolean) => void;
   startEntrance: boolean;
-  isDark: boolean;
+  onRefresh?: () => Promise<void>;
+  isRefreshing?: boolean;
 }) {
   const router = useRouter();
   const { customDisplayName } = useApp();
   const {
     pullY,
-    isRefreshing,
+    isRefreshing: isLocalRefreshing,
     handleTouchStart,
     handleTouchMove,
     handleTouchEnd,
-  } = usePullToRefresh(isAlertsOpen);
+  } = usePullToRefresh(isAlertsOpen, onRefresh);
+
+  const isRefreshing = isLocalRefreshing || isParentRefreshing;
 
   const {
     mounted,
@@ -106,7 +108,8 @@ export default function Dashboard({
       if (stored) {
         try {
           setCustomClasses(JSON.parse(stored));
-        } catch (e) {}
+        } catch {
+        }
       }
     };
     fetchCustoms();
@@ -165,15 +168,13 @@ export default function Dashboard({
       calendarDataJson,
     );
   }, [
-    academia?.effectiveSchedule,
-    data?.timetable,
-    data?.schedule,
+    academia,
+    data,
     customClasses,
     currentDayOrder,
     isHoliday,
     nextWorkingDayOrder,
     courseMap,
-    academia?.calendarData,
   ]);
 
   const focusClass = (nextClass || null) as ScheduleSlot | null;
@@ -279,7 +280,7 @@ export default function Dashboard({
         alertLabel: isSafe ? "margin" : "recover",
         scheduledHoursToday,
       };
-    }, [data?.attendance, nextClass, currentClass, currentDayOrder, academia?.effectiveSchedule, data?.timetable]);
+    }, [data, nextClass, currentClass, currentDayOrder, academia]);
 
   const attendanceCategory =
     alertPctNum < 75 ? "cooked" : alertPctNum >= 85 ? "safe" : "danger";

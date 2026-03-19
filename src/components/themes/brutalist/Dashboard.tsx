@@ -64,6 +64,8 @@ interface HomeDashboardProps {
   upcomingAlerts?: any[];
   overallAttendance?: number;
   criticalAttendance?: any[];
+  onRefresh?: () => Promise<void>;
+  isRefreshing?: boolean;
 }
 
 const HomeDashboard = ({
@@ -74,13 +76,16 @@ const HomeDashboard = ({
   upcomingAlerts = [],
   overallAttendance = 0,
   criticalAttendance = [],
+  onRefresh,
+  isRefreshing: isParentRefreshing = false,
 }: HomeDashboardProps) => {
   const [isAlertExpanded, setIsAlertExpanded] = useState(false);
   const [isMetricExpanded, setIsMetricExpanded] = useState(false);
   const [metricMode, setMetricMode] = useState("attendance");
   const containerRef = useRef<HTMLDivElement>(null);
   const [pullY, setPullY] = useState(0);
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isLocalRefreshing, setIsLocalRefreshing] = useState(false);
+  const isRefreshing = isLocalRefreshing || isParentRefreshing;
   const [isDragging, setIsDragging] = useState(false);
   const startY = useRef(0);
   const startX = useRef(0);
@@ -132,15 +137,21 @@ const HomeDashboard = ({
     }
   };
 
-  const handleTouchEnd = () => {
+  const handleTouchEnd = async () => {
     setIsDragging(false);
-    if (pullY > 80) {
-      setIsRefreshing(true);
+    if (pullY > 80 && !isRefreshing) {
+      setIsLocalRefreshing(true);
       setPullY(80);
       if (navigator.vibrate) navigator.vibrate(20);
-      setTimeout(() => {
-        window.location.reload();
-      }, 800);
+      try {
+        if (onRefresh) {
+          await onRefresh();
+        }
+      } finally {
+        setTimeout(() => {
+          window.location.reload();
+        }, 800);
+      }
     } else {
       setPullY(0);
     }
@@ -226,7 +237,8 @@ const HomeDashboard = ({
                   <button
                     onClick={onProfileClick}
                     className="w-9 h-9 rounded-full overflow-hidden active:scale-90 transition-transform"
-                  >                    <img
+                  >
+                    <img
                       src="/image.png"
                       className="object-cover w-full h-full"
                       alt="Profile"

@@ -1,9 +1,8 @@
 "use client";
 import React, { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MapPin, User, ArrowRight, Layers, Clock } from "lucide-react";
+import { MapPin, User, Layers, Clock } from "lucide-react";
 import {
-  getDayOverview,
   processSchedule,
 } from "@/utils/dashboard/timetableLogic";
 
@@ -23,7 +22,8 @@ export default function Timetable({ schedule, dayOrder, data }) {
       if (stored) {
         try {
           setCustomClasses(JSON.parse(stored));
-        } catch (e) {}
+        } catch {
+        }
       }
     };
     fetchCustoms();

@@ -8,7 +8,6 @@ import {
   buildCourseMap,
   getAcronym,
   getTheme,
-  getMarkColor,
   getBoxTheme,
   gradePoints,
   getGrade,
@@ -177,14 +176,14 @@ export default function Marks({
   const projectedInternals = currentInternals + expectedMarks;
   const semNeededPercentage = Math.max(0, targetGrade - projectedInternals);
   const semRequiredOutOf75 = Math.ceil((semNeededPercentage / 40) * 75);
-  const grades = [
+  const grades = useMemo(() => [
     { label: "O", min: 91 },
     { label: "A+", min: 81 },
     { label: "A", min: 71 },
     { label: "B+", min: 61 },
     { label: "B", min: 51 },
     { label: "C", min: 41 },
-  ];
+  ], []);
   const predictedGpa = useMemo(() => {
     if (subjects.length === 0) return "0.00";
 
@@ -649,7 +648,6 @@ export default function Marks({
         subjects={subjects}
         predSubjectId={predSubjectId}
         setPredSubjectId={setPredSubjectId}
-        isDark={false}
         textClass="text-theme-text"
       />
     </>
