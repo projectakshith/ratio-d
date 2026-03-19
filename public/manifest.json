@@ -4,8 +4,8 @@
   "description": "cool looking and simple academia dashboard",
   "id": "/",
   "start_url": "/?source=pwa",
-  "display": "fullscreen",
-  "display_override": ["fullscreen", "standalone", "minimal-ui"],
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
   "scope": "/",
   "orientation": "portrait",
   "background_color": "#0c30ff",
@@ -37,5 +37,17 @@
     }
   ],
   "categories": ["education", "productivity"],
-  "prefer_related_applications": false
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "Attendance",
+      "url": "/attendance",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Marks",
+      "url": "/marks",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
 }

@@ -12,14 +12,6 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
   const { isOffline } = useApp();
   const [showSplash, setShowSplash] = useState(true);
   const [showBigOffline, setShowBigOffline] = useState(false);
-  const [hasData] = useState(() => {
-    if (typeof window !== "undefined") {
-      return !!localStorage.getItem("ratio_data");
-    }
-    return false;
-  });
-  const pathname = usePathname();
-  const router = useRouter();
 
   const checkVersion = async () => {
     try {
@@ -36,7 +28,6 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
         return;
       }
     } catch {
-      // Fail silently in production
     }
   };
 
@@ -53,6 +44,18 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
   }, []);
 
   useEffect(() => {
+    if (showSplash) {
+      let meta = document.querySelector('meta[name="theme-color"]');
+      if (!meta) {
+        meta = document.createElement('meta');
+        meta.setAttribute('name', 'theme-color');
+        document.head.appendChild(meta);
+      }
+      meta.setAttribute('content', '#0c30ff');
+    }
+  }, [showSplash]);
+
+  useEffect(() => {
     if (isOffline) {
       setShowBigOffline(true);
       const timer = setTimeout(() => setShowBigOffline(false), 2000);
@@ -61,7 +64,7 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
   }, [isOffline]);
 
   return (
-    <main className="bg-theme-bg min-h-screen w-full relative">
+    <main className="bg-theme-bg min-h-[100dvh] w-full relative">
       <AnimatePresence mode="wait">
         {isOffline && (
           <motion.div
@@ -99,7 +102,15 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
         )}
       </AnimatePresence>
 
-      <div className="w-full h-full min-h-screen relative z-10">
+      <div 
+        className="w-full h-full min-h-[100dvh] relative z-10"
+        style={{
+          paddingTop: "env(safe-area-inset-top, 0px)",
+          paddingBottom: "env(safe-area-inset-bottom, 0px)",
+          paddingLeft: "env(safe-area-inset-left, 0px)",
+          paddingRight: "env(safe-area-inset-right, 0px)",
+        }}
+      >
         {children}
       </div>
 
@@ -121,7 +132,7 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
               muted
               playsInline
               onEnded={() => setShowSplash(false)}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover object-center"
             >
               <source src="/splash.mp4" type="video/mp4" />
             </video>
