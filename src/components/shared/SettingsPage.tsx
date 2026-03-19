@@ -144,6 +144,8 @@ const SettingItem = ({
   );
 };
 
+import PrivacyProtocol from "@/components/shared/PrivacyProtocol";
+
 const SettingsPage = ({
   onBack,
   onLogout,
@@ -158,6 +160,7 @@ const SettingsPage = ({
   const [tempName, setTempName] = useState("");
   const [notifEnabled, setNotifEnabled] = useState(false);
   const [showThemes, setShowThemes] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState(currentTheme);
 
   const { uiStyle: initialStyle, colorTheme: initialColor } = parseTheme(selectedTheme);
@@ -346,6 +349,7 @@ const SettingsPage = ({
                 <SettingItem
                   icon={<Lock className="w-5 h-5 opacity-80 text-theme-text" />}
                   label="Privacy"
+                  onClick={() => setShowPrivacy(true)}
                 />
                 <SettingItem
                   icon={<Cloud className="w-5 h-5 opacity-80 text-theme-text" />}
@@ -383,6 +387,8 @@ const SettingsPage = ({
           </p>
         </motion.div>
       </motion.div>
+
+      <PrivacyProtocol isOpen={showPrivacy} onClose={() => setShowPrivacy(false)} />
 
       <AnimatePresence>
         {showThemes && (

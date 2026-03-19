@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import { useRouter } from "next/navigation";
-import OnboardingPage from "@/components/OnboardingPage";
+import OnboardingPage from "@/components/onboarding";
 
 export default function SetupPage() {
   const router = useRouter();
