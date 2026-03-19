@@ -2,29 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
-@font-face {
-  font-family: "Akira";
-  src: url("/fonts/Akira.otf");
-}
-@font-face {
-  font-family: "Aonic";
-  src: url("/fonts/Aonic.ttf");
-}
-@font-face {
-  font-family: "Urbanosta";
-  src: url("/fonts/Urbanosta.otf");
-}
-@font-face {
-  font-family: "Minecraft";
-  src: url("/fonts/Minecraft.ttf");
-}
-
 :root {
   --font-montserrat: 'Montserrat', sans-serif;
   --font-afacad:    'Afacad', sans-serif;
-  --font-urbanosta: 'Urbanosta', sans-serif;
-  --font-akira:     'Akira', sans-serif;
-  --font-aonic:     'Aonic', sans-serif;
+  --font-urbanosta: var(--font-urbanosta), sans-serif;
+  --font-akira:     var(--font-akira), sans-serif;
+  --font-aonic:     var(--font-aonic), sans-serif;
+  --font-minecraft: var(--font-minecraft), monospace;
   --transition-default: 0.3s ease;
   --transition-spring:  cubic-bezier(0.4, 0, 0.2, 1);
 
@@ -202,8 +186,8 @@ html, body {
   --theme-bg:        #F7F7F7;
   --theme-text:      #1D1D1D;
   --theme-highlight: #35801C;
-  --font-montserrat: "Minecraft", monospace !important;
-  --font-afacad: "Minecraft", monospace !important;
+  --font-montserrat: var(--font-minecraft) !important;
+  --font-afacad: var(--font-minecraft) !important;
 }
 
 [data-theme="steve"] body,
@@ -216,7 +200,7 @@ html, body {
 [data-theme="steve"] h4,
 [data-theme="steve"] h5,
 [data-theme="steve"] h6 {
-  font-family: "Minecraft", monospace !important;
+  font-family: var(--font-minecraft) !important;
   text-transform: lowercase;
   letter-spacing: 0.02em;
   line-height: 1.1;

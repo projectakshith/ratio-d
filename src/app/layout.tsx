@@ -2,10 +2,31 @@ import type { Metadata, Viewport } from "next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/react";
 import { Geist, Geist_Mono, Afacad, Montserrat } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { AppProvider } from "@/context/AppContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import AppWrapper from "@/components/shared/AppWrapper";
+
+const akira = localFont({
+  src: "../../public/fonts/Akira.otf",
+  variable: "--font-akira",
+});
+
+const aonic = localFont({
+  src: "../../public/fonts/Aonic.ttf",
+  variable: "--font-aonic",
+});
+
+const urbanosta = localFont({
+  src: "../../public/fonts/Urbanosta.otf",
+  variable: "--font-urbanosta",
+});
+
+const minecraft = localFont({
+  src: "../../public/fonts/Minecraft.ttf",
+  variable: "--font-minecraft",
+});
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -90,6 +111,10 @@ export default function RootLayout({
           ${geistMono.variable}
           ${afacad.variable}
           ${montserrat.variable}
+          ${akira.variable}
+          ${aonic.variable}
+          ${urbanosta.variable}
+          ${minecraft.variable}
         `}
       >
         <AppProvider>
