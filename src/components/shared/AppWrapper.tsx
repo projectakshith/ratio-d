@@ -10,10 +10,14 @@ import SyncStatusNotification from "./SyncStatusNotification";
 
 export default function AppWrapper({ children }: { children: React.ReactNode }) {
   const { isOffline } = useApp();
-  const [showSplash, setShowSplash] = useState(true);
+  const [showSplash, setShowSplash] = useState(false);
   const [showBigOffline, setShowBigOffline] = useState(false);
 
+  const hasCheckedVersion = React.useRef(false);
+
   const checkVersion = async () => {
+    if (hasCheckedVersion.current) return;
+    hasCheckedVersion.current = true;
     try {
       const response = await fetch("/api/version");
       const data = await response.json();
@@ -36,11 +40,17 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
   }, []);
 
   useEffect(() => {
-    const safetyTimer = setTimeout(() => {
-      setShowSplash(false);
-    }, 3500);
+    const isStandalone =
+      window.matchMedia("(display-mode: standalone)").matches ||
+      (window.navigator as any).standalone;
 
-    return () => clearTimeout(safetyTimer);
+    if (isStandalone) {
+      setShowSplash(true);
+      const safetyTimer = setTimeout(() => {
+        setShowSplash(false);
+      }, 3500);
+      return () => clearTimeout(safetyTimer);
+    }
   }, []);
 
   useEffect(() => {

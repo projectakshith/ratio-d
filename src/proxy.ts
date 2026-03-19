@@ -15,7 +15,15 @@ export function proxy(request: NextRequest) {
     pathname.startsWith("/_next") || 
     pathname.includes("favicon.ico") ||
     pathname.includes("manifest.json") ||
-    pathname.includes("icons/");
+    pathname.includes("icons/") ||
+    pathname.includes("fonts/") ||
+    pathname.includes("mc_bg/") ||
+    pathname.endsWith(".mp4") ||
+    pathname.endsWith(".png") ||
+    pathname.endsWith(".jpg") ||
+    pathname.endsWith(".gif") ||
+    pathname.endsWith(".ttf") ||
+    pathname.endsWith(".otf");
 
   if (isStatic) return NextResponse.next();
 
@@ -32,6 +40,6 @@ export function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!api|_next/static|_next/image|favicon.ico|manifest.json|icons/).*)",
+    "/((?!api|_next/static|_next/image|favicon.ico|manifest.json|icons/|fonts/|mc_bg/|.*\\.mp4|.*\\.png|.*\\.jpg|.*\\.gif|.*\\.ttf|.*\\.otf).*)",
   ],
 };

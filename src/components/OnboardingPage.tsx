@@ -22,17 +22,17 @@ import {
   BookOpen,
   Bell,
   RefreshCw,
+  Github,
+  Instagram,
 } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
 import { COLOR_THEMES, buildTheme } from "@/utils/theme/themeUtils";
 
 const isDev = process.env.NODE_ENV === "development";
 
-// --- MINIMALIST STYLE PREVIEWS ---
-
 const AlertCardPreview = () => {
   return (
-    <motion.div 
+    <motion.div
       initial={{ y: 20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       className="w-full max-w-[320px] bg-white border-[#8b5cf6]/15 border-[1.5px] rounded-[24px] p-5 flex flex-col relative overflow-hidden shadow-xl mb-8 self-center"
@@ -47,7 +47,7 @@ const AlertCardPreview = () => {
             tomorrow
           </span>
         </div>
-        <motion.div 
+        <motion.div
           animate={{ scale: [1, 1.1, 1] }}
           transition={{ repeat: Infinity, duration: 2 }}
           className="w-8 h-8 rounded-full bg-[#8b5cf6]/10 flex items-center justify-center text-[#8b5cf6]"
@@ -55,7 +55,10 @@ const AlertCardPreview = () => {
           <Bell size={14} />
         </motion.div>
       </div>
-      <span className="text-[20px] font-black tracking-tight text-black leading-tight mb-4 z-10" style={{ fontFamily: "var(--font-montserrat)" }}>
+      <span
+        className="text-[20px] font-black tracking-tight text-black leading-tight mb-4 z-10"
+        style={{ fontFamily: "var(--font-montserrat)" }}
+      >
         discrete mathematics
       </span>
       <div className="flex flex-col gap-2.5 z-10">
@@ -73,7 +76,7 @@ const AlertCardPreview = () => {
 const RefreshPreview = () => {
   const [isSyncing, setIsSyncing] = useState(false);
   const [attendance, setAttendance] = useState(74.5);
-  
+
   const handleRefresh = () => {
     if (isSyncing) return;
     setIsSyncing(true);
@@ -88,8 +91,10 @@ const RefreshPreview = () => {
       <div className="bg-white border-black/10 border-[1.5px] rounded-[24px] p-5 shadow-xl">
         <div className="flex justify-between items-end mb-4">
           <div>
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-black/40">Attendance</span>
-            <motion.h3 
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-black/40">
+              Attendance
+            </span>
+            <motion.h3
               key={attendance}
               initial={{ y: 5, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
@@ -99,25 +104,32 @@ const RefreshPreview = () => {
               {attendance}%
             </motion.h3>
           </div>
-          <div className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${attendance >= 75 ? "bg-[#85a818] text-white" : "bg-black/5 text-black/40"}`}>
+          <div
+            className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${attendance >= 75 ? "bg-[#85a818] text-white" : "bg-black/5 text-black/40"}`}
+          >
             {attendance >= 75 ? "Safe" : "Cooked"}
           </div>
         </div>
         <div className="h-2 w-full bg-black/5 rounded-full overflow-hidden">
-          <motion.div 
+          <motion.div
             animate={{ width: `${attendance}%` }}
             transition={{ type: "spring", stiffness: 100 }}
             className={`h-full rounded-full ${attendance >= 75 ? "bg-[#85a818]" : "bg-black/20"}`}
           />
         </div>
       </div>
-      
+
       <motion.button
         whileTap={{ scale: 0.96 }}
         onClick={handleRefresh}
         className="w-full py-4 bg-white border-black border-[2px] text-black rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-3 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all"
       >
-        <motion.div animate={isSyncing ? { rotate: 360 } : {}} transition={isSyncing ? { repeat: Infinity, duration: 1, ease: "linear" } : {}}>
+        <motion.div
+          animate={isSyncing ? { rotate: 360 } : {}}
+          transition={
+            isSyncing ? { repeat: Infinity, duration: 1, ease: "linear" } : {}
+          }
+        >
           <RefreshCw size={18} />
         </motion.div>
         {isSyncing ? "Syncing..." : "Refresh Now"}
@@ -130,36 +142,125 @@ const ScramblerPreview = () => {
   const [input, setInput] = useState("");
   const scramble = (text: string) => {
     if (!text) return "";
-    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    const chars =
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
     let res = "U2FsdGVkX1";
-    for(let i=0; i<15; i++) res += chars.charAt(Math.floor(Math.random() * chars.length));
+    for (let i = 0; i < 15; i++)
+      res += chars.charAt(Math.floor(Math.random() * chars.length));
     return res + "...";
   };
 
   return (
     <div className="w-full max-w-[320px] space-y-4 mb-8 self-center text-white">
       <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-5 rounded-3xl min-h-[70px] flex flex-col justify-center">
-        <span className="text-[7px] font-mono uppercase tracking-widest opacity-40 mb-1">AES-256 encrypted stream</span>
+        <span className="text-[7px] font-mono uppercase tracking-widest opacity-40 mb-1">
+          AES-256 encrypted stream
+        </span>
         <p className="font-mono text-[10px] break-all text-[#ceff1c] opacity-80 leading-tight">
           {input ? scramble(input) : "Waiting for input..."}
         </p>
       </div>
-      
+
       <div className="relative">
-        <input 
-          type="text" 
+        <input
+          type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="type your name to encrypt..."
           className="w-full bg-white/10 border border-white/20 rounded-2xl py-4 px-5 text-sm text-white placeholder:text-white/30 outline-none focus:border-[#ceff1c]/50 transition-colors"
         />
-        <Lock size={18} className="absolute right-5 top-1/2 -translate-y-1/2 text-white/20" />
+        <Lock
+          size={18}
+          className="absolute right-5 top-1/2 -translate-y-1/2 text-white/20"
+        />
       </div>
     </div>
   );
 };
 
-// --- ORIGINAL STRUCTURE ---
+const ChefCard = ({
+  name,
+  github,
+  ig,
+  isPlumTop = true,
+}: {
+  name: string;
+  github: string;
+  ig?: string;
+  isPlumTop?: boolean;
+}) => {
+  const topBg = isPlumTop ? "bg-[#381932]" : "bg-[#FFF3E6]";
+  const bottomBg = isPlumTop ? "bg-[#FFF3E6]" : "bg-[#381932]";
+  const topText = isPlumTop ? "text-[#FFF3E6]" : "text-[#381932]";
+  const bottomText = isPlumTop ? "text-[#381932]" : "text-[#FFF3E6]";
+
+  return (
+    <motion.div
+      whileTap={{ scale: 0.98 }}
+      className="w-full flex flex-col rounded-[2rem] overflow-hidden shadow-2xl border-black/5 border"
+    >
+      <div
+        className={`py-4 ${topBg} ${topText} flex items-center justify-center relative overflow-hidden`}
+      >
+        <span
+          className="font-black uppercase tracking-tighter text-lg z-10"
+          style={{ fontFamily: "var(--font-montserrat)" }}
+        >
+          {name}
+        </span>
+        <div className="absolute -right-2 -top-2 opacity-10 rotate-12">
+          <Github size={40} />
+        </div>
+      </div>
+      <div
+        className={`py-3 ${bottomBg} ${bottomText} flex items-center justify-center gap-6`}
+      >
+        <a
+          href={github}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="hover:scale-110 transition-transform"
+        >
+          <Github size={20} />
+        </a>
+        {ig && (
+          <a
+            href={ig}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:scale-110 transition-transform"
+          >
+            <Instagram size={20} />
+          </a>
+        )}
+      </div>
+    </motion.div>
+  );
+};
+
+const ChefsPreview = () => {
+  return (
+    <div className="w-full max-w-[320px] grid grid-cols-1 gap-4 mb-8 self-center">
+      <ChefCard
+        name="Akshith"
+        github="https://github.com/projectakshith"
+        ig="https://www.instagram.com/akshithfilms/"
+        isPlumTop={true}
+      />
+      <ChefCard
+        name="Prethiv"
+        github="https://github.com/wtfPrethiv"
+        ig="https://www.instagram.com/_prethiv/"
+        isPlumTop={false}
+      />
+      <ChefCard
+        name="Debaditya"
+        github="https://github.com/DebadityaMalakar"
+        isPlumTop={true}
+      />
+    </div>
+  );
+};
 
 interface OnboardingSlide {
   id: string;
@@ -173,7 +274,8 @@ interface OnboardingSlide {
   isCommunitySlide?: boolean;
   isThemeSlide?: boolean;
   interactiveComponent?: React.ReactNode;
-  points: { icon: any; label: string; desc: string }[];
+  preview?: React.ReactNode;
+  points: { icon: any; label: string; desc: string | React.ReactNode }[];
 }
 
 const slides: OnboardingSlide[] = [
@@ -209,7 +311,9 @@ const slides: OnboardingSlide[] = [
     title: (
       <>
         <span className="text-[2rem] block leading-none">built</span>
-        <span className="text-[4rem] md:text-[6rem] block leading-[0.8] tracking-tighter">different</span>
+        <span className="text-[4rem] md:text-[6rem] block leading-[0.8] tracking-tighter">
+          different
+        </span>
       </>
     ),
     titleClass:
@@ -247,10 +351,13 @@ const slides: OnboardingSlide[] = [
     title: (
       <>
         <span className="text-[2rem] block leading-none">feel</span>
-        <span className="text-[4rem] md:text-[6rem] block leading-[0.8] tracking-tighter">the speed</span>
+        <span className="text-[4rem] md:text-[6rem] block leading-[0.8] tracking-tighter">
+          the speed
+        </span>
       </>
     ),
-    titleClass: "font-['Montserrat',sans-serif] font-black uppercase tracking-tighter leading-[0.85]",
+    titleClass:
+      "font-['Montserrat',sans-serif] font-black uppercase tracking-tighter leading-[0.85]",
     subtitle: "actually fast",
     isLogoPhase: false,
     interactiveComponent: <RefreshPreview />,
@@ -270,7 +377,7 @@ const slides: OnboardingSlide[] = [
         label: "instant offline",
         desc: "everything is cached instantly. access your marks even with zero bars.",
       },
-    ]
+    ],
   },
   {
     id: "privacy",
@@ -279,7 +386,9 @@ const slides: OnboardingSlide[] = [
     title: (
       <>
         <span className="text-[2rem] block leading-none">lowkenuinely</span>
-        <span className="text-[5rem] md:text-[6rem] block leading-[0.8]">private</span>
+        <span className="text-[5rem] md:text-[6rem] block leading-[0.8]">
+          private
+        </span>
       </>
     ),
     titleClass:
@@ -304,6 +413,20 @@ const slides: OnboardingSlide[] = [
         label: "aes encrypted",
         desc: "even if someone takes your phone, your data is locked down.",
       },
+      {
+        icon: Github,
+        label: "open source",
+        desc: (
+          <a
+            href="https://github.com/projectakshith/ratio-d"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline decoration-[#ceff1c]/30 hover:decoration-[#ceff1c] transition-all"
+          >
+            github.com/projectakshith/ratio-d
+          </a>
+        ),
+      },
     ],
   },
   {
@@ -316,16 +439,12 @@ const slides: OnboardingSlide[] = [
     subtitle: "built by students for students",
     isLogoPhase: false,
     isCommunitySlide: true,
+    preview: <ChefsPreview />,
     points: [
       {
         icon: Zap,
-        label: "Akshith & Prethiv",
-        desc: "the ones who stayed up till 4am building this from scratch.",
-      },
-      {
-        icon: Palette,
-        label: "Debaditya",
-        desc: "the genius who made the themes look this good.",
+        label: "student run",
+        desc: "built by students for students. no corporate bs.",
       },
     ],
   },
@@ -343,7 +462,13 @@ const slides: OnboardingSlide[] = [
   },
 ];
 
-function PrivacyOverlay({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+function PrivacyOverlay({
+  isOpen,
+  onClose,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+}) {
   return (
     <AnimatePresence>
       {isOpen && (
@@ -355,46 +480,60 @@ function PrivacyOverlay({ isOpen, onClose }: { isOpen: boolean; onClose: () => v
           className="fixed inset-0 bg-[#0c30ff] text-[#ceff1c] z-[2000] p-8 flex flex-col"
         >
           <div className="flex justify-between items-center mb-12">
-            <span className="font-mono text-[10px] uppercase tracking-[0.4em]">Privacy Protocol</span>
-            <button onClick={onClose} className="w-12 h-12 flex items-center justify-center rounded-full bg-white/10">
+            <span className="font-mono text-[10px] uppercase tracking-[0.4em]">
+              Privacy Protocol
+            </span>
+            <button
+              onClick={onClose}
+              className="w-12 h-12 flex items-center justify-center rounded-full bg-white/10"
+            >
               <X size={24} />
             </button>
           </div>
-          
-          <h2 className="text-6xl font-black lowercase tracking-tighter leading-[0.9] mb-8" style={{ fontFamily: "Urbanosta" }}>
-            how it<br />works
+
+          <h2
+            className="text-6xl font-black lowercase tracking-tighter leading-[0.9] mb-8"
+            style={{ fontFamily: "Urbanosta" }}
+          >
+            how it
+            <br />
+            works
           </h2>
-          
+
           <div className="space-y-8 flex-1 overflow-y-auto no-scrollbar">
             <div className="space-y-2">
               <h3 className="font-bold text-sm uppercase tracking-widest flex items-center gap-2">
                 <Lock size={16} /> Encryption
               </h3>
               <p className="text-sm opacity-80 leading-relaxed">
-                When you log in, we generate a unique key on your device. Your Academia credentials and marks are scrambled using AES-256 before being saved.
+                When you log in, we generate a unique key on your device. Your
+                Academia credentials and marks are scrambled using AES-256
+                before being saved.
               </p>
             </div>
-            
+
             <div className="space-y-2">
               <h3 className="font-bold text-sm uppercase tracking-widest flex items-center gap-2">
                 <CloudOff size={16} /> Zero Servers
               </h3>
               <p className="text-sm opacity-80 leading-relaxed">
-                We don't have a backend database for users. Your data goes from the portal to your phone's memory. That's it.
+                We don't have a backend database for users. Your data goes from
+                the portal to your phone's memory. That's it.
               </p>
             </div>
-            
+
             <div className="space-y-2">
               <h3 className="font-bold text-sm uppercase tracking-widest flex items-center gap-2">
                 <Smartphone size={16} /> Local Only
               </h3>
               <p className="text-sm opacity-80 leading-relaxed">
-                Deleting the app or clearing browser cache permanently wipes all your data. We have no way to recover it because we never had it.
+                Deleting the app or clearing browser cache permanently wipes all
+                your data. We have no way to recover it because we never had it.
               </p>
             </div>
           </div>
-          
-          <button 
+
+          <button
             onClick={onClose}
             className="mt-8 w-full py-5 bg-[#ceff1c] text-[#0c30ff] font-black uppercase tracking-widest rounded-2xl"
           >
@@ -408,9 +547,8 @@ function PrivacyOverlay({ isOpen, onClose }: { isOpen: boolean; onClose: () => v
 
 function ThemeSelector({ onComplete }: { onComplete: () => void }) {
   const { theme: currentTheme, setTheme } = useTheme();
-  
+
   const handleThemePick = (colorId: string) => {
-    // Default to minimalist for onboarding selection
     const newTheme = buildTheme("minimalist", colorId as any);
     setTheme(newTheme);
   };
@@ -418,24 +556,43 @@ function ThemeSelector({ onComplete }: { onComplete: () => void }) {
   return (
     <div className="mt-8 flex-1 flex flex-col">
       <div className="grid grid-cols-2 gap-3 flex-1 overflow-y-auto no-scrollbar pb-8">
-        {COLOR_THEMES.filter(t => ["minimalist-dark", "brutalist", "gabriel", "el", "steve", "lucifer"].includes(t.id)).map((t) => (
+        {COLOR_THEMES.filter((t) =>
+          [
+            "minimalist-dark",
+            "brutalist",
+            "gabriel",
+            "el",
+            "steve",
+            "lucifer",
+          ].includes(t.id),
+        ).map((t) => (
           <motion.button
             key={t.id}
             whileTap={{ scale: 0.95 }}
             onClick={() => handleThemePick(t.id)}
             className={`p-4 rounded-3xl border-2 transition-all flex flex-col justify-between h-32 ${
-              currentTheme.includes(t.id) ? "border-[#111111] bg-[#111111] text-white" : "border-[#111111]/10 bg-white/20 text-[#111111]"
+              currentTheme.includes(t.id)
+                ? "border-[#111111] bg-[#111111] text-white"
+                : "border-[#111111]/10 bg-white/20 text-[#111111]"
             }`}
           >
             <div className="flex justify-between items-start w-full">
-              <span className="font-bold text-xs uppercase tracking-tighter">{t.name}</span>
+              <span className="font-bold text-xs uppercase tracking-tighter">
+                {t.name}
+              </span>
               <div className="flex gap-1">
                 {t.swatches.map((s, i) => (
-                  <div key={i} className="w-2 h-2 rounded-full" style={{ backgroundColor: s }} />
+                  <div
+                    key={i}
+                    className="w-2 h-2 rounded-full"
+                    style={{ backgroundColor: s }}
+                  />
                 ))}
               </div>
             </div>
-            <p className="text-[10px] opacity-60 text-left leading-tight">{t.description}</p>
+            <p className="text-[10px] opacity-60 text-left leading-tight">
+              {t.description}
+            </p>
           </motion.button>
         ))}
       </div>
@@ -450,38 +607,46 @@ function CommunityPreview() {
       <div className="absolute inset-0 opacity-20 pointer-events-none">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-white blur-[80px] rounded-full" />
       </div>
-      
+
       <div className="relative w-full max-w-[280px] h-full flex flex-col gap-4">
         {/* User Bubble */}
         <motion.div
           initial={{ scale: 0, opacity: 0, rotate: -5, x: -20 }}
           animate={{ scale: 1, opacity: 1, rotate: -8, x: 0 }}
-          transition={{ 
-            type: "spring", 
-            stiffness: 260, 
+          transition={{
+            type: "spring",
+            stiffness: 260,
             damping: 20,
-            delay: 0.5 
+            delay: 0.5,
           }}
           className="bg-white/10 backdrop-blur-xl border border-white/10 p-4 rounded-3xl rounded-bl-none self-start shadow-2xl"
         >
-          <span className="text-[8px] font-black uppercase tracking-widest opacity-40 block mb-1">Student</span>
-          <p className="text-[11px] leading-tight font-medium">yo, marks aren't updating...</p>
+          <span className="text-[8px] font-black uppercase tracking-widest opacity-40 block mb-1">
+            Student
+          </span>
+          <p className="text-[11px] leading-tight font-medium">
+            yo, marks aren't updating...
+          </p>
         </motion.div>
 
         {/* Dev Bubble */}
         <motion.div
           initial={{ scale: 0, opacity: 0, rotate: 5, x: 20 }}
           animate={{ scale: 1, opacity: 1, rotate: 6, x: 0 }}
-          transition={{ 
-            type: "spring", 
-            stiffness: 260, 
+          transition={{
+            type: "spring",
+            stiffness: 260,
             damping: 20,
-            delay: 1.8 
+            delay: 1.8,
           }}
           className="bg-[#ceff1c] text-[#111111] p-4 rounded-3xl rounded-br-none self-end shadow-2xl relative z-10"
         >
-          <span className="text-[8px] font-black uppercase tracking-widest opacity-40 block mb-1">Devs</span>
-          <p className="text-[11px] leading-tight font-bold">fixed it. refresh blud!</p>
+          <span className="text-[8px] font-black uppercase tracking-widest opacity-40 block mb-1">
+            Devs
+          </span>
+          <p className="text-[11px] leading-tight font-bold">
+            fixed it. refresh blud!
+          </p>
         </motion.div>
       </div>
     </div>
@@ -532,23 +697,23 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
       filter: "blur(20px)",
       scale: 1.1,
     }),
-    center: { 
-      x: 0, 
-      opacity: 1, 
+    center: {
+      x: 0,
+      opacity: 1,
       filter: "blur(0px)",
       scale: 1,
-      transition: { 
+      transition: {
         x: { type: "spring", stiffness: 300, damping: 30 } as const,
         opacity: { duration: 0.4 },
-        filter: { duration: 0.4 }
-      }
+        filter: { duration: 0.4 },
+      },
     },
     exit: (direction: number) => ({
       x: direction < 0 ? "100%" : "-100%",
       opacity: 0,
       filter: "blur(20px)",
       scale: 0.9,
-      transition: { duration: 0.4 }
+      transition: { duration: 0.4 },
     }),
   };
 
@@ -577,12 +742,12 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
 
   const itemVariants = {
     hidden: { opacity: 0, y: 20, filter: "blur(10px)" },
-    visible: { 
-      opacity: 1, 
-      y: 0, 
+    visible: {
+      opacity: 1,
+      y: 0,
       filter: "blur(0px)",
-      transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] as const }
-    }
+      transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] as const },
+    },
   };
 
   return (
@@ -620,7 +785,11 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
                       className="space-y-9"
                     >
                       {slides[step].points.map((point, i) => (
-                        <motion.div key={i} variants={itemVariants} className="flex gap-4">
+                        <motion.div
+                          key={i}
+                          variants={itemVariants}
+                          className="flex gap-4"
+                        >
                           <div className="w-10 h-10 rounded-xl bg-black/10 flex items-center justify-center shrink-0 border border-current/20">
                             <point.icon size={20} />
                           </div>
@@ -628,7 +797,9 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
                             <h3 className="font-bold text-sm uppercase tracking-wider">
                               {point.label}
                             </h3>
-                            <p className="text-xs opacity-70 mt-1">{point.desc}</p>
+                            <p className="text-xs opacity-70 mt-1">
+                              {point.desc}
+                            </p>
                           </div>
                         </motion.div>
                       ))}
@@ -661,15 +832,17 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
                       variants={containerVariants}
                       className="flex"
                     >
-                      {(slides[step].title as string).split("").map((char, index) => (
-                        <motion.span
-                          key={index}
-                          variants={letterVariants}
-                          className="inline-block"
-                        >
-                          {char}
-                        </motion.span>
-                      ))}
+                      {(slides[step].title as string)
+                        .split("")
+                        .map((char, index) => (
+                          <motion.span
+                            key={index}
+                            variants={letterVariants}
+                            className="inline-block"
+                          >
+                            {char}
+                          </motion.span>
+                        ))}
                     </motion.span>
                   ) : (
                     slides[step].title
@@ -690,12 +863,30 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
                 ) : (
                   <>
                     {slides[step].interactiveComponent && (
-                      <motion.div variants={itemVariants} className="w-full flex justify-center">
+                      <motion.div
+                        variants={itemVariants}
+                        className="w-full flex justify-center"
+                      >
                         {slides[step].interactiveComponent}
                       </motion.div>
                     )}
+
+                    {/* Render ChefsPreview explicitly inside the community slide points list if requested */}
+                    {slides[step].isCommunitySlide && slides[step].preview && (
+                      <motion.div
+                        variants={itemVariants}
+                        className="w-full flex justify-center"
+                      >
+                        {slides[step].preview}
+                      </motion.div>
+                    )}
+
                     {slides[step].points.map((point, i) => (
-                      <motion.div key={i} variants={itemVariants} className="flex gap-4">
+                      <motion.div
+                        key={i}
+                        variants={itemVariants}
+                        className="flex gap-4"
+                      >
                         <div className="w-10 h-10 rounded-xl bg-black/10 flex items-center justify-center shrink-0 border border-current/20">
                           <point.icon size={20} />
                         </div>
@@ -703,11 +894,13 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
                           <h3 className="font-bold text-sm uppercase tracking-wider">
                             {point.label}
                           </h3>
-                          <p className="text-xs opacity-70 mt-1">{point.desc}</p>
+                          <p className="text-xs opacity-70 mt-1">
+                            {point.desc}
+                          </p>
                         </div>
                       </motion.div>
                     ))}
-                    
+
                     {slides[step].isPrivacySlide && (
                       <motion.button
                         variants={itemVariants}
@@ -721,11 +914,13 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
                     {slides[step].isCommunitySlide && (
                       <motion.div variants={itemVariants} className="space-y-6">
                         <p className="text-xs opacity-80 leading-relaxed max-w-[280px]">
-                          join our whatsapp community. it's where the vibes are. if something breaks, just shout in the group and we'll fix it literally immediately. no corporate ticket bs.
+                          join our whatsapp community. it's where the vibes are.
+                          if something breaks, just shout in the group and we'll
+                          fix it literally immediately. no corporate ticket bs.
                         </p>
                         <motion.a
                           whileTap={{ scale: 0.95 }}
-                          href="https://chat.whatsapp.com/your-invite-link" // REPLACEME
+                          href="https://chat.whatsapp.com/your-invite-link"
                           target="_blank"
                           rel="noopener noreferrer"
                           className="inline-flex items-center gap-3 bg-white text-[#8b5cf6] px-6 py-4 rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl"
@@ -741,7 +936,10 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
 
               <div className="mt-auto pt-8">
                 {slides[step].isCommunitySlide && <CommunityPreview />}
-                <motion.span variants={itemVariants} className="text-[10px] font-bold uppercase tracking-[0.4em] mb-4 opacity-40 block">
+                <motion.span
+                  variants={itemVariants}
+                  className="text-[10px] font-bold uppercase tracking-[0.4em] mb-4 opacity-40 block"
+                >
                   {slides[step].subtitle}
                 </motion.span>
                 <motion.h1
@@ -749,7 +947,9 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
                   className={slides[step].titleClass}
                   style={{ whiteSpace: "pre-line" }}
                 >
-                  {typeof slides[step].title === "string" ? slides[step].title : slides[step].title}
+                  {typeof slides[step].title === "string"
+                    ? slides[step].title
+                    : slides[step].title}
                 </motion.h1>
               </div>
             </motion.div>
@@ -757,14 +957,20 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
         </motion.div>
       </AnimatePresence>
 
-      <PrivacyOverlay isOpen={isPrivacyOpen} onClose={() => setIsPrivacyOpen(false)} />
+      <PrivacyOverlay
+        isOpen={isPrivacyOpen}
+        onClose={() => setIsPrivacyOpen(false)}
+      />
 
       <AnimatePresence>
         {introStage === 1 && (
           <>
             <motion.div
               initial={{ opacity: 0, filter: "blur(10px)" }}
-              animate={{ opacity: step === 0 ? 0 : 1, filter: step === 0 ? "blur(10px)" : "blur(0px)" }}
+              animate={{
+                opacity: step === 0 ? 0 : 1,
+                filter: step === 0 ? "blur(10px)" : "blur(0px)",
+              }}
               exit={{ opacity: 0, filter: "blur(10px)" }}
               className={`absolute bottom-8 left-8 flex items-center h-14 font-['Urbanosta',sans-serif] lowercase text-2xl tracking-tighter z-[1000] pointer-events-none ${slides[step].text}`}
             >
@@ -864,7 +1070,9 @@ export default function OnboardingPage({
 
   const handleAndroidInstall = async () => {
     if (!deferredPrompt) {
-      alert("Installation is almost ready. If it doesn't pop up, please wait a few seconds or use the browser menu to 'Add to Home Screen'.");
+      alert(
+        "Installation is almost ready. If it doesn't pop up, please wait a few seconds or use the browser menu to 'Add to Home Screen'.",
+      );
       return;
     }
     deferredPrompt.prompt();
