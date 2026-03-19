@@ -9,9 +9,7 @@ const withPWA = withPWAInit({
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  experimental: {
-    allowedDevOrigins: ['noncuratively-unappropriable-ardath.ngrok-free.dev'],
-  },
+  turbopack: {},
   images: {
     remotePatterns: [
       {
