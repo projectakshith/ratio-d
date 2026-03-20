@@ -20,6 +20,7 @@ export interface OnboardingSlide {
   isThemeSlide?: boolean;
   interactiveComponent?: React.ReactNode;
   preview?: React.ReactNode;
+  description?: string;
   points: { icon: any; label: string; desc: string | React.ReactNode }[];
 }
 

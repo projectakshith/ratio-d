@@ -1,6 +1,5 @@
 "use client";
 import React from "react";
-import { Zap, CloudOff, Smartphone } from "lucide-react";
 import { OnboardingSlide } from "../slidesData";
 
 export const LogoSlide: OnboardingSlide = {
@@ -10,21 +9,6 @@ export const LogoSlide: OnboardingSlide = {
   title: "ratio'd",
   subtitle: "built for speed",
   isLogoPhase: true,
-  points: [
-    {
-      icon: Zap,
-      label: "actually fast",
-      desc: "refreshes in like a second. no lag, no mid portal errors.",
-    },
-    {
-      icon: CloudOff,
-      label: "works offline",
-      desc: "access your schedule even when campus wifi is being mid.",
-    },
-    {
-      icon: Smartphone,
-      label: "gesture nav",
-      desc: "smooth transitions and fluid navigation. built for handhelds.",
-    },
-  ],
+  description: "hiiiiii UwU\n\nwelcome to the gng.\nwe built this because the academia portal was stressing us out.\n\nswipe to see the lore.",
+  points: [],
 };

@@ -22,14 +22,14 @@ export const DiffSlide: OnboardingSlide = {
     </motion.div>
   ),
   titleClass: "font-black uppercase tracking-tighter leading-[0.85]",
-  subtitle: "not your average dashboard",
+  subtitle: "dashboard for the gng",
   isLogoPhase: false,
   interactiveComponent: <AlertCardPreview />,
   points: [
     {
       icon: Activity,
-      label: "2nd yr cse alerts",
-      desc: "full ft/ct details for 2nd yr cse. (other courses? send us details!)",
+      label: "live alerts",
+      desc: "get real-time notifications for classes, exams, and marks.",
     },
     {
       icon: CloudOff,

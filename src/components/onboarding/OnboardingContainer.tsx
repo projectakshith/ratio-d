@@ -273,25 +273,35 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
                       animate="visible"
                       className="space-y-9"
                     >
-                      {slides[step].points.map((point, i) => (
-                        <motion.div
-                          key={i}
+                      {slides[step].description ? (
+                        <motion.p
                           variants={itemVariants}
-                          className="flex gap-4"
+                          className="text-xl font-bold tracking-tight opacity-80"
+                          style={{ fontFamily: "var(--font-montserrat)", whiteSpace: "pre-line" }}
                         >
-                          <div className="w-10 h-10 rounded-xl bg-black/10 flex items-center justify-center shrink-0 border border-current/20">
-                            <point.icon size={20} />
-                          </div>
-                          <div>
-                            <h3 className="font-bold text-sm uppercase tracking-wider">
-                              {point.label}
-                            </h3>
-                            <p className="text-xs opacity-70 mt-1">
-                              {point.desc}
-                            </p>
-                          </div>
-                        </motion.div>
-                      ))}
+                          {slides[step].description}
+                        </motion.p>
+                      ) : (
+                        slides[step].points.map((point, i) => (
+                          <motion.div
+                            key={i}
+                            variants={itemVariants}
+                            className="flex gap-4"
+                          >
+                            <div className="w-10 h-10 rounded-xl bg-black/10 flex items-center justify-center shrink-0 border border-current/20">
+                              <point.icon size={20} />
+                            </div>
+                            <div>
+                              <h3 className="font-bold text-sm uppercase tracking-wider">
+                                {point.label}
+                              </h3>
+                              <p className="text-xs opacity-70 mt-1">
+                                {point.desc}
+                              </p>
+                            </div>
+                          </motion.div>
+                        ))
+                      )}
                     </motion.div>
                   )}
                 </AnimatePresence>

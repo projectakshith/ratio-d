@@ -1,19 +1,21 @@
 "use client";
 import React from "react";
 import { motion } from "framer-motion";
-import { Github, Instagram } from "lucide-react";
+import { Github, Instagram, Linkedin } from "lucide-react";
 
 const ChefCard = ({
   name,
   role,
   github,
   ig,
+  linkedin,
   index,
 }: {
   name: string;
   role: string;
   github: string;
   ig?: string;
+  linkedin?: string;
   index: number;
 }) => {
   const isDark = index % 2 === 0;
@@ -53,6 +55,16 @@ const ChefCard = ({
         >
           <Github size={14} />
         </a>
+        {linkedin && (
+          <a
+            href={linkedin}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:scale-110 transition-transform"
+          >
+            <Linkedin size={14} />
+          </a>
+        )}
         {ig && (
           <a
             href={ig}
@@ -77,12 +89,15 @@ export default function ChefsPreview() {
           role="The Architect"
           github="https://github.com/projectakshith"
           ig="https://www.instagram.com/akshithfilms/"
+          linkedin="https://www.linkedin.com/in/akshith-rajesh/"
           index={0}
         />
         <ChefCard
           name="Debaditya"
           role="Color Picasso"
           github="https://github.com/DebadityaMalakar"
+          ig="https://www.instagram.com/anxy.4.uriel/"
+          linkedin="https://www.linkedin.com/in/debaditya-malakar-3ba9b5334/"
           index={2}
         />
       </div>
@@ -92,6 +107,7 @@ export default function ChefsPreview() {
           role="Logic Wizard"
           github="https://github.com/wtfPrethiv"
           ig="https://www.instagram.com/_prethiv/"
+          linkedin="https://www.linkedin.com/in/prethiv-sriman/"
           index={1}
         />
       </div>

@@ -8,9 +8,17 @@ export const SpeedSlide: OnboardingSlide = {
   id: "speed",
   bg: "bg-[#004643]",
   text: "text-[#F0EDE5]",
-  title: "feel\nthe speed",
-  titleClass:
-    "font-black uppercase text-[4.5rem] md:text-[6.5rem] tracking-tighter leading-[0.85]",
+  title: (
+    <div className="flex flex-col">
+      <span className="text-[1.2rem] md:text-[2rem] font-black uppercase tracking-[0.2em] opacity-40 mb-1">
+        feel the
+      </span>
+      <span className="text-[5.5rem] md:text-[8rem] font-black uppercase tracking-tighter leading-[0.8]">
+        speeeeeed
+      </span>
+    </div>
+  ),
+  titleClass: "font-black uppercase tracking-tighter",
   subtitle: "custom backend. zero lag.",
   isLogoPhase: false,
   interactiveComponent: <RefreshPreview />,
@@ -22,8 +30,8 @@ export const SpeedSlide: OnboardingSlide = {
     },
     {
       icon: Activity,
-      label: "no more waiting",
-      desc: "skip the academia portal lag. our custom endpoints fetch data directly.",
+      label: "bg refresh",
+      desc: "data fetches in the background within a sec while you chill. no wait times.",
     },
     {
       icon: CloudOff,
