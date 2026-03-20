@@ -70,23 +70,51 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
     }
   };
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.2
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: {
+        duration: 0.8,
+        ease: [0.22, 1, 0.36, 1]
+      }
+    }
+  };
+
   return (
     <>
       <AnimatePresence>
         {loading && <LoadingPage />}
       </AnimatePresence>
 
-      <div className="h-screen w-full flex flex-col justify-between p-8 md:p-16 relative bg-[#0c30ff]">
-        <header className="relative z-10">
+      <motion.div 
+        initial="hidden"
+        animate="visible"
+        variants={containerVariants}
+        className="h-screen w-full flex flex-col justify-between p-8 md:p-16 relative bg-[#0c30ff]"
+      >
+        <motion.header variants={itemVariants} className="relative z-10">
           <h1
             className="text-5xl md:text-8xl lowercase leading-none tracking-tighter"
             style={{ fontFamily: "Urbanosta", color: "#ceff1c" }}
           >
             ratio'd
           </h1>
-        </header>
+        </motion.header>
 
-        <main className="relative z-10 w-full max-w-2xl mt-auto pb-12">
+        <motion.main variants={itemVariants} className="relative z-10 w-full max-w-2xl mt-auto pb-12">
           <form onSubmit={handleSubmit} className="flex flex-col gap-10">
             <div className="group relative">
               <label className="text-[10px] font-mono uppercase tracking-[0.3em] text-white/60">
@@ -169,8 +197,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
               )}
             </button>
           </form>
-        </main>
-      </div>
+        </motion.main>
+      </motion.div>
     </>
   );
 };

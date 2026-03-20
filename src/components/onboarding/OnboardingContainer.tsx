@@ -34,6 +34,13 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
   const [direction, setDirection] = useState(1);
   const [introStage, setIntroStage] = useState(0);
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
+  const [isExiting, setIsExiting] = useState(false);
+
+  const haptic = (intensity = 10) => {
+    if (typeof window !== "undefined" && window.navigator.vibrate) {
+      window.navigator.vibrate(intensity);
+    }
+  };
 
   useEffect(() => {
     if (step === 0) {
@@ -46,15 +53,20 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
   }, [step]);
 
   const handleNext = () => {
+    haptic(15);
     if (step < slides.length - 1) {
       setDirection(1);
       setStep((prev) => prev + 1);
     } else {
-      if (onComplete) onComplete();
+      setIsExiting(true);
+      setTimeout(() => {
+        if (onComplete) onComplete();
+      }, 600);
     }
   };
 
   const handlePrev = () => {
+    haptic(15);
     if (step > 0) {
       setDirection(-1);
       setStep((prev) => prev - 1);
@@ -127,7 +139,12 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
   };
 
   return (
-    <div className="fixed inset-0 overflow-hidden bg-[#111111] z-[999]">
+    <motion.div 
+      initial={{ opacity: 1 }}
+      animate={{ opacity: isExiting ? 0 : 1 }}
+      transition={{ duration: 0.5 }}
+      className="fixed inset-0 overflow-hidden bg-[#111111] z-[999]"
+    >
       <AnimatePresence initial={false} custom={direction} mode="wait">
         <motion.div
           key={`slide-${step}`}
@@ -294,7 +311,10 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
                     {slides[step].isPrivacySlide && (
                       <motion.button
                         variants={itemVariants}
-                        onClick={() => setIsPrivacyOpen(true)}
+                        onClick={() => {
+                          haptic(10);
+                          setIsPrivacyOpen(true);
+                        }}
                         className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest bg-white/10 px-4 py-2 rounded-full border border-current/10 pointer-events-auto"
                       >
                         how it works <ArrowRight size={12} />
@@ -348,6 +368,7 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
                           default: { duration: 0.4 }
                         }}
                         whileTap={{ scale: 0.95 }}
+                        onClick={() => haptic(20)}
                         href="https://chat.whatsapp.com/D7wymoQ1zrQKqf4Qs4gw91"
                         target="_blank"
                         rel="noopener noreferrer"
@@ -395,7 +416,7 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
                 filter: step === 0 ? "blur(10px)" : "blur(0px)",
               }}
               exit={{ opacity: 0, filter: "blur(10px)" }}
-              className={`absolute bottom-8 left-8 flex items-center h-14 lowercase text-2xl tracking-tighter z-[1000] pointer-events-none ${slides[step].text}`}
+              className={`absolute bottom-8 left-8 flex items-center h-12 lowercase text-2xl tracking-tighter z-[1000] pointer-events-none ${slides[step].text}`}
               style={{ fontFamily: "var(--font-urbanosta)" }}
             >
               ratio'd
@@ -405,15 +426,24 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
               initial={{ opacity: 0, y: 15, filter: "blur(10px)" }}
               animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
               exit={{ opacity: 0, y: 15, filter: "blur(10px)" }}
-              className={`absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-3 items-center h-14 z-[1000] ${slides[step].text}`}
+              className={`absolute bottom-8 left-[45%] -translate-x-1/2 flex gap-3 items-center h-12 z-[1000] ${slides[step].text}`}
             >
               {slides.map((_, i) => (
-                <div
+                <button
                   key={i}
-                  className={`h-1.5 transition-all duration-300 ${
-                    i === step ? "w-10 bg-current" : "w-2 bg-current opacity-20"
-                  }`}
-                />
+                  onClick={() => {
+                    haptic(10);
+                    setDirection(i > step ? 1 : -1);
+                    setStep(i);
+                  }}
+                  className="group p-0 pointer-events-auto flex items-center justify-center"
+                >
+                  <div
+                    className={`h-1.5 transition-all duration-300 rounded-full ${
+                      i === step ? "w-10 bg-current" : "w-2 bg-current opacity-20"
+                    }`}
+                  />
+                </button>
               ))}
             </motion.div>
 
@@ -423,14 +453,22 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
               exit={{ opacity: 0, scale: 0.8, filter: "blur(10px)" }}
               whileTap={{ scale: 0.9 }}
               onClick={handleNext}
-              className="absolute bottom-8 right-8 w-14 h-14 rounded-full bg-white text-black flex items-center justify-center shadow-lg pointer-events-auto z-[1000]"
+              className={`absolute bottom-8 right-8 w-12 h-12 rounded-full flex items-center justify-center shadow-lg pointer-events-auto z-[1000] border-2 border-current/10`}
+              style={{ 
+                backgroundColor: slides[step].text.includes('[#') ? slides[step].text.replace('text-[', '').replace(']', '') : '#FFFFFF',
+                color: slides[step].bg.includes('[#') ? slides[step].bg.replace('bg-[', '').replace(']', '') : '#000000'
+              }}
             >
-              <ArrowRight size={24} strokeWidth={3} />
+              {step === slides.length - 1 ? (
+                <CheckCircle2 size={20} strokeWidth={3} />
+              ) : (
+                <ArrowRight size={20} strokeWidth={3} />
+              )}
             </motion.button>
           </>
         )}
       </AnimatePresence>
-    </div>
+    </motion.div>
   );
 }
 
