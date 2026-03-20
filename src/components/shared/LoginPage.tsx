@@ -3,6 +3,8 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, Loader2, AlertCircle, Eye, EyeOff } from "lucide-react";
 import { EncryptionUtils } from "@/utils/shared/Encryption";
+import { useApp } from "@/context/AppContext";
+import { useRouter } from "next/navigation";
 import LoadingPage from "./LoadingPage";
 
 interface LoginPageProps {
@@ -10,6 +12,8 @@ interface LoginPageProps {
 }
 
 const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
+  const { performLogin } = useApp();
+  const router = useRouter();
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [showPassword, setShowPassword] = useState<boolean>(false);
@@ -25,41 +29,26 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
     e.preventDefault();
     if (!username || !password) return;
 
-    setLoading(true);
     setError("");
     const fullUsername = formatUsername(username);
+    const isOnboarded = localStorage.getItem("ratiod_onboarded") === "true";
 
     try {
       EncryptionUtils.cleanOldKeys();
       const savedCookies = EncryptionUtils.loadDecrypted("academia_cookies");
+      const creds = {
+        username: fullUsername,
+        password: password,
+        cookies: savedCookies,
+      };
 
-      const response = await fetch("/api/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          username: fullUsername,
-          password: password,
-          cookies: savedCookies,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) throw new Error(data.detail || "Login failed");
-
-      if (data.success) {
-        if (data.cookies) {
-          EncryptionUtils.saveEncrypted("academia_cookies", data.cookies);
-          delete data.cookies;
-        }
-
-        EncryptionUtils.saveEncrypted("ratio_credentials", {
-          username: fullUsername,
-          password: password,
+      if (!isOnboarded) {
+        performLogin(creds).catch(() => {
         });
-
-        localStorage.setItem("ratio_data", JSON.stringify(data));
-
+        router.push("/onboarding");
+      } else {
+        setLoading(true);
+        const data = await performLogin(creds);
         setTimeout(() => {
           onLogin(data);
         }, 800);

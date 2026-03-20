@@ -14,6 +14,9 @@ interface AppContextType {
   setIsUpdating: (val: boolean) => void;
   isOffline: boolean;
   refreshData: (creds: any, existingData: any) => Promise<any>;
+  performLogin: (creds: any) => Promise<any>;
+  loginPromise: Promise<any> | null;
+  setLoginPromise: (promise: Promise<any> | null) => void;
   logout: () => void;
   latestDiff: DataDiff | null;
   setLatestDiff: (diff: DataDiff | null) => void;
@@ -27,6 +30,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [isUpdating, setIsUpdating] = useState(false);
   const [isOffline, setIsOffline] = useState(false);
   const [latestDiff, setLatestDiff] = useState<DataDiff | null>(null);
+  const [loginPromise, setLoginPromise] = useState<Promise<any> | null>(null);
   const updateInProgress = React.useRef(false);
   const router = useRouter();
 
@@ -36,6 +40,43 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setUserData(null);
     router.replace("/login");
   }, [router]);
+
+  const performLogin = useCallback(async (creds: any) => {
+    const promise = (async () => {
+      try {
+        const response = await fetch("/api/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(creds),
+        });
+        
+        const data = await response.json();
+        if (!response.ok || !data.success) {
+          throw new Error(data.detail || "Login failed");
+        }
+
+        if (data.cookies) {
+          EncryptionUtils.saveEncrypted("academia_cookies", data.cookies);
+          delete data.cookies;
+        }
+
+        EncryptionUtils.saveEncrypted("ratio_credentials", {
+          username: creds.username,
+          password: creds.password,
+        });
+
+        EncryptionUtils.setSessionCookie();
+        setUserData(data);
+        localStorage.setItem("ratio_data", JSON.stringify(data));
+        return data;
+      } catch (err) {
+        throw err;
+      }
+    })();
+
+    setLoginPromise(promise);
+    return promise;
+  }, []);
 
   const refreshData = useCallback(async (creds: any, existingData: any) => {
     if (updateInProgress.current) return existingData;
@@ -144,10 +185,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setIsUpdating,
     isOffline,
     refreshData,
+    performLogin,
+    loginPromise,
+    setLoginPromise,
     logout,
     latestDiff,
     setLatestDiff,
-  }), [userData, customDisplayName, isUpdating, isOffline, refreshData, logout, latestDiff]);
+  }), [userData, customDisplayName, isUpdating, isOffline, refreshData, performLogin, loginPromise, logout, latestDiff]);
 
   return (
     <AppContext.Provider value={value}>

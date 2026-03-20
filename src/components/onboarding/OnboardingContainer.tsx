@@ -9,11 +9,15 @@ import {
   Share,
   PlusSquare,
   CheckCircle2,
+  AlertCircle,
+  ArrowLeft,
 } from "lucide-react";
 import PrivacyProtocol from "@/components/shared/PrivacyProtocol";
 import ThemeSelector from "./ThemeSelector";
 import CommunityPreview from "./previews/CommunityPreview";
 import { slides } from "./slidesData";
+import { useApp } from "@/context/AppContext";
+import { useRouter } from "next/navigation";
 
 const WhatsappIcon = ({ size = 20 }: { size?: number }) => (
   <svg 
@@ -30,17 +34,29 @@ const WhatsappIcon = ({ size = 20 }: { size?: number }) => (
 const isDev = process.env.NODE_ENV === "development";
 
 function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
+  const { loginPromise, setLoginPromise } = useApp();
+  const router = useRouter();
   const [step, setStep] = useState(0);
   const [direction, setDirection] = useState(1);
   const [introStage, setIntroStage] = useState(0);
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
+  const [isWaitingForLogin, setIsWaitingForLogin] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
 
   const haptic = (intensity = 10) => {
     if (typeof window !== "undefined" && window.navigator.vibrate) {
       window.navigator.vibrate(intensity);
     }
   };
+
+  useEffect(() => {
+    if (loginPromise) {
+      loginPromise.catch((err) => {
+        setLoginError(err.message || "Invalid credentials");
+      });
+    }
+  }, [loginPromise]);
 
   useEffect(() => {
     if (step === 0) {
@@ -52,12 +68,25 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
     }
   }, [step]);
 
-  const handleNext = () => {
+  const handleNext = async () => {
     haptic(15);
     if (step < slides.length - 1) {
       setDirection(1);
       setStep((prev) => prev + 1);
     } else {
+      if (loginPromise) {
+        setIsWaitingForLogin(true);
+        try {
+          await loginPromise;
+        } catch (err) {
+          router.replace("/login?error=bg_failed");
+          return;
+        } finally {
+          setIsWaitingForLogin(false);
+        }
+      }
+
+      localStorage.setItem("ratiod_onboarded", "true");
       setIsExiting(true);
       setTimeout(() => {
         if (onComplete) onComplete();
@@ -145,6 +174,61 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
       transition={{ duration: 0.5 }}
       className="fixed inset-0 overflow-hidden bg-[#111111] z-[999]"
     >
+      <AnimatePresence>
+        {loginError && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[2000] flex items-center justify-center p-8 bg-black/60 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="w-full max-w-sm bg-[#111111] border-2 border-[#FF4D4D] p-8 space-y-6 relative overflow-hidden shadow-[0_0_50px_rgba(255,77,77,0.2)] rounded-[32px]"
+            >
+              <div className="absolute top-0 left-0 w-full h-1.5 bg-[#FF4D4D]" />
+              
+              <div className="flex flex-col items-center text-center gap-4">
+                <div className="w-16 h-16 rounded-full bg-[#FF4D4D]/10 flex items-center justify-center">
+                  <AlertCircle size={32} className="text-[#FF4D4D]" />
+                </div>
+                
+                <div className="space-y-2">
+                  <h2 
+                    className="text-2xl font-black lowercase tracking-tighter text-[#FF4D4D]"
+                    style={{ fontFamily: 'var(--font-montserrat)' }}
+                  >
+                    Auth Failed
+                  </h2>
+                  <p className="text-sm font-bold uppercase tracking-widest text-white/40" style={{ fontFamily: 'var(--font-montserrat)' }}>
+                    {loginError}
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-4 pt-4">
+                <p className="text-[10px] text-center text-white/30 uppercase tracking-[0.2em] leading-relaxed font-bold" style={{ fontFamily: 'var(--font-montserrat)', whiteSpace: 'pre-line' }}>
+                  blud your netid or{"\n"}password is wrong :/
+                </p>
+                
+                <button
+                  onClick={() => {
+                    setLoginPromise(null);
+                    router.replace("/login");
+                  }}
+                  className="w-full py-4 bg-[#FF4D4D] text-[#111111] font-black lowercase text-xl tracking-tighter hover:brightness-110 transition-all flex items-center justify-center gap-2 rounded-2xl"
+                  style={{ fontFamily: 'var(--font-montserrat)' }}
+                >
+                  <ArrowLeft size={18} /> go back to login
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <AnimatePresence initial={false} custom={direction} mode="wait">
         <motion.div
           key={`slide-${step}`}
@@ -452,14 +536,17 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
               animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
               exit={{ opacity: 0, scale: 0.8, filter: "blur(10px)" }}
               whileTap={{ scale: 0.9 }}
+              disabled={isWaitingForLogin}
               onClick={handleNext}
-              className={`absolute bottom-8 right-8 w-12 h-12 rounded-full flex items-center justify-center shadow-lg pointer-events-auto z-[1000] border-2 border-current/10`}
+              className={`absolute bottom-8 right-8 w-12 h-12 rounded-full flex items-center justify-center shadow-lg pointer-events-auto z-[1000] border-2 border-current/10 ${isWaitingForLogin ? 'opacity-50' : ''}`}
               style={{ 
                 backgroundColor: slides[step].text.includes('[#') ? slides[step].text.replace('text-[', '').replace(']', '') : '#FFFFFF',
                 color: slides[step].bg.includes('[#') ? slides[step].bg.replace('bg-[', '').replace(']', '') : '#000000'
               }}
             >
-              {step === slides.length - 1 ? (
+              {isWaitingForLogin ? (
+                <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+              ) : step === slides.length - 1 ? (
                 <CheckCircle2 size={20} strokeWidth={3} />
               ) : (
                 <ArrowRight size={20} strokeWidth={3} />

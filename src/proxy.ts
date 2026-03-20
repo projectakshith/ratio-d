@@ -28,7 +28,7 @@ export function proxy(request: NextRequest) {
   if (isStatic) return NextResponse.next();
 
   if (!hasSession && !isPublicPage) {
-    return NextResponse.redirect(new URL("/onboarding", request.url));
+    return NextResponse.redirect(new URL("/login", request.url));
   }
 
   if (hasSession && isPublicPage) {

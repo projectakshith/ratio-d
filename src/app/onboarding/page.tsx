@@ -7,7 +7,7 @@ export default function OnboardingRoute() {
   const router = useRouter();
 
   const handleComplete = () => {
-    router.replace("/login");
+    router.replace("/");
   };
 
   return <OnboardingPage onComplete={handleComplete} />;
