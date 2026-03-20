@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { RefreshCw } from "lucide-react";
 
@@ -7,44 +7,52 @@ export default function RefreshPreview() {
   const [isSyncing, setIsSyncing] = useState(false);
   const [attendance, setAttendance] = useState(74.5);
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      handleRefresh();
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, []);
+
   const handleRefresh = () => {
     if (isSyncing) return;
     setIsSyncing(true);
     setTimeout(() => {
       setAttendance(75.2);
       setIsSyncing(false);
-    }, 450);
+    }, 800);
   };
 
   return (
     <div className="w-full max-w-[320px] space-y-4 mb-8 self-center pointer-events-none">
-      <div className="bg-white border-black/10 border-[1.5px] rounded-[24px] p-5 shadow-xl">
+      <div className="bg-[#F0EDE5] border-[#004643]/10 border-[1.5px] rounded-[24px] p-5 shadow-xl">
         <div className="flex justify-between items-end mb-4">
           <div>
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-black/40">
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#004643]/60">
               Attendance
             </span>
             <motion.h3
               key={attendance}
               initial={{ y: 5, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              className={`text-4xl font-black tracking-tighter ${attendance >= 75 ? "text-[#85a818]" : "text-black"}`}
+              className={`text-4xl font-black tracking-tighter ${attendance >= 75 ? "text-[#004643]" : "text-[#FB3640]"}`}
               style={{ fontFamily: "var(--font-montserrat)" }}
             >
               {attendance}%
             </motion.h3>
           </div>
           <div
-            className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${attendance >= 75 ? "bg-[#85a818] text-white" : "bg-black/5 text-black/40"}`}
+            className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${attendance >= 75 ? "bg-[#004643] text-[#F0EDE5]" : "bg-[#FB3640] text-white"}`}
           >
             {attendance >= 75 ? "Safe" : "Cooked"}
           </div>
         </div>
-        <div className="h-2 w-full bg-black/5 rounded-full overflow-hidden">
+        <div className="h-2 w-full bg-[#004643]/10 rounded-full overflow-hidden">
           <motion.div
+            initial={{ width: "74.5%" }}
             animate={{ width: `${attendance}%` }}
-            transition={{ type: "spring", stiffness: 100 }}
-            className={`h-full rounded-full ${attendance >= 75 ? "bg-[#85a818]" : "bg-black/20"}`}
+            transition={{ type: "spring", stiffness: 100, damping: 20 }}
+            className={`h-full rounded-full ${attendance >= 75 ? "bg-[#004643]" : "bg-[#FB3640]"}`}
           />
         </div>
       </div>
@@ -52,7 +60,7 @@ export default function RefreshPreview() {
       <motion.button
         whileTap={{ scale: 0.96 }}
         onClick={handleRefresh}
-        className="w-full py-4 bg-white border-black border-[2px] text-black rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-3 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all pointer-events-auto"
+        className="w-full py-4 bg-[#F0EDE5] border-[#004643] border-[2px] text-[#004643] rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-3 shadow-[4px_4px_0px_0px_rgba(0,70,67,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all pointer-events-auto"
       >
         <motion.div
           animate={isSyncing ? { rotate: 360 } : {}}

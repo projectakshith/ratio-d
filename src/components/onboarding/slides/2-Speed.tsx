@@ -6,18 +6,12 @@ import { OnboardingSlide } from "../slidesData";
 
 export const SpeedSlide: OnboardingSlide = {
   id: "speed",
-  bg: "bg-[#8b5cf6]",
-  text: "text-[#F7F7F7]",
-  title: (
-    <>
-      <span className="text-[2rem] block leading-none">feel</span>
-      <span className="text-[4rem] md:text-[6rem] block leading-[0.8] tracking-tighter">
-        the speed
-      </span>
-    </>
-  ),
-  titleClass: "font-black uppercase tracking-tighter leading-[0.85]",
-  subtitle: "actually fast",
+  bg: "bg-[#004643]",
+  text: "text-[#F0EDE5]",
+  title: "feel\nthe speed",
+  titleClass:
+    "font-black uppercase text-[4.5rem] md:text-[6.5rem] tracking-tighter leading-[0.85]",
+  subtitle: "custom backend. zero lag.",
   isLogoPhase: false,
   interactiveComponent: <RefreshPreview />,
   points: [

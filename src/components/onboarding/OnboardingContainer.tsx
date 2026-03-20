@@ -5,7 +5,6 @@ import {
   ArrowRight,
   Smartphone,
   MessageCircle,
-  X,
   Download,
   Share,
   PlusSquare,
@@ -14,7 +13,19 @@ import {
 import PrivacyProtocol from "@/components/shared/PrivacyProtocol";
 import ThemeSelector from "./ThemeSelector";
 import CommunityPreview from "./previews/CommunityPreview";
-import { slides, OnboardingSlide } from "./slidesData";
+import { slides } from "./slidesData";
+
+const WhatsappIcon = ({ size = 20 }: { size?: number }) => (
+  <svg 
+    width={size} 
+    height={size} 
+    viewBox="0 0 24 24" 
+    fill="currentColor" 
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A14.142 14.142 0 0012 0C5.383 0 0 5.383 0 12c0 2.112.551 4.17 1.595 5.987L0 24l6.155-1.614A11.954 11.954 0 0012 24c6.617 0 12-5.383 12-12 0-3.204-1.248-6.216-3.514-8.482z"/>
+  </svg>
+);
 
 const isDev = process.env.NODE_ENV === "development";
 
@@ -137,8 +148,19 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
             }
           }}
           style={{ touchAction: "pan-y" }}
-          className={`absolute inset-0 flex flex-col ${slides[step].bg} ${slides[step].text} px-8 pt-16 pb-32`}
+          className={`absolute inset-0 flex flex-col ${slides[step].bg} ${slides[step].text} px-8 pt-16 pb-32 overflow-hidden`}
         >
+          {!slides[step].bg.includes('#111111') && !slides[step].bg.includes('black') && !slides[step].bg.includes('#000F08') && (
+            <div className="absolute inset-0 pointer-events-none overflow-hidden flex items-center justify-center">
+              <div 
+                className="w-[120%] aspect-square rounded-full opacity-20 blur-[100px]"
+                style={{
+                  background: `radial-gradient(circle at center, ${slides[step].text === 'text-[#FFF3E6]' || slides[step].text === 'text-[#F0EDE5]' || slides[step].text === 'text-[#FEE5A8]' || slides[step].text === 'text-[#F2EFEA]' || slides[step].text === 'text-[#EADFD4]' || slides[step].text === 'text-[#D1C9FF]' ? slides[step].text.replace('text-[', '').replace(']', '') : 'rgba(255,255,255,0.8)'} 0%, transparent 60%)`
+                }}
+              />
+            </div>
+          )}
+
           {slides[step].isLogoPhase ? (
             <>
               <div className="mt-8 space-y-9 flex-1">
@@ -226,30 +248,30 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
             >
               <div className="space-y-6 flex-1 overflow-y-auto no-scrollbar pb-6 pointer-events-none">
                 {slides[step].isThemeSlide ? (
-                  <div className="pointer-events-auto">
+                  <div className="pointer-events-auto h-full">
                     <ThemeSelector onComplete={handleNext} />
                   </div>
                 ) : (
                   <>
+                    {slides[step].preview && (
+                      <motion.div
+                        variants={itemVariants}
+                        className="w-full flex justify-center"
+                      >
+                        {slides[step].preview}
+                      </motion.div>
+                    )}
+
                     {slides[step].interactiveComponent && (
                       <motion.div
                         variants={itemVariants}
                         className="w-full flex justify-center"
                       >
                         {slides[step].interactiveComponent}
-                        </motion.div>
-                        )}
+                      </motion.div>
+                    )}
 
-                        {slides[step].preview && (
-                        <motion.div
-                        variants={itemVariants}
-                        className="w-full flex justify-center"
-                        >
-                        {slides[step].preview}
-                        </motion.div>
-                        )}
-
-                    {slides[step].points.map((point, i) => (
+                    {!slides[step].isCommunitySlide && slides[step].points.map((point, i) => (
                       <motion.div
                         key={i}
                         variants={itemVariants}
@@ -278,32 +300,65 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
                         how it works <ArrowRight size={12} />
                       </motion.button>
                     )}
-
-                    {slides[step].isCommunitySlide && (
-                      <motion.div variants={itemVariants} className="space-y-6 pointer-events-none">
-                        <p className="text-xs opacity-80 leading-relaxed max-w-[280px]">
-                          join our whatsapp community. it's where the vibes are.
-                          if something breaks, just shout in the group and we'll
-                          fix it literally immediately. no corporate ticket bs.
-                        </p>
-                        <motion.a
-                          whileTap={{ scale: 0.95 }}
-                          href="https://chat.whatsapp.com/your-invite-link"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-3 bg-white text-[#8b5cf6] px-6 py-4 rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl pointer-events-auto"
-                        >
-                          <MessageCircle size={20} fill="currentColor" />
-                          Join the group
-                        </motion.a>
-                      </motion.div>
-                    )}
                   </>
                 )}
               </div>
 
-              <div className="mt-auto pt-8">
-                {slides[step].isCommunitySlide && <CommunityPreview />}
+              <div className={`mt-auto pt-4 relative z-10 ${slides[step].isThemeSlide ? 'hidden' : ''}`}>
+                {slides[step].isCommunitySlide && (
+                  <div className="mt-auto space-y-4 mb-4">
+                    <div className="space-y-4">
+                      <div className="space-y-1 px-2">
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#FFF3E6]">
+                          the lore
+                        </p>
+                        <p className="text-xs opacity-80 leading-relaxed max-w-[300px]">
+                          ratio'd was built in a week because the academia portal was 
+                          making us lose our minds. Akshith & Prethiv handled the code while 
+                          Debaditya made sure it didn't look like a 2005 website.
+                        </p>
+                      </div>
+
+                      <div className="space-y-1 px-2">
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#FFF3E6]">
+                          join the community
+                        </p>
+                        <p className="text-xs opacity-80 leading-relaxed max-w-[280px]">
+                          for sum fun, bug reports, and feature suggestions.
+                          if something breaks, just shout in the group.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="relative flex flex-col items-center -mt-8">
+                      <motion.a
+                        initial={{ opacity: 0, y: 10, rotate: 5 }}
+                        animate={{ 
+                          opacity: 1, 
+                          y: 0, 
+                          rotate: 5,
+                          scale: [1, 1.05, 1],
+                        }}
+                        transition={{
+                          scale: {
+                            repeat: Infinity,
+                            duration: 2,
+                            ease: "easeInOut"
+                          },
+                          default: { duration: 0.4 }
+                        }}
+                        whileTap={{ scale: 0.95 }}
+                        href="https://chat.whatsapp.com/D7wymoQ1zrQKqf4Qs4gw91"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="absolute top-0 right-12 z-20 bg-[#25D366] text-white px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-[0_4px_20px_rgba(37,211,102,0.4)] flex items-center gap-1.5 pointer-events-auto border-2 border-white/20"
+                      >
+                        join da gng <WhatsappIcon size={12} />
+                      </motion.a>
+                      <CommunityPreview />
+                    </div>
+                  </div>
+                )}
                 <motion.span
                   variants={itemVariants}
                   className="text-[10px] font-bold uppercase tracking-[0.4em] mb-4 opacity-40 block"

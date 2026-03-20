@@ -5,40 +5,45 @@ import { Github, Instagram } from "lucide-react";
 
 const ChefCard = ({
   name,
+  role,
   github,
   ig,
-  isPlumTop = true,
+  index,
 }: {
   name: string;
+  role: string;
   github: string;
   ig?: string;
-  isPlumTop?: boolean;
+  index: number;
 }) => {
-  const topBg = isPlumTop ? "bg-[#381932]" : "bg-[#FFF3E6]";
-  const bottomBg = isPlumTop ? "bg-[#FFF3E6]" : "bg-[#381932]";
-  const topText = isPlumTop ? "text-[#FFF3E6]" : "text-[#381932]";
-  const bottomText = isPlumTop ? "text-[#381932]" : "text-[#FFF3E6]";
+  const isDark = index % 2 === 0;
+  const topBg = isDark ? "bg-[#381932]" : "bg-[#FFF3E6]";
+  const bottomBg = isDark ? "bg-[#FFF3E6]" : "bg-[#381932]";
+  const topText = isDark ? "text-[#FFF3E6]" : "text-[#381932]";
+  const bottomText = isDark ? "text-[#381932]" : "text-[#FFF3E6]";
 
   return (
     <motion.div
-      whileTap={{ scale: 0.98 }}
-      className="w-full flex flex-col rounded-[2rem] overflow-hidden shadow-2xl border-black/5 border pointer-events-auto"
+      initial={{ opacity: 0, y: 20, rotate: index % 2 === 0 ? -2 : 2 }}
+      animate={{ opacity: 1, y: 0, rotate: index % 2 === 0 ? -2 : 2 }}
+      whileTap={{ scale: 0.95, rotate: 0 }}
+      className="w-full flex flex-col rounded-[1.2rem] overflow-hidden shadow-lg border-black/5 border pointer-events-auto"
     >
       <div
-        className={`py-4 ${topBg} ${topText} flex items-center justify-center relative overflow-hidden`}
+        className={`px-3 py-2.5 ${topBg} ${topText} flex flex-col relative overflow-hidden`}
       >
         <span
-          className="font-black uppercase tracking-tighter text-lg z-10"
+          className="font-black uppercase tracking-tighter text-sm z-10 leading-none"
           style={{ fontFamily: "var(--font-montserrat)" }}
         >
           {name}
         </span>
-        <div className="absolute -right-2 -top-2 opacity-10 rotate-12">
-          <Github size={40} />
-        </div>
+        <span className="text-[8px] font-bold opacity-60 uppercase tracking-widest mt-0.5 z-10">
+          {role}
+        </span>
       </div>
       <div
-        className={`py-3 ${bottomBg} ${bottomText} flex items-center justify-center gap-6`}
+        className={`py-1.5 ${bottomBg} ${bottomText} flex items-center justify-center gap-4`}
       >
         <a
           href={github}
@@ -46,7 +51,7 @@ const ChefCard = ({
           rel="noopener noreferrer"
           className="hover:scale-110 transition-transform"
         >
-          <Github size={20} />
+          <Github size={14} />
         </a>
         {ig && (
           <a
@@ -55,7 +60,7 @@ const ChefCard = ({
             rel="noopener noreferrer"
             className="hover:scale-110 transition-transform"
           >
-            <Instagram size={20} />
+            <Instagram size={14} />
           </a>
         )}
       </div>
@@ -65,24 +70,31 @@ const ChefCard = ({
 
 export default function ChefsPreview() {
   return (
-    <div className="w-full max-w-[320px] grid grid-cols-1 gap-4 mb-8 self-center pointer-events-none">
-      <ChefCard
-        name="Akshith"
-        github="https://github.com/projectakshith"
-        ig="https://www.instagram.com/akshithfilms/"
-        isPlumTop={true}
-      />
-      <ChefCard
-        name="Prethiv"
-        github="https://github.com/wtfPrethiv"
-        ig="https://www.instagram.com/_prethiv/"
-        isPlumTop={false}
-      />
-      <ChefCard
-        name="Debaditya"
-        github="https://github.com/DebadityaMalakar"
-        isPlumTop={true}
-      />
+    <div className="w-full max-w-[300px] grid grid-cols-2 gap-3 mb-4 self-center pointer-events-none px-2">
+      <div className="space-y-3">
+        <ChefCard
+          name="Akshith"
+          role="The Architect"
+          github="https://github.com/projectakshith"
+          ig="https://www.instagram.com/akshithfilms/"
+          index={0}
+        />
+        <ChefCard
+          name="Debaditya"
+          role="Color Picasso"
+          github="https://github.com/DebadityaMalakar"
+          index={2}
+        />
+      </div>
+      <div className="space-y-3 pt-6">
+        <ChefCard
+          name="Prethiv"
+          role="Logic Wizard"
+          github="https://github.com/wtfPrethiv"
+          ig="https://www.instagram.com/_prethiv/"
+          index={1}
+        />
+      </div>
     </div>
   );
 }
