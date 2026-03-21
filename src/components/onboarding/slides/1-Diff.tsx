@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { Zap, CloudOff, BookOpen, Activity } from "lucide-react";
+import { Zap, CloudOff, BookOpen, Activity, ShieldCheck } from "lucide-react";
 import AlertCardPreview from "../previews/AlertCardPreview";
 import { OnboardingSlide } from "../slidesData";
 import { motion } from "framer-motion";
@@ -39,9 +39,9 @@ export const DiffSlide: OnboardingSlide = {
       showAfterInteraction: true,
     },
     {
-      icon: Zap,
+      icon: ShieldCheck,
       label: "failproof auth engine",
-      desc: "seamlessly bypasses common portal issues like 'session expired' or concurrent login blocks.",
+      desc: "custom session handling that seamlessly bypasses common portal issues like 'session expired' or concurrent login blocks.",
     },
     {
       icon: CloudOff,

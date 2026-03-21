@@ -289,7 +289,7 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
                       ) : (
                         slides[step].points.map((point, i) => (
                           <motion.div
-                            key={i}
+                            key={point.label}
                             variants={itemVariants}
                             className="flex gap-4"
                           >
@@ -362,7 +362,7 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
               animate="visible"
               className="flex flex-col h-full"
             >
-              <div className="space-y-4 flex-1 overflow-y-auto no-scrollbar pb-6 pointer-events-none">
+              <div className="space-y-6 flex-1 overflow-y-auto no-scrollbar pb-6 pointer-events-none">
                 {slides[step].isThemeSlide ? (
                   <div className="pointer-events-auto h-full">
                     <ThemeSelector onComplete={handleNext} />
@@ -381,7 +381,7 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
                     {slides[step].interactiveComponent && (
                       <motion.div
                         variants={itemVariants}
-                        className="w-full flex justify-center"
+                        className="w-full flex justify-center pointer-events-auto"
                       >
                         {React.isValidElement(slides[step].interactiveComponent) 
                           ? React.cloneElement(slides[step].interactiveComponent as React.ReactElement<any>, { 
@@ -391,31 +391,36 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
                       </motion.div>
                     )}
 
-                    {!slides[step].isCommunitySlide && slides[step].points
-                      .filter(point => {
-                        if (hasInteracted && point.hideAfterInteraction) return false;
-                        if (!hasInteracted && point.showAfterInteraction) return false;
-                        return true;
-                      })
-                      .map((point, i) => (
-                      <motion.div
-                        key={`${step}-${i}-${hasInteracted}`}
-                        variants={itemVariants}
-                        className="flex gap-3 pointer-events-none"
-                      >
-                        <div className="w-9 h-9 rounded-xl bg-black/10 flex items-center justify-center shrink-0 border border-current/20">
-                          <point.icon size={18} />
-                        </div>
-                        <div className="flex-1">
-                          <h3 className="font-bold text-sm uppercase tracking-wider">
-                            {point.label}
-                          </h3>
-                          <div className="text-xs opacity-70 mt-1 [&_a]:pointer-events-auto">
-                            {point.desc}
+                    <AnimatePresence mode="popLayout">
+                      {!slides[step].isCommunitySlide && slides[step].points
+                        .filter(point => {
+                          if (hasInteracted && point.hideAfterInteraction) return false;
+                          if (!hasInteracted && point.showAfterInteraction) return false;
+                          return true;
+                        })
+                        .map((point, i) => (
+                        <motion.div
+                          key={point.label}
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: 10 }}
+                          variants={itemVariants}
+                          className="flex gap-4 pointer-events-none"
+                        >
+                          <div className="w-10 h-10 rounded-xl bg-black/10 flex items-center justify-center shrink-0 border border-current/20">
+                            <point.icon size={20} />
                           </div>
-                        </div>
-                      </motion.div>
-                    ))}
+                          <div className="flex-1">
+                            <h3 className="font-bold text-sm uppercase tracking-wider">
+                              {point.label}
+                            </h3>
+                            <div className="text-xs opacity-70 mt-1 [&_a]:pointer-events-auto">
+                              {point.desc}
+                            </div>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </AnimatePresence>
 
                     {slides[step].isPrivacySlide && (
                       <motion.button
