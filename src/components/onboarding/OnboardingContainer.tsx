@@ -768,13 +768,11 @@ export default function OnboardingContainer({
                   </span>
                   <Download
                     size={48}
-                    className={
-                      canInstall
-                        ? "group-hover:translate-y-2 transition-transform"
-                        : ""
-                    }
-                  />
-                </button>
+                    className={`
+                      ${canInstall ? "group-hover:translate-y-2 transition-transform" : ""}
+                      -translate-y-2
+                    `}
+                  />                </button>
               ) : (
                 <div className="space-y-6 border-t border-white/20 pt-8">
                   <div className="flex items-center gap-4 text-white/80">
