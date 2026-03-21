@@ -362,7 +362,7 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
               animate="visible"
               className="flex flex-col h-full"
             >
-              <div className="space-y-6 flex-1 overflow-y-auto no-scrollbar pb-6 pointer-events-none">
+              <div className="space-y-6 flex-1 overflow-y-auto no-scrollbar pb-6 pointer-events-auto">
                 {slides[step].isThemeSlide ? (
                   <div className="pointer-events-auto h-full">
                     <ThemeSelector onComplete={handleNext} />
@@ -391,7 +391,7 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
                       </motion.div>
                     )}
 
-                    <AnimatePresence mode="popLayout">
+                    <div className="space-y-6">
                       {!slides[step].isCommunitySlide && slides[step].points
                         .filter(point => {
                           if (hasInteracted && point.hideAfterInteraction) return false;
@@ -401,9 +401,6 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
                         .map((point, i) => (
                         <motion.div
                           key={point.label}
-                          initial={{ opacity: 0, x: -10 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          exit={{ opacity: 0, x: 10 }}
                           variants={itemVariants}
                           className="flex gap-4 pointer-events-none"
                         >
@@ -420,7 +417,7 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
                           </div>
                         </motion.div>
                       ))}
-                    </AnimatePresence>
+                    </div>
 
                     {slides[step].isPrivacySlide && (
                       <motion.button
@@ -628,6 +625,7 @@ export default function OnboardingContainer({
     };
 
     const installPromptHandler = (e: any) => {
+      console.log("beforeinstallprompt fired");
       e.preventDefault();
       setDeferredPrompt(e);
       setCanInstall(true);
