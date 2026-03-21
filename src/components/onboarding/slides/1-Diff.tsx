@@ -30,6 +30,13 @@ export const DiffSlide: OnboardingSlide = {
       icon: Activity,
       label: "live alerts",
       desc: "get real-time notifications for classes, exams, and marks.",
+      hideAfterInteraction: true,
+    },
+    {
+      icon: Activity,
+      label: "2nd yr cse alerts",
+      desc: "full ft/ct details for 2nd yr cse. (other courses? send us details!)",
+      showAfterInteraction: true,
     },
     {
       icon: ShieldCheck,
