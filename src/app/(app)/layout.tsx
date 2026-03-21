@@ -24,21 +24,32 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { userData, logout, customDisplayName, setCustomDisplayName, isUpdating } = useApp();
   const { theme, setTheme, uiStyle, isDark } = useTheme();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isVerified, setIsVerified] = useState(false);
   const academia = useAcademiaData(userData as any);
   const router = useRouter();
 
   useEffect(() => {
-    const isStandalone =
-      window.matchMedia("(display-mode: standalone)").matches ||
-      (window.navigator as any).standalone;
-    const isOnboarded = localStorage.getItem("ratiod_onboarded") === "true";
+    const checkAccess = () => {
+      const isStandalone =
+        window.matchMedia("(display-mode: standalone)").matches ||
+        (window.navigator as any).standalone;
+      const isOnboarded = localStorage.getItem("ratiod_onboarded") === "true";
 
-    if (!isStandalone) {
-      router.replace("/onboarding");
-    } else if (!isOnboarded) {
-      router.replace("/onboarding");
-    }
+      if (!isStandalone || !isOnboarded) {
+        router.replace("/onboarding");
+      } else {
+        setIsVerified(true);
+      }
+    };
+
+    checkAccess();
+    const timer = setTimeout(checkAccess, 500);
+    return () => clearTimeout(timer);
   }, [router]);
+
+  if (!isVerified) {
+    return <div className="fixed inset-0 bg-theme-bg z-[9999]" />;
+  }
 
   const handleUpdateName = (name: string) => {
     setCustomDisplayName(name);
