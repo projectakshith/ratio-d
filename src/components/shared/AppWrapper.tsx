@@ -22,8 +22,11 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
       window.matchMedia("(display-mode: standalone)").matches ||
       (window.navigator as any).standalone;
 
-    if (isStandalone && !globalSplashPlayed) {
+    const sessionSplash = sessionStorage.getItem("ratiod_splash_played") === "true";
+
+    if (isStandalone && !globalSplashPlayed && !sessionSplash) {
       globalSplashPlayed = true;
+      sessionStorage.setItem("ratiod_splash_played", "true");
       const isOnboarded = localStorage.getItem("ratiod_onboarded") === "true";
       if (!isOnboarded) {
         setIsFirstSplash(true);
