@@ -116,25 +116,21 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
     enter: (direction: number) => ({
       x: direction > 0 ? "100%" : "-100%",
       opacity: 0,
-      filter: "blur(20px)",
-      scale: 1.1,
+      scale: 1.05,
     }),
     center: {
       x: 0,
       opacity: 1,
-      filter: "blur(0px)",
       scale: 1,
       transition: {
         x: { type: "spring", stiffness: 300, damping: 30 } as const,
         opacity: { duration: 0.4 },
-        filter: { duration: 0.4 },
       },
     },
     exit: (direction: number) => ({
       x: direction < 0 ? "100%" : "-100%",
       opacity: 0,
-      filter: "blur(20px)",
-      scale: 0.9,
+      scale: 0.95,
       transition: { duration: 0.4 },
     }),
   };
@@ -148,12 +144,11 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
   };
 
   const letterVariants = {
-    hidden: { opacity: 0, y: 15, scale: 0.9, filter: "blur(8px)" },
+    hidden: { opacity: 0, y: 15, scale: 0.9 },
     visible: {
       opacity: 1,
       y: 0,
       scale: 1,
-      filter: "blur(0px)",
       transition: {
         type: "spring",
         damping: 15,
@@ -163,11 +158,10 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
   };
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 20, filter: "blur(10px)" },
+    hidden: { opacity: 0, y: 20 },
     visible: {
       opacity: 1,
       y: 0,
-      filter: "blur(0px)",
       transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] as const },
     },
   };
@@ -260,9 +254,9 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
           {!slides[step].bg.includes('#111111') && !slides[step].bg.includes('black') && !slides[step].bg.includes('#000F08') && (
             <div className="absolute inset-0 pointer-events-none overflow-hidden flex items-center justify-center">
               <div 
-                className="w-[120%] aspect-square rounded-full opacity-20 blur-[100px]"
+                className="w-full h-full opacity-40"
                 style={{
-                  background: `radial-gradient(circle at center, ${slides[step].text === 'text-[#FFF3E6]' || slides[step].text === 'text-[#F0EDE5]' || slides[step].text === 'text-[#FEE5A8]' || slides[step].text === 'text-[#F2EFEA]' || slides[step].text === 'text-[#EADFD4]' || slides[step].text === 'text-[#D1C9FF]' ? slides[step].text.replace('text-[', '').replace(']', '') : 'rgba(255,255,255,0.8)'} 0%, transparent 60%)`
+                  background: `radial-gradient(circle at center, ${slides[step].text === 'text-[#FFF3E6]' || slides[step].text === 'text-[#F0EDE5]' || slides[step].text === 'text-[#FEE5A8]' || slides[step].text === 'text-[#F2EFEA]' || slides[step].text === 'text-[#EADFD4]' || slides[step].text === 'text-[#D1C9FF]' ? slides[step].text.replace('text-[', '').replace(']', '') : 'rgba(255,255,255,0.8)'} 0%, transparent 70%)`
                 }}
               />
             </div>
