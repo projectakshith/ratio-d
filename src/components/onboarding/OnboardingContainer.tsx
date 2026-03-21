@@ -266,19 +266,22 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
               handlePrev();
             }
           }}
-          style={{ touchAction: "pan-y" }}
+          style={{ touchAction: "none" }}
           className={`absolute inset-0 flex flex-col ${slides[step].bg} ${slides[step].text} px-8 pt-16 pb-32 overflow-hidden`}
         >
+          {/* Transparent drag handle overlay */}
+          <div className="absolute inset-0 z-0 pointer-events-auto touch-none" />
+
           {slides[step].isLogoPhase ? (
-            <>
-              <div className="mt-8 space-y-9 flex-1">
+            <div className="relative z-10 flex flex-col h-full pointer-events-none">
+              <div className="mt-8 space-y-9 flex-1 pointer-events-none">
                 <AnimatePresence>
                   {introStage === 1 && (
                     <motion.div
                       variants={containerVariants}
                       initial="hidden"
                       animate="visible"
-                      className="space-y-9"
+                      className="space-y-9 pointer-events-none"
                     >
                       {slides[step].description ? (
                         <motion.p
@@ -314,7 +317,7 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
                 </AnimatePresence>
               </div>
 
-              <div className="relative mt-auto">
+              <div className="relative mt-auto pointer-events-none">
                 <motion.span
                   layout
                   initial={{ opacity: 0, filter: "blur(5px)" }}
@@ -356,15 +359,15 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
                   )}
                 </motion.h1>
               </div>
-            </>
+            </div>
           ) : (
             <motion.div
               variants={containerVariants}
               initial="hidden"
               animate="visible"
-              className="flex flex-col h-full"
+              className="flex flex-col h-full pointer-events-none relative z-10"
             >
-              <div className="space-y-6 flex-1 overflow-y-auto no-scrollbar pb-6 pointer-events-auto">
+              <div className="space-y-6 flex-1 overflow-y-auto no-scrollbar pb-6 pointer-events-none">
                 {slides[step].isThemeSlide ? (
                   <div className="pointer-events-auto h-full">
                     <ThemeSelector onComplete={handleNext} />
@@ -374,7 +377,7 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
                     {slides[step].preview && (
                       <motion.div
                         variants={itemVariants}
-                        className="w-full flex justify-center"
+                        className="w-full flex justify-center pointer-events-none"
                       >
                         {slides[step].preview}
                       </motion.div>
@@ -393,7 +396,7 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
                       </motion.div>
                     )}
 
-                    <div className="space-y-6">
+                    <div className="space-y-6 pointer-events-none">
                       {!slides[step].isCommunitySlide && slides[step].points
                         .filter(point => {
                           if (hasInteracted && point.hideAfterInteraction) return false;
@@ -437,11 +440,11 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
                 )}
               </div>
 
-              <div className={`mt-auto pt-4 relative z-10 ${slides[step].isThemeSlide ? 'hidden' : ''}`}>
+              <div className={`mt-auto pt-4 relative z-10 pointer-events-none ${slides[step].isThemeSlide ? 'hidden' : ''}`}>
                 {slides[step].isCommunitySlide && (
-                  <div className="mt-auto space-y-4 mb-4">
-                    <div className="space-y-4">
-                      <div className="space-y-1 px-2">
+                  <div className="mt-auto space-y-4 mb-4 pointer-events-none">
+                    <div className="space-y-4 pointer-events-none">
+                      <div className="space-y-1 px-2 pointer-events-none">
                         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#FFF3E6]">
                           the lore
                         </p>
@@ -450,7 +453,7 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
                         </p>
                       </div>
 
-                      <div className="space-y-1 px-2">
+                      <div className="space-y-1 px-2 pointer-events-none">
                         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#FFF3E6]">
                           join the community
                         </p>
@@ -461,7 +464,7 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
                       </div>
                     </div>
 
-                    <div className="relative flex flex-col items-center -mt-8">
+                    <div className="relative flex flex-col items-center -mt-8 pointer-events-none">
                       <motion.a
                         initial={{ opacity: 0, y: 10, rotate: 5 }}
                         animate={{ 
