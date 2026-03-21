@@ -90,37 +90,18 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
 
   return (
     <main className="bg-theme-bg min-h-[100dvh] w-full relative">
-      <AnimatePresence mode="wait">
+      <AnimatePresence>
         {isOffline && (
           <motion.div
-            key="offline-banner"
-            initial={{ y: "-100%" }}
-            animate={{ y: showBigOffline ? "0%" : "-100%" }}
-            exit={{ y: "-100%" }}
-            transition={{ type: "spring", stiffness: 300, damping: 25 }}
-            className="fixed top-0 left-0 right-0 z-[9999] flex flex-col items-center pointer-events-none"
+            initial={{ y: -20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: -20, opacity: 0 }}
+            className="fixed top-4 left-1/2 -translate-x-1/2 z-[9999] pointer-events-none"
           >
-            <div className="bg-[#FF4D4D] w-full py-4 px-6 flex flex-col items-center justify-center shadow-xl relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-full h-1 bg-black/20" />
-              <div className="flex flex-col items-center gap-2 mt-4">
-                <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-md mb-1">
-                  <WifiOff size={24} className="text-white" strokeWidth={2.5} />
-                </div>
-                <span
-                  className="text-3xl font-black lowercase tracking-widest text-white leading-none"
-                  style={{ fontFamily: "Aonic, sans-serif" }}
-                >
-                  Offline
-                </span>
-                <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/80 max-w-[250px] text-center leading-snug">
-                  You are viewing cached data.
-                </span>
-              </div>
-            </div>
-            <div className="bg-[#FF4D4D] px-6 py-2 rounded-b-3xl shadow-lg mt-0 flex justify-center items-center">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-white/90 flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-                waiting for connection
+            <div className="bg-[#FF4D4D] px-4 py-1.5 rounded-full shadow-lg flex items-center gap-2 border border-white/20">
+              <WifiOff size={12} className="text-white" />
+              <span className="text-[10px] font-bold uppercase tracking-widest text-white">
+                Offline Mode
               </span>
             </div>
           </motion.div>
