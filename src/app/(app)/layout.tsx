@@ -33,7 +33,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       (window.navigator as any).standalone;
     const isOnboarded = localStorage.getItem("ratiod_onboarded") === "true";
 
-    if (!isStandalone || !isOnboarded) {
+    if (!isStandalone) {
+      router.replace("/onboarding");
+    } else if (!isOnboarded) {
       router.replace("/onboarding");
     }
   }, [router]);

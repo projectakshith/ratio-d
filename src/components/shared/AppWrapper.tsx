@@ -13,6 +13,7 @@ let globalSplashPlayed = false;
 export default function AppWrapper({ children }: { children: React.ReactNode }) {
   const { isOffline } = useApp();
   const [showSplash, setShowSplash] = useState(false);
+  const [isReady, setIsReady] = useState(false);
   const [isFirstSplash, setIsFirstSplash] = useState(false);
   const [showBigOffline, setShowBigOffline] = useState(false);
 
@@ -30,8 +31,11 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
       setShowSplash(true);
       const safetyTimer = setTimeout(() => {
         setShowSplash(false);
+        setIsReady(true);
       }, !isOnboarded ? 3500 : 800);
       return () => clearTimeout(safetyTimer);
+    } else {
+      setIsReady(true);
     }
   }, []);
 
@@ -74,7 +78,7 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
       </AnimatePresence>
 
       <div 
-        className="flex-1 relative z-10 w-full"
+        className={`flex-1 relative z-10 w-full transition-opacity duration-300 ${isReady ? 'opacity-100' : 'opacity-0'}`}
         style={{
           paddingTop: "env(safe-area-inset-top, 0px)",
           paddingBottom: "env(safe-area-inset-bottom, 0px)",
