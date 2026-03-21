@@ -35,7 +35,7 @@ export default function AlertCardPreview({ onInteraction }: { onInteraction?: ()
   };
 
   return (
-    <div className="relative w-full max-w-[340px] h-[260px] flex items-center justify-center mb-4 self-center">
+    <div className="relative w-full max-w-[340px] h-[240px] flex items-center justify-center mb-4 self-center">
       <motion.div
         initial={{ x: 0, y: 0, rotate: 0, opacity: 0 }}
         animate={{ x: 0, y: 0, rotate: -2, opacity: 1 }}

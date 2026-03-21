@@ -180,7 +180,7 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
       animate={{ opacity: isExiting ? 0 : 1, x: isExiting ? -20 : 0 }}
       exit={{ opacity: 0, x: -20 }}
       transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-      className="fixed inset-0 overflow-hidden bg-[#111111] z-[999]"
+      className="fixed inset-0 bg-[#111111] z-[999]"
     >
       <div className="absolute inset-0 pointer-events-none overflow-hidden flex items-center justify-center">
         <AnimatePresence mode="wait">
@@ -276,9 +276,8 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
             }
           }}
           style={{ touchAction: "none" }}
-          className={`absolute inset-0 flex flex-col ${slides[step].bg} ${slides[step].text} px-8 pt-16 pb-32 overflow-hidden`}
+          className={`absolute inset-0 flex flex-col ${slides[step].bg} ${slides[step].text} px-8 pt-16 pb-32`}
         >
-          {/* Transparent drag handle overlay */}
           <div className="absolute inset-0 z-0 pointer-events-auto touch-none" />
 
           {slides[step].isLogoPhase ? (
@@ -376,7 +375,7 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
               animate="visible"
               className="flex flex-col h-full pointer-events-none relative z-10"
             >
-              <div className="space-y-6 flex-1 overflow-y-auto no-scrollbar pb-6 pointer-events-none">
+              <div className={`${slides[step].id === "unique" ? "space-y-4 overflow-visible" : "space-y-6 overflow-y-auto no-scrollbar"} flex-1 pb-6 pointer-events-none`}>
                 {slides[step].isThemeSlide ? (
                   <div className="pointer-events-auto h-full">
                     <ThemeSelector onComplete={handleNext} />
@@ -405,7 +404,7 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
                       </motion.div>
                     )}
 
-                    <div className="space-y-6 pointer-events-none">
+                    <div className={`${slides[step].id === "unique" ? "space-y-4" : "space-y-6"} pointer-events-none`}>
                       {!slides[step].isCommunitySlide && slides[step].points
                         .filter(point => {
                           if (hasInteracted && point.hideAfterInteraction) return false;
@@ -449,7 +448,7 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
                 )}
               </div>
 
-              <div className={`mt-auto pt-4 relative z-10 pointer-events-none ${slides[step].isThemeSlide ? 'hidden' : ''}`}>
+              <div className={`${slides[step].id === "unique" ? "mt-4" : "mt-auto pt-4"} relative z-10 pointer-events-none ${slides[step].isThemeSlide ? "hidden" : ""}`}>
                 {slides[step].isCommunitySlide && (
                   <div className="mt-auto space-y-4 mb-4 pointer-events-none">
                     <div className="space-y-4 pointer-events-none">
