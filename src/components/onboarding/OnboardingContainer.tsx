@@ -701,7 +701,10 @@ export default function OnboardingContainer({
           </h1>
           {isDev && (
             <button
-              onClick={() => setForceOnboarding(true)}
+              onClick={() => {
+                setForceOnboarding(true);
+                localStorage.setItem("ratiod_bypass_pwa", "true");
+              }}
               className="absolute inset-0 w-full h-full opacity-0 cursor-default"
               aria-hidden="true"
             />

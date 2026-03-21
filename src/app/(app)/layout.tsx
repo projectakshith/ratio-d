@@ -29,22 +29,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
-    const checkAccess = () => {
-      const isStandalone =
-        window.matchMedia("(display-mode: standalone)").matches ||
-        (window.navigator as any).standalone;
-      const isOnboarded = localStorage.getItem("ratiod_onboarded") === "true";
-
-      if (!isStandalone || !isOnboarded) {
-        router.replace("/onboarding");
-      } else {
-        setIsVerified(true);
-      }
-    };
-
-    checkAccess();
-    const timer = setTimeout(checkAccess, 500);
-    return () => clearTimeout(timer);
+    const isOnboarded = localStorage.getItem("ratiod_onboarded") === "true";
+    if (!isOnboarded) {
+      router.replace("/onboarding");
+    } else {
+      setIsVerified(true);
+    }
   }, [router]);
 
   if (!isVerified) {
