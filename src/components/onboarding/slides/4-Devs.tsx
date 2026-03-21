@@ -1,18 +1,18 @@
 "use client";
 import React from "react";
-import ChefsPreview from "../previews/ChefsPreview";
+import DevsPreview from "../previews/DevsPreview";
 import { OnboardingSlide } from "../slidesData";
 
 export const DevsSlide: OnboardingSlide = {
   id: "community",
   bg: "bg-[#381932]",
   text: "text-[#FFF3E6]",
-  title: "the\nchefs",
+  title: "the\ndevs",
   titleClass:
     "font-black uppercase text-[4.5rem] md:text-[6.5rem] tracking-tighter leading-[0.85]",
-  subtitle: "built by students for students",
+  subtitle: "we da best (kanye level delusion)",
   isLogoPhase: false,
   isCommunitySlide: true,
-  preview: <ChefsPreview />,
+  preview: <DevsPreview />,
   points: [],
 };

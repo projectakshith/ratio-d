@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Bell, BellRing, Check, Activity } from "lucide-react";
 import { requestNotificationPermission } from "@/utils/shared/notifs";
 
-export default function AlertCardPreview() {
+export default function AlertCardPreview({ onInteraction }: { onInteraction?: () => void }) {
   const [permission, setPermission] = useState<string>("default");
   const [hasHandled, setHasHandled] = useState(false);
   const [isRevealed, setIsRevealed] = useState(false);
@@ -15,13 +15,15 @@ export default function AlertCardPreview() {
       if (Notification.permission !== "default") {
         setHasHandled(true);
         setIsRevealed(true);
+        if (onInteraction) onInteraction();
       }
     }
-  }, []);
+  }, [onInteraction]);
 
   const handleEnable = async () => {
     const granted = await requestNotificationPermission();
     setPermission(granted ? "granted" : "denied");
+    if (onInteraction) onInteraction();
     setTimeout(() => {
       setHasHandled(true);
       setTimeout(() => setIsRevealed(true), 800);
@@ -29,7 +31,7 @@ export default function AlertCardPreview() {
   };
 
   return (
-    <div className="relative w-full max-w-[340px] h-[280px] flex items-center justify-center mb-8 self-center">
+    <div className="relative w-full max-w-[340px] h-[260px] flex items-center justify-center mb-2 self-center">
       <motion.div
         initial={{ x: 0, y: 0, rotate: 0, opacity: 0 }}
         animate={{ x: 0, y: 0, rotate: -2, opacity: 1 }}

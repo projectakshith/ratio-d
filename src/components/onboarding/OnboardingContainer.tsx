@@ -43,12 +43,17 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
   const [isExiting, setIsExiting] = useState(false);
   const [isWaitingForLogin, setIsWaitingForLogin] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
+  const [hasInteracted, setHasInteracted] = useState(false);
 
   const haptic = (intensity = 10) => {
     if (typeof window !== "undefined" && window.navigator.vibrate) {
       window.navigator.vibrate(intensity);
     }
   };
+
+  useEffect(() => {
+    setHasInteracted(false);
+  }, [step]);
 
   useEffect(() => {
     if (loginPromise) {
@@ -357,7 +362,7 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
               animate="visible"
               className="flex flex-col h-full"
             >
-              <div className="space-y-6 flex-1 overflow-y-auto no-scrollbar pb-6 pointer-events-none">
+              <div className="space-y-4 flex-1 overflow-y-auto no-scrollbar pb-6 pointer-events-none">
                 {slides[step].isThemeSlide ? (
                   <div className="pointer-events-auto h-full">
                     <ThemeSelector onComplete={handleNext} />
@@ -378,18 +383,28 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
                         variants={itemVariants}
                         className="w-full flex justify-center"
                       >
-                        {slides[step].interactiveComponent}
+                        {React.isValidElement(slides[step].interactiveComponent) 
+                          ? React.cloneElement(slides[step].interactiveComponent as React.ReactElement<any>, { 
+                              onInteraction: () => setHasInteracted(true) 
+                            })
+                          : slides[step].interactiveComponent}
                       </motion.div>
                     )}
 
-                    {!slides[step].isCommunitySlide && slides[step].points.map((point, i) => (
+                    {!slides[step].isCommunitySlide && slides[step].points
+                      .filter(point => {
+                        if (hasInteracted && point.hideAfterInteraction) return false;
+                        if (!hasInteracted && point.showAfterInteraction) return false;
+                        return true;
+                      })
+                      .map((point, i) => (
                       <motion.div
-                        key={i}
+                        key={`${step}-${i}-${hasInteracted}`}
                         variants={itemVariants}
-                        className="flex gap-4 pointer-events-none"
+                        className="flex gap-3 pointer-events-none"
                       >
-                        <div className="w-10 h-10 rounded-xl bg-black/10 flex items-center justify-center shrink-0 border border-current/20">
-                          <point.icon size={20} />
+                        <div className="w-9 h-9 rounded-xl bg-black/10 flex items-center justify-center shrink-0 border border-current/20">
+                          <point.icon size={18} />
                         </div>
                         <div className="flex-1">
                           <h3 className="font-bold text-sm uppercase tracking-wider">
@@ -426,10 +441,8 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
                         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#FFF3E6]">
                           the lore
                         </p>
-                        <p className="text-xs opacity-80 leading-relaxed max-w-[300px]">
-                          ratio'd was built in a week because the academia portal was 
-                          making us lose our minds. Akshith & Prethiv handled the code while 
-                          Debaditya made sure it didn't look like a 2005 website.
+                          <p className="text-xs opacity-80 leading-relaxed max-w-[300px]">
+                            ratio'd was basically built for fun. thats it. thats the lore. ")
                         </p>
                       </div>
 

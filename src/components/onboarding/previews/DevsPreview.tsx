@@ -3,7 +3,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Github, Instagram, Linkedin } from "lucide-react";
 
-const ChefCard = ({
+const DevCard = ({
   name,
   role,
   github,
@@ -80,37 +80,52 @@ const ChefCard = ({
   );
 };
 
-export default function ChefsPreview() {
+export default function DevsPreview() {
   return (
-    <div className="w-full max-w-[300px] grid grid-cols-2 gap-3 mb-4 self-center pointer-events-none px-2">
-      <div className="space-y-3">
-        <ChefCard
-          name="Akshith"
-          role="The Architect"
-          github="https://github.com/projectakshith"
-          ig="https://www.instagram.com/akshithfilms/"
-          linkedin="https://www.linkedin.com/in/akshith-rajesh/"
-          index={0}
-        />
-        <ChefCard
-          name="Debaditya"
-          role="Color Picasso"
-          github="https://github.com/DebadityaMalakar"
-          ig="https://www.instagram.com/anxy.4.uriel/"
-          linkedin="https://www.linkedin.com/in/debaditya-malakar-3ba9b5334/"
-          index={2}
-        />
+    <div className="w-full max-w-[300px] flex flex-col self-center pointer-events-none px-2">
+      <div className="grid grid-cols-2 gap-3 mb-6">
+        <div className="space-y-3">
+          <DevCard
+            name="Akshith"
+            role="design & dev"
+            github="https://github.com/projectakshith"
+            ig="https://www.instagram.com/akshithfilms/"
+            linkedin="https://www.linkedin.com/in/akshith-rajesh/"
+            index={0}
+          />
+          <DevCard
+            name="Debaditya"
+            role="themes"
+            github="https://github.com/DebadityaMalakar"
+            ig="https://www.instagram.com/anxy.4.uriel/"
+            linkedin="https://www.linkedin.com/in/debaditya-malakar-3ba9b5334/"
+            index={2}
+          />
+        </div>
+        <div className="space-y-3 pt-6">
+          <DevCard
+            name="Prethiv"
+            role="core logic"
+            github="https://github.com/wtfPrethiv"
+            ig="https://www.instagram.com/_prethiv/"
+            linkedin="https://www.linkedin.com/in/prethiv-sriman/"
+            index={1}
+          />
+        </div>
       </div>
-      <div className="space-y-3 pt-6">
-        <ChefCard
-          name="Prethiv"
-          role="Logic Wizard"
-          github="https://github.com/wtfPrethiv"
-          ig="https://www.instagram.com/_prethiv/"
-          linkedin="https://www.linkedin.com/in/prethiv-sriman/"
-          index={1}
-        />
-      </div>
+      
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 0.4 }}
+        className="text-center"
+      >
+        <p 
+          className="text-[9px] font-bold uppercase tracking-widest leading-relaxed"
+          style={{ fontFamily: 'var(--font-montserrat)' }}
+        >
+          and our friends who helped us{"\n"}through the dev period <span className="lowercase text-[12px]">UwU</span>
+        </p>
+      </motion.div>
     </div>
   );
 }

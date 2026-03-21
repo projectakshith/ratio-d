@@ -35,7 +35,7 @@ export const PrivacySlide: OnboardingSlide = {
     {
       icon: ShieldCheck,
       label: "aes encrypted",
-      desc: "even if someone takes your phone, your data is locked down.",
+      desc: "even tho data is locally stored, we encrypted your creds",
     },
     {
       icon: Github,
