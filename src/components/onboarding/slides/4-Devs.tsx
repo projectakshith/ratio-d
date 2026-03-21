@@ -7,9 +7,9 @@ export const DevsSlide: OnboardingSlide = {
   id: "community",
   bg: "bg-[#381932]",
   text: "text-[#FFF3E6]",
-  title: "the\ndevs",
+  title: "the devs",
   titleClass:
-    "font-black uppercase text-[4.5rem] md:text-[6.5rem] tracking-tighter leading-[0.85]",
+    "font-black uppercase text-[4rem] md:text-[6.5rem] tracking-tighter leading-[0.85]",
   subtitle: "we da best (kanye level delusion)",
   isLogoPhase: false,
   isCommunitySlide: true,

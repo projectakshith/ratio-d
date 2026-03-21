@@ -405,7 +405,7 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
                     )}
 
                     <div className={`${slides[step].id === "unique" ? "space-y-4 overflow-visible" : "space-y-6"} pointer-events-none`}>
-                      <AnimatePresence mode="wait">
+                      <AnimatePresence>
                         {!slides[step].isCommunitySlide && slides[step].points
                           .filter(point => {
                             if (hasInteracted && point.hideAfterInteraction) return false;
@@ -655,23 +655,10 @@ export default function OnboardingContainer({
     };
   }, []);
 
-  useEffect(() => {
-    if (isPWA === null) return;
-    const isOnboarded = localStorage.getItem("ratiod_onboarded") === "true";
-    const hasData = localStorage.getItem("ratio_data");
-    const hasSession = document.cookie.includes("ratio_session=");
-
-    if (isPWA && !userData && !hasData && !hasSession && !forceOnboarding && !loginPromise) {
-      router.replace("/login");
-    } else if (isPWA && userData && isOnboarded && !forceOnboarding) {
-      router.replace("/");
-    }
-  }, [isPWA, userData, forceOnboarding, router, loginPromise]);
-
   const handleAndroidInstall = async () => {
     if (!deferredPrompt) {
       alert(
-        "Installation is almost ready. If it doesn't pop up, please wait a few seconds or use the browser menu to 'Add to Home Screen'.",
+        "Check if its installed already if not wait for a few secs or use the browser menu to add to homescreen",
       );
       return;
     }

@@ -28,8 +28,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
+    const isStandalone =
+      window.matchMedia("(display-mode: standalone)").matches ||
+      (window.navigator as any).standalone;
     const isOnboarded = localStorage.getItem("ratiod_onboarded") === "true";
-    if (!isOnboarded) {
+
+    if (!isStandalone || !isOnboarded) {
       router.replace("/onboarding");
     }
   }, [router]);

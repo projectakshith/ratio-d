@@ -8,20 +8,21 @@ import MinecraftParticles from "./MinecraftParticles";
 import MinecraftAmbience from "./MinecraftAmbience";
 import SyncStatusNotification from "./SyncStatusNotification";
 
+let globalSplashPlayed = false;
+
 export default function AppWrapper({ children }: { children: React.ReactNode }) {
   const { isOffline } = useApp();
   const [showSplash, setShowSplash] = useState(false);
   const [isFirstSplash, setIsFirstSplash] = useState(false);
   const [showBigOffline, setShowBigOffline] = useState(false);
-  const hasPlayedSessionSplash = React.useRef(false);
 
   useEffect(() => {
     const isStandalone =
       window.matchMedia("(display-mode: standalone)").matches ||
       (window.navigator as any).standalone;
 
-    if (isStandalone && !hasPlayedSessionSplash.current) {
-      hasPlayedSessionSplash.current = true;
+    if (isStandalone && !globalSplashPlayed) {
+      globalSplashPlayed = true;
       const isOnboarded = localStorage.getItem("ratiod_onboarded") === "true";
       if (!isOnboarded) {
         setIsFirstSplash(true);
