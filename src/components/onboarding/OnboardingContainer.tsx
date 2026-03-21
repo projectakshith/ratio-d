@@ -671,16 +671,15 @@ export default function OnboardingContainer({
   };
 
   if (isPWA === null || isMobile === null) {
-    return <div className="fixed inset-0 bg-[#0c30ff] z-[999]" />;
+    return null;
   }
 
   if (isPWA || forceOnboarding) {
-    if (!userData && !forceOnboarding) return <div className="fixed inset-0 bg-[#0c30ff] z-[999]" />;
     return (
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.8 }}
+        transition={{ duration: 0.4 }}
         className="fixed inset-0"
       >
         <PwaSlideshow onComplete={onFinish || onComplete || onDevBypass} />

@@ -9,7 +9,6 @@ const withPWA = withPWAInit({
   aggressiveFrontEndNavCaching: true,
   reloadOnOnline: true,
   fallbacks: {
-    document: "/~offline",
     image: "/icons/icon-192.png",
   },
   workboxOptions: {
