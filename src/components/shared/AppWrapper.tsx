@@ -11,6 +11,7 @@ import SyncStatusNotification from "./SyncStatusNotification";
 export default function AppWrapper({ children }: { children: React.ReactNode }) {
   const { isOffline } = useApp();
   const [showSplash, setShowSplash] = useState(false);
+  const [isFirstSplash, setIsFirstSplash] = useState(false);
   const [showBigOffline, setShowBigOffline] = useState(false);
 
   const hasCheckedVersion = React.useRef(false);
@@ -45,10 +46,14 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
       (window.navigator as any).standalone;
 
     if (isStandalone) {
+      const isOnboarded = localStorage.getItem("ratiod_onboarded") === "true";
+      if (!isOnboarded) {
+        setIsFirstSplash(true);
+      }
       setShowSplash(true);
       const safetyTimer = setTimeout(() => {
         setShowSplash(false);
-      }, 3500);
+      }, !isOnboarded ? 3500 : 2000);
       return () => clearTimeout(safetyTimer);
     }
   }, []);
@@ -137,15 +142,30 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
             className="fixed inset-0 flex items-center justify-center z-[9999] bg-[#0c30ff]"
           >
-            <video
-              autoPlay
-              muted
-              playsInline
-              onEnded={() => setShowSplash(false)}
-              className="w-full h-full object-cover object-center"
-            >
-              <source src="/splash.mp4" type="video/mp4" />
-            </video>
+            {isFirstSplash ? (
+              <video
+                autoPlay
+                muted
+                playsInline
+                onEnded={() => setShowSplash(false)}
+                className="w-full h-full object-cover object-center translate-x-4 scale-105"
+              >
+                <source src="/splash.mp4" type="video/mp4" />
+              </video>
+            ) : (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="flex flex-col items-center"
+              >
+                <h1
+                  className="text-6xl md:text-8xl lowercase tracking-tighter text-[#ceff1c]"
+                  style={{ fontFamily: "Urbanosta, sans-serif" }}
+                >
+                  ratio'd
+                </h1>
+              </motion.div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

@@ -58,7 +58,7 @@ const withPWA = withPWAInit({
           cacheName: "next-rsc-data",
           expiration: {
             maxEntries: 128,
-            maxAgeSeconds: 60 * 60 * 24 * 7,
+            maxAgeSeconds: 60 * 60 * 24 * 30,
           },
         },
       },
@@ -98,7 +98,7 @@ const withPWA = withPWAInit({
       },
       {
         urlPattern: /.*/i,
-        handler: "NetworkFirst",
+        handler: "StaleWhileRevalidate",
         options: {
           cacheName: "others",
           expiration: {
