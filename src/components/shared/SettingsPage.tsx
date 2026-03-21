@@ -1,10 +1,9 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-motion";
 import {
   ChevronLeft,
   Pencil,
-  Share2,
   Bell,
   Palette,
   Lock,
@@ -12,7 +11,8 @@ import {
   ChevronRight,
   LogOut,
   Check,
-  TestTube,
+  X,
+  User,
 } from "lucide-react";
 import { requestNotificationPermission } from "@/utils/shared/notifs";
 import { StudentProfile } from "@/types";
@@ -26,6 +26,18 @@ import {
   type UiStyle,
   type ColorTheme,
 } from "@/utils/theme/themeUtils";
+
+const WhatsappIcon = ({ size = 20 }: { size?: number }) => (
+  <svg 
+    width={size} 
+    height={size} 
+    viewBox="0 0 24 24" 
+    fill="currentColor" 
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A14.142 14.142 0 0012 0C5.383 0 0 5.383 0 12c0 2.112.551 4.17 1.595 5.987L0 24l6.155-1.614A11.954 11.954 0 0012 24c6.617 0 12-5.383 12-12 0-3.204-1.248-6.216-3.514-8.482z"/>
+  </svg>
+);
 
 const backdropVariants: any = {
   hidden: { opacity: 0, backdropFilter: "blur(0px)" },
@@ -84,7 +96,6 @@ interface SettingsPageProps {
   onLogout: () => void;
   profile?: StudentProfile;
   onUpdateName?: (name: string) => void;
-  onTestNotification?: () => void;
   onSelectTheme?: (id: string) => void;
   currentTheme?: string;
 }
@@ -121,15 +132,17 @@ const SettingItem = ({
         )}
         {toggle ? (
           <div
-            className={`w-12 h-7 rounded-full relative transition-colors duration-300 ${
-              isActive ? "bg-theme-highlight" : "bg-theme-surface"
+            className={`w-12 h-7 rounded-full relative transition-all duration-300 border-[1.5px] shadow-sm ${
+              isActive 
+                ? "bg-theme-highlight border-theme-highlight" 
+                : "bg-theme-surface border-theme-border"
             }`}
           >
             <div
-              className={`absolute top-1 w-5 h-5 rounded-full transition-all duration-300 ${
+              className={`absolute top-0.5 w-[21px] h-[21px] rounded-full transition-all duration-300 shadow-md ${
                 isActive
-                  ? "right-1 bg-theme-bg"
-                  : "left-1 bg-theme-text"
+                  ? "right-0.5 bg-theme-bg"
+                  : "left-0.5 bg-theme-text"
               }`}
             />
           </div>
@@ -144,6 +157,100 @@ const SettingItem = ({
   );
 };
 
+const ProfileCard = ({ profile, onClose }: { profile: any; onClose: () => void }) => {
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+
+  const rotateX = useTransform(y, [-100, 100], [15, -15]);
+  const rotateY = useTransform(x, [-100, 100], [-15, 15]);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.9 }}
+      className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/60 backdrop-blur-md"
+    >
+      <motion.div
+        style={{ x, y, rotateX, rotateY, perspective: 1000 }}
+        drag
+        dragConstraints={{ top: 0, left: 0, right: 0, bottom: 0 }}
+        dragElastic={0.1}
+        className="relative w-full max-w-sm aspect-[3/4.5] rounded-[32px] overflow-hidden bg-theme-bg flex flex-col shadow-2xl touch-none border border-theme-border"
+      >
+        <div className="h-[50%] w-full relative overflow-hidden">
+           <svg viewBox="0 0 500 500" preserveAspectRatio="none" className="absolute inset-0 w-full h-full opacity-90">
+             <defs>
+               <linearGradient id="arc-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                 <stop offset="0%" stopColor="var(--theme-highlight)" />
+                 <stop offset="100%" stopColor="var(--theme-secondary)" />
+               </linearGradient>
+             </defs>
+             <path 
+               d="M0,0 L500,0 L500,320 C420,320 380,180 250,180 C120,180 80,320 0,320 Z" 
+               fill="url(#arc-grad)" 
+             />
+           </svg>
+           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.2),transparent_70%)]" />
+        </div>
+
+        <button 
+          onClick={onClose}
+          className="absolute top-6 right-6 w-10 h-10 rounded-full bg-theme-text/5 hover:bg-theme-text/10 flex items-center justify-center text-theme-text/40 transition-colors z-20"
+        >
+          <X size={20} />
+        </button>
+
+        <div className="px-8 flex flex-col justify-start pt-4 pointer-events-none">
+          <h2 className="text-4xl font-black text-theme-text leading-[0.9] tracking-tighter lowercase mb-1" style={{ fontFamily: "var(--font-montserrat)" }}>
+            {profile.name}
+          </h2>
+          <p className="text-[11px] font-bold text-theme-text/30 uppercase tracking-[0.15em] leading-tight">
+            {profile.dept || profile.program} student
+          </p>
+        </div>
+
+        <div className="px-8 mt-6 flex-1 pointer-events-none">
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <span className="text-[8px] font-black uppercase tracking-[0.2em] text-theme-text/30 block mb-0.5">batch</span>
+              <span className="text-[13px] font-bold text-theme-text opacity-80">{profile.batch || "N/A"}</span>
+            </div>
+            <div>
+              <span className="text-[8px] font-black uppercase tracking-[0.2em] text-theme-text/30 block mb-0.5">semester</span>
+              <span className="text-[13px] font-bold text-theme-text opacity-80">{profile.semester || "N/A"}</span>
+            </div>
+            <div>
+              <span className="text-[8px] font-black uppercase tracking-[0.2em] text-theme-text/30 block mb-0.5">section</span>
+              <span className="text-[13px] font-bold text-theme-text opacity-80 truncate">{profile.section?.replace(/[()]/g, '') || "N/A"}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="px-8 pb-8 flex justify-between items-end pointer-events-none">
+          <div className="flex items-center border border-theme-border rounded-lg overflow-hidden h-7">
+            <span className="px-2 text-[9px] font-black text-theme-text/50 border-r border-theme-border h-full flex items-center">SRMIST</span>
+            <div className="px-1.5 h-full flex items-center bg-theme-text/[0.03]">
+               <div className="grid grid-cols-3 gap-0.5">
+                 {[...Array(9)].map((_, i) => <div key={i} className="w-0.5 h-0.5 bg-theme-text/20 rounded-full" />)}
+               </div>
+            </div>
+            <span className="px-2 text-[9px] font-bold text-theme-text/50 border-l border-theme-border h-full flex items-center tracking-tight">
+              {profile.regNo}
+            </span>
+          </div>
+
+          <div className="flex flex-col items-end">
+            <span className="text-[14px] font-black text-theme-text lowercase tracking-tight" style={{ fontFamily: "Urbanosta" }}>
+              ratio'd
+            </span>
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+};
+
 import PrivacyProtocol from "@/components/shared/PrivacyProtocol";
 
 const SettingsPage = ({
@@ -151,7 +258,6 @@ const SettingsPage = ({
   onLogout,
   profile,
   onUpdateName,
-  onTestNotification,
   onSelectTheme,
   currentTheme = "minimalist_minimalist-dark",
 }: SettingsPageProps) => {
@@ -161,6 +267,7 @@ const SettingsPage = ({
   const [notifEnabled, setNotifEnabled] = useState(false);
   const [showThemes, setShowThemes] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
+  const [showProfileCard, setShowProfileCard] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState(currentTheme);
 
   const { uiStyle: initialStyle, colorTheme: initialColor } = parseTheme(selectedTheme);
@@ -282,8 +389,11 @@ const SettingsPage = ({
                       >
                         <Pencil className="w-4 h-4" /> Edit Profile
                       </button>
-                      <button className="flex-1 flex items-center justify-center gap-2 py-3 rounded-[22px] bg-theme-surface transition-colors text-sm font-semibold">
-                        <Share2 className="w-4 h-4" /> Share Profile
+                      <button 
+                        onClick={() => setShowProfileCard(true)}
+                        className="flex-1 flex items-center justify-center gap-2 py-3 rounded-[22px] bg-theme-surface transition-colors text-sm font-semibold"
+                      >
+                        <User className="w-4 h-4" /> Profile Card
                       </button>
                     </motion.div>
                   ) : (
@@ -357,15 +467,11 @@ const SettingsPage = ({
                   onClick={handleSync}
                   value={isUpdating ? "Syncing..." : ""}
                 />
-                {onTestNotification && (
-                  <SettingItem
-                    icon={
-                      <TestTube className="w-5 h-5 opacity-80 text-theme-highlight" />
-                    }
-                    label="Test Notification"
-                    onClick={onTestNotification}
-                  />
-                )}
+                <SettingItem
+                  icon={<WhatsappIcon size={20} />}
+                  label="WhatsApp Community"
+                  onClick={() => window.open("https://chat.whatsapp.com/D7wymoQ1zrQKqf4Qs4gw91", "_blank")}
+                />
               </div>
             </motion.div>
           </div>
@@ -382,11 +488,19 @@ const SettingsPage = ({
             <LogOut className="w-5 h-5" /> Log Out
           </button>
           <p className="text-xs text-center text-theme-muted">
-            made by <span className="text-theme-text">Akshith Rajesh</span> and{" "}
-            <span className="text-theme-text">Prethiv Sriman D</span>
+            made by <a href="https://www.instagram.com/akshithfilms/" target="_blank" rel="noopener noreferrer" className="text-theme-text hover:underline">Akshith Rajesh</a> and <a href="https://www.instagram.com/_prethiv/" target="_blank" rel="noopener noreferrer" className="text-theme-text hover:underline">Prethiv Sriman D</a>
           </p>
         </motion.div>
       </motion.div>
+
+      <AnimatePresence>
+        {showProfileCard && userData?.profile && (
+          <ProfileCard 
+            profile={userData.profile} 
+            onClose={() => setShowProfileCard(false)} 
+          />
+        )}
+      </AnimatePresence>
 
       <PrivacyProtocol isOpen={showPrivacy} onClose={() => setShowPrivacy(false)} />
 
