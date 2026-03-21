@@ -8,7 +8,8 @@ export default function OnboardingRoute() {
 
   useEffect(() => {
     const isOnboarded = localStorage.getItem("ratiod_onboarded") === "true";
-    if (isOnboarded) {
+    const hasData = localStorage.getItem("ratio_data");
+    if (isOnboarded && hasData) {
       router.replace("/");
     }
   }, [router]);
