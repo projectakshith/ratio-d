@@ -37,6 +37,6 @@ export const sendNotification = async (
       new Notification(title, options);
     }
   } catch (e) {
-    console.error("Failed to send notification:", e);
+    console.error(e);
   }
 };

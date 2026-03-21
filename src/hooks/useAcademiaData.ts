@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { sendNotification } from "@/utils/shared/notifs";
 import calendarDataJson from "@/data/calendar_data.json";
 import {
@@ -22,6 +22,8 @@ export const useAcademiaData = (data: AcademiaData | null) => {
     nextClass: ScheduleSlot | null;
     currentClass: ScheduleSlot | null;
   }>({ nextClass: null, currentClass: null });
+
+  const sentMarkers = useRef<Set<string>>(new Set());
 
   const calendarData = useMemo(() => 
     (calendarDataJson || []) as CalendarEvent[], 
@@ -93,6 +95,39 @@ export const useAcademiaData = (data: AcademiaData | null) => {
   const criticalAttendance = useMemo(() => {
     return getCriticalAttendance(data?.attendance || []);
   }, [data?.attendance]);
+
+  useEffect(() => {
+    const checkNotifications = () => {
+      if (!timeStatus.nextClass) return;
+      
+      const now = new Date();
+      const currentMins = now.getHours() * 60 + now.getMinutes();
+      const diff = (timeStatus.nextClass.startMinutes || 0) - currentMins;
+
+      const nextClassName = timeStatus.nextClass.course || "Class";
+
+      if (diff <= 15 && diff > 5 && !sentMarkers.current.has(`${nextClassName}-15`)) {
+        sendNotification(
+          `Next: ${nextClassName}`,
+          `⏳ Starts in ${diff} min`,
+          nextClassName,
+        );
+        sentMarkers.current.add(`${nextClassName}-15`);
+      } 
+      else if (diff <= 5 && diff >= 0 && !sentMarkers.current.has(`${nextClassName}-5`)) {
+        sendNotification(
+          `Next: ${nextClassName}`,
+          `📍 ${timeStatus.nextClass.room || "No Room"}  •  ⏳ Starts in ${diff} min`,
+          nextClassName,
+        );
+        sentMarkers.current.add(`${nextClassName}-5`);
+      }
+    };
+
+    checkNotifications();
+    const interval = setInterval(checkNotifications, 30000);
+    return () => clearInterval(interval);
+  }, [timeStatus.nextClass]);
 
   const triggerTestClass = useCallback(() => {
     sendNotification(

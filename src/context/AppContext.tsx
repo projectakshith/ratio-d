@@ -4,6 +4,7 @@ import { EncryptionUtils } from "@/utils/shared/Encryption";
 import { useRouter } from "next/navigation";
 import { AcademiaData } from "@/types";
 import { compareData, DataDiff } from "@/utils/shared/diffUtils";
+import { sendNotification } from "@/utils/shared/notifs";
 
 interface AppContextType {
   userData: AcademiaData | null;
@@ -175,6 +176,30 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       window.removeEventListener("offline", handleOffline);
     };
   }, [refreshData]);
+
+  useEffect(() => {
+    if (!latestDiff) return;
+
+    latestDiff.attendanceChanges.forEach((change) => {
+      const direction = change.diff > 0 ? "Increased" : "Decreased";
+      const icon = change.diff > 0 ? "📈" : "📉";
+      const label = change.newPercent >= 75 ? "Margin" : "Required";
+      
+      sendNotification(
+        `Attendance ${direction}`,
+        `${icon} ${change.course}: ${label} ${change.oldMargin} -> ${change.newMargin}`,
+        `attendance-${change.course}`,
+      );
+    });
+
+    latestDiff.newMarks.forEach((mark) => {
+      sendNotification(
+        `New Marks: ${mark.course}`,
+        `📝 ${mark.test}: ${mark.score}/${mark.max} scored!`,
+        `marks-${mark.course}-${mark.test}`,
+      );
+    });
+  }, [latestDiff]);
 
   const value = useMemo(() => ({
     userData,

@@ -21,9 +21,21 @@ export default function AlertCardPreview({ onInteraction }: { onInteraction?: ()
   }, [onInteraction]);
 
   const handleEnable = async () => {
+    if (typeof window !== "undefined" && !window.isSecureContext) {
+      alert("Notifications require HTTPS.");
+      return;
+    }
+
+    if (typeof window !== "undefined" && Notification.permission === "denied") {
+      alert("Permission blocked. Please reset site permissions in your browser settings.");
+      return;
+    }
+
     const granted = await requestNotificationPermission();
     setPermission(granted ? "granted" : "denied");
+    
     if (onInteraction) onInteraction();
+    
     setTimeout(() => {
       setHasHandled(true);
       setTimeout(() => setIsRevealed(true), 800);
