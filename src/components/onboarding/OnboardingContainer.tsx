@@ -229,7 +229,7 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
         )}
       </AnimatePresence>
 
-      <AnimatePresence initial={false} custom={direction} mode="wait">
+      <AnimatePresence initial={false} custom={direction} mode="popLayout">
         <motion.div
           key={`slide-${step}`}
           custom={direction}
@@ -254,7 +254,7 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
           {!slides[step].bg.includes('#111111') && !slides[step].bg.includes('black') && !slides[step].bg.includes('#000F08') && (
             <div className="absolute inset-0 pointer-events-none overflow-hidden flex items-center justify-center">
               <div 
-                className="w-full h-full opacity-40"
+                className="w-full h-full opacity-20"
                 style={{
                   background: `radial-gradient(circle at center, ${slides[step].text === 'text-[#FFF3E6]' || slides[step].text === 'text-[#F0EDE5]' || slides[step].text === 'text-[#FEE5A8]' || slides[step].text === 'text-[#F2EFEA]' || slides[step].text === 'text-[#EADFD4]' || slides[step].text === 'text-[#D1C9FF]' ? slides[step].text.replace('text-[', '').replace(']', '') : 'rgba(255,255,255,0.8)'} 0%, transparent 70%)`
                 }}
@@ -633,11 +633,15 @@ export default function OnboardingContainer({
   useEffect(() => {
     if (isPWA === null) return;
     const isOnboarded = localStorage.getItem("ratiod_onboarded") === "true";
+    const hasData = localStorage.getItem("ratio_data");
+    const hasSession = document.cookie.includes("ratio_session=");
 
-    if (isPWA && !userData && !forceOnboarding) {
+    if (isPWA && !userData && !hasData && !hasSession && !forceOnboarding) {
       const timeoutId = setTimeout(() => {
-        if (!userData) router.replace("/login");
-      }, 500);
+        if (!userData && !localStorage.getItem("ratio_data")) {
+          router.replace("/login");
+        }
+      }, 800);
       return () => clearTimeout(timeoutId);
     } else if (isPWA && userData && isOnboarded && !forceOnboarding) {
       router.replace("/");

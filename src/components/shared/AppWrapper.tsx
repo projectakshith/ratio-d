@@ -61,7 +61,7 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
         meta.setAttribute('name', 'theme-color');
         document.head.appendChild(meta);
       }
-      meta.setAttribute('content', '#0c30ff');
+      meta.setAttribute('content', '#111111');
     }
   }, [showSplash]);
 
