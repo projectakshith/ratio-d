@@ -5,10 +5,7 @@ export function proxy(request: NextRequest) {
   const hasSession = request.cookies.has("ratio_session");
   const { pathname } = request.nextUrl;
 
-  const isPublicPage = 
-    pathname === "/login" || 
-    pathname === "/onboarding" || 
-    pathname === "/setup";
+  const isPublicPage = pathname === "/login";
 
   const isStatic = 
     pathname.startsWith("/api") || 

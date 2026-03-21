@@ -105,7 +105,7 @@ export default function DevsPreview() {
         <div className="space-y-3 pt-6">
           <DevCard
             name="Prethiv"
-            role="core logic"
+            role="core logic & dev"
             github="https://github.com/wtfPrethiv"
             ig="https://www.instagram.com/_prethiv/"
             linkedin="https://www.linkedin.com/in/prethiv-sriman/"
