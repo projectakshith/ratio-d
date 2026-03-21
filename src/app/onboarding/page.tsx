@@ -9,20 +9,26 @@ export default function OnboardingRoute() {
   const { userData, loginPromise } = useApp();
 
   useEffect(() => {
-    const isStandalone =
-      window.matchMedia("(display-mode: standalone)").matches ||
-      (window.navigator as any).standalone;
-    const isOnboarded = localStorage.getItem("ratiod_onboarded") === "true";
-    const hasData = localStorage.getItem("ratio_data") || userData;
-    const hasSession = document.cookie.includes("ratio_session=");
+    const checkStatus = () => {
+      const isStandalone =
+        window.matchMedia("(display-mode: standalone)").matches ||
+        (window.navigator as any).standalone;
+      const isOnboarded = localStorage.getItem("ratiod_onboarded") === "true";
+      const hasData = localStorage.getItem("ratio_data") || userData;
+      const hasSession = document.cookie.includes("ratio_session=");
 
-    if (isStandalone) {
-      if (isOnboarded && hasData && (hasSession || userData)) {
-        router.replace("/");
-      } else if (!hasData && !hasSession && !loginPromise) {
-        router.replace("/login");
+      if (isStandalone) {
+        if (isOnboarded && hasData && (hasSession || userData)) {
+          router.replace("/");
+        } else if (!hasData && !hasSession && !loginPromise) {
+          router.replace("/login");
+        }
       }
-    }
+    };
+
+    checkStatus();
+    const timer = setTimeout(checkStatus, 1000);
+    return () => clearTimeout(timer);
   }, [router, userData, loginPromise]);
 
   const handleComplete = () => {

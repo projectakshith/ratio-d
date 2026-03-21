@@ -121,6 +121,16 @@ export default function ThemeSelector({ onComplete }: ThemeSelectorProps) {
             {namedPallets.map(renderThemeButton)}
           </div>
         </div>
+
+        <div className="pt-4 pb-10">
+          <motion.button
+            whileTap={{ scale: 0.95 }}
+            onClick={() => onComplete()}
+            className="w-full py-5 bg-white text-[#0E2A47] rounded-[2rem] font-black uppercase tracking-widest text-sm shadow-xl pointer-events-auto"
+          >
+            start using ratio'd
+          </motion.button>
+        </div>
       </div>
     </div>
   );

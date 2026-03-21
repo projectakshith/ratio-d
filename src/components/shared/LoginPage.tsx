@@ -46,12 +46,10 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
 
       if (!isOnboarded) {
         setIsExiting(true);
-        try {
-          await performLogin(creds);
-          await new Promise(resolve => setTimeout(resolve, 500));
-        } catch (err) {
-        }
-        router.push("/onboarding");
+        performLogin(creds).catch(() => {});
+        setTimeout(() => {
+          router.push("/onboarding");
+        }, 300);
       } else {
         setLoading(true);
         try {
