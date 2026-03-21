@@ -3,9 +3,9 @@
   "short_name": "Ratio'd",
   "description": "cool looking and simple academia dashboard",
   "id": "/",
-  "start_url": "/?source=pwa",
+  "start_url": "/",
   "display": "standalone",
-  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "display_override": ["standalone", "window-controls-overlay", "minimal-ui"],
   "scope": "/",
   "orientation": "portrait",
   "background_color": "#0c30ff",
@@ -42,13 +42,6 @@
       "sizes": "769x1600",
       "type": "image/jpeg",
       "form_factor": "narrow",
-      "label": "Ratio'd Dashboard"
-    },
-    {
-      "src": "/screenshots/mobile.jpeg",
-      "sizes": "769x1600",
-      "type": "image/jpeg",
-      "form_factor": "wide",
       "label": "Ratio'd Dashboard"
     }
   ],

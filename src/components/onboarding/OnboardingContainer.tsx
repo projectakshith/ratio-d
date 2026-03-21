@@ -597,8 +597,8 @@ export default function OnboardingContainer({
   const [isPWA, setIsPWA] = useState<boolean | null>(null);
   const [forceOnboarding, setForceOnboarding] = useState<boolean>(false);
   const [os, setOs] = useState<"android" | "ios" | "other" | null>(null);
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-  const [canInstall, setCanInstall] = useState<boolean>(false);
+  
+  const { deferredPrompt, canInstall, setDeferredPrompt, setCanInstall } = useApp();
 
   const handleComplete = onFinish || onComplete || onDevBypass;
 
@@ -624,21 +624,12 @@ export default function OnboardingContainer({
       else setOs("other");
     };
 
-    const installPromptHandler = (e: any) => {
-      console.log("beforeinstallprompt fired");
-      e.preventDefault();
-      setDeferredPrompt(e);
-      setCanInstall(true);
-    };
-
-    window.addEventListener("beforeinstallprompt", installPromptHandler);
     window.addEventListener("resize", checkDevice);
 
     checkPWAStatus();
     checkDevice();
 
     return () => {
-      window.removeEventListener("beforeinstallprompt", installPromptHandler);
       window.removeEventListener("resize", checkDevice);
     };
   }, []);

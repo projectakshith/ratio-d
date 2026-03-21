@@ -87,18 +87,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full">
       <head>
-        <meta name="application-name" content="Ratio'd" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="Ratio'd" />
-        <meta name="format-detection" content="telephone=no" />
-        <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="msapplication-tap-highlight" content="no" />
         <meta name="color-scheme" content="dark light" />
-        
-        <link rel="apple-touch-icon" href="/icons/icon-192.png" />
-        <link rel="manifest" href="/manifest.json" />
-        <link rel="shortcut icon" href="/favicon.ico" />
       </head>
 
       <body

@@ -21,6 +21,10 @@ interface AppContextType {
   logout: () => void;
   latestDiff: DataDiff | null;
   setLatestDiff: (diff: DataDiff | null) => void;
+  deferredPrompt: any;
+  canInstall: boolean;
+  setCanInstall: (val: boolean) => void;
+  setDeferredPrompt: (val: any) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -32,6 +36,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [isOffline, setIsOffline] = useState(false);
   const [latestDiff, setLatestDiff] = useState<DataDiff | null>(null);
   const [loginPromise, setLoginPromise] = useState<Promise<any> | null>(null);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [canInstall, setCanInstall] = useState<boolean>(false);
   const updateInProgress = React.useRef(false);
   const router = useRouter();
 
@@ -171,9 +177,18 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     window.addEventListener("offline", handleOffline);
     setIsOffline(!navigator.onLine);
 
+    const installPromptHandler = (e: any) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setCanInstall(true);
+    };
+
+    window.addEventListener("beforeinstallprompt", installPromptHandler);
+
     return () => {
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
+      window.removeEventListener("beforeinstallprompt", installPromptHandler);
     };
   }, [refreshData]);
 
@@ -216,7 +231,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     logout,
     latestDiff,
     setLatestDiff,
-  }), [userData, customDisplayName, isUpdating, isOffline, refreshData, performLogin, loginPromise, logout, latestDiff]);
+    deferredPrompt,
+    canInstall,
+    setCanInstall,
+    setDeferredPrompt,
+  }), [userData, customDisplayName, isUpdating, isOffline, refreshData, performLogin, loginPromise, logout, latestDiff, deferredPrompt, canInstall]);
 
   return (
     <AppContext.Provider value={value}>
