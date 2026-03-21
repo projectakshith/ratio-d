@@ -43,6 +43,13 @@
       "type": "image/jpeg",
       "form_factor": "narrow",
       "label": "Ratio'd Dashboard"
+    },
+    {
+      "src": "/screenshots/attendance.jpeg",
+      "sizes": "769x1600",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "Ratio'd Attendance"
     }
   ],
   "categories": ["education", "productivity"],
