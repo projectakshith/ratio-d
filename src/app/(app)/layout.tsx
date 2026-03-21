@@ -1,7 +1,8 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
 import SettingsPage from "@/components/shared/SettingsPage";
 import { useApp } from "@/context/AppContext";
 import { useTheme } from "@/context/ThemeContext";
@@ -24,6 +25,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { theme, setTheme, uiStyle, isDark } = useTheme();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const academia = useAcademiaData(userData as any);
+  const router = useRouter();
+
+  useEffect(() => {
+    const isOnboarded = localStorage.getItem("ratiod_onboarded") === "true";
+    if (!isOnboarded) {
+      router.replace("/onboarding");
+    }
+  }, [router]);
 
   const handleUpdateName = (name: string) => {
     setCustomDisplayName(name);

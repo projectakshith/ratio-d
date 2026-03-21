@@ -34,7 +34,7 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/onboarding", request.url));
   }
 
-  if (hasSession && (pathname === "/login" || pathname === "/setup" || pathname === "/onboarding")) {
+  if (hasSession && (pathname === "/login" || pathname === "/setup")) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 

@@ -598,7 +598,8 @@ export default function OnboardingContainer({
   const [forceOnboarding, setForceOnboarding] = useState<boolean>(false);
   const [os, setOs] = useState<"android" | "ios" | "other" | null>(null);
   
-  const { deferredPrompt, canInstall, setDeferredPrompt, setCanInstall } = useApp();
+  const { deferredPrompt, canInstall, setDeferredPrompt, setCanInstall, userData } = useApp();
+  const router = useRouter();
 
   const handleComplete = onFinish || onComplete || onDevBypass;
 
@@ -634,6 +635,17 @@ export default function OnboardingContainer({
     };
   }, []);
 
+  useEffect(() => {
+    if (isPWA === null) return;
+    const isOnboarded = localStorage.getItem("ratiod_onboarded") === "true";
+
+    if (isPWA && !userData && !forceOnboarding) {
+      router.replace("/login");
+    } else if (isPWA && userData && isOnboarded && !forceOnboarding) {
+      router.replace("/");
+    }
+  }, [isPWA, userData, forceOnboarding, router]);
+
   const handleAndroidInstall = async () => {
     if (!deferredPrompt) {
       alert(
@@ -656,6 +668,7 @@ export default function OnboardingContainer({
   }
 
   if (isPWA || forceOnboarding) {
+    if (!userData && !forceOnboarding) return <div className="fixed inset-0 bg-[#0c30ff] z-[999]" />;
     return <PwaSlideshow onComplete={onFinish || onComplete || onDevBypass} />;
   }
 
