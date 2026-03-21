@@ -25,8 +25,38 @@ const withPWA = withPWAInit({
       { url: "/login", revision: null },
       { url: "/setup", revision: null },
       { url: "/~offline", revision: null },
+      { url: "/_not-found", revision: null },
     ],
     runtimeCaching: [
+      {
+        urlPattern: ({ request }) => request.mode === 'navigate',
+        handler: "StaleWhileRevalidate",
+        options: {
+          cacheName: "pages",
+          expiration: {
+            maxEntries: 64,
+            maxAgeSeconds: 60 * 60 * 24 * 30,
+          },
+        },
+      },
+      {
+        urlPattern: ({ request, url }) => {
+          const isSameOrigin = self.origin === url.origin;
+          return isSameOrigin && (
+            request.headers.get('RSC') === '1' || 
+            url.searchParams.has('_rsc') ||
+            url.pathname.startsWith('/_next/data/')
+          );
+        },
+        handler: "StaleWhileRevalidate",
+        options: {
+          cacheName: "next-data",
+          expiration: {
+            maxEntries: 256,
+            maxAgeSeconds: 60 * 60 * 24 * 30,
+          },
+        },
+      },
       {
         urlPattern: /\.(?:eot|otf|ttc|ttf|woff|woff2|font.css)$/i,
         handler: "CacheFirst",
@@ -43,19 +73,6 @@ const withPWA = withPWAInit({
         handler: "StaleWhileRevalidate",
         options: {
           cacheName: "static-image-assets",
-          expiration: {
-            maxEntries: 128,
-            maxAgeSeconds: 60 * 60 * 24 * 30,
-          },
-        },
-      },
-      {
-        urlPattern: ({ request }) => {
-          return request.headers.get('RSC') === '1';
-        },
-        handler: "StaleWhileRevalidate",
-        options: {
-          cacheName: "next-rsc-data",
           expiration: {
             maxEntries: 128,
             maxAgeSeconds: 60 * 60 * 24 * 30,

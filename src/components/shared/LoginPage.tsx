@@ -46,18 +46,13 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
 
       if (!isOnboarded) {
         setIsExiting(true);
-        performLogin(creds).catch(() => {
-        });
-        setTimeout(() => {
-          router.push("/onboarding");
-        }, 600);
+        performLogin(creds).catch(() => {});
+        router.push("/onboarding");
       } else {
         setLoading(true);
         try {
           const data = await performLogin(creds);
-          setTimeout(() => {
-            onLogin(data);
-          }, 1200);
+          onLogin(data);
         } catch (err: any) {
           setError(err.message || "auth failed");
           setLoading(false);
@@ -82,7 +77,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
       x: "-100%",
       opacity: 0,
       transition: {
-        duration: 0.6,
+        duration: 0.3,
         ease: [0.22, 1, 0.36, 1] as any
       }
     }

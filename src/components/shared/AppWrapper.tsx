@@ -71,12 +71,22 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
   }, [showSplash]);
 
   useEffect(() => {
-    if (isOffline) {
+    const handleOnline = () => {
+      setShowBigOffline(false);
+    };
+    const handleOffline = () => {
       setShowBigOffline(true);
-      const timer = setTimeout(() => setShowBigOffline(false), 2000);
-      return () => clearTimeout(timer);
-    }
-  }, [isOffline]);
+      setTimeout(() => setShowBigOffline(false), 3000);
+    };
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
 
   return (
     <main className="bg-theme-bg min-h-[100dvh] w-full relative">

@@ -173,6 +173,24 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
       transition={{ duration: 0.5 }}
       className="fixed inset-0 overflow-hidden bg-[#111111] z-[999]"
     >
+      <div className="absolute inset-0 pointer-events-none overflow-hidden flex items-center justify-center">
+        <AnimatePresence mode="wait">
+          {!slides[step].bg.includes('#111111') && !slides[step].bg.includes('black') && !slides[step].bg.includes('#000F08') && (
+            <motion.div 
+              key={`glow-${slides[step].id}`}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.15 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.8 }}
+              className="w-full h-full"
+              style={{
+                background: `radial-gradient(circle at center, ${slides[step].text === 'text-[#FFF3E6]' || slides[step].text === 'text-[#F0EDE5]' || slides[step].text === 'text-[#FEE5A8]' || slides[step].text === 'text-[#F2EFEA]' || slides[step].text === 'text-[#EADFD4]' || slides[step].text === 'text-[#D1C9FF]' ? slides[step].text.replace('text-[', '').replace(']', '') : 'rgba(255,255,255,0.8)'} 0%, transparent 70%)`
+              }}
+            />
+          )}
+        </AnimatePresence>
+      </div>
+
       <AnimatePresence>
         {loginError && (
           <motion.div
@@ -229,7 +247,7 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
         )}
       </AnimatePresence>
 
-      <AnimatePresence initial={false} custom={direction} mode="popLayout">
+      <AnimatePresence initial={false} custom={direction} mode="wait">
         <motion.div
           key={`slide-${step}`}
           custom={direction}
@@ -251,17 +269,6 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
           style={{ touchAction: "pan-y" }}
           className={`absolute inset-0 flex flex-col ${slides[step].bg} ${slides[step].text} px-8 pt-16 pb-32 overflow-hidden`}
         >
-          {!slides[step].bg.includes('#111111') && !slides[step].bg.includes('black') && !slides[step].bg.includes('#000F08') && (
-            <div className="absolute inset-0 pointer-events-none overflow-hidden flex items-center justify-center">
-              <div 
-                className="w-full h-full opacity-20"
-                style={{
-                  background: `radial-gradient(circle at center, ${slides[step].text === 'text-[#FFF3E6]' || slides[step].text === 'text-[#F0EDE5]' || slides[step].text === 'text-[#FEE5A8]' || slides[step].text === 'text-[#F2EFEA]' || slides[step].text === 'text-[#EADFD4]' || slides[step].text === 'text-[#D1C9FF]' ? slides[step].text.replace('text-[', '').replace(']', '') : 'rgba(255,255,255,0.8)'} 0%, transparent 70%)`
-                }}
-              />
-            </div>
-          )}
-
           {slides[step].isLogoPhase ? (
             <>
               <div className="mt-8 space-y-9 flex-1">
@@ -593,7 +600,7 @@ export default function OnboardingContainer({
   const [forceOnboarding, setForceOnboarding] = useState<boolean>(false);
   const [os, setOs] = useState<"android" | "ios" | "other" | null>(null);
   
-  const { deferredPrompt, canInstall, setDeferredPrompt, setCanInstall, userData } = useApp();
+  const { deferredPrompt, canInstall, setDeferredPrompt, setCanInstall, userData, loginPromise } = useApp();
   const router = useRouter();
 
   const handleComplete = onFinish || onComplete || onDevBypass;
@@ -636,17 +643,12 @@ export default function OnboardingContainer({
     const hasData = localStorage.getItem("ratio_data");
     const hasSession = document.cookie.includes("ratio_session=");
 
-    if (isPWA && !userData && !hasData && !hasSession && !forceOnboarding) {
-      const timeoutId = setTimeout(() => {
-        if (!userData && !localStorage.getItem("ratio_data")) {
-          router.replace("/login");
-        }
-      }, 800);
-      return () => clearTimeout(timeoutId);
+    if (isPWA && !userData && !hasData && !hasSession && !forceOnboarding && !loginPromise) {
+      router.replace("/login");
     } else if (isPWA && userData && isOnboarded && !forceOnboarding) {
       router.replace("/");
     }
-  }, [isPWA, userData, forceOnboarding, router]);
+  }, [isPWA, userData, forceOnboarding, router, loginPromise]);
 
   const handleAndroidInstall = async () => {
     if (!deferredPrompt) {
