@@ -12,6 +12,7 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
   const { isOffline } = useApp();
   const [showSplash, setShowSplash] = useState(false);
   const [isFirstSplash, setIsFirstSplash] = useState(false);
+  const [showBigOffline, setShowBigOffline] = useState(false);
   const hasPlayedSessionSplash = React.useRef(false);
 
   useEffect(() => {
@@ -33,8 +34,44 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
     }
   }, []);
 
+  useEffect(() => {
+    const handleOnline = () => {
+      setShowBigOffline(false);
+    };
+    const handleOffline = () => {
+      setShowBigOffline(true);
+      setTimeout(() => setShowBigOffline(false), 3000);
+    };
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
+
   return (
     <main className="bg-theme-bg min-h-[100dvh] w-full relative">
+      <AnimatePresence>
+        {isOffline && (
+          <motion.div
+            initial={{ y: -20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: -20, opacity: 0 }}
+            className="fixed top-4 left-1/2 -translate-x-1/2 z-[9999] pointer-events-none"
+          >
+            <div className="bg-[#FF4D4D] px-4 py-1.5 rounded-full shadow-lg flex items-center gap-2 border border-white/20">
+              <WifiOff size={12} className="text-white" />
+              <span className="text-[10px] font-bold uppercase tracking-widest text-white">
+                Offline Mode
+              </span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div 
         className="w-full h-full min-h-[100dvh] relative z-10"
         style={{

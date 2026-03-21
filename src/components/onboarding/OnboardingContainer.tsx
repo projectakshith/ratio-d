@@ -56,6 +56,14 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
   }, [step]);
 
   useEffect(() => {
+    router.prefetch("/");
+    router.prefetch("/attendance");
+    router.prefetch("/marks");
+    router.prefetch("/timetable");
+    router.prefetch("/calendar");
+  }, [router]);
+
+  useEffect(() => {
     if (loginPromise) {
       loginPromise.catch((err) => {
         setLoginError(err.message || "Invalid credentials");
@@ -168,9 +176,10 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
 
   return (
     <motion.div 
-      initial={{ opacity: 1 }}
-      animate={{ opacity: isExiting ? 0 : 1 }}
-      transition={{ duration: 0.5 }}
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: isExiting ? 0 : 1, x: isExiting ? -20 : 0 }}
+      exit={{ opacity: 0, x: -20 }}
+      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
       className="fixed inset-0 overflow-hidden bg-[#111111] z-[999]"
     >
       <div className="absolute inset-0 pointer-events-none overflow-hidden flex items-center justify-center">
