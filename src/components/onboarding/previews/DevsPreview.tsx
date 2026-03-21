@@ -113,17 +113,18 @@ export default function DevsPreview() {
           />
         </div>
       </div>
-      
+
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 0.4 }}
         className="text-center"
       >
-        <p 
-          className="text-[9px] font-bold uppercase tracking-widest leading-relaxed"
-          style={{ fontFamily: 'var(--font-montserrat)' }}
+        <p
+          className="text-[7px] font-bold lowercase tracking-widest leading-relaxed"
+          style={{ fontFamily: "var(--font-montserrat)" }}
         >
-          and our friends who helped us{"\n"}through the dev period <span className="lowercase text-[12px]">UwU</span>
+          and our friends who helped us{"\n"}through the dev period{" "}
+          <span className="lowercase text-[12px]">UwU</span>
         </p>
       </motion.div>
     </div>

@@ -27,11 +27,11 @@ export function proxy(request: NextRequest) {
 
   if (isStatic) return NextResponse.next();
 
-  if (pathname === "/") {
-    return NextResponse.redirect(new URL("/onboarding", request.url));
+  if (!hasSession && !isPublicPage) {
+    return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  if (hasSession && pathname === "/login") {
+  if (hasSession && (pathname === "/login" || pathname === "/setup")) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
