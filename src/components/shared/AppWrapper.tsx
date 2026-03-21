@@ -53,16 +53,16 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
   }, []);
 
   return (
-    <main className="bg-theme-bg min-h-[100dvh] w-full relative">
+    <main className="bg-theme-bg fixed inset-0 w-full overflow-hidden flex flex-col">
       <AnimatePresence>
         {isOffline && (
           <motion.div
             initial={{ y: -20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: -20, opacity: 0 }}
-            className="fixed top-4 left-1/2 -translate-x-1/2 z-[9999] pointer-events-none"
+            className="fixed top-4 left-0 right-0 z-[10001] flex justify-center pointer-events-none"
           >
-            <div className="bg-[#FF4D4D] px-4 py-1.5 rounded-full shadow-lg flex items-center gap-2 border border-white/20">
+            <div className="bg-[#FF4D4D] px-4 py-1.5 rounded-full shadow-lg flex items-center gap-2 border border-white/20 pointer-events-auto">
               <WifiOff size={12} className="text-white" />
               <span className="text-[10px] font-bold uppercase tracking-widest text-white">
                 Offline Mode
@@ -73,7 +73,7 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
       </AnimatePresence>
 
       <div 
-        className="w-full h-full min-h-[100dvh] relative z-10"
+        className="flex-1 relative z-10 w-full"
         style={{
           paddingTop: "env(safe-area-inset-top, 0px)",
           paddingBottom: "env(safe-area-inset-bottom, 0px)",

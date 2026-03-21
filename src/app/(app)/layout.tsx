@@ -10,12 +10,12 @@ import { useAcademiaData } from "@/hooks/useAcademiaData";
 
 const BrutalistThemeLayout = dynamic(
   () => import("@/components/themes/brutalist/BrutalistTheme"),
-  { loading: () => <div className="h-screen w-full bg-theme-bg" /> }
+  { loading: () => <div className="h-full w-full bg-theme-bg" /> }
 );
 
 const MinimalistThemeLayout = dynamic(
   () => import("@/components/themes/minimalist/MinimalTheme"),
-  { loading: () => <div className="h-screen w-full bg-theme-bg" /> }
+  { loading: () => <div className="h-full w-full bg-theme-bg" /> }
 );
 
 import { AppLayoutContext } from "@/context/AppLayoutContext";
@@ -53,7 +53,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <AppLayoutContext.Provider value={{ onOpenSettings: () => setIsSettingsOpen(true) }}>
-      <div className="h-screen w-full bg-theme-bg overflow-hidden relative">
+      <div className="h-full w-full bg-theme-bg overflow-hidden relative">
         {uiStyle === "brutalist" ? (
           <BrutalistThemeLayout {...sharedProps}>
             {children}

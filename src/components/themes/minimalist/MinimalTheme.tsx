@@ -72,7 +72,7 @@ export default function MinimalTheme({ children }: MinimalThemeProps) {
 
   return (
     <div
-      className={`h-screen w-full ${baseBg} flex flex-col overflow-hidden relative`}
+      className={`h-full w-full ${baseBg} flex flex-col overflow-hidden relative`}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}

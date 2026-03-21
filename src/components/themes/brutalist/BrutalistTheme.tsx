@@ -96,7 +96,7 @@ export default function BrutalistTheme({ children }: BrutalistThemeProps) {
   const pathname = usePathname();
 
   return (
-    <div className="h-screen w-full bg-theme-bg relative overflow-hidden">
+    <div className="h-full w-full bg-theme-bg relative overflow-hidden">
       <LayoutGroup>
         <AnimatePresence mode="popLayout">
           {isLoading ? (
