@@ -375,7 +375,7 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
               animate="visible"
               className="flex flex-col h-full pointer-events-none relative z-10"
             >
-              <div className={`${slides[step].id === "unique" ? "space-y-4 overflow-visible" : "space-y-6 overflow-y-auto no-scrollbar"} flex-1 pb-6 pointer-events-none`}>
+              <div className={`${(slides[step].id === "unique" || slides[step].id === "community") ? "space-y-4 overflow-visible" : "space-y-6 overflow-y-auto no-scrollbar"} flex-1 pb-6 pointer-events-none`}>
                 {slides[step].isThemeSlide ? (
                   <div className="pointer-events-auto h-full">
                     <ThemeSelector onComplete={handleNext} />
@@ -450,12 +450,14 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
 
               <div className={`${slides[step].id === "unique" ? "mt-4" : "mt-auto pt-4"} relative z-10 pointer-events-none ${slides[step].isThemeSlide ? "hidden" : ""}`}>
                 {slides[step].isCommunitySlide && (
-                  <div className="mt-auto space-y-4 mb-4 pointer-events-none">
+                  <div className="space-y-4 mb-4 pointer-events-none">
                     <div className="space-y-4 pointer-events-none">
                       <div className="space-y-1 px-2 pointer-events-none">
                         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#FFF3E6]">
                           the lore
                         </p>
+
+
                           <p className="text-xs opacity-80 leading-relaxed max-w-[300px]">
                             ratio'd was basically built for fun. thats it. thats the lore. ")
                         </p>

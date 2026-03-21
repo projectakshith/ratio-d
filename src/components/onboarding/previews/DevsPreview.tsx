@@ -83,7 +83,7 @@ const DevCard = ({
 export default function DevsPreview() {
   return (
     <div className="w-full max-w-[300px] flex flex-col self-center pointer-events-none px-2">
-      <div className="grid grid-cols-2 gap-3 mb-6">
+      <div className="grid grid-cols-2 gap-3 mb-2">
         <div className="space-y-3">
           <DevCard
             name="Akshith"
