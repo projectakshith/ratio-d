@@ -221,9 +221,10 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
                 <button
                   onClick={() => {
                     setLoginPromise(null);
-                    router.replace("/login");
+                    setLoginError(null);
+                    window.location.href = "/login";
                   }}
-                  className="w-full py-4 bg-[#FF4D4D] text-[#111111] font-black lowercase text-xl tracking-tighter hover:brightness-110 transition-all flex items-center justify-center gap-2 rounded-2xl"
+                  className="w-full py-4 bg-[#FF4D4D] text-[#111111] font-black lowercase text-xl tracking-tighter hover:brightness-110 transition-all flex items-center justify-center gap-2 rounded-2xl pointer-events-auto"
                   style={{ fontFamily: 'var(--font-montserrat)' }}
                 >
                   <ArrowLeft size={18} /> go back to login
@@ -640,7 +641,10 @@ export default function OnboardingContainer({
     const isOnboarded = localStorage.getItem("ratiod_onboarded") === "true";
 
     if (isPWA && !userData && !forceOnboarding) {
-      router.replace("/login");
+      const timeoutId = setTimeout(() => {
+        if (!userData) router.replace("/login");
+      }, 500);
+      return () => clearTimeout(timeoutId);
     } else if (isPWA && userData && isOnboarded && !forceOnboarding) {
       router.replace("/");
     }
@@ -669,7 +673,16 @@ export default function OnboardingContainer({
 
   if (isPWA || forceOnboarding) {
     if (!userData && !forceOnboarding) return <div className="fixed inset-0 bg-[#0c30ff] z-[999]" />;
-    return <PwaSlideshow onComplete={onFinish || onComplete || onDevBypass} />;
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.8 }}
+        className="fixed inset-0"
+      >
+        <PwaSlideshow onComplete={onFinish || onComplete || onDevBypass} />
+      </motion.div>
+    );
   }
 
   return (

@@ -20,6 +20,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
 
+  const [isExiting, setIsExiting] = useState(false);
+
   const formatUsername = (val: string) => {
     const cleanVal = val.trim();
     return cleanVal.includes("@") ? cleanVal : `${cleanVal}@srmist.edu.in`;
@@ -43,15 +45,23 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
       };
 
       if (!isOnboarded) {
+        setIsExiting(true);
         performLogin(creds).catch(() => {
         });
-        router.push("/onboarding");
+        setTimeout(() => {
+          router.push("/onboarding");
+        }, 600);
       } else {
         setLoading(true);
-        const data = await performLogin(creds);
-        setTimeout(() => {
-          onLogin(data);
-        }, 800);
+        try {
+          const data = await performLogin(creds);
+          setTimeout(() => {
+            onLogin(data);
+          }, 1200);
+        } catch (err: any) {
+          setError(err.message || "auth failed");
+          setLoading(false);
+        }
       }
     } catch (err: any) {
       setError(err.message);
@@ -67,6 +77,14 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
         staggerChildren: 0.1,
         delayChildren: 0.2
       }
+    },
+    exit: {
+      x: "-100%",
+      opacity: 0,
+      transition: {
+        duration: 0.6,
+        ease: [0.22, 1, 0.36, 1]
+      }
     }
   };
 
@@ -79,6 +97,10 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
         duration: 0.8,
         ease: [0.22, 1, 0.36, 1] as any
       }
+    },
+    exit: {
+      opacity: 0,
+      transition: { duration: 0.3 }
     }
   };
 
@@ -90,7 +112,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
 
       <motion.div 
         initial="hidden"
-        animate="visible"
+        animate={isExiting ? "exit" : "visible"}
+        exit="exit"
         variants={containerVariants}
         className="h-screen w-full flex flex-col justify-between p-8 md:p-16 relative bg-[#0c30ff]"
       >
