@@ -79,10 +79,11 @@ create a `.env.local` file in the root directory
 ```bash
 BACKEND_URLS="your_primary_api,your_backup_api"
 API_URL="your_primary_api"
+INTERNAL_SECRET="your_shared_secret_here"
 ```
 
 > [!TIP]
-> you can add multiple backend nodes in `BACKEND_URLS` separated by commas. the system shuffles them for every request to balance traffic.
+> `INTERNAL_SECRET` must be the same on both your Next.js frontend and Python backend to allow secure communication. This secret is used for a server-to-server handshake and is never exposed to the client's browser.
 
 ---
 
