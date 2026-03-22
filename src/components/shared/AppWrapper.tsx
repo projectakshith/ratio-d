@@ -3,7 +3,6 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useApp } from "@/context/AppContext";
 import { WifiOff } from "lucide-react";
-import { usePathname, useRouter } from "next/navigation";
 import MinecraftParticles from "./MinecraftParticles";
 import MinecraftAmbience from "./MinecraftAmbience";
 import SyncStatusNotification from "./SyncStatusNotification";
@@ -13,20 +12,15 @@ let globalSplashPlayed = false;
 export default function AppWrapper({ children }: { children: React.ReactNode }) {
   const { isOffline } = useApp();
   const [showSplash, setShowSplash] = useState(false);
-  const [isReady, setIsReady] = useState(false);
   const [isFirstSplash, setIsFirstSplash] = useState(false);
-  const [showBigOffline, setShowBigOffline] = useState(false);
 
   useEffect(() => {
     const isStandalone =
       window.matchMedia("(display-mode: standalone)").matches ||
       (window.navigator as any).standalone;
 
-    const sessionSplash = sessionStorage.getItem("ratiod_splash_played") === "true";
-
-    if (isStandalone && !globalSplashPlayed && !sessionSplash) {
+    if (isStandalone && !globalSplashPlayed) {
       globalSplashPlayed = true;
-      sessionStorage.setItem("ratiod_splash_played", "true");
       const isOnboarded = localStorage.getItem("ratiod_onboarded") === "true";
       if (!isOnboarded) {
         setIsFirstSplash(true);
@@ -34,30 +28,9 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
       setShowSplash(true);
       const safetyTimer = setTimeout(() => {
         setShowSplash(false);
-        setIsReady(true);
       }, !isOnboarded ? 3500 : 800);
       return () => clearTimeout(safetyTimer);
-    } else {
-      setIsReady(true);
     }
-  }, []);
-
-  useEffect(() => {
-    const handleOnline = () => {
-      setShowBigOffline(false);
-    };
-    const handleOffline = () => {
-      setShowBigOffline(true);
-      setTimeout(() => setShowBigOffline(false), 3000);
-    };
-
-    window.addEventListener("online", handleOnline);
-    window.addEventListener("offline", handleOffline);
-
-    return () => {
-      window.removeEventListener("online", handleOnline);
-      window.removeEventListener("offline", handleOffline);
-    };
   }, []);
 
   return (
@@ -81,7 +54,7 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
       </AnimatePresence>
 
       <div 
-        className={`flex-1 relative z-10 w-full transition-opacity duration-300 ${isReady ? 'opacity-100' : 'opacity-0'}`}
+        className="flex-1 relative z-10 w-full"
         style={{
           paddingTop: "env(safe-area-inset-top, 0px)",
           paddingBottom: "env(safe-area-inset-bottom, 0px)",

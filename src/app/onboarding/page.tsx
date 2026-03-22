@@ -18,13 +18,20 @@ export default function OnboardingRoute() {
       const hasData = localStorage.getItem("ratio_data") || userData;
       const hasSession = document.cookie.includes("ratio_session=");
 
-      if (isStandalone && isOnboarded && hasData && (hasSession || userData)) {
-        router.replace("/");
+      if (isStandalone) {
+        if (isOnboarded && hasData && (hasSession || userData)) {
+          setIsFinished(true);
+          router.replace("/");
+        } else if (!hasData && !hasSession && !loginPromise) {
+          router.replace("/login");
+        }
       }
     };
 
     checkStatus();
-  }, [router, userData]);
+    const timer = setTimeout(checkStatus, 1000);
+    return () => clearTimeout(timer);
+  }, [router, userData, loginPromise]);
 
   const handleComplete = () => {
     setIsFinished(true);

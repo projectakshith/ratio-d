@@ -44,7 +44,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }, [router]);
 
   if (!isVerified) {
-    return <div className="fixed inset-0 bg-theme-bg z-[9999]" />;
+    return null;
   }
 
   const handleUpdateName = (name: string) => {
