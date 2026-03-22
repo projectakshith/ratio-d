@@ -78,6 +78,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         EncryptionUtils.setSessionCookie();
         setUserData(data);
         localStorage.setItem("ratio_data", JSON.stringify(data));
+
+        if (typeof window !== "undefined" && "caches" in window) {
+          const coreRoutes = ["/", "/attendance", "/marks", "/timetable", "/calendar"];
+          coreRoutes.forEach(route => fetch(route).catch(() => {}));
+        }
+
         return data;
       } catch (err) {
         throw err;
