@@ -435,7 +435,7 @@ export default function Marks({
                       return (
                         <div
                           key={idx}
-                          className={`min-w-0 flex-1 rounded-[12px] p-2 flex flex-col items-center justify-center border-[1.5px] ${boxTheme.boxBg} ${boxTheme.border}`}
+                          className={`min-w-0 flex-1 min-h-[58px] rounded-[12px] p-2 flex flex-col items-center justify-center border-[1.5px] ${boxTheme.boxBg} ${boxTheme.border}`}
                         >
                           <span
                             className={`text-[12px] font-bold uppercase tracking-widest mb-0.5 ${boxTheme.subText}`}
@@ -467,7 +467,7 @@ export default function Marks({
                     }).map((_, idx) => (
                       <div
                         key={`fill-${idx}`}
-                        className="min-w-0 flex-1 rounded-[12px] p-2 flex flex-col items-center justify-center border-[1.5px] border-dashed border-theme-border bg-theme-surface/50"
+                        className="min-w-0 flex-1 min-h-[58px] rounded-[12px] p-2 flex flex-col items-center justify-center border-[1.5px] border-dashed border-theme-border bg-theme-surface/50"
                       >
                         <span
                           className="text-[10px] font-bold text-theme-faint uppercase tracking-widest"
@@ -563,7 +563,7 @@ export default function Marks({
                       return (
                         <div
                           key={idx}
-                          className={`min-w-0 flex-1 rounded-[12px] p-2 flex flex-col items-center justify-center border-[1.5px] ${boxTheme.boxBg} ${boxTheme.border}`}
+                          className={`min-w-0 flex-1 min-h-[58px] rounded-[12px] p-2 flex flex-col items-center justify-center border-[1.5px] ${boxTheme.boxBg} ${boxTheme.border}`}
                       >
                         <span
                           className={`text-[12px] font-bold uppercase tracking-widest mb-0.5 ${boxTheme.subText}`}
@@ -595,7 +595,7 @@ export default function Marks({
                   }).map((_, idx) => (
                     <div
                       key={`fill-${idx}`}
-                      className="min-w-0 flex-1 rounded-[12px] p-2 flex flex-col items-center justify-center border-[1.5px] border-dashed border-theme-border bg-theme-surface/50"
+                      className="min-w-0 flex-1 min-h-[58px] rounded-[12px] p-2 flex flex-col items-center justify-center border-[1.5px] border-dashed border-theme-border bg-theme-surface/50"
                     >
                       <span
                         className="text-[10px] font-bold text-theme-faint uppercase tracking-widest"
