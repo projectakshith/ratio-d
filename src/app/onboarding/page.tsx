@@ -29,8 +29,6 @@ export default function OnboardingRoute() {
     };
 
     checkStatus();
-    const timer = setTimeout(checkStatus, 1000);
-    return () => clearTimeout(timer);
   }, [router, userData, loginPromise]);
 
   const handleComplete = () => {
