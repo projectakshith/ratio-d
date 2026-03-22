@@ -34,7 +34,7 @@ const WhatsappIcon = ({ size = 20 }: { size?: number }) => (
 const isDev = process.env.NODE_ENV === "development";
 
 function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
-  const { loginPromise, setLoginPromise, userData } = useApp();
+  const { loginPromise, setLoginPromise, userData, setShowWelcome } = useApp();
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [direction, setDirection] = useState(1);
@@ -42,7 +42,6 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
   const [isWaitingForLogin, setIsWaitingForLogin] = useState(false);
-  const [showWelcome, setShowWelcome] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
   const [hasInteracted, setHasInteracted] = useState(false);
 
@@ -100,14 +99,10 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
         }
       }
 
+      localStorage.setItem("ratiod_onboarded", "true");
       setShowWelcome(true);
-      setTimeout(() => {
-        localStorage.setItem("ratiod_onboarded", "true");
-        setIsExiting(true);
-        setTimeout(() => {
-          if (onComplete) onComplete();
-        }, 600);
-      }, 2500);
+      setIsExiting(true);
+      if (onComplete) onComplete();
     }
   };
 
@@ -190,33 +185,6 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
       transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
       className="fixed inset-0 z-[999]"
     >
-      <AnimatePresence>
-        {showWelcome && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[1001] bg-theme-bg flex flex-col justify-center items-center px-8"
-          >
-            <motion.div
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.3 }}
-              className="flex flex-col items-center text-center"
-            >
-              <span className="text-theme-muted text-sm font-bold uppercase tracking-[0.3em] mb-2">
-                Welcome
-              </span>
-              <h2 
-                className="text-4xl md:text-6xl font-black text-theme-text lowercase tracking-tighter leading-none"
-                style={{ fontFamily: 'var(--font-montserrat)' }}
-              >
-                {userData?.profile?.name || "Student"}
-              </h2>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
       <div className="absolute inset-0 pointer-events-none overflow-hidden flex items-center justify-center">
         <AnimatePresence mode="wait">
           {!slides[step].bg.includes('#111111') && !slides[step].bg.includes('black') && !slides[step].bg.includes('#000F08') && (
@@ -408,7 +376,7 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
               variants={containerVariants}
               initial="hidden"
               animate="visible"
-              className={`flex flex-col h-full pointer-events-none relative z-10 transition-opacity duration-500 ${showWelcome ? 'opacity-0' : 'opacity-100'}`}
+              className={`flex flex-col h-full pointer-events-none relative z-10 transition-opacity duration-500`}
             >
               <div className={`${(slides[step].id === "unique" || slides[step].id === "community") ? "space-y-4 overflow-visible" : "space-y-6 overflow-y-auto no-scrollbar"} flex-1 pb-6 pointer-events-none`}>
                 {slides[step].isThemeSlide ? (
@@ -571,7 +539,7 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
       />
 
       <AnimatePresence>
-        {introStage === 1 && !showWelcome && (
+        {introStage === 1 && (
           <>
             <motion.div
               initial={{ opacity: 0, filter: "blur(10px)" }}

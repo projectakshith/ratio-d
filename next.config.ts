@@ -102,12 +102,12 @@ const withPWA = withPWAInit({
       },
       {
         urlPattern: /\/api\/.*$/i,
-        handler: "NetworkFirst",
+        handler: "StaleWhileRevalidate",
         options: {
           cacheName: "apis",
           expiration: {
-            maxEntries: 32,
-            maxAgeSeconds: 60 * 60 * 24,
+            maxEntries: 64,
+            maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
           },
           networkTimeoutSeconds: 5,
         },

@@ -25,6 +25,8 @@ interface AppContextType {
   canInstall: boolean;
   setCanInstall: (val: boolean) => void;
   setDeferredPrompt: (val: any) => void;
+  showWelcome: boolean;
+  setShowWelcome: (val: boolean) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -38,6 +40,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [loginPromise, setLoginPromise] = useState<Promise<any> | null>(null);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [canInstall, setCanInstall] = useState<boolean>(false);
+  const [showWelcome, setShowWelcome] = useState(false);
   const updateInProgress = React.useRef(false);
   const router = useRouter();
 
@@ -235,7 +238,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     canInstall,
     setCanInstall,
     setDeferredPrompt,
-  }), [userData, customDisplayName, isUpdating, isOffline, refreshData, performLogin, loginPromise, logout, latestDiff, deferredPrompt, canInstall]);
+    showWelcome,
+    setShowWelcome,
+  }), [userData, customDisplayName, isUpdating, isOffline, refreshData, performLogin, loginPromise, logout, latestDiff, deferredPrompt, canInstall, showWelcome]);
 
   return (
     <AppContext.Provider value={value}>

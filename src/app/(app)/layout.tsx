@@ -31,6 +31,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     const isOnboarded = localStorage.getItem("ratiod_onboarded") === "true";
     if (!isOnboarded) {
       router.replace("/onboarding");
+      return;
     }
   }, [router]);
 

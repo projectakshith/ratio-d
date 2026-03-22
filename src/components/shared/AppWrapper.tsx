@@ -10,7 +10,7 @@ import SyncStatusNotification from "./SyncStatusNotification";
 let globalSplashPlayed = false;
 
 export default function AppWrapper({ children }: { children: React.ReactNode }) {
-  const { isOffline } = useApp();
+  const { isOffline, showWelcome, setShowWelcome, userData } = useApp();
   const [showSplash, setShowSplash] = useState(false);
   const [isFirstSplash, setIsFirstSplash] = useState(false);
 
@@ -32,6 +32,15 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
       return () => clearTimeout(safetyTimer);
     }
   }, []);
+
+  useEffect(() => {
+    if (showWelcome) {
+      const timer = setTimeout(() => {
+        setShowWelcome(false);
+      }, 3500);
+      return () => clearTimeout(timer);
+    }
+  }, [showWelcome, setShowWelcome]);
 
   return (
     <main className="bg-theme-bg fixed inset-0 w-full overflow-hidden flex flex-col">
@@ -69,7 +78,34 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
       <MinecraftAmbience />
       <SyncStatusNotification />
 
-      <AnimatePresence mode="wait">
+      <AnimatePresence>
+        {showWelcome && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.6 }}
+            className="fixed inset-0 z-[10000] bg-theme-bg flex flex-col justify-center items-center px-8"
+          >
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.3, duration: 0.5 }}
+              className="flex flex-col items-center text-center"
+            >
+              <span className="text-theme-muted text-sm font-bold uppercase tracking-[0.3em] mb-2">
+                Welcome
+              </span>
+              <h2 
+                className="text-4xl md:text-6xl font-black text-theme-text lowercase tracking-tighter leading-none"
+                style={{ fontFamily: 'var(--font-montserrat)' }}
+              >
+                {userData?.profile?.name || "Student"}
+              </h2>
+            </motion.div>
+          </motion.div>
+        )}
+
         {showSplash && (
           <motion.div
             key="splash"
