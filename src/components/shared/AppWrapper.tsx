@@ -22,29 +22,24 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
     if (isStandalone && !globalSplashPlayed) {
       globalSplashPlayed = true;
 
-      const justOnboarded = sessionStorage.getItem("ratiod_just_onboarded") === "true";
-      if (justOnboarded) {
-        sessionStorage.removeItem("ratiod_just_onboarded");
-        setShowWelcome(true);
-        setShowSplash(false);
-        return;
+      if (sessionStorage.getItem("ratiod_just_onboarded") !== "true") {
+        const isOnboarded = localStorage.getItem("ratiod_onboarded") === "true";
+        if (!isOnboarded) {
+          setIsFirstSplash(true);
+        }
+        setShowSplash(true);
+        const safetyTimer = setTimeout(() => {
+          setShowSplash(false);
+        }, !isOnboarded ? 3500 : 800);
+        return () => clearTimeout(safetyTimer);
       }
-
-      const isOnboarded = localStorage.getItem("ratiod_onboarded") === "true";
-      if (!isOnboarded) {
-        setIsFirstSplash(true);
-      }
-      setShowSplash(true);
-      const safetyTimer = setTimeout(() => {
-        setShowSplash(false);
-      }, !isOnboarded ? 3500 : 800);
-      return () => clearTimeout(safetyTimer);
     }
-  }, [setShowWelcome]);
+  }, []);
 
   useEffect(() => {
     if (showWelcome) {
       setShowSplash(false);
+      sessionStorage.removeItem("ratiod_just_onboarded");
       const timer = setTimeout(() => {
         setShowWelcome(false);
       }, 2000);
