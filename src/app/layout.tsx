@@ -7,6 +7,7 @@ import "./globals.css";
 import { AppProvider } from "@/context/AppContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import AppWrapper from "@/components/shared/AppWrapper";
+import { MigrationGuard } from "@/components/shared/MigrationGuard";
 
 const akira = localFont({
   src: "../../public/fonts/Akira.otf",
@@ -108,9 +109,11 @@ export default function RootLayout({
       >
         <AppProvider>
           <ThemeProvider>
-            <AppWrapper>
-              {children}
-            </AppWrapper>
+            <MigrationGuard>
+              <AppWrapper>
+                {children}
+              </AppWrapper>
+            </MigrationGuard>
           </ThemeProvider>
         </AppProvider>
         <Analytics />

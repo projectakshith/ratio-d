@@ -536,50 +536,6 @@ const SettingsPage = ({
                 <div className="px-6 py-6 space-y-10 pb-20">
                   <motion.div variants={themeItemVariants} className="space-y-3">
                     <p className="text-[11px] uppercase tracking-[0.2em] text-theme-muted px-1 text-left">
-                      Style
-                    </p>
-                    <div className="grid grid-cols-2 gap-3">
-                      {(["minimalist", "brutalist"] as UiStyle[]).map((s) => {
-                        const isActive = uiStyle === s;
-                        return (
-                          <button
-                            key={s}
-                            onClick={() => setUiStyle(s)}
-                            className={`flex flex-col items-start p-4 rounded-2xl border-[1.5px] transition-all active:scale-95 ${
-                              isActive
-                                ? "border-theme-highlight bg-theme-highlight/10"
-                                : "border-theme-border bg-theme-surface"
-                            }`}
-                          >
-                            <span
-                              className={`text-[15px] font-bold capitalize ${
-                                isActive
-                                  ? "text-theme-highlight"
-                                  : "text-theme-text"
-                              }`}
-                            >
-                              {s}
-                            </span>
-                            <span className="text-[11px] text-theme-muted mt-0.5 text-left">
-                              {s === "minimalist"
-                                ? "Clean & airy"
-                                : "Raw & bold"}
-                            </span>
-                            {isActive && (
-                              <Check
-                                className="text-theme-highlight mt-2 self-end"
-                                size={16}
-                                strokeWidth={3}
-                              />
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </motion.div>
-
-                  <motion.div variants={themeItemVariants} className="space-y-3">
-                    <p className="text-[11px] uppercase tracking-[0.2em] text-theme-muted px-1 text-left">
                       Default Presets
                     </p>
                     <div className="grid grid-cols-1 gap-2">
@@ -646,7 +602,7 @@ const SettingsPage = ({
 
                   <motion.div variants={themeItemVariants} className="space-y-3">
                     <p className="text-[11px] uppercase tracking-[0.2em] text-theme-muted px-1 text-left">
-                      Named Collections
+                      Named Collections (Minimalist)
                     </p>
                     <div className="grid grid-cols-1 gap-2">
                       {namedThemes.map((ct) => {

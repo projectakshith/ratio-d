@@ -3,7 +3,7 @@ import React from "react";
 import { useApp } from "@/context/AppContext";
 import { useTheme } from "@/context/ThemeContext";
 import TimetableMinimalist from "@/components/themes/minimalist/timetable/Timetable";
-import TimetableBrutalist from "@/components/themes/brutalist/Timetable";
+import TimetableBrutalist from "@/components/themes/brutalist/timetable/Timetable";
 import { useAcademiaData } from "@/hooks/useAcademiaData";
 
 export default function TimetablePage() {

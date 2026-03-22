@@ -39,7 +39,7 @@ const LoadingScreen = ({ onComplete }: { onComplete: () => void }) => {
       initial={{ y: 0 }}
       exit={{ y: "-100%" }}
       transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-        className="fixed inset-0 z-[100] bg-white flex flex-col p-10 pt-10 pointer-events-none"
+      className="fixed inset-0 z-[100] bg-[#fdfdfd] flex flex-col p-10 pt-10 pointer-events-none"
     >
       <motion.div
         initial={{ opacity: 0, x: -10 }}
@@ -96,7 +96,7 @@ export default function BrutalistTheme({ children }: BrutalistThemeProps) {
   const pathname = usePathname();
 
   return (
-    <div className="h-full w-full bg-theme-bg relative overflow-hidden">
+    <div className="h-[100dvh] w-full bg-black relative overflow-hidden">
       <LayoutGroup>
         <AnimatePresence mode="popLayout">
           {isLoading ? (
@@ -105,12 +105,16 @@ export default function BrutalistTheme({ children }: BrutalistThemeProps) {
               onComplete={() => setIsLoading(false)}
             />
           ) : (
-            <div
+            <motion.div
               key={pathname}
-              className="absolute top-0 left-0 w-full h-full bg-theme-bg"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="absolute top-0 left-0 w-full h-full bg-[#050505]"
             >
               {children}
-            </div>
+            </motion.div>
           )}
         </AnimatePresence>
       </LayoutGroup>
@@ -125,3 +129,4 @@ export default function BrutalistTheme({ children }: BrutalistThemeProps) {
     </div>
   );
 }
+

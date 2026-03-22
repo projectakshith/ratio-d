@@ -3,7 +3,7 @@ import React from "react";
 import { useApp } from "@/context/AppContext";
 import { useTheme } from "@/context/ThemeContext";
 import AttendanceMinimalist from "@/components/themes/minimalist/attendance/Attendance";
-import AttendanceBrutalist from "@/components/themes/brutalist/MobileAttendance";
+import AttendanceBrutalist from "@/components/themes/brutalist/attendance/Attendance";
 import { useAcademiaData } from "@/hooks/useAcademiaData";
 
 export default function AttendancePage() {
@@ -15,7 +15,7 @@ export default function AttendancePage() {
     return (
       <AttendanceBrutalist 
         data={userData as any}
-        schedule={academia.effectiveSchedule}
+        academia={academia}
       />
     );
   }

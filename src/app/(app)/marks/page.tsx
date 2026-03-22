@@ -3,7 +3,7 @@ import React from "react";
 import { useApp } from "@/context/AppContext";
 import { useTheme } from "@/context/ThemeContext";
 import MarksMinimalist from "@/components/themes/minimalist/marks/Marks";
-import MarksBrutalist from "@/components/themes/brutalist/MarksPage";
+import MarksBrutalist from "@/components/themes/brutalist/marks/Marks";
 
 export default function MarksPage() {
   const { userData } = useApp();

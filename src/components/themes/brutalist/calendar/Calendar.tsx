@@ -13,22 +13,22 @@ const CalendarDay = memo(
     let shadowClass = "";
 
     if (item.isSelected) {
-      bg = item.isDayExam ? "bg-theme-primary" : "bg-theme-text";
-      text = "text-theme-bg";
-      dateColor = text;
-      orderColor = "text-theme-bg opacity-60";
+      bg = item.isDayExam ? "bg-[#8b5cf6]" : "bg-[#050505]";
+      text = "text-white";
+      dateColor = "text-white";
+      orderColor = "text-white/60";
       scaleClass = "scale-105";
       shadowClass = "shadow-lg z-10";
     } else if (item.isDayExam) {
-      bg = "bg-theme-primary/20";
-      dateColor = "text-theme-primary";
-      orderColor = "text-theme-primary";
+      bg = "bg-[#8b5cf6]/20";
+      dateColor = "text-[#8b5cf6]";
+      orderColor = "text-[#8b5cf6]";
     } else if (item.isToday) {
-      bg = "bg-theme-highlight/20";
+      bg = "bg-[#ceff1c]/20";
     } else if (item.isDayHoliday) {
-      bg = "bg-theme-secondary/10";
-      dateColor = "text-theme-secondary";
-      orderColor = "text-theme-secondary opacity-50";
+      bg = "bg-[#ff003c]/5";
+      dateColor = "text-[#ff003c]";
+      orderColor = "text-[#ff003c]/30";
     } else if (item.dayOrder) {
       bg = "bg-white border border-black/5";
       dateColor = "text-black/30";
@@ -84,15 +84,12 @@ const CalendarDay = memo(
 );
 CalendarDay.displayName = "CalendarDay";
 
-const CalendarPage = ({ calendarData, academia }: any) => {
+const CalendarPage = ({ calendarData, academia, data }: any) => {
   const [viewMonth, setViewMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [introMode, setIntroMode] = useState(true);
 
-  const activeData = useMemo(() => 
-    calendarData || academia?.calendarData || [], 
-    [calendarData, academia?.calendarData]
-  );
+  const activeData = calendarData || academia?.calendarData || [];
 
   useEffect(() => {
     const timer = setTimeout(() => setIntroMode(false), 800);
@@ -141,6 +138,8 @@ const CalendarPage = ({ calendarData, academia }: any) => {
 
   const viewYear = viewMonth.getFullYear();
   const viewMonthIndex = viewMonth.getMonth();
+  const todayZero = new Date();
+  todayZero.setHours(0, 0, 0, 0);
 
   const currentEvent: any = useMemo(
     () => eventsMap[selectedDate.toDateString()],
@@ -161,12 +160,12 @@ const CalendarPage = ({ calendarData, academia }: any) => {
 
   const theme = useMemo(() => {
     if (isExam)
-      return { bg: "var(--theme-primary)", text: "text-theme-bg", accent: "bg-theme-bg" };
+      return { bg: "#8b5cf6", text: "text-white", accent: "bg-white" };
     if (hasOrder)
-      return { bg: "var(--theme-highlight)", text: "text-theme-text", accent: "bg-theme-text" };
+      return { bg: "#ceff1c", text: "text-[#050505]", accent: "bg-[#050505]" };
     if (isHoliday)
-      return { bg: "var(--theme-secondary)", text: "text-theme-bg", accent: "bg-theme-bg" };
-    return { bg: "var(--theme-bg)", text: "text-theme-text", accent: "bg-theme-text" };
+      return { bg: "#ff003c", text: "text-white", accent: "bg-white" };
+    return { bg: "#ffffff", text: "text-[#050505]", accent: "bg-[#050505]" };
   }, [hasOrder, isHoliday, isExam]);
 
   const display = useMemo(() => {
@@ -208,8 +207,6 @@ const CalendarPage = ({ calendarData, academia }: any) => {
   }, [selectedDate, hasOrder, isHoliday, isExam, currentEvent]);
 
   const gridData = useMemo(() => {
-    const todayZero = new Date();
-    todayZero.setHours(0, 0, 0, 0);
     const daysInMonth = getDaysInMonth(viewYear, viewMonthIndex);
     const startOffset = getFirstDayOfMonth(viewYear, viewMonthIndex);
     const slots: any[] = []; // Explicit type definition fixes the build error
@@ -247,7 +244,7 @@ const CalendarPage = ({ calendarData, academia }: any) => {
       });
     }
     return slots;
-  }, [viewMonthIndex, viewYear, eventsMap, selectedDate]);
+  }, [viewMonth, viewMonthIndex, viewYear, eventsMap, selectedDate, todayZero]);
 
   const monthTitle = useMemo(() => {
     const m = viewMonth.toLocaleString("default", { month: "long" });
@@ -257,7 +254,7 @@ const CalendarPage = ({ calendarData, academia }: any) => {
   }, [viewMonth, viewYear]);
 
   return (
-    <div className="h-full w-full flex flex-col bg-theme-bg text-theme-text font-sans relative overflow-hidden touch-pan-y">
+    <div className="h-full w-full flex flex-col bg-[#f5f6fc] text-[#050505] font-sans relative overflow-hidden touch-pan-y">
       {/* Background container */}
       <div className="absolute inset-0 pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')] bg-repeat opacity-[0.03]" />
 
@@ -321,27 +318,27 @@ const CalendarPage = ({ calendarData, academia }: any) => {
       <div className="flex-1 flex flex-col pb-24 pt-6 px-4 z-10">
         <div className="flex justify-between items-center mb-6 px-1 relative">
           <div
-            className="absolute left-1/2 -translate-x-1/2 font-black text-xl tracking-tight text-theme-text"
+            className="absolute left-1/2 -translate-x-1/2 font-black text-xl tracking-tight text-[#050505]"
             style={{ fontFamily: "Aonic" }}
           >
             {monthTitle}
           </div>
           <button
             onClick={handlePrevMonth}
-            className="p-2 hover:bg-theme-surface rounded-full transition-colors text-theme-text z-10"
+            className="p-2 hover:bg-black/5 rounded-full transition-colors text-[#050505] z-10"
           >
             <ChevronLeft size={24} />
           </button>
           <div className="flex items-center gap-1 z-10">
             <button
               onClick={handleNextMonth}
-              className="p-2 hover:bg-theme-surface rounded-full transition-colors text-theme-text"
+              className="p-2 hover:bg-black/5 rounded-full transition-colors text-[#050505]"
             >
               <ChevronRight size={24} />
             </button>
             <button
               onClick={goToToday}
-              className="p-2 hover:bg-theme-surface rounded-full transition-colors text-theme-text opacity-60 hover:opacity-100"
+              className="p-2 hover:bg-black/5 rounded-full transition-colors text-[#050505] opacity-60 hover:opacity-100"
             >
               <Target size={20} />
             </button>
@@ -359,7 +356,7 @@ const CalendarPage = ({ calendarData, academia }: any) => {
         </div>
         <div className="flex-1 overflow-y-auto custom-scrollbar">
           <div className="grid grid-cols-7 gap-2 gap-y-3 justify-items-center">
-            {gridData.map((item: any) => {
+            {gridData.map((item: any, i: number) => {
               if (item.type === "padding")
                 return <div key={item.key} className="w-full" />;
               return (
@@ -382,16 +379,16 @@ const CalendarPage = ({ calendarData, academia }: any) => {
             initial={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.4 }}
-            className="absolute inset-0 flex flex-col justify-center items-start p-8 pb-[60%] z-50 bg-white"
+            className="absolute inset-0 flex flex-col justify-center items-start p-8 pb-[60%] z-50 bg-[#ffffff]"
           >
             <h1
-              className="text-6xl font-black lowercase tracking-tighter text-theme-text mb-2"
+              className="text-6xl font-black lowercase tracking-tighter text-[#050505] mb-2"
               style={{ fontFamily: "Aonic" }}
             >
               calendar
             </h1>
             <p
-              className="text-xl font-bold lowercase text-theme-muted leading-tight max-w-[80%]"
+              className="text-xl font-bold lowercase text-[#050505]/80 leading-tight max-w-[80%]"
               style={{ fontFamily: "Aonic" }}
             >
               schedule & orders

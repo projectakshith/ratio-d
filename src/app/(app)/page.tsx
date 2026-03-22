@@ -3,7 +3,7 @@ import React, { useState, useCallback } from "react";
 import { useApp } from "@/context/AppContext";
 import { useTheme } from "@/context/ThemeContext";
 import DashboardMinimalist from "@/components/themes/minimalist/dashboard/Dashboard";
-import DashboardBrutalist from "@/components/themes/brutalist/Dashboard";
+import DashboardBrutalist from "@/components/themes/brutalist/dashboard/Dashboard";
 import { useAcademiaData } from "@/hooks/useAcademiaData";
 import { useAppLayout } from "@/context/AppLayoutContext";
 import { EncryptionUtils } from "@/utils/shared/Encryption";

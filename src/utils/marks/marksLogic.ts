@@ -45,18 +45,26 @@ export const getAcronym = (name: string) => {
   return parts.map((w) => w[0]).join("");
 };
 
+export const isPracticalLogic = (sub: any) => {
+  const normalize = (str: string) => (str || "").toLowerCase().replace(/[^a-z0-9]/g, "").trim();
+  const type = normalize(sub.type || "");
+  const code = normalize(sub.code || sub.courseCode || sub.id || "");
+  const slot = normalize(sub.slot || "");
+  const title = normalize(sub.title || sub.course || sub.courseTitle || "");
+  
+  return (
+    type.includes("practical") || 
+    type.includes("lab") || 
+    code.includes("-p") || 
+    slot.includes("p") ||
+    title.includes("lab") ||
+    title.includes("practical") ||
+    (slot.length > 0 && slot.toUpperCase().includes("LAB"))
+  );
+};
+
 export const getTheme = (pct: number, max: number) => {
-  if (max === 0)
-    return {
-      wrapperBg: "bg-theme-surface",
-      cardBg: "bg-theme-surface",
-      border: "border-theme-border",
-      text: "text-theme-text",
-      subText: "text-theme-muted",
-      boxBg: "bg-theme-surface",
-      dottedClass: "neutral-dotted",
-    };
-  if (pct >= 85)
+  if (max === 0 || pct > 50)
     return {
       wrapperBg: "status-bg-safe",
       cardBg: "bg-theme-surface",
@@ -65,16 +73,6 @@ export const getTheme = (pct: number, max: number) => {
       subText: "status-text-safe opacity-80",
       boxBg: "status-boxbg-safe",
       dottedClass: "safe-dotted",
-    };
-  if (pct >= 75)
-    return {
-      wrapperBg: "status-bg-danger",
-      cardBg: "bg-theme-surface",
-      border: "status-border-danger",
-      text: "status-text-danger",
-      subText: "status-text-danger opacity-80",
-      boxBg: "status-boxbg-danger",
-      dottedClass: "danger-dotted",
     };
   return {
     wrapperBg: "status-bg-cooked",
@@ -90,8 +88,7 @@ export const getTheme = (pct: number, max: number) => {
 export const getMarkColor = (got: number, max: number) => {
   if (max === 0) return "text-theme-text";
   const pct = (got / max) * 100;
-  if (pct >= 85) return "status-text-safe";
-  if (pct >= 75) return "status-text-danger";
+  if (pct > 50) return "status-text-safe";
   return "status-text-cooked";
 };
 
@@ -104,22 +101,15 @@ export const getBoxTheme = (
       boxBg: "bg-theme-surface",
       text: "text-theme-muted",
       subText: "text-theme-subtle",
-      border: "border-theme-subtle",
+      border: "border-theme-border",
     };
   const pct = (got / max) * 100;
-  if (pct >= 85)
+  if (pct > 50)
     return {
       boxBg: "status-boxbg-safe",
       text: "status-text-safe",
       subText: "status-text-safe opacity-60",
       border: "status-border-safe",
-    };
-  if (pct >= 75)
-    return {
-      boxBg: "status-boxbg-danger",
-      text: "status-text-danger",
-      subText: "status-text-danger opacity-60",
-      border: "status-border-danger",
     };
   return {
     boxBg: "status-boxbg-cooked",
@@ -191,15 +181,13 @@ export const processAndSortMarks = (
         subject.courseTitle ||
         code ||
         "Unknown Subject";
+      
       let status: "cooked" | "danger" | "safe" | "neutral" = "neutral";
       let badge = "pending";
       if (!actualIsNA && max > 0) {
-        if (percentage >= 85) {
+        if (percentage > 50) {
           status = "safe";
-          badge = "outstanding";
-        } else if (percentage >= 75) {
-          status = "danger";
-          badge = "average";
+          badge = "safe";
         } else {
           status = "cooked";
           badge = "critical";
@@ -208,11 +196,7 @@ export const processAndSortMarks = (
       const latestTest =
         assessments.length > 0 ? assessments[assessments.length - 1] : null;
       const type = subject.type || "Theory";
-      const isPractical =
-        type.toLowerCase() === "practical" ||
-        type.toLowerCase() === "lab" ||
-        subject.courseCode?.toUpperCase().includes("-P") ||
-        (subject.slot || "").toUpperCase().includes("P");
+      const isPractical = isPracticalLogic(subject);
       return {
         id: `${cleanCode}-${type}-${index}`,
         title,

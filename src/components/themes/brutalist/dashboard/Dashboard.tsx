@@ -10,7 +10,7 @@ import {
   AlertTriangle,
   GraduationCap,
 } from "lucide-react";
-import { BentoTile } from "./BentoTile";
+import { BentoTile } from "../BentoTile";
 import { StudentProfile, AttendanceRecord } from "@/types";
 
 // ADD : any TO SILENCE VERCEL TS COMPILER
@@ -64,8 +64,6 @@ interface HomeDashboardProps {
   upcomingAlerts?: any[];
   overallAttendance?: number;
   criticalAttendance?: any[];
-  onRefresh?: () => Promise<void>;
-  isRefreshing?: boolean;
 }
 
 const HomeDashboard = ({
@@ -76,16 +74,13 @@ const HomeDashboard = ({
   upcomingAlerts = [],
   overallAttendance = 0,
   criticalAttendance = [],
-  onRefresh,
-  isRefreshing: isParentRefreshing = false,
 }: HomeDashboardProps) => {
   const [isAlertExpanded, setIsAlertExpanded] = useState(false);
   const [isMetricExpanded, setIsMetricExpanded] = useState(false);
   const [metricMode, setMetricMode] = useState("attendance");
   const containerRef = useRef<HTMLDivElement>(null);
   const [pullY, setPullY] = useState(0);
-  const [isLocalRefreshing, setIsLocalRefreshing] = useState(false);
-  const isRefreshing = isLocalRefreshing || isParentRefreshing;
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const startY = useRef(0);
   const startX = useRef(0);
@@ -137,28 +132,22 @@ const HomeDashboard = ({
     }
   };
 
-  const handleTouchEnd = async () => {
+  const handleTouchEnd = () => {
     setIsDragging(false);
-    if (pullY > 80 && !isRefreshing) {
-      setIsLocalRefreshing(true);
+    if (pullY > 80) {
+      setIsRefreshing(true);
       setPullY(80);
       if (navigator.vibrate) navigator.vibrate(20);
-      try {
-        if (onRefresh) {
-          await onRefresh();
-        }
-      } finally {
-        setTimeout(() => {
-          window.location.reload();
-        }, 800);
-      }
+      setTimeout(() => {
+        window.location.reload();
+      }, 800);
     } else {
       setPullY(0);
     }
   };
 
   return (
-    <div className="h-full w-full bg-theme-bg relative overflow-hidden">
+    <div className="h-full w-full bg-[#050505] relative overflow-hidden">
       <div className="absolute top-0 left-0 w-full h-[200px] bg-[#fdfdfd] z-0" />
 
       <div
@@ -236,7 +225,7 @@ const HomeDashboard = ({
                   </h1>
                   <button
                     onClick={onProfileClick}
-                    className="w-9 h-9 rounded-full overflow-hidden active:scale-90 transition-transform"
+                    className="w-9 h-9 rounded-full overflow-hidden border-2 border-black/5 active:scale-90 transition-transform shadow-sm"
                   >
                     <img
                       src="/image.png"
@@ -263,7 +252,7 @@ const HomeDashboard = ({
                     </span>
                     <div className="flex flex-col mt-2 w-full break-words">
                       <span
-                        className="text-[4.5vw] md:text-[3rem] leading-[0.8] font-black tracking-tight text-theme-primary truncate"
+                        className="text-[#3233ff] truncate text-[4.5vw] md:text-[3rem] leading-[0.8] font-black tracking-tight"
                         style={{ fontFamily: "Akira" }}
                       >
                         {displayNext.top}
@@ -290,7 +279,7 @@ const HomeDashboard = ({
                       style={{ fontFamily: "Aonic" }}
                     >
                       {timeStatus?.currentClass
-                        ? `⭐ current: ${timeStatus.currentClass.course}`
+                        ? `⭐ current: ${timeStatus.currentClass.course}${timeStatus.currentClass.type === "lab" ? " (P)" : ""}`
                         : "☕ currently free"}
                     </div>
                     {timeStatus?.currentClass && (
@@ -306,7 +295,7 @@ const HomeDashboard = ({
                         className="bg-black/5 px-3 py-2 rounded-xl text-[10px] md:text-[11px] font-bold lowercase text-black/60 border border-black/5 flex-shrink-0"
                         style={{ fontFamily: "Aonic" }}
                       >
-                        ⏰ {timeStatus.nextClass.time}
+                        ⏰ {timeStatus.nextClass.time}{timeStatus.nextClass.type === "lab" ? " (P)" : ""}
                       </div>
                     )}
                     <div className="ml-auto w-10 h-10 bg-black rounded-full flex items-center justify-center text-white active:scale-90 transition-transform flex-shrink-0 shadow-lg">
@@ -321,7 +310,7 @@ const HomeDashboard = ({
           <LayoutGroup>
             <motion.div
               layout
-              initial={false}
+              initial={{ opacity: 0, y: 100 }}
               animate={{ opacity: 1, y: 0 }}
               transition={springTransition}
               className="px-1.5 w-full flex flex-col gap-10 flex-none mt-1.5 shrink-0"
@@ -334,7 +323,7 @@ const HomeDashboard = ({
                   setIsAlertExpanded(!isAlertExpanded);
                   if (isMetricExpanded) setIsMetricExpanded(false);
                 }}
-                className={`bg-theme-secondary !px-8 flex flex-col text-white rounded-[32px] cursor-pointer overflow-hidden ${
+                className={`bg-[#ff003c] !px-8 flex flex-col text-white rounded-[32px] cursor-pointer overflow-hidden ${
                   isAlertExpanded ? "h-[250px]" : "h-[75px]"
                 }`}
               >
@@ -384,7 +373,7 @@ const HomeDashboard = ({
                                 {alert.description}
                               </span>
                               {alert.type === "exam" && (
-                                <span className="bg-theme-secondary text-white text-[9px] font-black px-1.5 py-0.5 rounded-md ml-2 flex-shrink-0">
+                                <span className="bg-[#ff003c] text-white text-[9px] font-black px-1.5 py-0.5 rounded-md ml-2 flex-shrink-0">
                                   EXAM
                                 </span>
                               )}
@@ -418,7 +407,7 @@ const HomeDashboard = ({
                   setIsMetricExpanded(!isMetricExpanded);
                   if (isAlertExpanded) setIsAlertExpanded(false);
                 }}
-                className={`bg-theme-highlight flex-1 flex flex-col relative -top-8 rounded-t-[48px] !px-5 !pb-[60vh] -mb-[40vh] overflow-hidden cursor-pointer ${
+                className={`bg-[#ceff1c] flex-1 flex flex-col relative -top-8 rounded-t-[48px] !px-5 !pb-[60vh] -mb-[40vh] overflow-hidden cursor-pointer ${
                   isMetricExpanded
                     ? "min-h-[400px]"
                     : "min-h-[220px] md:min-h-[250px]"
@@ -432,13 +421,13 @@ const HomeDashboard = ({
                     {metricMode === "attendance" ? (
                       <Zap
                         size={20}
-                        className="text-theme-bg"
+                        className="text-[#ceff1c]"
                         fill="currentColor"
                       />
                     ) : (
                       <GraduationCap
                         size={20}
-                        className="text-theme-bg"
+                        className="text-[#ceff1c]"
                         fill="currentColor"
                       />
                     )}
@@ -452,7 +441,7 @@ const HomeDashboard = ({
                       onClick={() => setMetricMode("attendance")}
                       className={`px-4 py-2 rounded-full cursor-pointer transition-colors ${
                         metricMode === "attendance"
-                          ? "bg-theme-highlight text-theme-bg shadow-sm"
+                          ? "bg-[#ceff1c] text-black shadow-sm"
                           : "text-white/40 hover:text-white"
                       }`}
                     >
@@ -462,7 +451,7 @@ const HomeDashboard = ({
                       onClick={() => setMetricMode("marks")}
                       className={`px-4 py-2 rounded-full cursor-pointer transition-colors ${
                         metricMode === "marks"
-                          ? "bg-theme-highlight text-theme-bg shadow-sm"
+                          ? "bg-[#ceff1c] text-black shadow-sm"
                           : "text-white/40 hover:text-white"
                       }`}
                     >
@@ -499,14 +488,21 @@ const HomeDashboard = ({
                                 key={i}
                                 className="bg-black/10 p-4 rounded-2xl flex items-center justify-between w-full"
                               >
-                                <span
-                                  className="font-bold text-[13px] text-black w-[60%] leading-tight truncate"
-                                  style={{ fontFamily: "Aonic" }}
-                                >
-                                  {subj.displayName}
-                                </span>
+                                <div className="flex flex-col w-[60%]">
+                                  {subj.isPractical && (
+                                    <span className="text-[8px] font-black text-[#3233ff] uppercase tracking-widest mb-1">
+                                      practical
+                                    </span>
+                                  )}
+                                  <span
+                                    className="font-bold text-[13px] text-black leading-tight truncate"
+                                    style={{ fontFamily: "Aonic" }}
+                                  >
+                                    {subj.displayName}
+                                  </span>
+                                </div>
                                 <div className="flex flex-col items-end">
-                                  <div className="flex items-center gap-1 text-theme-secondary">
+                                  <div className="flex items-center gap-1 text-[#ff003c]">
                                     <AlertTriangle size={14} />
                                     <span
                                       className="font-black text-[14px] lowercase"
