@@ -1,10 +1,11 @@
 import time
 import asyncio
+import os
 from datetime import datetime
 import httpx
 import uvicorn
 from core.academia_client import AcademiaClient
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from models.schemas import Credentials
 from services.marks_service import MarksService
@@ -12,8 +13,13 @@ from services.profile_service import ProfileService
 from services.course_service import CourseService
 from services.attendance_service import AttendanceService
 from services.timetable_service import TimetableService
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = FastAPI()
+
+INTERNAL_SECRET = os.getenv("INTERNAL_SECRET")
 
 app.add_middleware(
     CORSMiddleware,
@@ -24,8 +30,19 @@ app.add_middleware(
         "http://localhost:9002",
     ],
     allow_methods=["GET", "POST", "OPTIONS"],
-    allow_headers=["Content-Type", "Authorization", "Accept"],
+    allow_headers=["Content-Type", "Authorization", "Accept", "X-App-Secret"],
 )
+
+@app.middleware("http")
+async def security_middleware(request: Request, call_next):
+    if request.method == "OPTIONS" or request.url.path == "/version":
+        return await call_next(request)
+    
+    secret = request.headers.get("X-App-Secret")
+    if secret != INTERNAL_SECRET:
+        raise HTTPException(status_code=403, detail="Unauthorized")
+        
+    return await call_next(request)
 
 def get_now():
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3] + " IST"

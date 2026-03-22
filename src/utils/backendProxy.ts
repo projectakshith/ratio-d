@@ -6,7 +6,7 @@ export async function fetchWithLoadBalancer(endpoint: string, options: RequestIn
     .filter(Boolean);
 
   if (urls.length === 0) {
-    throw new Error("No backend URLs configured in environment variables.");
+    throw new Error("No backend URLs configured.");
   }
 
   const shuffledUrls = [...urls].sort(() => Math.random() - 0.5);
@@ -20,6 +20,10 @@ export async function fetchWithLoadBalancer(endpoint: string, options: RequestIn
 
       const res = await fetch(`${baseUrl}${endpoint}`, {
         ...options,
+        headers: {
+          ...options.headers,
+          "X-App-Secret": process.env.INTERNAL_SECRET || "",
+        },
         signal: controller.signal,
       });
       
