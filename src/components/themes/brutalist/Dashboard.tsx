@@ -321,7 +321,7 @@ const HomeDashboard = ({
           <LayoutGroup>
             <motion.div
               layout
-              initial={{ opacity: 0, y: 100 }}
+              initial={false}
               animate={{ opacity: 1, y: 0 }}
               transition={springTransition}
               className="px-1.5 w-full flex flex-col gap-10 flex-none mt-1.5 shrink-0"

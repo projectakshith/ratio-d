@@ -362,7 +362,7 @@ export default function Dashboard({
         >
           <motion.div
             variants={containerVariants}
-            initial="hidden"
+            initial={false}
             animate={startEntrance ? "show" : "hidden"}
             className="w-full flex flex-col px-6 pt-6 pb-24"
           >

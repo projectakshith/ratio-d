@@ -183,7 +183,7 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
       }}
       exit={{ opacity: 0, x: -20 }}
       transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-      className="fixed inset-0 z-[999]"
+      className={`fixed inset-0 z-[999] ${isExiting ? 'pointer-events-none' : 'pointer-events-auto'}`}
     >
       <div className="absolute inset-0 pointer-events-none overflow-hidden flex items-center justify-center">
         <AnimatePresence mode="wait">

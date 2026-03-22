@@ -35,9 +35,10 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
 
   useEffect(() => {
     if (showWelcome) {
+      setShowSplash(false);
       const timer = setTimeout(() => {
         setShowWelcome(false);
-      }, 3500);
+      }, 2000);
       return () => clearTimeout(timer);
     }
   }, [showWelcome, setShowWelcome]);
@@ -84,13 +85,13 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 0.8, ease: "easeInOut" }}
             className="fixed inset-0 z-[10000] bg-theme-bg flex flex-col justify-center items-center px-8"
           >
             <motion.div
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.3, duration: 0.5 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
               className="flex flex-col items-center text-center"
             >
               <span className="text-theme-muted text-sm font-bold uppercase tracking-[0.3em] mb-2">

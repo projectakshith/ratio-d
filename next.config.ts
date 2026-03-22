@@ -107,9 +107,8 @@ const withPWA = withPWAInit({
           cacheName: "apis",
           expiration: {
             maxEntries: 64,
-            maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
+            maxAgeSeconds: 60 * 60 * 24 * 30,
           },
-          networkTimeoutSeconds: 5,
         },
       },
       {
