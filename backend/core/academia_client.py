@@ -20,8 +20,8 @@ class AcademiaClient:
         print(f"  -> [NETWORK] GET {URLS[url_key]}{suffix}", flush=True)
         response = await self.session_handler.client.get(full_url, follow_redirects=False)
 
-        # Fix: Convert response.url to string for httpx compatibility
-        if response.status_code in [301, 302] or "signin" in str(response.url):
+        location = response.headers.get("Location", "")
+        if response.status_code in [301, 302] or "signin" in location:
             print(f"  -> [NETWORK] WARNING: Redirected to login. Session is dead.", flush=True)
             return None
 

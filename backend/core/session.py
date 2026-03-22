@@ -50,6 +50,8 @@ class SessionHandler:
 
     async def login(self, username, password):
         print(f"  -> [SESSION] Executing hard login for {username}...", flush=True)
+        self.client = httpx.AsyncClient(headers=HEADERS, follow_redirects=True, timeout=30.0)
+        
         payload = {
             'username': username, 'password': password, 'client_portal': 'true',
             'portal': '10002227248', 'servicename': 'ZohoCreator',
