@@ -429,13 +429,13 @@ export default function Marks({
                       )}
                     </div>
                   </div>
-                  <div className="flex gap-2 w-full mt-1 overflow-x-auto no-scrollbar pb-1">
-                    {sub.assessments.slice(-3).map((box: any, idx: number) => {
+                  <div className="grid grid-cols-3 gap-2 w-full mt-1">
+                    {sub.assessments.map((box: any, idx: number) => {
                       const boxTheme = getBoxTheme(box.got, box.max);
                       return (
                         <div
                           key={idx}
-                          className={`min-w-[65px] flex-1 rounded-[12px] p-2 flex flex-col items-center justify-center border-[1.5px] ${boxTheme.boxBg} ${boxTheme.border}`}
+                          className={`min-w-0 flex-1 rounded-[12px] p-2 flex flex-col items-center justify-center border-[1.5px] ${boxTheme.boxBg} ${boxTheme.border}`}
                         >
                           <span
                             className={`text-[12px] font-bold uppercase tracking-widest mb-0.5 ${boxTheme.subText}`}
@@ -463,11 +463,11 @@ export default function Marks({
                       );
                     })}
                     {Array.from({
-                      length: Math.max(0, 3 - sub.assessments.length),
+                      length: Math.max(0, sub.assessments.length < 3 ? 3 - sub.assessments.length : (3 - (sub.assessments.length % 3)) % 3),
                     }).map((_, idx) => (
                       <div
                         key={`fill-${idx}`}
-                        className="min-w-[65px] flex-1 rounded-[12px] p-2 flex flex-col items-center justify-center border-[1.5px] border-dashed border-theme-border bg-theme-surface/50"
+                        className="min-w-0 flex-1 rounded-[12px] p-2 flex flex-col items-center justify-center border-[1.5px] border-dashed border-theme-border bg-theme-surface/50"
                       >
                         <span
                           className="text-[10px] font-bold text-theme-faint uppercase tracking-widest"
@@ -557,13 +557,13 @@ export default function Marks({
                     </span>
                   </div>
                 </div>
-                <div className="flex gap-2 w-full mt-1 overflow-x-auto no-scrollbar pb-1">
-                  {sub.assessments.slice(-3).map((box: any, idx: number) => {
+                <div className="grid grid-cols-3 gap-2 w-full mt-1">
+                  {sub.assessments.map((box: any, idx: number) => {
                     const boxTheme = getBoxTheme(box.got, box.max);
                       return (
                         <div
                           key={idx}
-                          className={`min-w-[65px] flex-1 rounded-[12px] p-2 flex flex-col items-center justify-center border-[1px] ${boxTheme.boxBg} ${boxTheme.border}`}
+                          className={`min-w-0 flex-1 rounded-[12px] p-2 flex flex-col items-center justify-center border-[1.5px] ${boxTheme.boxBg} ${boxTheme.border}`}
                       >
                         <span
                           className={`text-[12px] font-bold uppercase tracking-widest mb-0.5 ${boxTheme.subText}`}
@@ -591,11 +591,11 @@ export default function Marks({
                     );
                   })}
                   {Array.from({
-                    length: Math.max(0, 3 - sub.assessments.length),
+                    length: Math.max(0, sub.assessments.length < 3 ? 3 - sub.assessments.length : (3 - (sub.assessments.length % 3)) % 3),
                   }).map((_, idx) => (
                     <div
                       key={`fill-${idx}`}
-                      className="min-w-[65px] flex-1 rounded-[12px] p-2 flex flex-col items-center justify-center border-[1.5px] border-dashed border-theme-border bg-theme-surface/50"
+                      className="min-w-0 flex-1 rounded-[12px] p-2 flex flex-col items-center justify-center border-[1.5px] border-dashed border-theme-border bg-theme-surface/50"
                     >
                       <span
                         className="text-[10px] font-bold text-theme-faint uppercase tracking-widest"

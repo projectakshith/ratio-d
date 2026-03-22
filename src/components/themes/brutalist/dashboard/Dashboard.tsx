@@ -64,6 +64,8 @@ interface HomeDashboardProps {
   upcomingAlerts?: any[];
   overallAttendance?: number;
   criticalAttendance?: any[];
+  onRefresh?: () => Promise<void>;
+  isRefreshing?: boolean;
 }
 
 const HomeDashboard = ({
@@ -74,16 +76,20 @@ const HomeDashboard = ({
   upcomingAlerts = [],
   overallAttendance = 0,
   criticalAttendance = [],
+  onRefresh,
+  isRefreshing: isParentRefreshing,
 }: HomeDashboardProps) => {
   const [isAlertExpanded, setIsAlertExpanded] = useState(false);
   const [isMetricExpanded, setIsMetricExpanded] = useState(false);
   const [metricMode, setMetricMode] = useState("attendance");
   const containerRef = useRef<HTMLDivElement>(null);
   const [pullY, setPullY] = useState(0);
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isLocalRefreshing, setIsLocalRefreshing] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const startY = useRef(0);
   const startX = useRef(0);
+
+  const isRefreshing = isLocalRefreshing || isParentRefreshing;
 
   const studentName =
     displayName || (profile?.name ? profile.name.split(" ")[0] : "Student");
@@ -135,12 +141,20 @@ const HomeDashboard = ({
   const handleTouchEnd = () => {
     setIsDragging(false);
     if (pullY > 80) {
-      setIsRefreshing(true);
+      setIsLocalRefreshing(true);
       setPullY(80);
       if (navigator.vibrate) navigator.vibrate(20);
-      setTimeout(() => {
-        window.location.reload();
-      }, 800);
+
+      if (onRefresh) {
+        onRefresh().finally(() => {
+          setIsLocalRefreshing(false);
+          setPullY(0);
+        });
+      } else {
+        setTimeout(() => {
+          window.location.reload();
+        }, 800);
+      }
     } else {
       setPullY(0);
     }
