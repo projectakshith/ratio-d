@@ -78,7 +78,6 @@ create a `.env.local` file in the root directory
 
 ```bash
 BACKEND_URLS="your_primary_api,your_backup_api"
-API_URL="your_primary_api"
 INTERNAL_SECRET="your_shared_secret_here"
 ```
 

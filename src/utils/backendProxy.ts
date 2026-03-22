@@ -1,5 +1,5 @@
 export async function fetchWithLoadBalancer(endpoint: string, options: RequestInit = {}) {
-  const urlsString = process.env.BACKEND_URLS || process.env.API_URL || "";
+  const urlsString = process.env.BACKEND_URLS || "";
   const urls = urlsString
     .split(",")
     .map(url => url.trim())
