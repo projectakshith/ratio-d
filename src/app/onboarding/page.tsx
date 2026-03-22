@@ -31,8 +31,7 @@ export default function OnboardingRoute() {
 
   const handleComplete = () => {
     localStorage.setItem("ratiod_onboarded", "true");
-    sessionStorage.setItem("ratiod_just_onboarded", "true");
-    window.location.href = "/";
+    router.push("/");
   };
 
   return <OnboardingPage onComplete={handleComplete} />;

@@ -13,38 +13,37 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
   const { isOffline, showWelcome, setShowWelcome, userData } = useApp();
   const [showSplash, setShowSplash] = useState(false);
   const [isFirstSplash, setIsFirstSplash] = useState(false);
+useEffect(() => {
+  const isStandalone =
+    window.matchMedia("(display-mode: standalone)").matches ||
+    (window.navigator as any).standalone;
 
-  useEffect(() => {
-    const isStandalone =
-      window.matchMedia("(display-mode: standalone)").matches ||
-      (window.navigator as any).standalone;
-if (isStandalone && !globalSplashPlayed) {
-  globalSplashPlayed = true;
+  if (isStandalone && !globalSplashPlayed) {
+    globalSplashPlayed = true;
 
-  if (!showWelcome) {
-    const isOnboarded = localStorage.getItem("ratiod_onboarded") === "true";
-    if (!isOnboarded) {
-      setIsFirstSplash(true);
+    if (!showWelcome) {
+      const isOnboarded = localStorage.getItem("ratiod_onboarded") === "true";
+      if (!isOnboarded) {
+        setIsFirstSplash(true);
+      }
+      setShowSplash(true);
+      const safetyTimer = setTimeout(() => {
+        setShowSplash(false);
+      }, !isOnboarded ? 3500 : 800);
+      return () => clearTimeout(safetyTimer);
     }
-    setShowSplash(true);
-    const safetyTimer = setTimeout(() => {
-      setShowSplash(false);
-    }, !isOnboarded ? 3500 : 800);
-    return () => clearTimeout(safetyTimer);
   }
-}
 }, [showWelcome]);
 
-  useEffect(() => {
-    if (showWelcome) {
-      setShowSplash(false);
-      sessionStorage.removeItem("ratiod_just_onboarded");
-      const timer = setTimeout(() => {
-        setShowWelcome(false);
-      }, 2000);
-      return () => clearTimeout(timer);
-    }
-  }, [showWelcome, setShowWelcome]);
+useEffect(() => {
+  if (showWelcome) {
+    setShowSplash(false);
+    const timer = setTimeout(() => {
+      setShowWelcome(false);
+    }, 2000);
+    return () => clearTimeout(timer);
+  }
+}, [showWelcome, setShowWelcome]);
 
   return (
     <main className="bg-theme-bg fixed inset-0 w-full overflow-hidden flex flex-col">

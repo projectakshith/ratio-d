@@ -40,12 +40,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [loginPromise, setLoginPromise] = useState<Promise<any> | null>(null);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [canInstall, setCanInstall] = useState<boolean>(false);
-  const [showWelcome, setShowWelcome] = useState(() => {
-    if (typeof window !== "undefined") {
-      return sessionStorage.getItem("ratiod_just_onboarded") === "true";
-    }
-    return false;
-  });
+  const [showWelcome, setShowWelcome] = useState(false);
   const updateInProgress = React.useRef(false);
   const router = useRouter();
 

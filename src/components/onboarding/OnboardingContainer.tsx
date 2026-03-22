@@ -56,14 +56,6 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
   }, [step]);
 
   useEffect(() => {
-    router.prefetch("/");
-    router.prefetch("/attendance");
-    router.prefetch("/marks");
-    router.prefetch("/timetable");
-    router.prefetch("/calendar");
-  }, [router]);
-
-  useEffect(() => {
     if (loginPromise) {
       loginPromise.catch((err) => {
         setLoginError(err.message || "Invalid credentials");
