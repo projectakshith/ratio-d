@@ -1,4 +1,5 @@
 from urllib.parse import urljoin
+import re
 
 from core.config import BASE_URL, URLS
 from core.decoder import HTMLDecoder

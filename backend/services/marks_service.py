@@ -15,7 +15,7 @@ class MarksService:
             if len(cols) < 3:
                 continue
             c_code = TextUtils.clean(cols[0].get_text())
-            if not re.match(r"^[A-Z0-9]{8,12}", c_code):
+            if not re.match(r"^[A-Z0-9]{8,12}$", c_code):
                 continue
             c_type = TextUtils.clean(cols[1].get_text())
             perf_cell = cols[2]
@@ -48,13 +48,12 @@ class MarksService:
                         except ValueError:
                             pass
             perf_summary = f"{total_got:g}/{total_marks:g}" if has_valid_marks else "N/A"
-            if assessments:
-                performance_data.append({
-                    "courseCode": c_code,
-                    "type": c_type,
-                    "performance": perf_summary,
-                    "assessments": assessments,
-                    "totalMarkGot": total_got if has_valid_marks else None,
-                    "totalMaxMarks": total_marks if has_valid_marks else None,
-                })
+            performance_data.append({
+                "courseCode": c_code,
+                "type": c_type,
+                "performance": perf_summary,
+                "assessments": assessments,
+                "totalMarkGot": total_got if has_valid_marks else None,
+                "totalMaxMarks": total_marks if has_valid_marks else None,
+            })
         return performance_data
