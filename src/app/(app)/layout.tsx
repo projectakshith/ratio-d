@@ -24,12 +24,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { userData, logout, customDisplayName, setCustomDisplayName, isUpdating } = useApp();
   const { theme, setTheme, uiStyle, isDark } = useTheme();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [isVerified, setIsVerified] = useState(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("ratiod_onboarded") === "true";
-    }
-    return false;
-  });
   const academia = useAcademiaData(userData as any);
   const router = useRouter();
 
@@ -37,15 +31,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     const isOnboarded = localStorage.getItem("ratiod_onboarded") === "true";
     if (!isOnboarded) {
       router.replace("/onboarding");
-      setIsVerified(false);
-    } else {
-      setIsVerified(true);
     }
   }, [router]);
-
-  if (!isVerified) {
-    return null;
-  }
 
   const handleUpdateName = (name: string) => {
     setCustomDisplayName(name);

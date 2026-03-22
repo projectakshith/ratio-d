@@ -181,10 +181,14 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
   return (
     <motion.div 
       initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: isExiting ? 0 : 1, x: isExiting ? -20 : 0 }}
+      animate={{ 
+        opacity: isExiting ? 0 : 1, 
+        x: isExiting ? -20 : 0,
+        backgroundColor: isExiting ? "rgba(17, 17, 17, 0)" : "rgba(17, 17, 17, 1)"
+      }}
       exit={{ opacity: 0, x: -20 }}
       transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-      className="fixed inset-0 bg-[#111111] z-[999]"
+      className="fixed inset-0 z-[999]"
     >
       <AnimatePresence>
         {showWelcome && (
