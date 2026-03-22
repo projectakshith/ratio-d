@@ -39,7 +39,7 @@ async def security_middleware(request: Request, call_next):
         return await call_next(request)
     
     secret = request.headers.get("X-App-Secret")
-    if secret != INTERNAL_SECRET:
+    if not INTERNAL_SECRET or secret != INTERNAL_SECRET:
         raise HTTPException(status_code=403, detail="Unauthorized")
         
     return await call_next(request)
