@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import OnboardingPage from "@/components/onboarding";
 import { useRouter } from "next/navigation";
 import { useApp } from "@/context/AppContext";
@@ -7,6 +7,7 @@ import { useApp } from "@/context/AppContext";
 export default function OnboardingRoute() {
   const router = useRouter();
   const { userData, loginPromise } = useApp();
+  const [isFinished, setIsFinished] = useState(false);
 
   useEffect(() => {
     const checkStatus = () => {
@@ -17,23 +18,20 @@ export default function OnboardingRoute() {
       const hasData = localStorage.getItem("ratio_data") || userData;
       const hasSession = document.cookie.includes("ratio_session=");
 
-      if (isStandalone) {
-        if (isOnboarded && hasData && (hasSession || userData)) {
-          router.replace("/");
-        } else if (!hasData && !hasSession && !loginPromise) {
-          router.replace("/login");
-        }
+      if (isStandalone && isOnboarded && hasData && (hasSession || userData)) {
+        router.replace("/");
       }
     };
 
     checkStatus();
-    const timer = setTimeout(checkStatus, 1000);
-    return () => clearTimeout(timer);
-  }, [router, userData, loginPromise]);
+  }, [router, userData]);
 
   const handleComplete = () => {
+    setIsFinished(true);
     router.replace("/");
   };
+
+  if (isFinished) return null;
 
   return <OnboardingPage onComplete={handleComplete} />;
 }
