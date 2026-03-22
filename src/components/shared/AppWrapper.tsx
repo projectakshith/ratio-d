@@ -18,23 +18,22 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
     const isStandalone =
       window.matchMedia("(display-mode: standalone)").matches ||
       (window.navigator as any).standalone;
+if (isStandalone && !globalSplashPlayed) {
+  globalSplashPlayed = true;
 
-    if (isStandalone && !globalSplashPlayed) {
-      globalSplashPlayed = true;
-
-      if (sessionStorage.getItem("ratiod_just_onboarded") !== "true") {
-        const isOnboarded = localStorage.getItem("ratiod_onboarded") === "true";
-        if (!isOnboarded) {
-          setIsFirstSplash(true);
-        }
-        setShowSplash(true);
-        const safetyTimer = setTimeout(() => {
-          setShowSplash(false);
-        }, !isOnboarded ? 3500 : 800);
-        return () => clearTimeout(safetyTimer);
-      }
+  if (!showWelcome) {
+    const isOnboarded = localStorage.getItem("ratiod_onboarded") === "true";
+    if (!isOnboarded) {
+      setIsFirstSplash(true);
     }
-  }, []);
+    setShowSplash(true);
+    const safetyTimer = setTimeout(() => {
+      setShowSplash(false);
+    }, !isOnboarded ? 3500 : 800);
+    return () => clearTimeout(safetyTimer);
+  }
+}
+}, [showWelcome]);
 
   useEffect(() => {
     if (showWelcome) {
