@@ -14,6 +14,8 @@ interface AppContextType {
   isUpdating: boolean;
   setIsUpdating: (val: boolean) => void;
   isOffline: boolean;
+  isBackendError: boolean;
+  setIsBackendError: (val: boolean) => void;
   refreshData: (creds: any, existingData: any) => Promise<any>;
   performLogin: (creds: any) => Promise<any>;
   loginPromise: Promise<any> | null;
@@ -36,6 +38,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [customDisplayName, setCustomDisplayName] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
   const [isOffline, setIsOffline] = useState(false);
+  const [isBackendError, setIsBackendError] = useState(false);
   const [latestDiff, setLatestDiff] = useState<DataDiff | null>(null);
   const [loginPromise, setLoginPromise] = useState<Promise<any> | null>(null);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
@@ -52,6 +55,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [router]);
 
   const performLogin = useCallback(async (creds: any) => {
+    setIsBackendError(false);
     const promise = (async () => {
       try {
         const response = await fetch("/api/login", {
@@ -59,6 +63,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(creds),
         });
+
+        if (response.status === 503) {
+          console.error("[Backend Error] All servers are currently down.");
+          setIsBackendError(true);
+          throw new Error("Backend error");
+        }
         
         const data = await response.json();
         if (!response.ok || !data.success) {
@@ -86,6 +96,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
         return data;
       } catch (err) {
+        if (err instanceof Error && err.message !== "Backend error") {
+          console.error("[Login Error]", err);
+        }
         throw err;
       }
     })();
@@ -98,6 +111,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (updateInProgress.current) return existingData;
     updateInProgress.current = true;
     setIsUpdating(true);
+    setIsBackendError(false);
     try {
       const savedCookies = EncryptionUtils.loadDecrypted("academia_cookies");
       const response = await fetch("/api/refresh", {
@@ -105,6 +119,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...creds, cookies: savedCookies }),
       });
+
+      if (response.status === 503) {
+        console.error("[Backend Error] All servers are currently down.");
+        setIsBackendError(true);
+        return existingData;
+      }
 
       const endpoint = (existingData?.attendance && existingData?.marks) ? "refresh" : "login";
       
@@ -233,6 +253,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     isUpdating,
     setIsUpdating,
     isOffline,
+    isBackendError,
+    setIsBackendError,
     refreshData,
     performLogin,
     loginPromise,
@@ -246,7 +268,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setDeferredPrompt,
     showWelcome,
     setShowWelcome,
-  }), [userData, customDisplayName, isUpdating, isOffline, refreshData, performLogin, loginPromise, logout, latestDiff, deferredPrompt, canInstall, showWelcome]);
+  }), [userData, customDisplayName, isUpdating, isOffline, isBackendError, refreshData, performLogin, loginPromise, logout, latestDiff, deferredPrompt, canInstall, showWelcome]);
 
   return (
     <AppContext.Provider value={value}>
