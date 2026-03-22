@@ -6,6 +6,7 @@ import httpx
 import uvicorn
 from core.academia_client import AcademiaClient
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from models.schemas import Credentials
 from services.marks_service import MarksService
@@ -40,7 +41,7 @@ async def security_middleware(request: Request, call_next):
     
     secret = request.headers.get("X-App-Secret")
     if not INTERNAL_SECRET or secret != INTERNAL_SECRET:
-        raise HTTPException(status_code=403, detail="Unauthorized")
+        return JSONResponse(status_code=403, content={"detail": "Unauthorized"})
         
     return await call_next(request)
 
