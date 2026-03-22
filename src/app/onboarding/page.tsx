@@ -31,7 +31,7 @@ export default function OnboardingRoute() {
 
   const handleComplete = () => {
     localStorage.setItem("ratiod_onboarded", "true");
-    localStorage.setItem("ratiod_show_welcome", "true");
+    sessionStorage.setItem("ratiod_just_onboarded", "true");
     window.location.href = "/";
   };
 

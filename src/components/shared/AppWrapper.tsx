@@ -21,6 +21,15 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
 
     if (isStandalone && !globalSplashPlayed) {
       globalSplashPlayed = true;
+
+      const justOnboarded = sessionStorage.getItem("ratiod_just_onboarded") === "true";
+      if (justOnboarded) {
+        sessionStorage.removeItem("ratiod_just_onboarded");
+        setShowWelcome(true);
+        setShowSplash(false);
+        return;
+      }
+
       const isOnboarded = localStorage.getItem("ratiod_onboarded") === "true";
       if (!isOnboarded) {
         setIsFirstSplash(true);
@@ -31,7 +40,7 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
       }, !isOnboarded ? 3500 : 800);
       return () => clearTimeout(safetyTimer);
     }
-  }, []);
+  }, [setShowWelcome]);
 
   useEffect(() => {
     if (showWelcome) {
@@ -86,7 +95,7 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.8, ease: "easeInOut" }}
-            className="fixed inset-0 z-[10000] bg-theme-bg flex flex-col justify-center items-center px-8"
+            className="fixed inset-0 z-[10000] bg-theme-bg flex flex-col justify-center items-center px-8 pointer-events-auto"
           >
             <motion.div
               initial={{ y: 20, opacity: 0 }}
