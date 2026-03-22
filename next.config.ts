@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 import withPWAInit from "@ducanh2912/next-pwa";
 
+const revision = Date.now().toString();
+
 const withPWA = withPWAInit({
   dest: "public",
   disable: process.env.NODE_ENV === "development",
@@ -15,16 +17,16 @@ const withPWA = withPWAInit({
     skipWaiting: true,
     clientsClaim: true,
     additionalManifestEntries: [
-      { url: "/", revision: null },
-      { url: "/attendance", revision: null },
-      { url: "/marks", revision: null },
-      { url: "/timetable", revision: null },
-      { url: "/calendar", revision: null },
-      { url: "/onboarding", revision: null },
-      { url: "/login", revision: null },
-      { url: "/setup", revision: null },
-      { url: "/~offline", revision: null },
-      { url: "/_not-found", revision: null },
+      { url: "/", revision },
+      { url: "/attendance", revision },
+      { url: "/marks", revision },
+      { url: "/timetable", revision },
+      { url: "/calendar", revision },
+      { url: "/onboarding", revision },
+      { url: "/login", revision },
+      { url: "/setup", revision },
+      { url: "/~offline", revision },
+      { url: "/_not-found", revision },
     ],
     runtimeCaching: [
       {
@@ -53,17 +55,6 @@ const withPWA = withPWAInit({
           expiration: {
             maxEntries: 256,
             maxAgeSeconds: 60 * 60 * 24 * 30,
-          },
-        },
-      },
-      {
-        urlPattern: /\.(?:eot|otf|ttc|ttf|woff|woff2|font.css)$/i,
-        handler: "CacheFirst",
-        options: {
-          cacheName: "static-font-assets",
-          expiration: {
-            maxEntries: 20,
-            maxAgeSeconds: 60 * 60 * 24 * 365,
           },
         },
       },
@@ -128,22 +119,6 @@ const withPWA = withPWAInit({
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  images: {
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "placehold.co",
-      },
-      {
-        protocol: "https",
-        hostname: "images.unsplash.com",
-      },
-      {
-        protocol: "https",
-        hostname: "picsum.photos",
-      },
-    ],
-  },
 };
 
 export default withPWA(nextConfig);
