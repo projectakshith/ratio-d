@@ -73,8 +73,11 @@ export default function CourseDetailsPage({
                           <span className="text-[10px] font-black uppercase tracking-[0.2em] text-theme-text/30">
                             {course.code}
                           </span>
-                          <div className="bg-theme-highlight/10 text-theme-highlight h-6 px-3 rounded-full border border-theme-highlight/10 flex items-center justify-center">
-                            <span className="text-[9px] font-black uppercase tracking-[0.1em] whitespace-nowrap leading-none translate-y-[0.5px]">
+                          <div className="bg-theme-text-10 h-6 px-3 rounded-full flex items-center justify-center">
+                            <span 
+                              className="text-[9px] font-bold uppercase tracking-widest whitespace-nowrap leading-none translate-y-[0.5px] text-theme-muted"
+                              style={{ fontFamily: "var(--font-afacad), sans-serif" }}
+                            >
                               {course.raw_type || course.type}
                             </span>
                           </div>

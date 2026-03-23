@@ -569,7 +569,7 @@ const SettingsPage = ({
                               setColorTheme(ct.id);
                               handleThemeApply(targetStyle, ct.id);
                             }}
-                            className={`w-full flex items-start gap-4 p-3.5 rounded-2xl border-[1.5px] transition-all active:scale-[0.98] ${
+                            className={`w-full relative flex items-start gap-4 p-3.5 rounded-2xl border-[1.5px] transition-all active:scale-[0.98] ${
                               isActive
                                 ? "border-theme-highlight bg-theme-highlight/10"
                                 : "border-theme-border bg-theme-surface"
@@ -600,14 +600,13 @@ const SettingsPage = ({
                               className={`text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full shrink-0 mt-0.5 ${
                                 ct.isDark
                                   ? "bg-black/30 text-white/70"
-                                  : "bg-black/10 text-black/50"
+                                  : "bg-black/10 text-white/70"
                               }`}
                             >
                               {ct.isDark ? "dark" : "light"}
-                            </span>
-                            {isActive && (
+                            </span>                            {isActive && (
                               <Check
-                                className="text-theme-highlight shrink-0 mt-0.5"
+                                className="text-theme-highlight absolute bottom-3.5 right-3.5"
                                 size={18}
                                 strokeWidth={3}
                               />
@@ -634,7 +633,7 @@ const SettingsPage = ({
                               setColorTheme(ct.id);
                               handleThemeApply("minimalist", ct.id);
                             }}
-                            className={`w-full flex items-start gap-4 p-3.5 rounded-2xl border-[1.5px] transition-all active:scale-[0.98] ${
+                            className={`w-full relative flex items-start gap-4 p-3.5 rounded-2xl border-[1.5px] transition-all active:scale-[0.98] ${
                               isActive
                                 ? "border-theme-highlight bg-theme-highlight/10"
                                 : "border-theme-border bg-theme-surface"
@@ -666,14 +665,13 @@ const SettingsPage = ({
                               className={`text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full shrink-0 mt-0.5 ${
                                 ct.isDark
                                   ? "bg-black/30 text-white/70"
-                                  : "bg-black/10 text-black/50"
+                                  : "bg-black/10 text-white/70"
                               }`}
                             >
                               {ct.isDark ? "dark" : "light"}
-                            </span>
-                            {isActive && (
+                            </span>                            {isActive && (
                               <Check
-                                className="text-theme-highlight shrink-0 mt-0.5"
+                                className="text-theme-highlight absolute bottom-3.5 right-3.5"
                                 size={18}
                                 strokeWidth={3}
                               />

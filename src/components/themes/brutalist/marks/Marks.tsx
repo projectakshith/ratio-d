@@ -44,8 +44,15 @@ const MarksPage = ({ data }: { data: AcademiaData }) => {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [introMode, setIntroMode] = useState(true);
   const [predictMode, setPredictMode] = useState(false);
-  const [targetGrade, setTargetGrade] = useState<number>(91);
-  const [expectedMarks, setExpectedMarks] = useState<number>(0);
+  const [targetGrades, setTargetGrades] = useState<Record<string, number>>({});
+  const [expectedMarksMap, setExpectedMarksMap] = useState<Record<string, number>>({});
+  const [ignoredSubjectIds, setIgnoredSubjectIds] = useState<string[]>([]);
+
+  const toggleSubjectIgnore = (id: string) => {
+    setIgnoredSubjectIds(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
 
   useEffect(() => {
     setIsSwipeDisabled(predictMode);
@@ -100,26 +107,66 @@ const MarksPage = ({ data }: { data: AcademiaData }) => {
     return getRandomRoast(activeSubject.status);
   }, [activeSubject.id, activeSubject.status]);
 
+  const grades = useMemo(() => [
+    { label: "O", min: 91 },
+    { label: "A+", min: 81 },
+    { label: "A", min: 71 },
+    { label: "B+", min: 61 },
+    { label: "B", min: 56 },
+    { label: "C", min: 50 }
+  ], []);
+
   const predictedGpa = useMemo(() => {
     if (sortedMarks.length === 0) return "0.00";
     let totalPoints = 0, totalCredits = 0;
     sortedMarks.forEach((sub: any) => {
-      if (sub.isNA || !sub.credits) return;
-      let grade = sub.id === selectedId ? (
-        [{ label: "O", min: 91 }, { label: "A+", min: 81 }, { label: "A", min: 71 }, { label: "B+", min: 61 }, { label: "B", min: 51 }, { label: "C", min: 41 }]
-          .find((g) => g.min === targetGrade)?.label || "O"
-      ) : getGrade(sub.percentage);
+      if (sub.isNA || !sub.credits || ignoredSubjectIds.includes(sub.id)) return;
+      
+      let grade;
+      const subTargetGrade = targetGrades[sub.id];
+      if (subTargetGrade !== undefined) {
+        const gradeObj = grades.find((g) => g.min === subTargetGrade);
+        grade = gradeObj ? gradeObj.label : "O";
+      } else {
+        grade = getGrade(sub.percentage);
+      }
+      
       totalPoints += sub.credits * (gradePoints[grade] || 0);
       totalCredits += sub.credits;
     });
     return totalCredits === 0 ? "0.00" : (totalPoints / totalCredits).toFixed(2);
-  }, [sortedMarks, selectedId, targetGrade]);
+  }, [sortedMarks, targetGrades, grades, ignoredSubjectIds]);
+
+  const currentTargetGrade = targetGrades[selectedId || ""] || 91;
+  const currentExpectedMarks = expectedMarksMap[selectedId || ""] || 0;
 
   const currentInternals = activeSubject.totalGot || 0;
   const maxPossibleExpected = Math.max(0, 60 - currentInternals);
-  const projectedInternals = currentInternals + expectedMarks;
-  const semNeededPercentage = Math.max(0, targetGrade - projectedInternals);
-  const semRequiredOutOf75 = Math.ceil((semNeededPercentage / 40) * 75);
+  const projectedInternals = currentInternals + currentExpectedMarks;
+  const semNeededPercentage = Math.max(0, currentTargetGrade - projectedInternals);
+  const maxExternal = activeSubject.isPractical ? 40 : 75;
+  const semRequiredOutOfMax = Math.ceil((semNeededPercentage / 40) * maxExternal);
+
+  const handleExpectedChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!selectedId) return;
+    let val = parseInt(e.target.value);
+    const safeVal = isNaN(val) ? 0 : Math.min(maxPossibleExpected, Math.max(0, val));
+    setExpectedMarksMap(prev => ({ ...prev, [selectedId]: safeVal }));
+  };
+
+  const setExpectedMarks = (val: number | ((prev: number) => number)) => {
+    if (!selectedId) return;
+    setExpectedMarksMap(prev => {
+      const currentVal = prev[selectedId] || 0;
+      const newVal = typeof val === "function" ? val(currentVal) : val;
+      return { ...prev, [selectedId]: Math.min(maxPossibleExpected, Math.max(0, newVal)) };
+    });
+  };
+
+  const setTargetGrade = (val: number) => {
+    if (!selectedId) return;
+    setTargetGrades(prev => ({ ...prev, [selectedId]: val }));
+  };
 
   const handleScroll = () => {
     if (introMode || predictMode || !listContainerRef.current) return;
@@ -232,7 +279,10 @@ const MarksPage = ({ data }: { data: AcademiaData }) => {
             return (
               <div key={subject.id} ref={(el) => { itemRefs.current[index] = el; }} onClick={() => { if(!predictMode) itemRefs.current[index]?.scrollIntoView({ behavior: "smooth", block: "start" }); else setSelectedId(subject.id); }} className={`group relative w-full p-4 rounded-2xl cursor-pointer transition-all duration-300 border snap-start scroll-mt-12 shrink-0 ${isSelected ? "bg-white shadow-xl scale-[1.02] border-black/5 opacity-100 z-10" : "bg-transparent border-transparent opacity-40 grayscale"}`}>
                 <div className="flex justify-between items-center mb-1">
-                  <h4 className="text-lg font-bold lowercase truncate max-w-[70%]" style={{ fontFamily: "Aonic" }}>{subject.title?.toLowerCase()}</h4>
+                  <div className="flex flex-col min-w-0 max-w-[70%]">
+                    <h4 className="text-lg font-bold lowercase truncate" style={{ fontFamily: "Aonic" }}>{subject.title?.toLowerCase()}</h4>
+                    <span className="text-[10px] font-mono text-black/40 lowercase tracking-tight">{subject.credits} credits</span>
+                  </div>
                   {!subject.isNA && <span className="text-2xl font-black" style={{ fontFamily: "Urbanosta" }}>{Math.floor(subject.percentage)}%</span>}
                 </div>
                 <div className="w-full h-[2px] bg-[#050505]/5 relative mb-3 rounded-full overflow-y-auto">
@@ -279,21 +329,20 @@ const MarksPage = ({ data }: { data: AcademiaData }) => {
         activePredSub={activeSubject}
         predictedGpa={predictedGpa}
         gpaColor={parseFloat(predictedGpa) >= 9.0 ? "text-[#ceff1c]" : parseFloat(predictedGpa) <= 7.0 ? "text-[#ff003c]" : "text-[#ffb800]"}
-        semRequiredOutOf75={semRequiredOutOf75}
+        semRequiredOutOfMax={semRequiredOutOfMax}
         currentInternals={currentInternals}
-        expectedMarks={expectedMarks}
+        expectedMarks={currentExpectedMarks}
         maxPossibleExpected={maxPossibleExpected}
-        handleExpectedChange={(e) => {
-          let val = parseInt(e.target.value);
-          setExpectedMarks(isNaN(val) ? 0 : Math.min(maxPossibleExpected, Math.max(0, val)));
-        }}
+        handleExpectedChange={handleExpectedChange}
         setExpectedMarks={setExpectedMarks}
-        targetGrade={targetGrade}
+        targetGrade={currentTargetGrade}
         setTargetGrade={setTargetGrade}
-        grades={[{ label: "O", min: 91 }, { label: "A+", min: 81 }, { label: "A", min: 71 }, { label: "B+", min: 61 }, { label: "B", min: 51 }, { label: "C", min: 41 }]}
-        subjects={sortedMarks}
+        grades={grades}
+        subjects={[...sortedMarks].sort((a: any, b: any) => b.credits - a.credits)}
         predSubjectId={selectedId}
         setPredSubjectId={setSelectedId}
+        ignoredSubjectIds={ignoredSubjectIds}
+        toggleSubjectIgnore={toggleSubjectIgnore}
       />
     </div>
   );

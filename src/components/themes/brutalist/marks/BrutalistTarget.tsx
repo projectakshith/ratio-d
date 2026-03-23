@@ -9,7 +9,7 @@ interface TargetProps {
   activePredSub: any;
   predictedGpa: string;
   gpaColor: string;
-  semRequiredOutOf75: number;
+  semRequiredOutOfMax: number;
   currentInternals: number;
   expectedMarks: number;
   maxPossibleExpected: number;
@@ -21,6 +21,8 @@ interface TargetProps {
   subjects: any[];
   predSubjectId: string | null;
   setPredSubjectId: (id: string | null) => void;
+  ignoredSubjectIds: string[];
+  toggleSubjectIgnore: (id: string) => void;
 }
 
 export default function BrutalistTarget({
@@ -29,7 +31,7 @@ export default function BrutalistTarget({
   activePredSub,
   predictedGpa,
   gpaColor,
-  semRequiredOutOf75,
+  semRequiredOutOfMax,
   currentInternals,
   expectedMarks,
   maxPossibleExpected,
@@ -41,7 +43,11 @@ export default function BrutalistTarget({
   subjects,
   predSubjectId,
   setPredSubjectId,
+  ignoredSubjectIds,
+  toggleSubjectIgnore,
 }: TargetProps) {
+  const maxExternal = activePredSub.isPractical ? 40 : 75;
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -101,11 +107,11 @@ export default function BrutalistTarget({
                 sem marks needed
               </span>
               <div className="flex items-baseline gap-1">
-                <span className={`leading-[0.85] font-black tracking-tighter text-center ${semRequiredOutOf75 > 75 ? "text-[4rem] text-[#ff003c]" : "text-[5rem] text-[#ceff1c]"}`} style={{ fontFamily: "Montserrat" }}>
-                  {semRequiredOutOf75 > 75 ? "cooked." : semRequiredOutOf75 <= 0 ? "0" : semRequiredOutOf75}
+                <span className={`leading-[0.85] font-black tracking-tighter text-center ${semRequiredOutOfMax > maxExternal ? "text-[4rem] text-[#ff003c]" : "text-[5rem] text-[#ceff1c]"}`} style={{ fontFamily: "Montserrat" }}>
+                  {semRequiredOutOfMax > maxExternal ? "cooked." : semRequiredOutOfMax <= 0 ? "0" : semRequiredOutOfMax}
                 </span>
-                {semRequiredOutOf75 > 0 && semRequiredOutOf75 <= 75 && (
-                  <span className="text-[20px] font-bold text-white/20" style={{ fontFamily: "Montserrat" }}>/75</span>
+                {semRequiredOutOfMax > 0 && semRequiredOutOfMax <= maxExternal && (
+                  <span className="text-[20px] font-bold text-white/20" style={{ fontFamily: "Montserrat" }}>/{maxExternal}</span>
                 )}
               </div>
             </div>
@@ -119,7 +125,7 @@ export default function BrutalistTarget({
                   <span className="text-[2rem] leading-[1] font-black text-white" style={{ fontFamily: "Montserrat" }}>
                     {Number.isInteger(currentInternals) ? currentInternals : currentInternals.toFixed(1)}
                   </span>
-                  <span className="text-[12px] font-bold text-white/20" style={{ fontFamily: "Montserrat" }}>/60</span>
+                  <span className="text-[12px] font-bold text-white/20" style={{ fontFamily: "Montserrat" }}>/{activePredSub.totalMax}</span>
                 </div>
               </div>
               <div className="flex flex-col items-end w-1/2">
@@ -128,7 +134,10 @@ export default function BrutalistTarget({
                 </span>
                 <div className="flex items-center gap-1 bg-white/5 rounded-[12px] px-1.5 py-1.5 h-10">
                   <button
-                    onClick={() => setExpectedMarks((prev: any) => Math.max(0, (typeof prev === "function" ? prev(expectedMarks) : prev) - 1))}
+                    onClick={() => {
+                      if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(8);
+                      setExpectedMarks((prev: any) => Math.max(0, (typeof prev === "function" ? prev(expectedMarks) : prev) - 1));
+                    }}
                     className="w-7 h-7 rounded-[8px] bg-white/10 flex items-center justify-center text-white font-bold transition-all"
                   >
                     -
@@ -146,7 +155,10 @@ export default function BrutalistTarget({
                     <span className="text-[11px] font-bold text-white/20" style={{ fontFamily: "Montserrat" }}>/{maxPossibleExpected}</span>
                   </div>
                   <button
-                    onClick={() => setExpectedMarks((prev: any) => Math.min(maxPossibleExpected, (typeof prev === "function" ? prev(expectedMarks) : prev) + 1))}
+                    onClick={() => {
+                      if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(8);
+                      setExpectedMarks((prev: any) => Math.min(maxPossibleExpected, (typeof prev === "function" ? prev(expectedMarks) : prev) + 1));
+                    }}
                     className="w-7 h-7 rounded-[8px] bg-[#ceff1c] text-black flex items-center justify-center font-bold transition-all"
                   >
                     +
@@ -163,7 +175,10 @@ export default function BrutalistTarget({
                 {grades.map((g) => (
                   <button
                     key={g.label}
-                    onClick={() => setTargetGrade(g.min)}
+                    onClick={() => {
+                      if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(8);
+                      setTargetGrade(g.min);
+                    }}
                     className={`py-3 rounded-[16px] flex flex-col items-center justify-center transition-all ${targetGrade === g.min ? "bg-[#ceff1c] text-black" : "bg-white/5 text-white/40 hover:bg-white/10"}`}
                   >
                     <span className="text-[18px] font-black" style={{ fontFamily: "Montserrat" }}>{g.label}</span>
@@ -178,19 +193,39 @@ export default function BrutalistTarget({
                 select subject
               </span>
               <div className="flex gap-2 overflow-x-auto no-scrollbar w-full px-2">
-                {subjects.map((sub: any) => (
-                  <button
-                    key={sub.id}
-                    onClick={() => { setPredSubjectId(sub.id); setExpectedMarks(0); }}
-                    className={`px-4 py-2.5 rounded-[12px] text-[12px] font-bold uppercase tracking-widest transition-all whitespace-nowrap shrink-0 flex flex-col items-center gap-0.5 ${predSubjectId === sub.id ? "bg-[#ceff1c] text-black" : "bg-white/5 text-white hover:bg-white/10"}`}
-                    style={{ fontFamily: "Aonic" }}
-                  >
-                    <span>{sub.shortName || sub.code}</span>
-                    <span className={`text-[9px] ${predSubjectId === sub.id ? "opacity-100 font-black" : "opacity-60 font-black"}`}>
-                      {sub.credits} credits
-                    </span>
-                  </button>
-                ))}
+                {subjects.map((sub: any) => {
+                  const isIgnored = ignoredSubjectIds.includes(sub.id);
+                  const isActive = predSubjectId === sub.id;
+
+                  return (
+                    <div key={sub.id} className="flex flex-col gap-1 shrink-0">
+                      <button
+                        onClick={() => {
+                          if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(8);
+                          setPredSubjectId(sub.id);
+                        }}
+                        className={`px-4 py-2.5 rounded-[12px] text-[12px] font-bold uppercase tracking-widest transition-all whitespace-nowrap flex flex-col items-center gap-0.5 ${isIgnored ? "opacity-40 grayscale" : ""} ${isActive ? "bg-[#ceff1c] text-black" : "bg-white/5 text-white hover:bg-white/10"}`}
+                        style={{ fontFamily: "Aonic" }}
+                      >
+                        <span>{sub.shortName || sub.code}</span>
+                        <span className={`text-[9px] ${isActive ? "opacity-100 font-black" : "opacity-60 font-black"}`}>
+                          {sub.credits} credits
+                        </span>
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(6);
+                          toggleSubjectIgnore(sub.id);
+                        }}
+                        className={`text-[8px] font-black uppercase tracking-tighter py-1 rounded-md transition-all flex items-center justify-center gap-1.5 ${isIgnored ? "text-white/40 bg-white/5 px-2" : "text-[#ceff1c] bg-[#ceff1c]/10 px-3"}`}
+                      >
+                        <div className={`w-1 h-1 rounded-full ${isIgnored ? "bg-white/40" : "bg-[#ceff1c] animate-pulse"}`} />
+                        {isIgnored ? "enable" : "disable"}
+                      </button>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>

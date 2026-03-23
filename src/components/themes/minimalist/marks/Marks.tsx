@@ -63,8 +63,15 @@ export default function Marks({
     setIsSwipeDisabled(predictMode);
   }, [predictMode, setIsSwipeDisabled]);
   const [predSubjectId, setPredSubjectId] = useState<number | null>(null);
-  const [expectedMarks, setExpectedMarks] = useState<number>(0);
-  const [targetGrade, setTargetGrade] = useState<number>(91);
+  const [targetGrades, setTargetGrades] = useState<Record<number, number>>({});
+  const [expectedMarksMap, setExpectedMarksMap] = useState<Record<number, number>>({});
+  const [ignoredSubjectIds, setIgnoredSubjectIds] = useState<number[]>([]);
+
+  const toggleSubjectIgnore = (id: number) => {
+    setIgnoredSubjectIds(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -114,10 +121,47 @@ export default function Marks({
       setPredSubjectId(subjects[0].id);
   }, [subjects, predSubjectId]);
 
+  const grades = useMemo(() => [
+    { label: "O", min: 91 },
+    { label: "A+", min: 81 },
+    { label: "A", min: 71 },
+    { label: "B+", min: 61 },
+    { label: "B", min: 56 },
+    { label: "C", min: 50 },
+  ], []);
+
+  const activePredSub = subjects.find((s: any) => s.id === predSubjectId) ||
+    subjects[0] || {
+      displayCode: "--",
+      displayName: "no data",
+      totalGot: 0,
+      totalMax: 60,
+    };
+
+  const currentTargetGrade = targetGrades[predSubjectId || -1] || 91;
+  const currentExpectedMarks = expectedMarksMap[predSubjectId || -1] || 0;
+
   const handleExpectedChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (predSubjectId === null) return;
     let val = parseInt(e.target.value);
     if (isNaN(val)) val = 0;
-    setExpectedMarks(Math.min(maxPossibleExpected, Math.max(0, val)));
+    const max = Math.max(0, 60 - (activePredSub.totalGot || 0));
+    setExpectedMarksMap(prev => ({ ...prev, [predSubjectId]: Math.min(max, Math.max(0, val)) }));
+  };
+
+  const setExpectedMarks = (val: number | ((prev: number) => number)) => {
+    if (predSubjectId === null) return;
+    setExpectedMarksMap(prev => {
+      const currentVal = prev[predSubjectId] || 0;
+      const newVal = typeof val === "function" ? val(currentVal) : val;
+      const max = Math.max(0, 60 - (activePredSub.totalGot || 0));
+      return { ...prev, [predSubjectId]: Math.min(max, Math.max(0, newVal)) };
+    });
+  };
+
+  const setTargetGrade = (val: number) => {
+    if (predSubjectId === null) return;
+    setTargetGrades(prev => ({ ...prev, [predSubjectId]: val }));
   };
 
   const attentionRequired = useMemo(() => {
@@ -152,26 +196,14 @@ export default function Marks({
       ),
     [subjects],
   );
-  const activePredSub = subjects.find((s: any) => s.id === predSubjectId) ||
-    subjects[0] || {
-      displayCode: "--",
-      displayName: "no data",
-      totalGot: 0,
-      totalMax: 60,
-    };
+  
   const currentInternals = activePredSub.totalGot || 0;
   const maxPossibleExpected = Math.max(0, 60 - currentInternals);
-  const projectedInternals = currentInternals + expectedMarks;
-  const semNeededPercentage = Math.max(0, targetGrade - projectedInternals);
-  const semRequiredOutOf75 = Math.ceil((semNeededPercentage / 40) * 75);
-  const grades = useMemo(() => [
-    { label: "O", min: 91 },
-    { label: "A+", min: 81 },
-    { label: "A", min: 71 },
-    { label: "B+", min: 61 },
-    { label: "B", min: 51 },
-    { label: "C", min: 41 },
-  ], []);
+  const projectedInternals = currentInternals + currentExpectedMarks;
+  const semNeededPercentage = Math.max(0, currentTargetGrade - projectedInternals);
+  const maxExternal = activePredSub.isPractical ? 40 : 75;
+  const semRequiredOutOfMax = Math.ceil((semNeededPercentage / 40) * maxExternal);
+
   const predictedGpa = useMemo(() => {
     if (subjects.length === 0) return "0.00";
 
@@ -179,14 +211,15 @@ export default function Marks({
     let totalCredits = 0;
 
     subjects.forEach((sub: any) => {
-      if (sub.isNA) return;
+      if (sub.isNA || ignoredSubjectIds.includes(sub.id)) return;
 
       const credits = sub.credits || 0;
       if (credits === 0) return;
 
       let grade;
-      if (sub.id === predSubjectId) {
-        const gradeObj = grades.find((g) => g.min === targetGrade);
+      const subTargetGrade = targetGrades[sub.id];
+      if (subTargetGrade !== undefined) {
+        const gradeObj = grades.find((g) => g.min === subTargetGrade);
         grade = gradeObj ? gradeObj.label : "O";
       } else {
         grade = getGrade(sub.percentage);
@@ -199,7 +232,7 @@ export default function Marks({
 
     if (totalCredits === 0) return "0.00";
     return (totalPoints / totalCredits).toFixed(2);
-  }, [subjects, predSubjectId, targetGrade, grades]);
+  }, [subjects, targetGrades, grades, ignoredSubjectIds]);
 
   const gpaColor =
     parseFloat(predictedGpa) >= 8.5
@@ -292,7 +325,6 @@ export default function Marks({
             <button
               onClick={() => {
                 setPredictMode(true);
-                setExpectedMarks(0);
               }}
               className="w-full relative group transition-all duration-200"
             >
@@ -379,7 +411,7 @@ export default function Marks({
                       </span>
                     </div>
                     <div className="flex-1 flex flex-col items-end text-right min-w-0 ml-4">
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex items-center gap-2 mb-1 justify-end">
                         {sub.isPractical && (
                           <span
                             className="text-[9px] font-bold uppercase tracking-[0.25em] text-[#0EA5E9] bg-[#0EA5E9]/10 px-2 py-0.5 rounded-md"
@@ -389,7 +421,7 @@ export default function Marks({
                           </span>
                         )}
                         <span
-                          className="text-[16px] font-black uppercase tracking-widest leading-[1.1] truncate w-full text-theme-secondary"
+                          className="text-[16px] font-black uppercase tracking-widest leading-[1.1] truncate text-theme-secondary"
                           style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
                         >
                           {sub.displayCode}
@@ -401,6 +433,14 @@ export default function Marks({
                       >
                         {sub.displayName}
                       </span>
+                      <div className="flex mt-2 justify-end">
+                        <span
+                          className={`text-[9px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full bg-theme-text-10 ${sub.percentage < 75 ? "text-theme-secondary" : "text-theme-highlight"}`}
+                          style={{ fontFamily: "var(--font-afacad), sans-serif" }}
+                        >
+                          {sub.credits} credits
+                        </span>
+                      </div>
                     </div>
                   </div>
                   <div className="grid grid-cols-3 gap-2 w-full mt-1">
@@ -507,7 +547,7 @@ export default function Marks({
                     </span>
                   </div>
                   <div className="flex-1 flex flex-col items-end text-right min-w-0 ml-4">
-                    <div className="flex items-center gap-2 mb-1">
+                    <div className="flex items-center gap-2 mb-1 justify-end">
                       {sub.isPractical && (
                         <span
                           className="text-[9px] font-bold uppercase tracking-[0.25em] text-[#0EA5E9] bg-[#0EA5E9]/10 px-2 py-0.5 rounded-md"
@@ -517,7 +557,7 @@ export default function Marks({
                         </span>
                       )}
                       <span
-                        className={`text-[16px] font-black uppercase tracking-widest leading-none truncate w-full ${sub.isPractical ? "text-[#0EA5E9]" : "text-theme-text"}`}
+                        className={`text-[16px] font-black uppercase tracking-widest leading-none ${sub.isPractical ? "text-[#0EA5E9]" : "text-theme-text"}`}
                         style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
                       >
                         {sub.displayCode}
@@ -529,6 +569,14 @@ export default function Marks({
                     >
                       {sub.displayName}
                     </span>
+                    <div className="flex mt-2 justify-end">
+                      <span
+                        className="text-[9px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full bg-theme-text-10 text-theme-muted"
+                        style={{ fontFamily: "var(--font-afacad), sans-serif" }}
+                      >
+                        {sub.credits} credits
+                      </span>
+                    </div>
                   </div>
                 </div>
                 <div className="grid grid-cols-3 gap-2 w-full mt-1">
@@ -610,18 +658,20 @@ export default function Marks({
         activePredSub={activePredSub}
         predictedGpa={predictedGpa}
         gpaColor={gpaColor}
-        semRequiredOutOf75={semRequiredOutOf75}
+        semRequiredOutOfMax={semRequiredOutOfMax}
         currentInternals={currentInternals}
-        expectedMarks={expectedMarks}
+        expectedMarks={currentExpectedMarks}
         maxPossibleExpected={maxPossibleExpected}
         handleExpectedChange={handleExpectedChange}
         setExpectedMarks={setExpectedMarks}
-        targetGrade={targetGrade}
+        targetGrade={currentTargetGrade}
         setTargetGrade={setTargetGrade}
         grades={grades}
-        subjects={subjects}
+        subjects={[...subjects].sort((a: any, b: any) => b.credits - a.credits)}
         predSubjectId={predSubjectId}
         setPredSubjectId={setPredSubjectId}
+        ignoredSubjectIds={ignoredSubjectIds}
+        toggleSubjectIgnore={toggleSubjectIgnore}
         textClass="text-theme-text"
       />
     </>

@@ -7,6 +7,7 @@ export const gradePoints: Record<string, number> = {
   "B+": 7,
   B: 6,
   C: 5,
+  F: 0,
   U: 0,
   W: 0,
   I: 0,
@@ -17,9 +18,9 @@ export const getGrade = (score: number) => {
   if (score >= 81) return "A+";
   if (score >= 71) return "A";
   if (score >= 61) return "B+";
-  if (score >= 51) return "B";
-  if (score >= 41) return "C";
-  return "U";
+  if (score >= 56) return "B";
+  if (score >= 50) return "C";
+  return "F";
 };
 
 export const buildCourseMap = (data: any) => {
@@ -158,8 +159,13 @@ export const processAndSortMarks = (
       const perfString = subject.performance || "N/A";
       const isNA =
         perfString === "N/A" || perfString === "." || perfString === "";
+      
       let got = 0;
       let max = 0;
+
+      const assessmentGot = assessments.reduce((sum: number, curr: any) => sum + curr.got, 0);
+      const assessmentMax = assessments.reduce((sum: number, curr: any) => sum + curr.max, 0);
+
       if (!isNA && perfString.includes("/")) {
         const parts = perfString.split("/");
         got = parseFloat(parts[0]) || 0;
@@ -168,10 +174,12 @@ export const processAndSortMarks = (
         got = parseFloat(perfString) || 0;
         max = 100;
       }
-      if ((isNA || max === 0) && assessments.length > 0) {
-        got = assessments.reduce((sum: number, curr: any) => sum + curr.got, 0);
-        max = assessments.reduce((sum: number, curr: any) => sum + curr.max, 0);
+
+      if (assessmentMax > 0 && (assessmentMax > max || max === 100)) {
+        got = assessmentGot;
+        max = assessmentMax;
       }
+
       const actualIsNA = (isNA || max === 0) && assessments.length === 0;
       const percentage = max > 0 ? (got / max) * 100 : 0;
       const code = subject.courseCode || "";

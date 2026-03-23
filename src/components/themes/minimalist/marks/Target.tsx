@@ -9,7 +9,7 @@ interface TargetProps {
   activePredSub: any;
   predictedGpa: string;
   gpaColor: string;
-  semRequiredOutOf75: number;
+  semRequiredOutOfMax: number;
   currentInternals: number;
   expectedMarks: number;
   maxPossibleExpected: number;
@@ -21,6 +21,8 @@ interface TargetProps {
   subjects: any[];
   predSubjectId: number | null;
   setPredSubjectId: (id: number | null) => void;
+  ignoredSubjectIds: number[];
+  toggleSubjectIgnore: (id: number) => void;
   textClass: string;
 }
 
@@ -30,7 +32,7 @@ export default function Target({
   activePredSub,
   predictedGpa,
   gpaColor,
-  semRequiredOutOf75,
+  semRequiredOutOfMax,
   currentInternals,
   expectedMarks,
   maxPossibleExpected,
@@ -42,8 +44,12 @@ export default function Target({
   subjects,
   predSubjectId,
   setPredSubjectId,
+  ignoredSubjectIds,
+  toggleSubjectIgnore,
   textClass,
 }: TargetProps) {
+  const maxExternal = activePredSub.isPractical ? 40 : 75;
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -134,21 +140,21 @@ export default function Target({
               </span>
               <div className="flex items-baseline gap-1">
                 <span
-                  className={`leading-[0.85] font-black tracking-tighter text-center ${semRequiredOutOf75 > 75 ? "text-[4rem] text-status-text-cooked" : "text-[5rem] text-theme-highlight"}`}
+                  className={`leading-[0.85] font-black tracking-tighter text-center ${semRequiredOutOfMax > maxExternal ? "text-[4rem] text-[#FF4D4D]" : "text-[5rem] text-theme-highlight"}`}
                   style={{ fontFamily: "'Montserrat', sans-serif" }}
                 >
-                  {semRequiredOutOf75 > 75
+                  {semRequiredOutOfMax > maxExternal
                     ? "cooked."
-                    : semRequiredOutOf75 <= 0
+                    : semRequiredOutOfMax <= 0
                       ? "0"
-                      : semRequiredOutOf75}
+                      : semRequiredOutOfMax}
                 </span>
-                {semRequiredOutOf75 > 0 && semRequiredOutOf75 <= 75 && (
+                {semRequiredOutOfMax > 0 && semRequiredOutOfMax <= maxExternal && (
                   <span
                     className="text-[20px] font-bold text-theme-subtle"
                     style={{ fontFamily: "'Montserrat', sans-serif" }}
                   >
-                    /75
+                    /{maxExternal}
                   </span>
                 )}
               </div>
@@ -174,7 +180,7 @@ export default function Target({
                     className="text-[12px] font-bold text-theme-subtle"
                     style={{ fontFamily: "'Montserrat', sans-serif" }}
                   >
-                    /60
+                    /{activePredSub.totalMax}
                   </span>
                 </div>
               </div>
@@ -267,23 +273,40 @@ export default function Target({
                 select subject
               </span>
               <div className="flex gap-2 overflow-x-auto no-scrollbar w-full px-2">
-                {subjects.map((sub: any) => (
-                  <button
-                    key={sub.id}
-                    onClick={() => {
-                      if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(8);
-                      setPredSubjectId(sub.id);
-                      setExpectedMarks(0);
-                    }}
-                    className={`px-4 py-2.5 rounded-[12px] text-[12px] font-bold uppercase tracking-widest transition-all whitespace-nowrap shrink-0 flex flex-col items-center gap-0.5 ${predSubjectId === sub.id ? "bg-theme-highlight text-theme-bg" : "bg-theme-surface text-theme-text hover:bg-theme-text-10"}`}
-                    style={{ fontFamily: "'Afacad', sans-serif" }}
-                  >
-                    <span>{sub.displayCode}</span>
-                    <span className={`text-[9px] ${predSubjectId === sub.id ? "opacity-100 font-black" : "opacity-60 font-black"}`}>
-                      {sub.credits} credits
-                    </span>
-                  </button>
-                ))}
+                {subjects.map((sub: any) => {
+                  const isIgnored = ignoredSubjectIds.includes(sub.id);
+                  const isActive = predSubjectId === sub.id;
+                  
+                  return (
+                    <div key={sub.id} className="flex flex-col gap-1 shrink-0">
+                      <button
+                        onClick={() => {
+                          if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(8);
+                          setPredSubjectId(sub.id);
+                          setExpectedMarks(0);
+                        }}
+                        className={`px-4 py-2.5 rounded-[12px] text-[12px] font-bold uppercase tracking-widest transition-all whitespace-nowrap flex flex-col items-center gap-0.5 ${isIgnored ? "opacity-40 grayscale" : ""} ${isActive ? "bg-theme-highlight text-theme-bg" : "bg-theme-surface text-theme-text hover:bg-theme-text-10"}`}
+                        style={{ fontFamily: "'Afacad', sans-serif" }}
+                      >
+                        <span>{sub.displayCode}</span>
+                        <span className={`text-[9px] ${isActive ? "opacity-100 font-black" : "opacity-60 font-black"}`}>
+                          {sub.credits} credits
+                        </span>
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(6);
+                          toggleSubjectIgnore(sub.id);
+                        }}
+                        className={`text-[8px] font-black uppercase tracking-tighter py-1 rounded-md transition-all flex items-center justify-center gap-1.5 ${isIgnored ? "text-theme-muted bg-theme-text/5 px-2" : "text-theme-highlight bg-theme-highlight/10 px-3"}`}
+                      >
+                        <div className={`w-1 h-1 rounded-full ${isIgnored ? "bg-theme-muted" : "bg-theme-highlight animate-pulse"}`} />
+                        {isIgnored ? "enable" : "disable"}
+                      </button>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
