@@ -48,8 +48,7 @@ class ProfileService:
         el = get_element_by_label("Batch")
         if el:
             val = TextUtils.clean(el.get_text())
-            m = re.search(r"\d+", val)
-            if m: profile["batch"] = m.group()
+            profile["batch"] = val
 
  
         el = get_element_by_label("Department")

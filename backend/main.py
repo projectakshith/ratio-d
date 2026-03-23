@@ -117,8 +117,12 @@ async def login(creds: Credentials):
         profile = ProfileService.parse_student_profile(profile_html)
         course_map = CourseService.get_course_map(profile_html)
         
-        user_batch_string = str(profile.get("batch", "1")).lower()
-        formatted_batch = "Batch_1" if "1" in user_batch_string else "batch_2"
+        user_batch_string = str(profile.get("batch", "1")).lower().strip()
+        
+        if user_batch_string == "1":
+            formatted_batch = "Batch_1"
+        else:
+            formatted_batch = "batch_2"
         
         att_html = await client.get_attendance_html()
         grid_html = await client.get_grid_html(formatted_batch)
