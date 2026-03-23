@@ -495,9 +495,14 @@ const SettingsPage = ({
           >
             <LogOut className="w-5 h-5" /> Log Out
           </button>
-          <p className="text-xs text-center text-theme-muted">
-            made by <a href="https://www.instagram.com/akshithfilms/" target="_blank" rel="noopener noreferrer" className="text-theme-text hover:underline">Akshith Rajesh</a> and <a href="https://www.instagram.com/_prethiv/" target="_blank" rel="noopener noreferrer" className="text-theme-text hover:underline">Prethiv Sriman D</a>
-          </p>
+          <div className="space-y-2">
+            <p className="text-xs text-center text-theme-muted">
+              ratio'd is open source on <a href="https://github.com/projectakshith/ratio-d" target="_blank" rel="noopener noreferrer" className="text-theme-text hover:underline font-bold">github</a>
+            </p>
+            <p className="text-xs text-center text-theme-muted">
+              made by <a href="https://www.instagram.com/akshithfilms/" target="_blank" rel="noopener noreferrer" className="text-theme-text hover:underline">Akshith Rajesh</a> and <a href="https://www.instagram.com/_prethiv/" target="_blank" rel="noopener noreferrer" className="text-theme-text hover:underline">Prethiv Sriman D</a>
+            </p>
+          </div>
         </motion.div>
       </motion.div>
 
