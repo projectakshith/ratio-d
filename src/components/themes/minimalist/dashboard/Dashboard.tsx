@@ -29,24 +29,40 @@ import { useDashboardCalendar } from "@/hooks/useDashboardCalendar";
 import { useDashboardAlerts } from "@/hooks/useDashboardAlerts";
 import { useApp } from "@/context/AppContext";
 
+const BEZIER = [0.34, 0.15, 0.16, 0.96];
+
 const containerVariants = {
-  hidden: { opacity: 0 },
+  hidden: {},
   show: {
-    opacity: 1,
     transition: {
-      staggerChildren: 0.05,
-      delayChildren: 0.02,
+      staggerChildren: 0.03,
+      delayChildren: 0,
     },
   },
 };
 
-const itemVariants = {
-  hidden: { opacity: 0, y: -20, scale: 0.98 },
+const gridItemVariants = {
+  hidden: { opacity: 0, y: 10 },
   show: {
     opacity: 1,
     y: 0,
-    scale: 1,
-    transition: { type: "spring", stiffness: 450, damping: 30 } as const,
+    transition: {
+      duration: 0.3,
+      ease: BEZIER,
+    },
+  },
+};
+
+const delayedItemVariants = {
+  hidden: { opacity: 0, y: 15 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      y: { duration: 0.4, ease: BEZIER },
+      opacity: { duration: 0.3, ease: "easeOut" },
+      delay: 0.1,
+    },
   },
 };
 
@@ -230,10 +246,9 @@ export default function Dashboard({
         if (match) targetSubject = match;
       }
 
-      const todaySchedule =
-        academia?.effectiveSchedule?.[`Day ${currentDayOrder}`] ||
-        data?.timetable?.[`Day ${currentDayOrder}`] ||
-        {};
+      const scheduleData =
+        academia?.effectiveSchedule || data?.timetable || data?.schedule || {};
+      const todaySchedule = scheduleData[`Day ${currentDayOrder}`] || {};
       const scheduledHoursToday = Object.values(todaySchedule).filter(
         (slot: any) => {
           if (!targetSubject || !slot) return false;
@@ -362,12 +377,12 @@ export default function Dashboard({
         >
           <motion.div
             variants={containerVariants}
-            initial={false}
+            initial="hidden"
             animate={startEntrance ? "show" : "hidden"}
             className="w-full flex flex-col px-6 pt-6 pb-24"
           >
             <motion.div
-              variants={itemVariants}
+              variants={delayedItemVariants}
               className="flex justify-between items-center mb-6 shrink-0"
             >
               <button
@@ -401,7 +416,7 @@ export default function Dashboard({
 
             {isHoliday && (
               <motion.div
-                variants={itemVariants}
+                variants={delayedItemVariants}
                 className="w-full status-bg-safe status-border-safe border-[1.5px] rounded-[16px] p-3 mb-4 flex items-center gap-3 shrink-0"
               >
                 <span className="text-xl">🌴</span>
@@ -416,7 +431,7 @@ export default function Dashboard({
 
             {!isHoliday && isTomorrowHoliday && (
               <motion.div
-                variants={itemVariants}
+                variants={delayedItemVariants}
                 className="w-full status-bg-safe status-border-safe border-[1.5px] rounded-[16px] p-3 mb-4 flex items-center gap-3 shrink-0"
               >
                 <span className="text-xl">😉</span>
@@ -430,7 +445,7 @@ export default function Dashboard({
             )}
 
             <motion.div
-              variants={itemVariants}
+              variants={delayedItemVariants}
               className="flex items-center justify-between mb-3 px-1 shrink-0"
             >
               <div className="flex items-center gap-3">
@@ -490,7 +505,12 @@ export default function Dashboard({
               </div>
             </motion.div>
 
-            <motion.div variants={itemVariants}>
+            <motion.div 
+              variants={gridItemVariants} 
+              key={selectedDay}
+              initial="hidden"
+              animate="show"
+            >
               <ScheduleGrid
                 displayGrid={displayGrid}
                 selectedDay={selectedDay}
@@ -500,7 +520,7 @@ export default function Dashboard({
             </motion.div>
 
             <motion.div
-              variants={itemVariants}
+              variants={delayedItemVariants}
               className="flex flex-col mb-8 shrink-0 w-full"
             >
               <div className="flex items-center gap-3 mb-2 w-full">
@@ -597,7 +617,7 @@ export default function Dashboard({
             </motion.div>
 
             <motion.div
-              variants={itemVariants}
+              variants={delayedItemVariants}
               className="flex flex-col gap-3 shrink-0 w-full"
             >
               <div

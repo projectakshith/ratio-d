@@ -1,5 +1,6 @@
 "use client";
 import React from "react";
+import { motion } from "framer-motion";
 
 interface ScheduleGridProps {
   displayGrid: any[];
@@ -7,6 +8,32 @@ interface ScheduleGridProps {
   currentDayOrder: number;
   isHoliday: boolean;
 }
+
+const BEZIER = [0.34, 0.15, 0.16, 0.96];
+
+const gridVariants = {
+  hidden: {},
+  show: {
+    transition: {
+      staggerChildren: 0.02,
+      delayChildren: 0.01,
+    },
+  },
+};
+
+const slotVariants = {
+  hidden: { opacity: 0, y: -15, scale: 0.98 },
+  show: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      y: { duration: 0.35, ease: BEZIER },
+      scale: { duration: 0.3, ease: BEZIER },
+      opacity: { duration: 0.25, ease: "easeOut" },
+    },
+  },
+};
 
 export default function ScheduleGrid({
   displayGrid,
@@ -17,8 +44,9 @@ export default function ScheduleGrid({
   const renderSlot = (slot: any, index: number) => {
     if (!slot.active) {
       return (
-        <div
+        <motion.div
           key={slot.id || index}
+          variants={slotVariants}
           className="aspect-square rounded-[14px] flex items-center justify-center relative border-[1.5px] border-dashed"
           style={{
             borderColor: "color-mix(in srgb, var(--theme-text) 30%, transparent)",
@@ -56,8 +84,9 @@ export default function ScheduleGrid({
     }
 
     return (
-      <div
+      <motion.div
         key={`${slot.id}-${index}`}
+        variants={slotVariants}
         className={`aspect-square rounded-[14px] border-[1.5px] flex flex-col items-center justify-center gap-[4px] p-1 transition-all ${boxClass}`}
       >
         <span
@@ -78,13 +107,18 @@ export default function ScheduleGrid({
         >
           {slot.time}
         </span>
-      </div>
+      </motion.div>
     );
   };
 
   return (
-    <div className="grid grid-cols-5 gap-[8px] mb-8 shrink-0 transition-all">
+    <motion.div 
+      variants={gridVariants}
+      initial="hidden"
+      animate="show"
+      className="grid grid-cols-5 gap-[8px] mb-8 shrink-0 transition-all"
+    >
       {displayGrid.map((slot, i) => renderSlot(slot, i))}
-    </div>
+    </motion.div>
   );
 }
