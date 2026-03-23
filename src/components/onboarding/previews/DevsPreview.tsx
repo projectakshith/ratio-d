@@ -114,19 +114,41 @@ export default function DevsPreview() {
         </div>
       </div>
 
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 0.4 }}
-        className="text-center"
-      >
-        <p
-          className="text-[7px] font-bold lowercase tracking-widest leading-relaxed"
-          style={{ fontFamily: "var(--font-montserrat)" }}
+      <div className="flex flex-col items-center gap-1 mt-4 pointer-events-auto">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.6 }}
+          className="text-center px-4"
         >
-          and our friends who helped us{"\n"}through the dev period{" "}
-          <span className="lowercase text-[12px]">UwU</span>
-        </p>
-      </motion.div>
+          <p
+            className="text-[7px] font-bold lowercase tracking-widest leading-relaxed"
+            style={{ fontFamily: "var(--font-montserrat)" }}
+          >
+            special thanks to the goat aka the <a 
+              href="https://github.com/Rahuletto/ClassPro" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="underline decoration-1 underline-offset-2 hover:opacity-100 transition-opacity"
+            >class pro</a> guy aka <span className="uppercase text-[9px]">Rahul Marban</span>{"\n"}
+            who basically saved our lives with his app and{"\n"}
+            supported on this one asw.
+          </p>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.3 }}
+          className="text-center"
+        >
+          <p
+            className="text-[7px] font-bold lowercase tracking-widest leading-relaxed"
+            style={{ fontFamily: "var(--font-montserrat)" }}
+          >
+            and our friends who helped us{"\n"}through the dev period{" "}
+            <span className="lowercase text-[12px]">UwU</span>
+          </p>
+        </motion.div>
+      </div>
     </div>
   );
 }
