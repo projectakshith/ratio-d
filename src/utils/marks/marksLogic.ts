@@ -182,6 +182,8 @@ export const processAndSortMarks = (
         code ||
         "Unknown Subject";
       
+      const shortName = getAcronym(title);
+      
       let status: "cooked" | "danger" | "safe" | "neutral" = "neutral";
       let badge = "pending";
       if (!actualIsNA && max > 0) {
@@ -203,6 +205,7 @@ export const processAndSortMarks = (
         courseTitle: title,
         code: cleanCode,
         course: title,
+        shortName,
         type: isPractical ? "Practical" : "Theory",
         totalGot: got,
         totalMax: max === 0 ? 60 : max,

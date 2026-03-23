@@ -185,7 +185,7 @@ export default function BrutalistTarget({
                     className={`px-4 py-2.5 rounded-[12px] text-[12px] font-bold uppercase tracking-widest transition-all whitespace-nowrap shrink-0 flex flex-col items-center gap-0.5 ${predSubjectId === sub.id ? "bg-[#ceff1c] text-black" : "bg-white/5 text-white hover:bg-white/10"}`}
                     style={{ fontFamily: "Aonic" }}
                   >
-                    <span>{sub.code}</span>
+                    <span>{sub.shortName || sub.code}</span>
                     <span className={`text-[9px] ${predSubjectId === sub.id ? "opacity-100 font-black" : "opacity-60 font-black"}`}>
                       {sub.credits} credits
                     </span>

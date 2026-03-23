@@ -91,8 +91,7 @@ const MarksPage = ({ data }: { data: AcademiaData }) => {
   );
 
   const currentRoast = useMemo(() => {
-    const category = activeSubject.status === "neutral" ? "safe" : activeSubject.status;
-    return getRandomRoast(category as any);
+    return getRandomRoast(activeSubject.status);
   }, [activeSubject.id, activeSubject.status]);
 
   const predictedGpa = useMemo(() => {
@@ -171,7 +170,7 @@ const MarksPage = ({ data }: { data: AcademiaData }) => {
         <div className="my-auto flex flex-col justify-center">
           <div className="flex items-baseline gap-6">
             <span className={`text-[20vw] md:text-[8rem] leading-[0.8] font-black tracking-wide transition-colors duration-300 ${themeColorClass}`} style={{ fontFamily: "Urbanosta" }}>
-              <ScoreCounter value={activeSubject.isNA ? overallPercentage : activeSubject.score} />
+              <ScoreCounter value={activeSubject.isNA ? "0" : activeSubject.score} />
             </span>
             <div className="flex items-baseline gap-3">
               <span className={`text-xl font-bold opacity-40 ${themeColorClass}`} style={{ fontFamily: "Urbanosta" }}>

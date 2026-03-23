@@ -1,9 +1,8 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useCallback } from "react";
 import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
 import { BottomNav } from "./BottomNav";
-import { flavorText } from "@/utils/shared/flavortext";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 interface BrutalistThemeProps {
   children: React.ReactNode;
@@ -12,9 +11,62 @@ interface BrutalistThemeProps {
 export default function BrutalistTheme({ children }: BrutalistThemeProps) {
   const [isLoading, setIsLoading] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
+
+  const paths = ["/marks", "/attendance", "/", "/timetable", "/calendar"];
+
+  const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null);
+  const [isScrollingVertical, setIsScrollingVertical] = useState(false);
+
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    setIsScrollingVertical(false);
+    setTouchStart({
+      x: e.targetTouches[0].clientX,
+      y: e.targetTouches[0].clientY,
+    });
+  }, []);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!touchStart || isScrollingVertical) return;
+
+    const touchX = e.targetTouches[0].clientX;
+    const touchY = e.targetTouches[0].clientY;
+
+    const dx = Math.abs(touchX - touchStart.x);
+    const dy = Math.abs(touchY - touchStart.y);
+
+    if (dy > dx && dy > 10) {
+      setIsScrollingVertical(true);
+      return;
+    }
+
+    if (dx > 70) {
+      const currentIndex = paths.indexOf(pathname);
+      if (touchX < touchStart.x && currentIndex < paths.length - 1) {
+        if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(10);
+        router.push(paths[currentIndex + 1]);
+        setTouchStart(null);
+      } else if (touchX > touchStart.x && currentIndex > 0) {
+        if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(10);
+        router.push(paths[currentIndex - 1]);
+        setTouchStart(null);
+      }
+    }
+  }, [pathname, router, touchStart, isScrollingVertical, paths]);
+
+  const handleTouchEnd = useCallback(() => {
+    setTouchStart(null);
+    setIsScrollingVertical(false);
+  }, []);
 
   return (
-    <div className="h-[100dvh] w-full bg-black relative overflow-hidden">
+    <div 
+      className="h-[100dvh] w-full bg-black relative overflow-hidden"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      style={{ touchAction: "pan-y" }}
+    >
       <LayoutGroup>
         <AnimatePresence mode="popLayout">
           <motion.div

@@ -314,9 +314,12 @@ const MobileAttendance = ({
                     transition={{ duration: 0.8, ease: "circOut" }}
                   />
                 </div>
-                <span className="block text-[10px] font-mono font-bold lowercase mt-1 text-white/50">
-                  {activeSubject.present}/{activeSubject.conducted} sessions
-                </span>
+                <div className="flex justify-between items-center text-[10px] font-mono font-bold lowercase mt-1">
+                  <span className="text-white/50">{activeSubject.tagline}</span>
+                  <span className="text-white/50">
+                    {activeSubject.present}/{activeSubject.conducted} sessions
+                  </span>
+                </div>
               </div>
             </motion.div>
           ) : (
@@ -332,7 +335,7 @@ const MobileAttendance = ({
                   <span className="font-mono text-[10px] lowercase tracking-widest font-bold text-white/40 mb-1">prediction active</span>
                   <div className="flex items-center gap-2">
                     <span className={`text-2xl font-black lowercase ${predType === "leave" ? "text-[#ff003c]" : "text-[#ceff1c]"}`} style={{ fontFamily: "Urbanosta" }}>
-                      {predType === "leave" ? "leaving" : "attending"}
+                      {predType === "leave" ? "leave" : "attend"}
                     </span>
                     <span className="text-white/20 text-xl font-bold">/</span>
                     <span className="text-white/60 text-xl font-bold lowercase" style={{ fontFamily: "Aonic" }}>{selectedDates.length} days</span>

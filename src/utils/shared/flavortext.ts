@@ -41,6 +41,12 @@ export const flavorText = {
       "blud definitely has the question bank",
       "copied know? dont lie",
     ],
+    neutral: [
+      "waiting for your downfall",
+      "calm before the storm",
+      "aint no way you got nothing yet",
+      "suspiciously quiet records",
+    ],
   },
   badges: {
     low: ["cooked", "ggwp", "fumbled", "skill issue", "holy moly"],
@@ -69,7 +75,7 @@ export const flavorText = {
   ],
 };
 
-export const getRandomRoast = (category: "cooked" | "danger" | "safe") => {
-  const roasts = flavorText.marks[category];
+export const getRandomRoast = (category: "cooked" | "danger" | "safe" | "neutral") => {
+  const roasts = (flavorText.marks as any)[category] || flavorText.marks.neutral;
   return roasts[Math.floor(Math.random() * roasts.length)];
 };
