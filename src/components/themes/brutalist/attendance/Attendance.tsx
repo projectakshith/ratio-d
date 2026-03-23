@@ -462,12 +462,18 @@ const MobileAttendance = ({
             transition={{ duration: 0.4 }}
             className="absolute inset-0 flex flex-col justify-end items-start p-8 pb-[60%] z-50 bg-[#050505]"
           >
-            <h1 className={`text-6xl font-black lowercase tracking-tighter mb-2 ${overallStats.color}`} style={{ fontFamily: "Aonic" }}>
-              {overallStats.badge}
-            </h1>
-            <p className="text-xl font-bold lowercase text-white/80 leading-tight max-w-[80%]" style={{ fontFamily: "Aonic" }}>
-              {overallStats.tagline}
-            </p>
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15, duration: 0.4 }}
+            >
+              <h1 className={`text-6xl font-black lowercase tracking-tighter mb-2 ${overallStats.color}`} style={{ fontFamily: "Aonic" }}>
+                {overallStats.badge}
+              </h1>
+              <p className="text-xl font-bold lowercase text-white/80 leading-tight max-w-[80%]" style={{ fontFamily: "Aonic" }}>
+                {overallStats.tagline}
+              </p>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

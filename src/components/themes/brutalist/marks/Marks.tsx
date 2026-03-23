@@ -74,7 +74,7 @@ const MarksPage = ({ data }: { data: AcademiaData }) => {
   }, [sortedMarks, selectedId]);
 
   useEffect(() => {
-    const timer = setTimeout(() => setIntroMode(false), 1200);
+    const timer = setTimeout(() => setIntroMode(false), 800);
     return () => clearTimeout(timer);
   }, []);
 
@@ -155,10 +155,6 @@ const MarksPage = ({ data }: { data: AcademiaData }) => {
             <span className={`font-mono text-[10px] lowercase tracking-widest font-bold ${themeColorClass}`}>{activeSubject.type}</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="flex flex-col items-end mr-2">
-              <span className="text-[10px] font-black uppercase tracking-tighter opacity-40">predicted gpa</span>
-              <span className="text-lg font-black leading-none" style={{ fontFamily: "Urbanosta" }}>{predictedGpa}</span>
-            </div>
             <button onClick={() => setPredictMode(true)} className="flex items-center gap-2 bg-white text-black px-4 py-2 rounded-full active:scale-95 transition-transform">
               <Calculator size={12} />
               <span className="font-mono text-[10px] lowercase tracking-widest font-bold">target</span>
@@ -181,6 +177,30 @@ const MarksPage = ({ data }: { data: AcademiaData }) => {
         </div>
 
         <div className="pb-1">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeSubject.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="flex gap-2 mb-4 overflow-x-auto no-scrollbar"
+            >
+              {activeSubject.assessments?.map((box: any, idx: number) => {
+                const isHigh = (box.got / box.max) >= 0.75;
+                const isLow = (box.got / box.max) < 0.5;
+                const boxColor = isHigh ? "bg-[#ceff1c] text-black" : isLow ? "bg-[#ff003c] text-white" : "bg-white/10 text-white";
+                return (
+                  <div key={idx} className={`px-3 py-2 rounded-xl border border-white/5 flex flex-col items-center justify-center min-w-[70px] ${boxColor}`}>
+                    <span className="text-[9px] font-black uppercase tracking-widest opacity-60 mb-1" style={{ fontFamily: "Aonic" }}>{box.title}</span>
+                    <div className="flex items-baseline gap-0.5">
+                      <span className="text-lg font-black leading-none" style={{ fontFamily: "Urbanosta" }}>{Number.isInteger(box.got) ? box.got : box.got.toFixed(1)}</span>
+                      <span className="text-[10px] font-bold opacity-40">/{box.max}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </motion.div>
+          </AnimatePresence>
           <h3 className="text-xl md:text-2xl font-bold lowercase leading-tight mb-4 line-clamp-1 text-white" style={{ fontFamily: "Aonic" }}>{activeSubject.title?.toLowerCase()}</h3>
           <div className="w-full h-[4px] bg-white/10 mb-2 relative overflow-hidden rounded-full">
             <motion.div className={`h-full transition-colors duration-300 ${barColorClass}`} initial={{ width: 0 }} animate={{ width: activeSubject.isNA ? "0%" : `${activeSubject.percentage}%` }} transition={{ duration: 0.8, ease: "circOut" }} />
@@ -221,9 +241,21 @@ const MarksPage = ({ data }: { data: AcademiaData }) => {
 
       <AnimatePresence>
         {introMode && (
-          <motion.div key="introOverlay" initial={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.4 }} className="absolute inset-0 flex flex-col justify-end items-start p-8 pb-[60%] z-50 bg-[#050505]">
-            <h1 className="text-6xl font-black lowercase tracking-tighter text-white mb-2" style={{ fontFamily: "Aonic" }}>marks</h1>
-            <p className="text-xl font-bold lowercase text-white/80 leading-tight max-w-[80%]" style={{ fontFamily: "Aonic" }}>{currentRoast}</p>
+          <motion.div
+            key="introOverlay"
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.4 }}
+            className="absolute inset-0 flex flex-col justify-end items-start p-8 pb-[60%] z-50 bg-[#050505]"
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15, duration: 0.4 }}
+            >
+              <h1 className="text-6xl font-black lowercase tracking-tighter text-white mb-2" style={{ fontFamily: "Aonic" }}>marks</h1>
+              <p className="text-xl font-bold lowercase text-white/80 leading-tight max-w-[80%]" style={{ fontFamily: "Aonic" }}>{currentRoast}</p>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

@@ -54,6 +54,12 @@ export const flavorText = {
     "nap time",
     "freedom (404)",
   ],
+  timetable: [
+    "your schedule is looking tight.",
+    "another day, another set of bunkers.",
+    "may your classes be short and attendance high.",
+    "the grind doesn't stop, but you can.",
+  ],
   loading: [
     "stealing your data hehe ;)...",
     "fighting zoho for your attendance...",

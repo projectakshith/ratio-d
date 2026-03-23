@@ -379,20 +379,26 @@ const CalendarPage = ({ calendarData, academia, data }: any) => {
             initial={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.4 }}
-            className="absolute inset-0 flex flex-col justify-center items-start p-8 pb-[60%] z-50 bg-[#ffffff]"
+            className="absolute inset-0 flex flex-col justify-end items-start p-8 pb-[60%] z-50 bg-[#050505]"
           >
-            <h1
-              className="text-6xl font-black lowercase tracking-tighter text-[#050505] mb-2"
-              style={{ fontFamily: "Aonic" }}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15, duration: 0.4 }}
             >
-              calendar
-            </h1>
-            <p
-              className="text-xl font-bold lowercase text-[#050505]/80 leading-tight max-w-[80%]"
-              style={{ fontFamily: "Aonic" }}
-            >
-              schedule & orders
-            </p>
+              <h1
+                className="text-6xl font-black lowercase tracking-tighter text-white mb-2"
+                style={{ fontFamily: "Aonic" }}
+              >
+                calendar
+              </h1>
+              <p
+                className="text-xl font-bold lowercase text-white/80 leading-tight max-w-[80%]"
+                style={{ fontFamily: "Aonic" }}
+              >
+                schedule & orders
+              </p>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

@@ -6,12 +6,14 @@ import {
   getDayOverview,
   processSchedule,
 } from "@/utils/dashboard/timetableLogic";
+import { flavorText } from "@/utils/shared/flavortext";
 
 export default function Timetable({ schedule, dayOrder, data }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeDayOrder, setActiveDayOrder] = useState(1);
   const [customClasses, setCustomClasses] = useState<Record<number, any[]>>({});
   const [mounted, setMounted] = useState(false);
+  const [introMode, setIntroMode] = useState(true);
 
   useEffect(() => {
     setMounted(true);
@@ -28,9 +30,24 @@ export default function Timetable({ schedule, dayOrder, data }) {
     };
     fetchCustoms();
     window.addEventListener("custom_classes_updated", fetchCustoms);
-    return () =>
+
+    const timer = setTimeout(() => setIntroMode(false), 800);
+
+    return () => {
       window.removeEventListener("custom_classes_updated", fetchCustoms);
+      clearTimeout(timer);
+    };
   }, [dayOrder]);
+
+  const currentRoast = useMemo(() => {
+    const roasts = flavorText.timetable || [
+      "your schedule is looking tight.",
+      "another day, another set of bunkers.",
+      "may your classes be short and attendance high.",
+      "the grind doesn't stop, but you can.",
+    ];
+    return roasts[Math.floor(Math.random() * roasts.length)];
+  }, []);
 
   const courseMap = useMemo(() => {
     const map: any = {};
@@ -41,7 +58,6 @@ export default function Timetable({ schedule, dayOrder, data }) {
           const isPrac = (sub.category || "").toLowerCase().includes("practical") || 
                         (sub.slot || "").toUpperCase().startsWith("P");
           
-          // If we don't have this code yet, or if the new one is a practical (which usually has a more specific title)
           if (!map[code] || isPrac) {
             map[code] = sub.title;
           }
@@ -114,7 +130,7 @@ export default function Timetable({ schedule, dayOrder, data }) {
           height: isExpanded ? "100%" : "62%",
         }}
         transition={{ type: "spring", stiffness: 200, damping: 30 }}
-        className="absolute w-full bg-[#fdfdfd] flex flex-col shadow-[0_-30px_80px_rgba(0,0,0,0.9)] z-20 overflow-hidden rounded-t-[32px]"
+        className={`absolute w-full bg-[#fdfdfd] flex flex-col shadow-[0_-30px_80px_rgba(0,0,0,0.9)] z-20 overflow-hidden rounded-t-[32px] transition-transform duration-700 ease-in-out ${introMode ? "translate-y-[60%]" : "translate-y-0"}`}
       >
         <div className="w-full bg-[#fdfdfd] z-30 pt-4 pb-2 sticky top-0">
           <div
@@ -265,6 +281,37 @@ export default function Timetable({ schedule, dayOrder, data }) {
           </div>
         </div>
       </motion.div>
+
+      <AnimatePresence>
+        {introMode && (
+          <motion.div
+            key="introOverlay"
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.4 }}
+            className="absolute inset-0 flex flex-col justify-end items-start p-8 pb-[60%] z-50 bg-[#050505]"
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15, duration: 0.4 }}
+            >
+              <h1
+                className="text-6xl font-black lowercase tracking-tighter text-[#ceff1c] mb-2"
+                style={{ fontFamily: "Aonic" }}
+              >
+                timetable
+              </h1>
+              <p
+                className="text-xl font-bold lowercase text-white/80 leading-tight max-w-[80%]"
+                style={{ fontFamily: "Aonic" }}
+              >
+                {currentRoast}
+              </p>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
