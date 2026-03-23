@@ -7,3 +7,5 @@ class Credentials(BaseModel):
     username: str
     password: str
     cookies: Optional[Dict[str, str]] = None
+    captcha: Optional[str] = None
+    cdigest: Optional[str] = None

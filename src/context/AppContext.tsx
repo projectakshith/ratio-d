@@ -72,6 +72,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         
         const data = await response.json();
         if (!response.ok || !data.success) {
+          if (typeof data.detail === "object" && data.detail !== null) {
+            throw data.detail;
+          }
           throw new Error(data.detail || "Login failed");
         }
 
@@ -96,9 +99,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
         return data;
       } catch (err) {
-        if (err instanceof Error && err.message !== "Backend error") {
-          console.error("[Login Error]", err);
-        }
         throw err;
       }
     })();

@@ -48,7 +48,7 @@ class SessionHandler:
                 pass
         return False
 
-    async def login(self, username, password):
+    async def login(self, username, password, captcha=None, cdigest=None):
         print(f"  -> [SESSION] Executing hard login for {username}...", flush=True)
         self.client = httpx.AsyncClient(headers=HEADERS, follow_redirects=True, timeout=30.0)
         
@@ -58,6 +58,11 @@ class SessionHandler:
             'serviceurl': 'https://academia.srmist.edu.in/', 'is_ajax': 'true',
             'grant_type': 'password', 'service_language': 'en'
         }
+        
+        if cdigest:
+            payload['cdigest'] = cdigest
+        if captcha:
+            payload['captcha'] = captcha
 
         r = await self.client.post(LOGIN_URL, data=payload)
         
@@ -65,10 +70,27 @@ class SessionHandler:
             print("  -> [SESSION] Concurrent session limit reached!", flush=True)
             if await self.force_logout_sessions(r.text):
                 print("  -> [SESSION] Retrying hard login...", flush=True)
-                return await self.login(username, password)  
+                return await self.login(username, password, captcha, cdigest)  
 
         try:
             data = json.loads(r.text)
+            
+            if data.get('status') == 'fail':
+                code = data.get('code')
+                if code in ['HIP_REQUIRED', 'HIP_FAILED']:
+                    cdig = data.get('cdigest')
+                    msg = data.get('message', 'Captcha required')
+                    if cdig:
+                        print(f"  -> [SESSION] CAPTCHA required ({code}).", flush=True)
+                        raise Exception(json.dumps({
+                            "type": "CAPTCHA_REQUIRED",
+                            "message": msg,
+                            "cdigest": cdig,
+                            "image": f"https://academia.srmist.edu.in/accounts/p/40-10002227248/webclient/v1/captcha/{cdig}?darkmode=false"
+                        }))
+                if 'error' in data:
+                    raise Exception(data['error'].get('msg', 'Login failed'))
+
             if 'data' in data and 'access_token' in data['data']:
                 token = data['data']['access_token']
                 redirect_url = data['data']['oauthorize_uri']

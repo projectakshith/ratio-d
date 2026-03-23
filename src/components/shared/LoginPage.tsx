@@ -19,6 +19,9 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
+  const [captchaInput, setCaptchaInput] = useState<string>("");
+  const [captchaImage, setCaptchaImage] = useState<string | null>(null);
+  const [cdigest, setCdigest] = useState<string | null>(null);
 
   const [isExiting, setIsExiting] = useState(false);
 
@@ -42,6 +45,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
         username: fullUsername,
         password: password,
         cookies: savedCookies,
+        captcha: captchaInput || undefined,
+        cdigest: cdigest || undefined,
       };
 
       if (!isOnboarded) {
@@ -56,12 +61,30 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
           const data = await performLogin(creds);
           onLogin(data);
         } catch (err: any) {
-          setError(err.message || "auth failed");
+          if (err?.type === "CAPTCHA_REQUIRED") {
+            setCaptchaImage(err.image);
+            setCdigest(err.cdigest);
+            setError(err.message || "Please enter the CAPTCHA.");
+            setCaptchaInput("");
+          } else {
+            setCaptchaImage(null);
+            setCdigest(null);
+            setError(err.message || "auth failed");
+          }
           setLoading(false);
         }
       }
     } catch (err: any) {
-      setError(err.message);
+      if (err?.type === "CAPTCHA_REQUIRED") {
+        setCaptchaImage(err.image);
+        setCdigest(err.cdigest);
+        setError(err.message || "Please enter the CAPTCHA.");
+        setCaptchaInput("");
+      } else {
+        setCaptchaImage(null);
+        setCdigest(null);
+        setError(err.message || "auth failed");
+      }
       setLoading(false);
     }
   };
@@ -171,6 +194,36 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
                 </button>
               </div>
             </div>
+
+            <AnimatePresence>
+              {captchaImage && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="group relative"
+                >
+                  <label className="text-[10px] font-mono uppercase tracking-[0.3em] text-white/60 mb-2 block">
+                    Security Check
+                  </label>
+                  <div className="flex flex-col md:flex-row items-stretch md:items-center gap-4">
+                    <div className="relative flex-1 flex items-center border-b-2 border-white focus-within:border-[#ceff1c] transition-colors">
+                      <input
+                        type="text"
+                        value={captchaInput}
+                        onChange={(e) => setCaptchaInput(e.target.value.toUpperCase())}
+                        className="w-full bg-transparent py-4 text-4xl md:text-6xl text-white outline-none placeholder:text-white/10"
+                        placeholder="captcha"
+                        style={{ fontFamily: "Aonic", color: 'white' }}
+                      />
+                    </div>
+                    <div className="bg-white rounded p-1 h-[70px] flex-shrink-0 flex items-center justify-center overflow-hidden">
+                      <img src={captchaImage} alt="CAPTCHA" className="h-full object-contain mix-blend-multiply" />
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             <AnimatePresence>
               {error && (

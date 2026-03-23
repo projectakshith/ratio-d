@@ -12,8 +12,8 @@ class AcademiaClient:
         self.password = password
         self.session_handler = SessionHandler(cookies)
 
-    async def authenticate(self):
-        return await self.session_handler.login(self.username, self.password)
+    async def authenticate(self, captcha: str = None, cdigest: str = None):
+        return await self.session_handler.login(self.username, self.password, captcha, cdigest)
 
     async def get_page(self, url_key, suffix=""):
         full_url = urljoin(BASE_URL, URLS[url_key] + suffix)

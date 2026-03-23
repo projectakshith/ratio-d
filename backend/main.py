@@ -1,6 +1,7 @@
 import time
 import asyncio
 import os
+import json
 from datetime import datetime
 import httpx
 import uvicorn
@@ -17,6 +18,7 @@ from services.timetable_service import TimetableService
 from dotenv import load_dotenv
 
 load_dotenv()
+load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env.local'))
 
 app = FastAPI()
 
@@ -59,12 +61,12 @@ async def refresh_data(creds: Credentials):
     try:
         client = AcademiaClient(creds.username, creds.password, creds.cookies)
         if not creds.cookies:
-            await client.authenticate()
+            await client.authenticate(creds.captcha, creds.cdigest)
         
         att_html = await client.get_attendance_html()
         if not att_html or att_html == "CONCURRENT_ERROR":
             print(f"{get_now()}\n  -> [AUTH] Session invalid or concurrent error. Re-authenticating...", flush=True)
-            await client.authenticate()
+            await client.authenticate(creds.captcha, creds.cdigest)
             att_html = await client.get_attendance_html()
         
         if not att_html:
@@ -83,8 +85,15 @@ async def refresh_data(creds: Credentials):
             "cookies": current_cookies,
         }
     except Exception as e:
-        print(f"{get_now()}\n  -> [API] ERROR in /refresh: {str(e)}", flush=True)
-        raise HTTPException(status_code=401, detail=str(e))
+        err_msg = str(e)
+        print(f"{get_now()}\n  -> [API] ERROR in /refresh: {err_msg}", flush=True)
+        try:
+            err_data = json.loads(err_msg)
+            if isinstance(err_data, dict) and err_data.get("type") == "CAPTCHA_REQUIRED":
+                raise HTTPException(status_code=401, detail=err_data)
+        except Exception:
+            pass
+        raise HTTPException(status_code=401, detail=err_msg)
 
 @app.post("/login")
 async def login(creds: Credentials):
@@ -93,12 +102,12 @@ async def login(creds: Credentials):
     try:
         client = AcademiaClient(creds.username, creds.password, creds.cookies)
         if not creds.cookies:
-            await client.authenticate()
+            await client.authenticate(creds.captcha, creds.cdigest)
             
         profile_html = await client.get_profile_html()
         if not profile_html or profile_html == "CONCURRENT_ERROR":
             print(f"{get_now()}\n  -> [AUTH] Re-authenticating...", flush=True)
-            await client.authenticate()
+            await client.authenticate(creds.captcha, creds.cdigest)
             profile_html = await client.get_profile_html()
             
         if not profile_html:
@@ -133,5 +142,12 @@ async def login(creds: Credentials):
             "cookies": current_cookies,
         }
     except Exception as e:
-        print(f"{get_now()}\n  -> [API] ERROR in /login: {str(e)}", flush=True)
-        raise HTTPException(status_code=401, detail=str(e))
+        err_msg = str(e)
+        print(f"{get_now()}\n  -> [API] ERROR in /login: {err_msg}", flush=True)
+        try:
+            err_data = json.loads(err_msg)
+            if isinstance(err_data, dict) and err_data.get("type") == "CAPTCHA_REQUIRED":
+                raise HTTPException(status_code=401, detail=err_data)
+        except Exception:
+            pass
+        raise HTTPException(status_code=401, detail=err_msg)
