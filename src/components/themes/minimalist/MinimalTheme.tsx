@@ -54,9 +54,11 @@ export default function MinimalTheme({ children }: MinimalThemeProps) {
     if (dx > 70) {
       const currentIndex = paths.indexOf(pathname);
       if (touchX < touchStart.x && currentIndex < paths.length - 1) {
+        if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(10);
         router.push(paths[currentIndex + 1]);
         setTouchStart(null);
       } else if (touchX > touchStart.x && currentIndex > 0) {
+        if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(10);
         router.push(paths[currentIndex - 1]);
         setTouchStart(null);
       }

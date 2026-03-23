@@ -90,7 +90,7 @@ export default function Predict({
               </span>
             </div>
             <button
-              onClick={onClose}
+              onClick={() => { if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(8); onClose(); }}
               className="w-10 h-10 rounded-full bg-theme-surface flex items-center justify-center text-theme-text transition-all shrink-0"
             >
               <X size={20} strokeWidth={2.5} />
@@ -101,14 +101,14 @@ export default function Predict({
               className="flex items-center gap-2 bg-theme-surface p-1 rounded-[16px] mb-3 shrink-0"
             >
               <button
-                onClick={() => setPredictAction("leave")}
+                onClick={() => { if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(8); setPredictAction("leave"); }}
                 className={`flex-1 py-2.5 rounded-[12px] text-[11px] font-bold uppercase transition-all ${predictAction === "leave" ? "bg-theme-highlight text-theme-text" : "text-theme-muted"}`}
                 style={{ fontFamily: "'Montserrat', sans-serif" }}
               >
                 leaves
               </button>
               <button
-                onClick={() => setPredictAction("attend")}
+                onClick={() => { if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(8); setPredictAction("attend"); }}
                 className={`flex-1 py-2.5 rounded-[12px] text-[11px] font-bold uppercase transition-all ${predictAction === "attend" ? "bg-theme-highlight text-theme-text" : "text-theme-muted"}`}
                 style={{ fontFamily: "'Montserrat', sans-serif" }}
               >
@@ -177,7 +177,7 @@ export default function Predict({
                       className="relative aspect-square flex flex-col items-center justify-center"
                     >
                       <button
-                        onClick={() => handleDateClick(day)}
+                        onClick={() => { if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(8); handleDateClick(day); }}
                         disabled={isDisabled}
                         className={`w-full h-full rounded-[12px] flex items-center justify-center text-[15px] font-black transition-all ${isDisabled ? "text-theme-subtle" : selected ? "bg-theme-highlight text-theme-text shadow-lg" : isToday ? "bg-[#0EA5E9]/10 text-[#0EA5E9] border border-[#0EA5E9]/30" : "bg-theme-surface text-theme-text"}`}
                         style={{ fontFamily: "'Montserrat', sans-serif" }}

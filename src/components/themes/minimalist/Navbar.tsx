@@ -23,6 +23,9 @@ export default function Navbar() {
           <Link
             key={tab.id}
             href={tab.path}
+            onClick={() => {
+              if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(10);
+            }}
             className={`text-[10px] font-bold uppercase tracking-[0.15em] transition-colors duration-300 ${
               isActive ? "text-theme-text" : "text-theme-subtle"
             }`}

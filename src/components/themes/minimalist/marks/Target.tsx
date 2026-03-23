@@ -57,6 +57,7 @@ export default function Target({
           dragElastic={0.6}
           onDragEnd={(e, info) => {
             if (info.offset.y > 150 || info.velocity.y > 500) {
+              if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(12);
               onClose();
             }
           }}
@@ -81,7 +82,10 @@ export default function Target({
               </span>
             </div>
             <button
-              onClick={onClose}
+              onClick={() => {
+                if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(8);
+                onClose();
+              }}
               className={`w-10 h-10 rounded-full bg-theme-surface flex items-center justify-center ${textClass} transition-all shrink-0`}
             >
               <X size={20} strokeWidth={2.5} />
@@ -185,9 +189,10 @@ export default function Target({
                   className="flex items-center gap-1 bg-theme-surface rounded-[12px] px-1.5 py-1.5 h-10"
                 >
                   <button
-                    onClick={() =>
-                      setExpectedMarks((prev: any) => Math.max(0, (typeof prev === "function" ? prev(expectedMarks) : prev) - 1))
-                    }
+                    onClick={() => {
+                      if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(8);
+                      setExpectedMarks((prev: any) => Math.max(0, (typeof prev === "function" ? prev(expectedMarks) : prev) - 1));
+                    }}
                     className={`w-7 h-7 rounded-[8px] bg-theme-text-10 flex items-center justify-center ${textClass} font-bold transition-all`}
                   >
                     -
@@ -210,9 +215,10 @@ export default function Target({
                     </span>
                   </div>
                   <button
-                    onClick={() =>
-                      setExpectedMarks((prev: any) => Math.min(maxPossibleExpected, (typeof prev === "function" ? prev(expectedMarks) : prev) + 1))
-                    }
+                    onClick={() => {
+                      if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(8);
+                      setExpectedMarks((prev: any) => Math.min(maxPossibleExpected, (typeof prev === "function" ? prev(expectedMarks) : prev) + 1));
+                    }}
                     className="w-7 h-7 rounded-[8px] bg-theme-emphasis text-theme-bg flex items-center justify-center font-bold transition-all"
                   >
                     +
@@ -231,7 +237,10 @@ export default function Target({
                 {grades.map((g) => (
                   <button
                     key={g.label}
-                    onClick={() => setTargetGrade(g.min)}
+                    onClick={() => {
+                      if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(8);
+                      setTargetGrade(g.min);
+                    }}
                     className={`py-3 rounded-[16px] flex flex-col items-center justify-center transition-all ${targetGrade === g.min ? "bg-theme-emphasis text-theme-bg" : "bg-theme-surface text-theme-muted hover:bg-theme-text-10"}`}
                   >
                     <span
@@ -262,6 +271,7 @@ export default function Target({
                   <button
                     key={sub.id}
                     onClick={() => {
+                      if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(8);
                       setPredSubjectId(sub.id);
                       setExpectedMarks(0);
                     }}

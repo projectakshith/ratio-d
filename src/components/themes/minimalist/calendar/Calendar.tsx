@@ -78,7 +78,10 @@ const CalendarDay = memo(
       <motion.button
         variants={itemVariants}
         whileTap={{ scale: 0.9 }}
-        onClick={() => item.dateObj && onClick(item.dateObj)}
+        onClick={() => {
+          if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(8);
+          item.dateObj && onClick(item.dateObj);
+        }}
         className={`aspect-square w-full rounded-[14px] flex flex-col items-center justify-center relative transition-colors ${bg} ${border} ${item.isPast && !item.isSelected && !item.isToday ? "opacity-40" : ""} ${scaleClass} ${shadowClass}`}
       >
         <div className="absolute top-1.5 left-1.5 right-1.5 flex items-start justify-between pointer-events-none">
@@ -233,19 +236,28 @@ const Calendar = ({ data, academia }: any) => {
               </span>
               <div className="flex items-center gap-2">
                 <button
-                  onClick={handlePrevMonth}
+                  onClick={() => {
+                    if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(10);
+                    handlePrevMonth();
+                  }}
                   className="w-10 h-10 bg-theme-card rounded-full flex items-center justify-center text-theme-text transition-all"
                 >
                   <ChevronLeft size={20} strokeWidth={2.5} />
                 </button>
                 <button
-                  onClick={goToToday}
+                  onClick={() => {
+                    if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(10);
+                    goToToday();
+                  }}
                   className="w-10 h-10 bg-theme-text text-theme-bg rounded-full flex items-center justify-center transition-all hover:opacity-90"
                 >
                   <Target size={18} strokeWidth={2.5} />
                 </button>
                 <button
-                  onClick={handleNextMonth}
+                  onClick={() => {
+                    if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(10);
+                    handleNextMonth();
+                  }}
                   className="w-10 h-10 bg-theme-card rounded-full flex items-center justify-center text-theme-text transition-all"
                 >
                   <ChevronRight size={20} strokeWidth={2.5} />
