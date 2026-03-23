@@ -9,7 +9,7 @@ interface MinimalThemeProps {
   isSwipeDisabled?: boolean;
 }
 
-const BEZIER = [0.34, 0.15, 0.16, 0.96];
+const BEZIER = [0.34, 0.15, 0.16, 0.96] as const;
 
 export default function MinimalTheme({ children, isSwipeDisabled }: MinimalThemeProps) {
   const pathname = usePathname();

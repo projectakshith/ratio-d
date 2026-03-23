@@ -9,7 +9,7 @@ interface ScheduleGridProps {
   isHoliday: boolean;
 }
 
-const BEZIER = [0.34, 0.15, 0.16, 0.96];
+const BEZIER = [0.34, 0.15, 0.16, 0.96] as const;
 
 const gridVariants = {
   hidden: {},
@@ -33,7 +33,7 @@ const slotVariants = {
       opacity: { duration: 0.25, ease: "easeOut" },
     },
   },
-};
+} as const;
 
 export default function ScheduleGrid({
   displayGrid,

@@ -17,7 +17,7 @@ import { AcademiaData } from "@/types";
 import { useAppLayout } from "@/context/AppLayoutContext";
 import { getRandomRoast } from "@/utils/shared/flavortext";
 
-const BEZIER = [0.34, 0.15, 0.16, 0.96];
+const BEZIER = [0.34, 0.15, 0.16, 0.96] as const;
 
 const containerVariants = {
   hidden: { opacity: 0 },
