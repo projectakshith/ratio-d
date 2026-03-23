@@ -190,7 +190,12 @@ const HomeDashboard = ({
 
   return (
     <div className="h-full w-full bg-[#050505] relative overflow-hidden">
-      <div className="absolute top-0 left-0 w-full h-[200px] bg-[#fdfdfd] z-0" />
+      <motion.div 
+        initial={{ y: "-100%" }}
+        animate={{ y: 0 }}
+        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        className="absolute top-0 left-0 w-full h-[200px] bg-[#fdfdfd] z-0" 
+      />
 
       <div
         className="absolute top-0 left-0 w-full flex justify-center pt-8 z-0 transition-opacity duration-300"
@@ -222,12 +227,12 @@ const HomeDashboard = ({
         >
           <motion.div
             layout
-            initial={{ height: "auto", borderRadius: 0 }}
+            initial={{ y: "-100%", borderRadius: 0 }}
             animate={{
-              height: "auto",
+              y: 0,
               borderRadius: "0 0 48px 48px",
             }}
-            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1], delay: 0.02 }}
             className={`bg-[#fdfdfd] flex flex-col relative overflow-hidden shrink-0 z-20 ${
               isAlertExpanded || isMetricExpanded ? "flex-[2]" : "flex-[7]"
             }`}
@@ -250,13 +255,9 @@ const HomeDashboard = ({
 
             <AnimatePresence>
               <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.3 }}
                 className="flex flex-col relative z-10 mt-8"
               >
-                <motion.div
-                  layout="position"
+                <motion.div                  layout="position"
                   className="flex items-center gap-3 mb-10"
                 >
                   <h1
