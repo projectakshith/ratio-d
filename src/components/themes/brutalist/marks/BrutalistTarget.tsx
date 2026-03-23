@@ -64,7 +64,7 @@ export default function BrutalistTarget({
           
           <div className="flex justify-between items-start w-full shrink-0">
             <div className="flex flex-col">
-              <span className="text-[32px] font-black uppercase tracking-[0.15em] text-white" style={{ fontFamily: "Urbanosta" }}>
+              <span className="text-[32px] font-black uppercase tracking-[0.15em] text-white">
                 TARGET
               </span>
               <span className="text-[10px] font-bold lowercase tracking-[0.2em] text-[#ceff1c] mt-1.5" style={{ fontFamily: "Aonic" }}>
@@ -78,7 +78,7 @@ export default function BrutalistTarget({
 
           <div className="flex flex-col flex-1 justify-between mt-5 w-full overflow-y-auto no-scrollbar pb-4">
             <div className="w-full bg-white/5 border border-white/10 rounded-[16px] px-4 py-3.5 flex items-center gap-3 shrink-0">
-              <span className="text-[16px] font-black uppercase tracking-widest text-white shrink-0" style={{ fontFamily: "Urbanosta" }}>
+              <span className="text-[16px] font-black uppercase tracking-widest text-white shrink-0" style={{ fontFamily: "Montserrat" }}>
                 {activePredSub.code}
               </span>
               <div className="w-[1.5px] h-4 bg-white/10 shrink-0" />
@@ -91,7 +91,7 @@ export default function BrutalistTarget({
               <span className="text-[11px] font-bold lowercase tracking-[0.2em] text-white/40 mb-1" style={{ fontFamily: "Aonic" }}>
                 predicted sgpa
               </span>
-              <span className={`text-[4.5rem] leading-[0.9] font-black tracking-tighter transition-colors duration-300 ${gpaColor}`} style={{ fontFamily: "Urbanosta" }}>
+              <span className={`text-[4.5rem] leading-[0.9] font-black tracking-tighter transition-colors duration-300 ${gpaColor}`} style={{ fontFamily: "Montserrat" }}>
                 {predictedGpa}
               </span>
             </div>
@@ -101,11 +101,11 @@ export default function BrutalistTarget({
                 sem marks needed
               </span>
               <div className="flex items-baseline gap-1">
-                <span className={`leading-[0.85] font-black tracking-tighter text-center ${semRequiredOutOf75 > 75 ? "text-[4rem] text-[#ff003c]" : "text-[5rem] text-[#ceff1c]"}`} style={{ fontFamily: "Urbanosta" }}>
+                <span className={`leading-[0.85] font-black tracking-tighter text-center ${semRequiredOutOf75 > 75 ? "text-[4rem] text-[#ff003c]" : "text-[5rem] text-[#ceff1c]"}`} style={{ fontFamily: "Montserrat" }}>
                   {semRequiredOutOf75 > 75 ? "cooked." : semRequiredOutOf75 <= 0 ? "0" : semRequiredOutOf75}
                 </span>
                 {semRequiredOutOf75 > 0 && semRequiredOutOf75 <= 75 && (
-                  <span className="text-[20px] font-bold text-white/20" style={{ fontFamily: "Urbanosta" }}>/75</span>
+                  <span className="text-[20px] font-bold text-white/20" style={{ fontFamily: "Montserrat" }}>/75</span>
                 )}
               </div>
             </div>
@@ -116,10 +116,10 @@ export default function BrutalistTarget({
                   current internals
                 </span>
                 <div className="flex items-baseline gap-1 h-10">
-                  <span className="text-[2rem] leading-[1] font-black text-white" style={{ fontFamily: "Urbanosta" }}>
+                  <span className="text-[2rem] leading-[1] font-black text-white" style={{ fontFamily: "Montserrat" }}>
                     {Number.isInteger(currentInternals) ? currentInternals : currentInternals.toFixed(1)}
                   </span>
-                  <span className="text-[12px] font-bold text-white/20" style={{ fontFamily: "Urbanosta" }}>/60</span>
+                  <span className="text-[12px] font-bold text-white/20" style={{ fontFamily: "Montserrat" }}>/60</span>
                 </div>
               </div>
               <div className="flex flex-col items-end w-1/2">
@@ -141,9 +141,9 @@ export default function BrutalistTarget({
                       onChange={handleExpectedChange}
                       placeholder="0"
                       className="w-6 bg-transparent text-[18px] font-black text-white text-center outline-none placeholder:text-white/20"
-                      style={{ fontFamily: "Urbanosta" }}
+                      style={{ fontFamily: "Montserrat" }}
                     />
-                    <span className="text-[11px] font-bold text-white/20" style={{ fontFamily: "Urbanosta" }}>/{maxPossibleExpected}</span>
+                    <span className="text-[11px] font-bold text-white/20" style={{ fontFamily: "Montserrat" }}>/{maxPossibleExpected}</span>
                   </div>
                   <button
                     onClick={() => setExpectedMarks((prev: any) => Math.min(maxPossibleExpected, (typeof prev === "function" ? prev(expectedMarks) : prev) + 1))}
@@ -156,7 +156,7 @@ export default function BrutalistTarget({
             </div>
 
             <div className="flex flex-col w-full shrink-0 mt-2">
-              <span className="text-[10px] font-bold lowercase tracking-[0.2em] text-white/40 mb-2 px-2" style={{ fontFamily: "Urbanosta" }}>
+              <span className="text-[10px] font-bold lowercase tracking-[0.2em] text-white/40 mb-2 px-2" style={{ fontFamily: "Montserrat" }}>
                 target grade
               </span>
               <div className="grid grid-cols-3 gap-2">
@@ -166,7 +166,7 @@ export default function BrutalistTarget({
                     onClick={() => setTargetGrade(g.min)}
                     className={`py-3 rounded-[16px] flex flex-col items-center justify-center transition-all ${targetGrade === g.min ? "bg-[#ceff1c] text-black" : "bg-white/5 text-white/40 hover:bg-white/10"}`}
                   >
-                    <span className="text-[18px] font-black" style={{ fontFamily: "Urbanosta" }}>{g.label}</span>
+                    <span className="text-[18px] font-black" style={{ fontFamily: "Montserrat" }}>{g.label}</span>
                     <span className="text-[10px] font-bold uppercase tracking-widest mt-0.5" style={{ fontFamily: "Aonic" }}>{g.min}+</span>
                   </button>
                 ))}
@@ -174,7 +174,7 @@ export default function BrutalistTarget({
             </div>
 
             <div className="flex flex-col w-full shrink-0 mt-2 pb-2">
-              <span className="text-[10px] font-bold lowercase tracking-[0.2em] text-white/40 mb-2 px-2" style={{ fontFamily: "Urbanosta" }}>
+              <span className="text-[10px] font-bold lowercase tracking-[0.2em] text-white/40 mb-2 px-2" style={{ fontFamily: "Montserrat" }}>
                 select subject
               </span>
               <div className="flex gap-2 overflow-x-auto no-scrollbar w-full px-2">

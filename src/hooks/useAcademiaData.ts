@@ -7,6 +7,10 @@ import {
   getCriticalAttendance,
 } from "@/utils/academia/academiaLogic";
 import {
+  processAndSortMarks,
+  buildCourseMap,
+} from "@/utils/marks/marksLogic";
+import {
   AcademiaData,
   CalendarEvent,
   ScheduleData,
@@ -29,6 +33,23 @@ export const useAcademiaData = (data: AcademiaData | null) => {
     (calendarDataJson || []) as CalendarEvent[], 
     []
   );
+
+  const courseMap = useMemo(() => buildCourseMap(data), [data]);
+  const sortedMarks = useMemo(() => {
+    const rawMarks = Array.isArray(data?.marks) ? data.marks : [];
+    return processAndSortMarks(rawMarks, courseMap);
+  }, [data?.marks, courseMap]);
+
+  const overallMarks = useMemo(() => {
+    const validMarks = sortedMarks.filter(m => !m.isNA);
+    if (validMarks.length === 0) return 0;
+    const totalPct = validMarks.reduce((sum, m) => sum + m.percentage, 0);
+    return Math.round(totalPct / validMarks.length);
+  }, [sortedMarks]);
+
+  const recentMarks = useMemo(() => {
+    return sortedMarks.filter(m => !m.isNA).slice(0, 2);
+  }, [sortedMarks]);
   const todayDate = new Date().toLocaleDateString("en-GB", {
     day: "2-digit",
     month: "short",
@@ -141,9 +162,11 @@ export const useAcademiaData = (data: AcademiaData | null) => {
     timeStatus,
     overallAttendance,
     criticalAttendance,
+    overallMarks,
+    recentMarks,
     effectiveDayOrder,
     effectiveSchedule: schedule,
     calendarData,
     triggerTestClass,
-  }), [timeStatus, overallAttendance, criticalAttendance, effectiveDayOrder, schedule, calendarData, triggerTestClass]);
+  }), [timeStatus, overallAttendance, criticalAttendance, overallMarks, recentMarks, effectiveDayOrder, schedule, calendarData, triggerTestClass]);
 };

@@ -1,5 +1,6 @@
 "use client";
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
 import {
   Zap,
@@ -12,6 +13,7 @@ import {
 } from "lucide-react";
 import { BentoTile } from "../BentoTile";
 import { StudentProfile, AttendanceRecord } from "@/types";
+import { useDashboardAlerts } from "@/hooks/useDashboardAlerts";
 
 // ADD : any TO SILENCE VERCEL TS COMPILER
 const springTransition: any = {
@@ -62,8 +64,11 @@ interface HomeDashboardProps {
     currentClass: any;
   };
   upcomingAlerts?: any[];
+  calendarData?: any[];
   overallAttendance?: number;
   criticalAttendance?: any[];
+  overallMarks?: number;
+  recentMarks?: any[];
   onRefresh?: () => Promise<void>;
   isRefreshing?: boolean;
 }
@@ -73,15 +78,38 @@ const HomeDashboard = ({
   profile,
   displayName,
   timeStatus = { nextClass: null, currentClass: null },
-  upcomingAlerts = [],
+  upcomingAlerts: propAlerts = [],
+  calendarData = [],
   overallAttendance = 0,
   criticalAttendance = [],
+  overallMarks = 0,
+  recentMarks = [],
   onRefresh,
   isRefreshing: isParentRefreshing,
 }: HomeDashboardProps) => {
+  const router = useRouter();
   const [isAlertExpanded, setIsAlertExpanded] = useState(false);
   const [isMetricExpanded, setIsMetricExpanded] = useState(false);
   const [metricMode, setMetricMode] = useState("attendance");
+
+  const isTargetAudience =
+    (profile?.dept || "")
+      .toLowerCase()
+      .includes("computer science and engineering") &&
+    String(profile?.semester) === "4";
+
+  const { allAlerts, currentAlertIndex } = useDashboardAlerts({ calendarData } as any, isTargetAudience);
+  
+  const upcomingAlerts = useMemo(() => {
+    const alerts = allAlerts.length > 0 ? allAlerts.map(a => ({ 
+      description: a.desc, 
+      date: a.date, 
+      type: a.type,
+      day: new Date(a.date).toLocaleDateString("en-US", { weekday: "long" })
+    })) : propAlerts;
+    return alerts;
+  }, [allAlerts, propAlerts]);
+
   const containerRef = useRef<HTMLDivElement>(null);
   const [pullY, setPullY] = useState(0);
   const [isLocalRefreshing, setIsLocalRefreshing] = useState(false);
@@ -94,7 +122,7 @@ const HomeDashboard = ({
   const studentName =
     displayName || (profile?.name ? profile.name.split(" ")[0] : "Student");
 
-  const nextSubject = timeStatus?.nextClass?.course || "No more classes";
+  const nextSubject = timeStatus?.nextClass?.course || "no more classes";
   const nextSubjectSplit = nextSubject.split(" ");
   const displayNext =
     nextSubjectSplit.length > 1
@@ -182,7 +210,7 @@ const HomeDashboard = ({
 
       <div
         ref={containerRef}
-        className="h-full w-full relative z-10 overflow-y-auto overflow-x-hidden no-scrollbar flex flex-col"
+        className="h-full w-full relative z-10 overflow-hidden overflow-x-hidden no-scrollbar flex flex-col"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
@@ -272,7 +300,7 @@ const HomeDashboard = ({
                         {displayNext.top}
                       </span>
                       <span
-                        className="truncate text-[8vw] md:text-[6rem] font-black tracking-tighter -mt-1 md:-mt-2"
+                        className="text-black truncate text-[8vw] md:text-[6rem] font-black tracking-tighter -mt-1 md:-mt-2"
                         style={{ fontFamily: "Akira" }}
                       >
                         {displayNext.bottom}
@@ -312,9 +340,12 @@ const HomeDashboard = ({
                         ⏰ {timeStatus.nextClass.time}{timeStatus.nextClass.type === "lab" ? " (P)" : ""}
                       </div>
                     )}
-                    <div className="ml-auto w-10 h-10 bg-black rounded-full flex items-center justify-center text-white active:scale-90 transition-transform flex-shrink-0 shadow-lg">
+                    <button 
+                      onClick={() => router.push("/timetable")}
+                      className="ml-auto w-10 h-10 bg-black rounded-full flex items-center justify-center text-white active:scale-90 transition-transform flex-shrink-0 shadow-lg"
+                    >
                       <ArrowUpRight size={20} />
-                    </div>
+                    </button>
                   </motion.div>
                 )}
               </motion.div>
@@ -343,18 +374,39 @@ const HomeDashboard = ({
               >
                 <motion.div
                   layout="position"
-                  className="flex justify-between items-center w-full relative z-10 py-0 -mt-1.5"
+                  className="flex justify-between items-center w-full relative z-10 py-0 -mt-2.5"
                 >
-                  <div className="flex items-center gap-3">
-                    <Bell size={20} />
-                    <p
-                      className="font-bold text-xl md:text-2xl tracking-normal lowercase"
-                      style={{ fontFamily: "Aonic" }}
-                    >
-                      academic alerts
-                    </p>
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <Bell size={20} className="shrink-0 -mt-0.5" />
+                    <div className="flex flex-col min-w-0 -mt-1">
+                      <p
+                        className="font-bold text-xl md:text-2xl tracking-normal lowercase shrink-0 leading-tight"
+                        style={{ fontFamily: "Aonic" }}
+                      >
+                        academic alerts
+                      </p>
+                      {!isAlertExpanded && (
+                        <div className="h-4 overflow-hidden">
+                          <AnimatePresence mode="wait">
+                            <motion.p
+                              key={currentAlertIndex}
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -10 }}
+                              className="text-[11px] font-bold text-white/40 lowercase truncate"
+                              style={{ fontFamily: "Aonic" }}
+                            >
+                              {allAlerts[currentAlertIndex] 
+                                ? `${allAlerts[currentAlertIndex].title.toLowerCase()}: ${allAlerts[currentAlertIndex].desc.toLowerCase().split(" / ")[0]}`
+                                : overallAttendance < 75 ? "attendance low" : "all good"
+                              }
+                            </motion.p>
+                          </AnimatePresence>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <div className="w-8 h-8 rounded-full bg-black/10 flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-full bg-black/10 flex items-center justify-center shrink-0 -mt-1">
                     <ChevronRight
                       size={16}
                       className={`transition-transform duration-500 ${
@@ -374,7 +426,7 @@ const HomeDashboard = ({
                       className="w-full relative z-10"
                     >
                       {upcomingAlerts.length > 0 ? (
-                        upcomingAlerts.map((alert, i) => (
+                        upcomingAlerts.slice(0, 2).map((alert, i) => (
                           <div
                             key={i}
                             className="bg-white p-3 rounded-xl flex flex-col gap-1 border border-black/5 shadow-sm mb-2 last:mb-0"
@@ -539,14 +591,46 @@ const HomeDashboard = ({
                             </div>
                           )
                         ) : (
-                          <div className="bg-black/5 p-4 rounded-2xl text-center w-full">
-                            <span
-                              className="font-bold text-[12px] text-black/60"
-                              style={{ fontFamily: "Aonic" }}
-                            >
-                              no marks data available
-                            </span>
-                          </div>
+                          recentMarks.length > 0 ? (
+                            recentMarks.slice(0, 2).map((mark: any, i: number) => (
+                              <div
+                                key={i}
+                                className="bg-black/10 p-4 rounded-2xl flex items-center justify-between w-full"
+                              >
+                                <div className="flex flex-col w-[70%]">
+                                  <span className="text-[8px] font-black text-[#3233ff] uppercase tracking-widest mb-1">
+                                    {mark.testName}
+                                  </span>
+                                  <span
+                                    className="font-bold text-[13px] text-black leading-tight truncate"
+                                    style={{ fontFamily: "Aonic" }}
+                                  >
+                                    {mark.title}
+                                  </span>
+                                </div>
+                                <div className="flex flex-col items-end">
+                                  <div className="flex items-baseline gap-1">
+                                    <span
+                                      className="font-black text-[18px] text-black"
+                                      style={{ fontFamily: "Urbanosta" }}
+                                    >
+                                      {mark.score}
+                                    </span>
+                                    <span className="text-[10px] font-bold text-black/40">/{mark.max}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="bg-black/5 p-4 rounded-2xl text-center w-full">
+                              <span
+                                className="font-bold text-[12px] text-black/60"
+                                style={{ fontFamily: "Aonic" }}
+                              >
+                                no marks data available
+                              </span>
+                            </div>
+                          )
                         )}
                       </motion.div>
                     ) : (
@@ -588,9 +672,9 @@ const HomeDashboard = ({
                         >
                           {metricMode === "attendance"
                             ? overallAttendance
-                            : "N/A"}
+                            : overallMarks}
                           <span className="text-[34px] opacity-20 tracking-normal">
-                            {metricMode === "attendance" ? "%" : ""}
+                            {metricMode === "attendance" ? "%" : (overallMarks > 0 ? "%" : "")}
                           </span>
                         </div>
                       </motion.div>

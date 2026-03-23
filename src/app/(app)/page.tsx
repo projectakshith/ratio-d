@@ -30,9 +30,12 @@ export default function DashboardPage() {
         attendance={userData?.attendance}
         displayName={customDisplayName || userData?.profile?.name}
         timeStatus={academia.timeStatus}
+        calendarData={academia.calendarData}
         upcomingAlerts={[]}
         overallAttendance={academia.overallAttendance}
         criticalAttendance={academia.criticalAttendance}
+        overallMarks={(academia as any).overallMarks || 0}
+        recentMarks={(academia as any).recentMarks || []}
         onRefresh={handleRefresh}
         isRefreshing={isUpdating}
       />

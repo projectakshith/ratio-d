@@ -78,6 +78,13 @@ const MarksPage = ({ data }: { data: AcademiaData }) => {
     return () => clearTimeout(timer);
   }, []);
 
+  const overallPercentage = useMemo(() => {
+    const validMarks = sortedMarks.filter(m => !m.isNA);
+    if (validMarks.length === 0) return 0;
+    const totalPct = validMarks.reduce((sum, m) => sum + m.percentage, 0);
+    return Math.round(totalPct / validMarks.length);
+  }, [sortedMarks]);
+
   const activeSubject: any = useMemo(() => 
     sortedMarks.find((s: any) => s.id === selectedId) || sortedMarks[0] || {},
     [sortedMarks, selectedId]
@@ -143,7 +150,7 @@ const MarksPage = ({ data }: { data: AcademiaData }) => {
   const barColorClass = activeSubject.status === "safe" ? "bg-[#ceff1c]" : activeSubject.status === "danger" ? "bg-[#ffb800]" : "bg-[#ff003c]";
 
   return (
-    <div className="h-full w-full flex flex-col bg-[#050505] text-white font-sans relative overflow-hidden">
+    <div className="h-full w-full flex flex-col bg-[#050505] text-white font-sans relative overflow-y-auto">
       <div className="absolute inset-0 w-full h-full z-0 bg-[#050505]">
       </div>
 
@@ -164,14 +171,16 @@ const MarksPage = ({ data }: { data: AcademiaData }) => {
         <div className="my-auto flex flex-col justify-center">
           <div className="flex items-baseline gap-6">
             <span className={`text-[20vw] md:text-[8rem] leading-[0.8] font-black tracking-wide transition-colors duration-300 ${themeColorClass}`} style={{ fontFamily: "Urbanosta" }}>
-              <ScoreCounter value={activeSubject.score} />
+              <ScoreCounter value={activeSubject.isNA ? overallPercentage : activeSubject.score} />
             </span>
-            {!activeSubject.isNA && (
-              <div className="flex items-baseline gap-3">
-                <span className={`text-xl font-bold opacity-40 ${themeColorClass}`} style={{ fontFamily: "Urbanosta" }}>/ {activeSubject.max}</span>
+            <div className="flex items-baseline gap-3">
+              <span className={`text-xl font-bold opacity-40 ${themeColorClass}`} style={{ fontFamily: "Urbanosta" }}>
+                {activeSubject.isNA ? "%" : `/ ${activeSubject.max}`}
+              </span>
+              {!activeSubject.isNA && (
                 <span className={`text-[12px] font-black uppercase tracking-tight opacity-40 ${themeColorClass}`}>{activeSubject.testName}</span>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
 
@@ -201,7 +210,7 @@ const MarksPage = ({ data }: { data: AcademiaData }) => {
             </motion.div>
           </AnimatePresence>
           <h3 className="text-xl md:text-2xl font-bold lowercase leading-tight mb-4 line-clamp-1 text-white" style={{ fontFamily: "Aonic" }}>{activeSubject.title?.toLowerCase()}</h3>
-          <div className="w-full h-[4px] bg-white/10 mb-2 relative overflow-hidden rounded-full">
+          <div className="w-full h-[4px] bg-white/10 mb-2 relative overflow-y-auto rounded-full">
             <motion.div className={`h-full transition-colors duration-300 ${barColorClass}`} initial={{ width: 0 }} animate={{ width: activeSubject.isNA ? "0%" : `${activeSubject.percentage}%` }} transition={{ duration: 0.8, ease: "circOut" }} />
           </div>
           <span className="block text-[10px] font-mono font-bold lowercase mt-1 opacity-60 text-white/80">{currentRoast}</span>
@@ -221,7 +230,7 @@ const MarksPage = ({ data }: { data: AcademiaData }) => {
                   <h4 className="text-lg font-bold lowercase truncate max-w-[70%]" style={{ fontFamily: "Aonic" }}>{subject.title?.toLowerCase()}</h4>
                   {!subject.isNA && <span className="text-2xl font-black" style={{ fontFamily: "Urbanosta" }}>{Math.floor(subject.percentage)}%</span>}
                 </div>
-                <div className="w-full h-[2px] bg-[#050505]/5 relative mb-3 rounded-full overflow-hidden">
+                <div className="w-full h-[2px] bg-[#050505]/5 relative mb-3 rounded-full overflow-y-auto">
                   <div className={`h-full absolute top-0 left-0 transition-colors ${subject.status === "cooked" ? "bg-[#ff003c]" : subject.status === "danger" ? "bg-[#ffb800]" : "bg-[#050505]"}`} style={{ width: subject.isNA ? "0%" : `${subject.percentage}%` }} />
                 </div>
                 <div className="flex justify-between items-center text-[10px] font-mono tracking-wide text-[#050505]/50 lowercase mt-2">
