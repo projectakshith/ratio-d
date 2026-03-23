@@ -87,22 +87,22 @@ export default function ScheduleGrid({
       <motion.div
         key={`${slot.id}-${index}`}
         variants={slotVariants}
-        className={`aspect-square rounded-[14px] border-[1.5px] flex flex-col items-center justify-center gap-[4px] p-1 transition-all ${boxClass}`}
+        className={`aspect-square rounded-[14px] border-[1.5px] flex flex-col items-center justify-center gap-[1px] min-[380px]:gap-[2px] p-1 min-[380px]:p-1.5 transition-all ${boxClass}`}
       >
         <span
-          className={`text-[9.5px] font-bold uppercase tracking-tight leading-none text-center truncate w-full px-1 ${topText}`}
+          className={`text-[7px] min-[380px]:text-[8.5px] font-bold uppercase tracking-tight leading-none text-center truncate w-full px-1 mb-0.5 ${topText}`}
           style={{ fontFamily: "var(--font-afacad), sans-serif" }}
         >
           {slot.room}
         </span>
         <span
-          className={`text-[17px] font-black uppercase tracking-wider leading-none whitespace-nowrap overflow-hidden text-center w-full px-1 ${midText}`}
+          className={`text-[12px] min-[380px]:text-[14px] min-[420px]:text-[15px] font-black uppercase tracking-tight leading-none overflow-hidden text-center w-full px-0.5 ${midText}`}
           style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
         >
           {slot.sub}
         </span>
         <span
-          className={`text-[10.5px] font-bold tracking-tight leading-none text-center ${botText}`}
+          className={`text-[8px] min-[380px]:text-[9.5px] font-bold tracking-tighter leading-none text-center mt-0.5 ${botText}`}
           style={{ fontFamily: "var(--font-afacad), sans-serif" }}
         >
           {slot.time}

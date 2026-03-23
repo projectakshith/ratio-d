@@ -22,12 +22,19 @@ export const getAcronym = (name: string) => {
   if (lower.includes("artificial intelligence")) return "ai";
   if (lower.includes("internet of things")) return "iot";
   if (lower.includes("design thinking")) return "dtm";
+  if (lower.includes("probability") && lower.includes("statistics")) return "p&s";
+  if (lower.includes("discrete") && lower.includes("mathematics")) return "dm";
   if (lower.length <= 4) return lower;
 
   const skipWords = ["and", "of", "to", "in", "for", "with", "a", "an", "the"];
   const parts = lower.split(/\s+/).filter((w) => !skipWords.includes(w));
-  if (parts.length === 1 && parts[0].length <= 5) return parts[0];
-  return parts.map((w) => w[0]).join("");
+  
+  if (parts.length === 1) {
+    return parts[0].length <= 5 ? parts[0] : parts[0].substring(0, 4);
+  }
+
+  const acronym = parts.map((w) => w[0]).join("");
+  return acronym.length <= 5 ? acronym : acronym.substring(0, 5);
 };
 
 export const buildCourseMap = (data: any) => {
