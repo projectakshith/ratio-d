@@ -43,7 +43,7 @@ export const useAcademiaData = (data: AcademiaData | null) => {
   const overallMarks = useMemo(() => {
     const validMarks = sortedMarks.filter(m => !m.isNA);
     if (validMarks.length === 0) return 0;
-    const totalPct = validMarks.reduce((sum, m) => sum + m.percentage, 0);
+    const totalPct = validMarks.reduce((sum, m) => sum + (m.percentage || 0), 0);
     return Math.round(totalPct / validMarks.length);
   }, [sortedMarks]);
 

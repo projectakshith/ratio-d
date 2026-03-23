@@ -426,16 +426,16 @@ export default function Timetable({
                   const isActuallyCurrent = item.isCurrent && isViewingToday;
 
                   const currentTheme = isActuallyCurrent
-                    ? "bg-theme-highlight border-theme-highlight shadow-[0_0_20px_var(--theme-highlight)] scale-[1.02] transform-gpu"
+                    ? "status-boxbg-safe status-border-safe shadow-md scale-[1.02] transform-gpu backdrop-blur-sm"
                     : isLab
                       ? "border-[#0EA5E9]/20 bg-[#0EA5E9]/05 backdrop-blur-sm"
                       : "bg-theme-surface border-theme-border";
 
                   const textTheme = isActuallyCurrent
-                    ? "text-theme-bg font-black"
+                    ? "status-text-safe font-black"
                     : textClass;
                   const subTextTheme = isActuallyCurrent
-                    ? "text-theme-bg font-bold"
+                    ? "status-text-safe font-bold"
                     : subTextClass;
 
                   return (
@@ -472,18 +472,18 @@ export default function Timetable({
 
                         <div className="flex justify-between items-start mb-4 pr-10">
                           <div
-                            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-[10px] ${isActuallyCurrent ? "bg-theme-bg/20" : isLab ? "bg-theme-primary/10" : "bg-theme-bg/40"}`}
+                            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-[10px] ${isActuallyCurrent ? "status-bg-safe" : isLab ? "bg-theme-primary/10" : "bg-theme-bg/40"}`}
                           >
                             <Clock
                               size={12}
                               className={
                                 isActuallyCurrent
-                                  ? "text-theme-bg"
+                                  ? "status-text-safe"
                                   : subTextClass
                               }
                             />
                             <span
-                              className={`text-[12px] font-bold tracking-widest ${isActuallyCurrent ? "text-theme-bg" : textTheme}`}
+                              className={`text-[12px] font-bold tracking-widest ${isActuallyCurrent ? "status-text-safe" : textTheme}`}
                               style={{ fontFamily: "'Montserrat', sans-serif" }}
                             >
                               {item.time}
@@ -501,7 +501,7 @@ export default function Timetable({
                             )}
                             {isActuallyCurrent && (
                               <span
-                                className={`text-[9px] font-bold uppercase tracking-[0.25em] text-theme-highlight bg-theme-bg px-2 py-1 rounded-md shrink-0`}
+                                className={`text-[9px] font-bold uppercase tracking-[0.25em] text-theme-highlight status-bg-safe px-2 py-1 rounded-md shrink-0`}
                                 style={{ fontFamily: "'Afacad', sans-serif" }}
                               >
                                 live
@@ -524,7 +524,7 @@ export default function Timetable({
                         </span>
 
                         <div
-                          className={`flex items-center justify-between pt-4 mt-auto border-t ${isActuallyCurrent ? "border-theme-bg/10" : isLab ? "border-[#0EA5E9]/20" : "border-theme-border"}`}
+                          className={`flex items-center justify-between pt-4 mt-auto border-t ${isActuallyCurrent ? "status-border-safe" : isLab ? "border-[#0EA5E9]/20" : "border-theme-border"}`}
                         >
                           <div className="flex items-center gap-3 flex-wrap">
                             <div className="flex items-center gap-1.5">
@@ -532,12 +532,12 @@ export default function Timetable({
                                 size={12}
                                 className={
                                   isActuallyCurrent
-                                    ? "text-theme-bg"
+                                    ? "status-text-safe"
                                     : subTextClass
                                 }
                               />
                               <span
-                                className={`text-[11px] font-bold uppercase tracking-wider ${isActuallyCurrent ? "text-theme-bg" : textTheme}`}
+                                className={`text-[11px] font-bold uppercase tracking-wider ${isActuallyCurrent ? "status-text-safe" : textTheme}`}
                                 style={{
                                   fontFamily: "'Montserrat', sans-serif",
                                 }}
@@ -546,19 +546,19 @@ export default function Timetable({
                               </span>
                             </div>
                             <div
-                              className={`w-1 h-1 rounded-full ${isActuallyCurrent ? "bg-theme-bg/30" : isLab ? "bg-[#0EA5E9]/30" : "bg-theme-border"}`}
+                              className={`w-1 h-1 rounded-full ${isActuallyCurrent ? "status-bg-safe" : isLab ? "bg-[#0EA5E9]/30" : "bg-theme-border"}`}
                             />
                             <div className="flex items-center gap-1.5">
                               <User
                                 size={12}
                                 className={
                                   isActuallyCurrent
-                                    ? "text-theme-bg"
+                                    ? "status-text-safe"
                                     : subTextClass
                                 }
                               />
                               <span
-                                className={`text-[11px] font-bold lowercase tracking-wider ${isActuallyCurrent ? "text-theme-bg" : subTextClass}`}
+                                className={`text-[11px] font-bold lowercase tracking-wider ${isActuallyCurrent ? "status-text-safe" : subTextClass}`}
                                 style={{ fontFamily: "'Afacad', sans-serif" }}
                               >
                                 {item.faculty}

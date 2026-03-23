@@ -39,10 +39,10 @@ export default function ScheduleGrid({
       !isHoliday;
 
     if (isActuallyCurrent) {
-      boxClass = "bg-theme-highlight border-theme-highlight shadow-[0_0_15px_var(--theme-highlight)] scale-105 z-10 opacity-100";
-      topText = "text-theme-bg opacity-70";
-      midText = "text-theme-bg font-black";
-      botText = "text-theme-bg opacity-70";
+      boxClass = "status-boxbg-safe status-border-safe shadow-md scale-105 z-10 opacity-100 backdrop-blur-sm";
+      topText = "status-text-safe opacity-70";
+      midText = "status-text-safe font-black";
+      botText = "status-text-safe opacity-70";
     } else if (slot.isPractical) {
       boxClass = "bg-[#0EA5E9]/10 border-[#0EA5E9]/20";
       topText = "text-[#0EA5E9]/60";
