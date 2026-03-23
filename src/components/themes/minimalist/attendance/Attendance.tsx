@@ -147,9 +147,10 @@ export default function Attendance({
     const pct = totalC === 0 ? 0 : (totalP / totalC) * 100;
     
     const overallStats = getOverallStats(baseAttendance);
-    const roast = getRandomRoast(overallStats.badge as any);
+    const roast = getRandomRoast(overallStats.badge as any, "header");
+    const emergencyRoast = getRandomRoast("cooked", "header");
     
-    return { percent: pct.toFixed(1), safe: pct >= 75, roast };
+    return { percent: pct.toFixed(1), safe: pct >= 75, roast, emergencyRoast };
   }, [baseAttendance, impactMap, predictAction]);
 
   const calYear = currentCalDate.getFullYear();
@@ -516,7 +517,7 @@ export default function Attendance({
                   className="text-[11px] font-bold lowercase tracking-widest text-[#FF4D4D] opacity-80"
                   style={{ fontFamily: "var(--font-afacad), sans-serif" }}
                 >
-                  {stats.roast}
+                  {stats.emergencyRoast}
                 </span>
               </div>
             </motion.div>

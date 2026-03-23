@@ -75,7 +75,11 @@ export const flavorText = {
   ],
 };
 
-export const getRandomRoast = (category: "cooked" | "danger" | "safe" | "neutral") => {
-  const roasts = (flavorText.marks as any)[category] || flavorText.marks.neutral;
+export const getRandomRoast = (
+  category: "cooked" | "danger" | "safe" | "neutral",
+  section: "header" | "marks" = "marks"
+) => {
+  const sectionData = (flavorText as any)[section] || flavorText.marks;
+  const roasts = sectionData[category] || sectionData.neutral || sectionData.cooked;
   return roasts[Math.floor(Math.random() * roasts.length)];
 };

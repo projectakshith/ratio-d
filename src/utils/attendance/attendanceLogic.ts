@@ -66,12 +66,10 @@ export const getOverallStats = (baseAttendance: any[]) => {
   });
   const overallPct = totalConducted === 0 ? 0 : (totalPresent / totalConducted) * 100;
   const category = overallPct < 75 ? "cooked" : overallPct >= 85 ? "safe" : "danger";
-  const list = flavorText.header?.[category] || ["..."];
-  const badge = list[0].toLowerCase();
   let tagline = "you're doing great";
   if (category === "cooked") tagline = "academic comeback needed";
   if (category === "danger") tagline = "treading on thin ice";
-  return { pct: overallPct, badge, tagline, color: category === "safe" ? "#ceff1c" : "#ff003c" };
+  return { pct: overallPct, badge: category, tagline, color: category === "safe" ? "#ceff1c" : "#ff003c" };
 };
 
 const parseDateString = (str: string) => {
