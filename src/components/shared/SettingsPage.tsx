@@ -572,7 +572,7 @@ const SettingsPage = ({
                                   isActive ? "text-theme-highlight" : "text-theme-text"
                                 }`}
                               >
-                                {ct.name}
+                                {ct.name} {ct.id !== "brutalist" ? "(minimalist)" : ""}
                               </span>
                               <span className="text-[11px] text-theme-muted leading-snug mt-0.5">
                                 {ct.deity}<br />{ct.description}
@@ -612,8 +612,9 @@ const SettingsPage = ({
                           <button
                             key={ct.id}
                             onClick={() => {
+                              setUiStyle("minimalist");
                               setColorTheme(ct.id);
-                              handleThemeApply(uiStyle, ct.id);
+                              handleThemeApply("minimalist", ct.id);
                             }}
                             className={`w-full flex items-start gap-4 p-3.5 rounded-2xl border-[1.5px] transition-all active:scale-[0.98] ${
                               isActive

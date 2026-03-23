@@ -1,7 +1,7 @@
 "use client";
-import React, { useState, useRef, useMemo } from "react";
+import React, { useState, useRef, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
+import { motion, AnimatePresence, LayoutGroup, animate } from "framer-motion";
 import {
   Zap,
   ArrowUpRight,
@@ -14,6 +14,32 @@ import {
 import { BentoTile } from "../BentoTile";
 import { StudentProfile, AttendanceRecord } from "@/types";
 import { useDashboardAlerts } from "@/hooks/useDashboardAlerts";
+
+const ScoreCounter = ({ value }: any) => {
+  const nodeRef = useRef<any>(null);
+  const prevValue = useRef(0);
+
+  useEffect(() => {
+    const node = nodeRef.current;
+    if (!node) return;
+    const numericValue = parseFloat(String(value));
+    if (isNaN(numericValue)) {
+      node.textContent = value;
+      return;
+    }
+    const controls = animate(prevValue.current, numericValue, {
+      duration: 0.8,
+      ease: "circOut",
+      onUpdate: (v) => {
+        node.textContent = Math.round(v).toString();
+      },
+    });
+    prevValue.current = numericValue;
+    return () => controls.stop();
+  }, [value]);
+
+  return <span ref={nodeRef} />;
+};
 
 // ADD : any TO SILENCE VERCEL TS COMPILER
 const springTransition: any = {
@@ -671,11 +697,9 @@ const HomeDashboard = ({
                           className="text-[80px] md:text-[88px] font-black leading-[0.7] tracking-[-0.04em] text-black"
                           style={{ fontFamily: "Urbanosta" }}
                         >
-                          {metricMode === "attendance"
-                            ? overallAttendance
-                            : overallMarks}
+                          <ScoreCounter value={metricMode === "attendance" ? overallAttendance : overallMarks} />
                           <span className="text-[34px] opacity-20 tracking-normal">
-                            {metricMode === "attendance" ? "%" : (overallMarks > 0 ? "%" : "")}
+                            %
                           </span>
                         </div>
                       </motion.div>
