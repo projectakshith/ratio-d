@@ -6,13 +6,13 @@ import { usePathname, useRouter } from "next/navigation";
 
 interface MinimalThemeProps {
   children: React.ReactNode;
+  isSwipeDisabled?: boolean;
 }
 
-export default function MinimalTheme({ children }: MinimalThemeProps) {
+export default function MinimalTheme({ children, isSwipeDisabled }: MinimalThemeProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [isAlertsOpen] = useState(false);
-  const [isSwipeDisabled] = useState(false);
 
   const paths = ["/marks", "/attendance", "/", "/timetable", "/calendar"];
 
@@ -54,11 +54,11 @@ export default function MinimalTheme({ children }: MinimalThemeProps) {
     if (dx > 70) {
       const currentIndex = paths.indexOf(pathname);
       if (touchX < touchStart.x && currentIndex < paths.length - 1) {
-        if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(10);
+        try { if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(10); } catch (e) {}
         router.push(paths[currentIndex + 1]);
         setTouchStart(null);
       } else if (touchX > touchStart.x && currentIndex > 0) {
-        if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(10);
+        try { if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(10); } catch (e) {}
         router.push(paths[currentIndex - 1]);
         setTouchStart(null);
       }

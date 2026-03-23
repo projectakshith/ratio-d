@@ -214,7 +214,7 @@ const ProfileCard = ({ profile, onClose }: { profile: any; onClose: () => void }
           <div className="grid grid-cols-3 gap-4">
             <div>
               <span className="text-[8px] font-black uppercase tracking-[0.2em] text-theme-text/30 block mb-0.5">batch</span>
-              <span className="text-[13px] font-bold text-theme-text opacity-80">{profile.batch || "N/A"}</span>
+              <span className="text-[13px] font-bold text-theme-text opacity-80">{String(profile.batch) === "1/2" ? "2" : (profile.batch || "N/A")}</span>
             </div>
             <div>
               <span className="text-[8px] font-black uppercase tracking-[0.2em] text-theme-text/30 block mb-0.5">semester</span>

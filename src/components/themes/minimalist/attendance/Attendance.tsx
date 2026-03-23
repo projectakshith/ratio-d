@@ -13,6 +13,9 @@ import {
 import calendarDataJson from "@/data/calendar_data.json";
 import Predict from "./Predict";
 import { AcademiaData } from "@/types";
+import { useAppLayout } from "@/context/AppLayoutContext";
+import { getOverallStats } from "@/utils/attendance/attendanceLogic";
+import { getRandomRoast } from "@/utils/shared/flavortext";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -38,12 +41,11 @@ const itemVariants = {
 export default function Attendance({
   data,
   academia,
-  setIsSwipeDisabled,
 }: {
   data: AcademiaData;
   academia: any;
-  setIsSwipeDisabled?: (disabled: boolean) => void;
 }) {
+  const { setIsSwipeDisabled } = useAppLayout();
   const [isPredictOverlay, setIsPredictOverlay] = useState(false);
   const [isPredicting, setIsPredicting] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -141,7 +143,11 @@ export default function Attendance({
       totalP += s.present + (predictAction === "attend" ? sessions : 0);
     });
     const pct = totalC === 0 ? 0 : (totalP / totalC) * 100;
-    return { percent: pct.toFixed(1), safe: pct >= 75 };
+    
+    const overallStats = getOverallStats(baseAttendance);
+    const roast = getRandomRoast(overallStats.badge as any);
+    
+    return { percent: pct.toFixed(1), safe: pct >= 75, roast };
   }, [baseAttendance, impactMap, predictAction]);
 
   const calYear = currentCalDate.getFullYear();
@@ -503,6 +509,14 @@ export default function Attendance({
                   </div>
                 </div>
               ))}
+              <div className="w-full flex justify-center mt-1">
+                <span
+                  className="text-[11px] font-bold lowercase tracking-widest text-[#FF4D4D] opacity-80"
+                  style={{ fontFamily: "var(--font-afacad), sans-serif" }}
+                >
+                  {stats.roast}
+                </span>
+              </div>
             </motion.div>
           )}
 

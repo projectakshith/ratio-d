@@ -163,9 +163,7 @@ const Calendar = ({ data, academia }: any) => {
         >
           <motion.div
             variants={itemVariants}
-            animate={{ backgroundColor: header.bg }}
-            transition={{ duration: 0.4, ease: "easeOut" }}
-            className={`w-full rounded-[32px] p-6 flex flex-col shadow-sm shrink-0 border-[1.5px] ${header.border} justify-between`}
+            className={`w-full rounded-[32px] p-6 flex flex-col shadow-sm shrink-0 border-[1.5px] ${header.bg} ${header.border} justify-between transition-colors duration-500`}
           >
             <div className="self-start">
               <div

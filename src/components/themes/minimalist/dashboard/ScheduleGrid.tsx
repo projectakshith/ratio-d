@@ -61,13 +61,13 @@ export default function ScheduleGrid({
         className={`aspect-square rounded-[14px] border-[1.5px] flex flex-col items-center justify-center gap-[4px] p-1 transition-all ${boxClass}`}
       >
         <span
-          className={`text-[10px] font-bold uppercase tracking-widest leading-none text-center ${topText}`}
+          className={`text-[9.5px] font-bold uppercase tracking-tight leading-none text-center truncate w-full px-1 ${topText}`}
           style={{ fontFamily: "var(--font-afacad), sans-serif" }}
         >
           {slot.room}
         </span>
         <span
-          className={`text-[17px] font-black uppercase tracking-wider leading-none ${midText}`}
+          className={`text-[17px] font-black uppercase tracking-wider leading-none whitespace-nowrap overflow-hidden text-center w-full px-1 ${midText}`}
           style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
         >
           {slot.sub}

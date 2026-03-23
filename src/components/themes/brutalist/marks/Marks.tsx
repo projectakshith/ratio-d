@@ -11,6 +11,7 @@ import {
 } from "@/utils/marks/marksLogic";
 import BrutalistTarget from "./BrutalistTarget";
 import { AcademiaData } from "@/types";
+import { useAppLayout } from "@/context/AppLayoutContext";
 
 const ScoreCounter = ({ value }: any) => {
   const nodeRef = useRef<any>(null);
@@ -39,11 +40,16 @@ const ScoreCounter = ({ value }: any) => {
 };
 
 const MarksPage = ({ data }: { data: AcademiaData }) => {
+  const { setIsSwipeDisabled } = useAppLayout();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [introMode, setIntroMode] = useState(true);
   const [predictMode, setPredictMode] = useState(false);
   const [targetGrade, setTargetGrade] = useState<number>(91);
   const [expectedMarks, setExpectedMarks] = useState<number>(0);
+
+  useEffect(() => {
+    setIsSwipeDisabled(predictMode);
+  }, [predictMode, setIsSwipeDisabled]);
 
   const listContainerRef = useRef<any>(null);
   const itemRefs = useRef<any[]>([]);

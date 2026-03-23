@@ -6,9 +6,10 @@ import { usePathname, useRouter } from "next/navigation";
 
 interface BrutalistThemeProps {
   children: React.ReactNode;
+  isSwipeDisabled?: boolean;
 }
 
-export default function BrutalistTheme({ children }: BrutalistThemeProps) {
+export default function BrutalistTheme({ children, isSwipeDisabled }: BrutalistThemeProps) {
   const [isLoading, setIsLoading] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
@@ -19,15 +20,16 @@ export default function BrutalistTheme({ children }: BrutalistThemeProps) {
   const [isScrollingVertical, setIsScrollingVertical] = useState(false);
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    if (isSwipeDisabled) return;
     setIsScrollingVertical(false);
     setTouchStart({
       x: e.targetTouches[0].clientX,
       y: e.targetTouches[0].clientY,
     });
-  }, []);
+  }, [isSwipeDisabled]);
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    if (!touchStart || isScrollingVertical) return;
+    if (isSwipeDisabled || !touchStart || isScrollingVertical) return;
 
     const touchX = e.targetTouches[0].clientX;
     const touchY = e.targetTouches[0].clientY;
@@ -43,16 +45,16 @@ export default function BrutalistTheme({ children }: BrutalistThemeProps) {
     if (dx > 70) {
       const currentIndex = paths.indexOf(pathname);
       if (touchX < touchStart.x && currentIndex < paths.length - 1) {
-        if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(10);
+        try { if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(10); } catch (e) {}
         router.push(paths[currentIndex + 1]);
         setTouchStart(null);
       } else if (touchX > touchStart.x && currentIndex > 0) {
-        if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(10);
+        try { if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(10); } catch (e) {}
         router.push(paths[currentIndex - 1]);
         setTouchStart(null);
       }
     }
-  }, [pathname, router, touchStart, isScrollingVertical, paths]);
+  }, [pathname, router, touchStart, isScrollingVertical, paths, isSwipeDisabled]);
 
   const handleTouchEnd = useCallback(() => {
     setTouchStart(null);

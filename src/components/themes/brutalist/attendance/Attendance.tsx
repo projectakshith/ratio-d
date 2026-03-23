@@ -17,6 +17,7 @@ import {
 import BrutalistPredict from "./BrutalistPredict";
 
 import { AcademiaData } from "@/types";
+import { useAppLayout } from "@/context/AppLayoutContext";
 
 const MarginCounter = ({ value }: { value: number }) => {
   const nodeRef = useRef<HTMLSpanElement>(null);
@@ -51,6 +52,7 @@ const MobileAttendance = ({
   data: AcademiaData;
   academia: any;
 }) => {
+  const { setIsSwipeDisabled } = useAppLayout();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [predictMode, setPredictMode] = useState(false);
   const [isPredicting, setIsPredicting] = useState(false);
@@ -60,6 +62,10 @@ const MobileAttendance = ({
   const [currentCalDate, setCurrentCalDate] = useState(new Date());
   const [isRangeMode, setIsRangeMode] = useState(false);
   const [rangeStart, setRangeStart] = useState<string | null>(null);
+
+  useEffect(() => {
+    setIsSwipeDisabled(predictMode);
+  }, [predictMode, setIsSwipeDisabled]);
 
   const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
   const listContainerRef = useRef<HTMLDivElement>(null);

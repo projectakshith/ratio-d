@@ -24,6 +24,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { userData, logout, customDisplayName, setCustomDisplayName, isUpdating } = useApp();
   const { theme, setTheme, uiStyle, isDark } = useTheme();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isSwipeDisabled, setIsSwipeDisabled] = useState(false);
   const academia = useAcademiaData(userData as any);
   const router = useRouter();
 
@@ -49,11 +50,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     startEntrance: true,
     isDark,
     onOpenSettings: () => setIsSettingsOpen(true),
-    isUpdating
+    isUpdating,
+    isSwipeDisabled
   };
 
   return (
-    <AppLayoutContext.Provider value={{ onOpenSettings: () => setIsSettingsOpen(true) }}>
+    <AppLayoutContext.Provider value={{ 
+      onOpenSettings: () => setIsSettingsOpen(true),
+      isSwipeDisabled,
+      setIsSwipeDisabled
+    }}>
       <div className="h-full w-full bg-theme-bg overflow-hidden relative">
         {uiStyle === "brutalist" ? (
           <BrutalistThemeLayout {...sharedProps}>

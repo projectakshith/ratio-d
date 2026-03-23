@@ -3,6 +3,8 @@ import { createContext, useContext } from "react";
 
 interface AppLayoutContextType {
   onOpenSettings: () => void;
+  isSwipeDisabled: boolean;
+  setIsSwipeDisabled: (disabled: boolean) => void;
 }
 
 export const AppLayoutContext = createContext<AppLayoutContextType | undefined>(undefined);

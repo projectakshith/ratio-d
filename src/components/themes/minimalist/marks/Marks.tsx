@@ -14,6 +14,8 @@ import {
 } from "@/utils/marks/marksLogic";
 import Target from "./Target";
 import { AcademiaData } from "@/types";
+import { useAppLayout } from "@/context/AppLayoutContext";
+import { getRandomRoast } from "@/utils/shared/flavortext";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -40,11 +42,10 @@ const normalize = (str: string) => (str || "").toLowerCase().replace(/[^a-z0-9]/
 
 export default function Marks({
   data,
-  setIsSwipeDisabled,
 }: {
   data: AcademiaData;
-  setIsSwipeDisabled?: (disabled: boolean) => void;
 }) {
+  const { setIsSwipeDisabled } = useAppLayout();
   const [predictMode, setPredictMode] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -57,9 +58,7 @@ export default function Marks({
   } = usePullToRefresh(predictMode);
 
   useEffect(() => {
-    if (setIsSwipeDisabled) {
-      setIsSwipeDisabled(predictMode);
-    }
+    setIsSwipeDisabled(predictMode);
   }, [predictMode, setIsSwipeDisabled]);
   const [predSubjectId, setPredSubjectId] = useState<number | null>(null);
   const [expectedMarks, setExpectedMarks] = useState<number>(0);
@@ -219,14 +218,10 @@ export default function Marks({
       : parseFloat(predictedGpa) <= 6.0
         ? "status-text-cooked"
         : "status-text-danger";
-  const gpaFlavorText =
-    parseFloat(predictedGpa) >= 9.0
-      ? "academic weapon"
-      : parseFloat(predictedGpa) >= 8.0
-        ? "keeping it steady"
-        : parseFloat(predictedGpa) >= 7.0
-          ? "needs a slight push"
-          : "your gpa is in the trenches";
+  const gpaFlavorText = useMemo(() => {
+    const category = parseFloat(predictedGpa) >= 9.0 ? "safe" : parseFloat(predictedGpa) >= 7.5 ? "danger" : "cooked";
+    return getRandomRoast(category as any);
+  }, [predictedGpa]);
 
   if (!mounted) return null;
 
