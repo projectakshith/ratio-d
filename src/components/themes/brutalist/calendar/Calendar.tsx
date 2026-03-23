@@ -256,7 +256,6 @@ const CalendarPage = ({ calendarData, academia, data }: any) => {
   return (
     <div className="h-full w-full flex flex-col bg-[#f5f6fc] text-[#050505] font-sans relative overflow-hidden touch-pan-y">
       {/* Background container */}
-      <div className="absolute inset-0 pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')] bg-repeat opacity-[0.03]" />
 
       {/* DASHBOARD */}
       <motion.div

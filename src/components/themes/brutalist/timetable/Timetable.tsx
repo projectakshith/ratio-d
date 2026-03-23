@@ -123,14 +123,14 @@ export default function Timetable({ schedule, dayOrder, data }) {
 
       <motion.div
         layout
-        initial={{ y: "100%" }}
         animate={{
-          y: 0,
           top: isExpanded ? "0%" : "38%",
           height: isExpanded ? "100%" : "62%",
         }}
         transition={{ type: "spring", stiffness: 200, damping: 30 }}
-        className={`absolute w-full bg-[#fdfdfd] flex flex-col shadow-[0_-30px_80px_rgba(0,0,0,0.9)] z-20 overflow-hidden rounded-t-[32px] transition-transform duration-700 ease-in-out ${introMode ? "translate-y-[60%]" : "translate-y-0"}`}
+        className={`absolute w-full bg-[#fdfdfd] flex flex-col shadow-[0_-30px_80px_rgba(0,0,0,0.9)] z-20 overflow-hidden rounded-t-[32px] transition-transform duration-700 ease-in-out ${
+          introMode ? "translate-y-[60%]" : "translate-y-0"
+        }`}
       >
         <div className="w-full bg-[#fdfdfd] z-30 pt-4 pb-2 sticky top-0">
           <div

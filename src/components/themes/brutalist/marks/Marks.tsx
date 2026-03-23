@@ -145,7 +145,6 @@ const MarksPage = ({ data }: { data: AcademiaData }) => {
   return (
     <div className="h-full w-full flex flex-col bg-[#050505] text-white font-sans relative overflow-hidden">
       <div className="absolute inset-0 w-full h-full z-0 bg-[#050505]">
-        <div className="absolute inset-0 pointer-events-none opacity-10 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] bg-repeat mix-blend-screen" />
       </div>
 
       <div className="absolute top-0 left-0 w-full h-[45%] flex flex-col justify-between p-6 md:p-8 z-10">

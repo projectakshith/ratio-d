@@ -261,7 +261,6 @@ const MobileAttendance = ({
   return (
     <div className="h-full w-full flex flex-col bg-[#050505] text-white font-sans relative overflow-hidden touch-pan-y">
       <div className="absolute inset-0 w-full h-full z-0 bg-[#050505]">
-        <div className="absolute inset-0 pointer-events-none opacity-20 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] bg-repeat mix-blend-screen" />
       </div>
 
       <div className="absolute top-0 left-0 w-full h-[45%] z-10">
