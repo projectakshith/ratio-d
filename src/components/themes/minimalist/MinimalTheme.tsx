@@ -9,6 +9,8 @@ interface MinimalThemeProps {
   isSwipeDisabled?: boolean;
 }
 
+const BEZIER = [0.34, 0.15, 0.16, 0.96];
+
 export default function MinimalTheme({ children, isSwipeDisabled }: MinimalThemeProps) {
   const pathname = usePathname();
   const router = useRouter();
@@ -87,11 +89,11 @@ export default function MinimalTheme({ children, isSwipeDisabled }: MinimalTheme
       <AnimatePresence>
         {activeTab === "home" && !isAlertsOpen && (
           <motion.div
-            initial={{ y: 20, opacity: 0 }}
+            initial={{ y: "100%", opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 20, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 400, damping: 30 }}
-            className="absolute bottom-0 left-0 w-full z-50"
+            exit={{ y: "100%", opacity: 0 }}
+            transition={{ duration: 0.6, ease: BEZIER }}
+            className="absolute bottom-0 left-0 w-full z-50 bg-theme-bg"
           >
             <Navbar />
           </motion.div>

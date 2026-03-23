@@ -9,6 +9,8 @@ import {
 } from "lucide-react";
 import { useCalendarData } from "@/hooks/useCalendarData";
 
+const BEZIER = [0.34, 0.15, 0.16, 0.96];
+
 const containerVariants = {
   hidden: { opacity: 0 },
   show: {
@@ -18,11 +20,11 @@ const containerVariants = {
 };
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 10 },
+  hidden: { opacity: 0, y: -20 },
   show: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.3, ease: "easeOut" as any },
+    transition: { duration: 0.4, ease: BEZIER },
   },
 };
 

@@ -65,7 +65,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         });
 
         if (response.status === 503) {
-          console.error("[Backend Error] All servers are currently down.");
           setIsBackendError(true);
           throw new Error("Backend error");
         }
@@ -121,13 +120,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       });
 
       if (response.status === 503) {
-        console.error("[Backend Error] All servers are currently down.");
         setIsBackendError(true);
         return existingData;
       }
 
-      const endpoint = (existingData?.attendance && existingData?.marks) ? "refresh" : "login";
-      
       const result = await response.json();
       if (!result.success) {
         if (response.status === 401) {
@@ -145,6 +141,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         delete result.cookies;
       }
 
+      const endpoint = (existingData?.attendance && existingData?.marks) ? "refresh" : "login";
       let mergedData = endpoint === "login" ? { ...result, cookies: updatedCookies } : {
         ...existingData,
         ...result,

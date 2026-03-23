@@ -13,6 +13,7 @@ import {
   Check,
   X,
   User,
+  BookOpen,
 } from "lucide-react";
 import { requestNotificationPermission } from "@/utils/shared/notifs";
 import { StudentProfile } from "@/types";
@@ -26,6 +27,7 @@ import {
   type UiStyle,
   type ColorTheme,
 } from "@/utils/theme/themeUtils";
+import CourseDetailsPage from "@/components/shared/CourseDetailsPage";
 
 const WhatsappIcon = ({ size = 20 }: { size?: number }) => (
   <svg 
@@ -267,6 +269,7 @@ const SettingsPage = ({
   const [notifEnabled, setNotifEnabled] = useState(false);
   const [showThemes, setShowThemes] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
+  const [showCourseDetails, setShowCourseDetails] = useState(false);
   const [showProfileCard, setShowProfileCard] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState(currentTheme);
 
@@ -457,6 +460,11 @@ const SettingsPage = ({
                   value={getThemeDisplayName(selectedTheme)}
                 />
                 <SettingItem
+                  icon={<BookOpen className="w-5 h-5 opacity-80 text-theme-text" />}
+                  label="Course Details"
+                  onClick={() => setShowCourseDetails(true)}
+                />
+                <SettingItem
                   icon={<Lock className="w-5 h-5 opacity-80 text-theme-text" />}
                   label="Privacy"
                   onClick={() => setShowPrivacy(true)}
@@ -503,6 +511,11 @@ const SettingsPage = ({
       </AnimatePresence>
 
       <PrivacyProtocol isOpen={showPrivacy} onClose={() => setShowPrivacy(false)} />
+
+      <CourseDetailsPage
+        isOpen={showCourseDetails}
+        onClose={() => setShowCourseDetails(false)}
+      />
 
       <AnimatePresence>
         {showThemes && (

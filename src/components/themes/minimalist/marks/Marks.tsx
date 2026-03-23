@@ -17,6 +17,8 @@ import { AcademiaData } from "@/types";
 import { useAppLayout } from "@/context/AppLayoutContext";
 import { getRandomRoast } from "@/utils/shared/flavortext";
 
+const BEZIER = [0.34, 0.15, 0.16, 0.96];
+
 const containerVariants = {
   hidden: { opacity: 0 },
   show: {
@@ -34,7 +36,7 @@ const itemVariants = {
     opacity: 1,
     y: 0,
     scale: 1,
-    transition: { type: "spring", stiffness: 450, damping: 30 } as const,
+    transition: { duration: 0.5, ease: BEZIER },
   },
 };
 
