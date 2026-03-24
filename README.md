@@ -1,10 +1,7 @@
 # ratio'd
-<p align="center">
-  <img src="https://capsule-render.vercel.app/render?type=wave&color=0EA5E9&height=200&section=header&text=ratio'd&fontSize=90&animation=fadeIn&fontAlignY=38&fontFamily=Urbanosta" />
-</p>
 
 ### built for speed.
-swipe through the lore of academia with zero friction.
+swipe through the lore of academia hehe
 
 <p align="center">
   <img src="https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white" />
@@ -125,9 +122,6 @@ INTERNAL_SECRET="your_secure_random_string"
 
 * **frontend** nextjs with framer motion
 * **backend** python fastapi
-* **styling** tailwind css
-* **state** react context with custom diffing hooks
-* **icons** lucide react
 
 > [!WARNING]
 > ensure your backend servers have the correct cors origins set for your frontend domain.

@@ -117,9 +117,10 @@ async def login(creds: Credentials):
         profile = ProfileService.parse_student_profile(profile_html)
         course_map = CourseService.get_course_map(profile_html)
         
-        user_batch_string = str(profile.get("batch", "1")).lower().strip()
+        raw_batch = str(profile.get("batch", "1")).strip()
+        actual_batch = raw_batch.split("/")[-1].strip() if "/" in raw_batch else raw_batch
         
-        if user_batch_string == "1":
+        if actual_batch == "1":
             formatted_batch = "Batch_1"
         else:
             formatted_batch = "batch_2"
