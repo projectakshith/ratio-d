@@ -59,30 +59,56 @@ we built this to streamline the student experience. by using modern web standard
 
 ## Setup
 
-1 **clone the repository**
+### 1. Clone the repository
 
 ```bash
 git clone https://github.com/projectakshith/ratio-d
 cd ratio-d
 ```
 
-2 **install dependencies**
+### 2. Backend Setup (Python FastAPI)
+
+The backend handles the data fetching and session management logic.
 
 ```bash
-npm install
+cd backend
+# create a virtual environment
+python -m venv .venv
+source .venv/bin/activate  # on Windows use: .venv\Scripts\activate
+
+# install dependencies
+pip install -r requirements.txt
+
+# start the backend server
+uvicorn main:app --reload --port 8000
 ```
 
-3 **environment setup**
+### 3. Frontend Setup (Next.js)
 
-create a `.env.local` file in the root directory
+The frontend is a PWA built with Next.js and Tailwind CSS.
 
 ```bash
-BACKEND_URLS="your_primary_api,your_backup_api"
-INTERNAL_SECRET="your_shared_secret_here"
+# from the root ratio-d directory
+npm install
+
+# start the development server
+npm run dev
+```
+
+### 4. Environment Configuration
+
+Create a `.env.local` file in the root `ratio-d` directory:
+
+```bash
+# Frontend: comma-separated URLs for your backend instances
+BACKEND_URLS="http://localhost:8000"
+
+# Security: must be identical on both frontend and backend
+INTERNAL_SECRET="your_secure_random_string"
 ```
 
 > [!TIP]
-> `INTERNAL_SECRET` must be the same on both your Next.js frontend and Python backend to allow secure communication. This secret is used for a server-to-server handshake and is never exposed to the client's browser.
+> The `INTERNAL_SECRET` is used for a server-to-server handshake between Next.js and FastAPI. It ensures that only your frontend can communicate with your backend.
 
 ---
 
