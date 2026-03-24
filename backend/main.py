@@ -119,6 +119,7 @@ async def login(creds: Credentials):
         
         raw_batch = str(profile.get("batch", "1")).strip()
         actual_batch = raw_batch.split("/")[-1].strip() if "/" in raw_batch else raw_batch
+        profile["batch"] = actual_batch
         
         if actual_batch == "1":
             formatted_batch = "Batch_1"
