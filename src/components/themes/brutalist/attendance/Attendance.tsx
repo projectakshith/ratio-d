@@ -78,14 +78,32 @@ const MobileAttendance = ({
   const effectiveSchedule = useMemo(() => academia?.effectiveSchedule || data?.schedule || data?.timetable || {}, [academia?.effectiveSchedule, data?.schedule, data?.timetable]);
 
   const predictionImpact = useMemo(
-    () => getImpactMap(selectedDates, calendarData, effectiveSchedule, baseAttendance),
-    [selectedDates, calendarData, effectiveSchedule, baseAttendance]
+    () => getImpactMap(selectedDates, calendarData, effectiveSchedule, baseAttendance, predType),
+    [selectedDates, calendarData, effectiveSchedule, baseAttendance, predType]
   );
 
-  const processedList = useMemo(() => 
-    getProcessedList(baseAttendance, predictionImpact, predType, isPredicting),
-    [baseAttendance, predictionImpact, predType, isPredicting]
-  );
+  const processedList = useMemo(() => {
+    const list = getProcessedList(baseAttendance, predictionImpact, isPredicting);
+    return list.map((s) => {
+      const origStatus = getStatus(
+        parseFloat(s.percentage),
+        s.conducted,
+        s.present,
+      );
+      return {
+        ...s,
+        percent: s.pred.pct.toFixed(1),
+        safe: s.pred.status.safe,
+        val: s.pred.status.val,
+        label: s.pred.status.label,
+        sessionsAffected: s.pred.sessionsAffected,
+        originalVal: origStatus.val,
+        originalLabel: origStatus.label,
+        currentLabel: s.pred.status.label,
+        hasChanged: s.pred.status.val !== origStatus.val || s.pred.status.label !== origStatus.label,
+      };
+    });
+  }, [baseAttendance, predictionImpact, isPredicting]);
 
   const overallStats = useMemo(() => {
     if (baseAttendance.length === 0)
@@ -93,9 +111,9 @@ const MobileAttendance = ({
     
     let totalC = 0, totalP = 0;
     baseAttendance.forEach((s) => {
-      const sessions = predictionImpact[s.id] || 0;
-      totalC += s.conducted + sessions;
-      totalP += s.present + (predType === "attend" ? sessions : 0);
+      const imp = (predictionImpact && predictionImpact[s.id]) || { conducted: 0, present: 0 };
+      totalC += s.conducted + imp.conducted;
+      totalP += s.present + imp.present;
     });
     const pct = totalC === 0 ? 0 : (totalP / totalC) * 100;
     
@@ -109,7 +127,19 @@ const MobileAttendance = ({
     
     const color = category === "safe" ? "text-[#ceff1c]" : category === "danger" ? "text-[#ffb800]" : "text-[#ff003c]";
     return { pct, badge, tagline, color };
-  }, [baseAttendance, predictionImpact, predType]);
+  }, [baseAttendance, predictionImpact, isPredicting]);
+
+  const actionRequired = useMemo(
+    () => processedList.filter((s) => !s.safe).sort((a, b) => b.val - a.val),
+    [processedList],
+  );
+  const safeSubjectsList = useMemo(
+    () =>
+      processedList
+        .filter((s) => s.safe)
+        .sort((a, b) => (a.sessionsAffected ? -1 : 1) || a.val - b.val),
+    [processedList],
+  );
 
   useEffect(() => {
     if (processedList.length > 0 && selectedId === null) {

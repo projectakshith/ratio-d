@@ -92,14 +92,14 @@ export default function Attendance({
       calDataToUse,
       academia?.effectiveSchedule || data?.schedule || data?.timetable || {},
       baseAttendance,
+      predictAction
     );
-  }, [isPredicting, selectedDates, academia, baseAttendance, data?.schedule, data?.timetable]);
+  }, [isPredicting, selectedDates, academia, baseAttendance, data?.schedule, data?.timetable, predictAction]);
 
   const processedList = useMemo(() => {
     const list = getProcessedList(
       baseAttendance,
       impactMap,
-      predictAction,
       isPredicting,
     );
     return list.map((s) => {
@@ -122,7 +122,7 @@ export default function Attendance({
         hasChanged: s.pred.status.val !== origStatus.val || s.pred.status.label !== origStatus.label,
       };
     });
-  }, [baseAttendance, impactMap, predictAction, isPredicting]);
+  }, [baseAttendance, impactMap, isPredicting]);
 
   const actionRequired = useMemo(
     () => processedList.filter((s) => !s.safe).sort((a, b) => b.val - a.val),
@@ -140,9 +140,9 @@ export default function Attendance({
     let totalC = 0,
       totalP = 0;
     baseAttendance.forEach((s) => {
-      const sessions = impactMap[s.id] || 0;
-      totalC += s.conducted + sessions;
-      totalP += s.present + (predictAction === "attend" ? sessions : 0);
+      const imp = (impactMap && impactMap[s.id]) || { conducted: 0, present: 0 };
+      totalC += s.conducted + imp.conducted;
+      totalP += s.present + imp.present;
     });
     const pct = totalC === 0 ? 0 : (totalP / totalC) * 100;
     
@@ -151,7 +151,7 @@ export default function Attendance({
     const emergencyRoast = getRandomRoast("cooked", "header");
     
     return { percent: pct.toFixed(1), safe: pct >= 75, roast, emergencyRoast };
-  }, [baseAttendance, impactMap, predictAction]);
+  }, [baseAttendance, impactMap, isPredicting]);
 
   const calYear = currentCalDate.getFullYear();
   const calMonth = currentCalDate.getMonth();
@@ -398,7 +398,10 @@ export default function Attendance({
 
           {actionRequired.length > 0 && (
             <motion.div
-              variants={itemVariants}
+              key="action-required-section"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, ease: "easeOut" }}
               className="w-full p-5 flex flex-col gap-4 mb-12 rounded-[32px] shrink-0 border-[2px] border-dashed"
               style={{ 
                 borderColor: 'color-mix(in srgb, var(--theme-secondary) 50%, transparent)',
@@ -517,7 +520,7 @@ export default function Attendance({
                   className="text-[11px] font-bold lowercase tracking-widest text-[#FF4D4D] opacity-80"
                   style={{ fontFamily: "var(--font-afacad), sans-serif" }}
                 >
-                  {stats.emergencyRoast}
+                  {stats.emergencyRoast || "cooked."}
                 </span>
               </div>
             </motion.div>
