@@ -141,7 +141,7 @@ const MarksPage = ({ data }: { data: AcademiaData }) => {
   const currentExpectedMarks = expectedMarksMap[selectedId || ""] || 0;
 
   const currentInternals = activeSubject.totalGot || 0;
-  const maxPossibleExpected = Math.max(0, 60 - currentInternals);
+  const maxPossibleExpected = Math.max(0, 60 - (activeSubject.totalMax || 0));
   const projectedInternals = currentInternals + currentExpectedMarks;
   const semNeededPercentage = Math.max(0, currentTargetGrade - projectedInternals);
   const maxExternal = activeSubject.isPractical ? 40 : 75;

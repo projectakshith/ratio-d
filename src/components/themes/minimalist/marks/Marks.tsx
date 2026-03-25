@@ -81,39 +81,53 @@ export default function Marks({
     if (!data?.marks || data.marks.length === 0) return [];
     const courseMap = buildCourseMap(data);
     const sorted = processAndSortMarks(data.marks, courseMap);
-    return sorted.map((sub: any) => {
-      const sStr = sub.slot || "";
-      const firstSlot = sStr.split(/[,\s+-]/)[0].trim().toUpperCase();
-      let courseDetails = (data.courses as any)?.[firstSlot];
+    
+    const theoryCodes = new Set(
+      sorted
+        .filter((s: any) => !s.isPractical)
+        .map((s: any) => normalize(s.code))
+    );
 
-      if (!courseDetails) {
-        courseDetails = Object.values(data.courses || {}).find((c: any) => 
-          normalize(c.code) === normalize(sub.code) && 
-          ((c.type || "").toLowerCase().includes("lab") === sub.isPractical)
-        );
-      }
+    return sorted
+      .filter((sub: any) => {
+        if (sub.isPractical && theoryCodes.has(normalize(sub.code))) {
+          return false;
+        }
+        return true;
+      })
+      .map((sub: any) => {
+        const sStr = sub.slot || "";
+        const firstSlot = sStr.split(/[,\s+-]/)[0].trim().toUpperCase();
+        let courseDetails = (data.courses as any)?.[firstSlot];
 
-      const credits = courseDetails?.credits
-        ? parseFloat(courseDetails.credits)
-        : 0;
+        if (!courseDetails) {
+          courseDetails = Object.values(data.courses || {}).find((c: any) => 
+            normalize(c.code) === normalize(sub.code) && 
+            ((c.type || "").toLowerCase().includes("lab") === sub.isPractical)
+          );
+        }
 
-      const isPrac =
-        (sub.type || "").toLowerCase() === "practical" ||
-        (sub.type || "").toLowerCase() === "lab" ||
-        sub.title.toLowerCase().includes("practical") ||
-        sub.title.toLowerCase().includes("lab") ||
-        (sub.slot || "").toUpperCase().includes("LAB") ||
-        (sub.slot || "").toUpperCase().includes("P");
+        const credits = courseDetails?.credits
+          ? parseFloat(courseDetails.credits)
+          : 0;
 
-      return {
-        ...sub,
-        credits,
-        displayCode: getAcronym(sub.title) || sub.code,
-        displayName: sub.title.toLowerCase(),
-        isPractical: isPrac,
-        theme: getTheme(sub.percentage, sub.totalMax),
-      };
-    });
+        const isPrac =
+          (sub.type || "").toLowerCase() === "practical" ||
+          (sub.type || "").toLowerCase() === "lab" ||
+          sub.title.toLowerCase().includes("practical") ||
+          sub.title.toLowerCase().includes("lab") ||
+          (sub.slot || "").toUpperCase().includes("LAB") ||
+          (sub.slot || "").toUpperCase().includes("P");
+
+        return {
+          ...sub,
+          credits,
+          displayCode: getAcronym(sub.title) || sub.code,
+          displayName: sub.title.toLowerCase(),
+          isPractical: isPrac,
+          theme: getTheme(sub.percentage, sub.totalMax),
+        };
+      });
   }, [data]);
 
   useEffect(() => {
@@ -198,7 +212,7 @@ export default function Marks({
   );
   
   const currentInternals = activePredSub.totalGot || 0;
-  const maxPossibleExpected = Math.max(0, 60 - currentInternals);
+  const maxPossibleExpected = Math.max(0, 60 - (activePredSub.totalMax || 0));
   const projectedInternals = currentInternals + currentExpectedMarks;
   const semNeededPercentage = Math.max(0, currentTargetGrade - projectedInternals);
   const maxExternal = activePredSub.isPractical ? 40 : 75;
