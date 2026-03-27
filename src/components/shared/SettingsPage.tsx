@@ -14,6 +14,7 @@ import {
   X,
   User,
   BookOpen,
+  RefreshCw,
 } from "lucide-react";
 import { requestNotificationPermission } from "@/utils/shared/notifs";
 import { StudentProfile } from "@/types";
@@ -28,6 +29,7 @@ import {
   type ColorTheme,
 } from "@/utils/theme/themeUtils";
 import CourseDetailsPage from "@/components/shared/CourseDetailsPage";
+import { UserAvatar } from "@/components/shared/UserAvatar";
 
 const WhatsappIcon = ({ size = 20 }: { size?: number }) => (
   <svg 
@@ -263,7 +265,7 @@ const SettingsPage = ({
   onSelectTheme,
   currentTheme = "minimalist_minimalist-dark",
 }: SettingsPageProps) => {
-  const { userData, refreshData, isUpdating } = useApp();
+  const { userData, refreshData, isUpdating, profileSeed, setProfileSeed } = useApp();
   const [isEditing, setIsEditing] = useState(false);
   const [tempName, setTempName] = useState("");
   const [notifEnabled, setNotifEnabled] = useState(false);
@@ -321,6 +323,13 @@ const SettingsPage = ({
     }
   };
 
+  const handleRandomizeSeed = () => {
+    const newSeed = Math.random().toString(36).substring(7);
+    setProfileSeed(newSeed);
+    localStorage.setItem("ratio_profile_seed", newSeed);
+    if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(10);
+  };
+
   const defaultThemes = COLOR_THEMES.filter(t => ["default", "minimalist-dark", "brutalist"].includes(t.id));
   const namedThemes = COLOR_THEMES.filter(t => !["default", "minimalist-dark", "brutalist", "yam"].includes(t.id));
 
@@ -360,11 +369,7 @@ const SettingsPage = ({
             <motion.div variants={itemVariants} className="space-y-6">
               <div className="flex items-center gap-4">
                 <div className="w-16 h-16 rounded-full overflow-hidden bg-theme-surface">
-                  <img
-                    src="/image.png"
-                    className="w-full h-full object-cover"
-                    alt="Profile"
-                  />
+                  <UserAvatar seed={profileSeed} className="w-full h-full" />
                 </div>
                 <div>
                   <h3 className="text-xl font-semibold capitalize">
@@ -407,15 +412,26 @@ const SettingsPage = ({
                       exit={{ opacity: 0, y: -5 }}
                       className="flex flex-col gap-3"
                     >
-                      <input
-                        autoFocus
-                        type="text"
-                        placeholder="New display name..."
-                        className="w-full bg-theme-surface border border-theme-border rounded-[22px] px-5 py-3 text-sm focus:outline-none text-theme-text"
-                        value={tempName}
-                        onChange={(e) => setTempName(e.target.value)}
-                        onKeyDown={(e) => e.key === "Enter" && handleSave()}
-                      />
+                      <div className="flex gap-2">
+                        <input
+                          autoFocus
+                          type="text"
+                          placeholder="New display name..."
+                          className="flex-1 min-w-0 bg-theme-surface border border-theme-border rounded-[22px] px-5 py-3 text-sm focus:outline-none text-theme-text"
+                          value={tempName}
+                          onChange={(e) => setTempName(e.target.value)}
+                          onKeyDown={(e) => e.key === "Enter" && handleSave()}
+                        />
+                        
+                        <button
+                          onClick={handleRandomizeSeed}
+                          className="w-[50px] shrink-0 flex items-center justify-center rounded-[22px] bg-theme-surface border border-theme-border transition-colors active:scale-95"
+                          title="Randomize Avatar"
+                        >
+                          <RefreshCw className="w-4 h-4 text-theme-text" />
+                        </button>
+                      </div>
+                      
                       <div className="flex gap-2">
                         <button
                           onClick={handleSave}

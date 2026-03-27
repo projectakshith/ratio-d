@@ -29,6 +29,8 @@ interface AppContextType {
   setDeferredPrompt: (val: any) => void;
   showWelcome: boolean;
   setShowWelcome: (val: boolean) => void;
+  profileSeed: string;
+  setProfileSeed: (seed: string) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -44,6 +46,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [canInstall, setCanInstall] = useState<boolean>(false);
   const [showWelcome, setShowWelcome] = useState(false);
+  const [profileSeed, setProfileSeed] = useState<string>("");
   const updateInProgress = React.useRef(false);
   const router = useRouter();
 
@@ -183,10 +186,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const cachedData = localStorage.getItem("ratio_data");
     const cachedName = localStorage.getItem("ratiod_custom_name");
+    const cachedSeed = localStorage.getItem("ratio_profile_seed");
+
     if (cachedName) setCustomDisplayName(cachedName);
+
+    let parsed = null;
     if (cachedData) {
       try {
-        const parsed = JSON.parse(cachedData);
+        parsed = JSON.parse(cachedData);
         setUserData(parsed);
         
         const creds = EncryptionUtils.loadDecrypted("ratio_credentials");
@@ -195,6 +202,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         }
       } catch {
       }
+    }
+
+    if (cachedSeed) {
+      setProfileSeed(cachedSeed);
+    } else if (parsed?.profile?.name) {
+      const initialSeed = parsed.profile.name;
+      setProfileSeed(initialSeed);
+      localStorage.setItem("ratio_profile_seed", initialSeed);
     }
 
     const handleOnline = () => setIsOffline(false);
@@ -217,6 +232,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       window.removeEventListener("beforeinstallprompt", installPromptHandler);
     };
   }, []);
+
+  useEffect(() => {
+    if (userData?.profile?.name && !localStorage.getItem("ratio_profile_seed")) {
+      const initialSeed = userData.profile.name;
+      setProfileSeed(initialSeed);
+      localStorage.setItem("ratio_profile_seed", initialSeed);
+    }
+  }, [userData]);
 
   useEffect(() => {
     if (!latestDiff) return;
@@ -244,7 +267,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setLatestDiff(null);
   }, [latestDiff]);
 
-  const value = useMemo(() => ({
+const value = useMemo(() => ({
     userData,
     setUserData,
     customDisplayName,
@@ -267,7 +290,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setDeferredPrompt,
     showWelcome,
     setShowWelcome,
-  }), [userData, customDisplayName, isUpdating, isOffline, isBackendError, refreshData, performLogin, loginPromise, logout, latestDiff, deferredPrompt, canInstall, showWelcome]);
+    profileSeed,
+    setProfileSeed,
+  }), [userData, customDisplayName, isUpdating, isOffline, isBackendError, refreshData, performLogin, loginPromise, logout, latestDiff, deferredPrompt, canInstall, showWelcome, profileSeed]);
 
   return (
     <AppContext.Provider value={value}>

@@ -28,6 +28,7 @@ import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { useDashboardCalendar } from "@/hooks/useDashboardCalendar";
 import { useDashboardAlerts } from "@/hooks/useDashboardAlerts";
 import { useApp } from "@/context/AppContext";
+import { UserAvatar } from "@/components/shared/UserAvatar";
 
 const BEZIER = [0.34, 0.15, 0.16, 0.96] as const;
 
@@ -88,7 +89,7 @@ export default function Dashboard({
   isRefreshing?: boolean;
 }) {
   const router = useRouter();
-  const { customDisplayName } = useApp();
+  const { customDisplayName, profileSeed } = useApp();
   const {
     pullY,
     isRefreshing: isLocalRefreshing,
@@ -390,13 +391,9 @@ export default function Dashboard({
                   if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(8);
                   onOpenSettings();
                 }}
-                className="w-[50px] h-[50px] rounded-[16px] overflow-hidden transition-all mt-3 bg-transparent border-none"
+                className="w-[50px] h-[50px] rounded-[16px] overflow-hidden transition-all mt-3 bg-theme-surface border-none"
               >
-                <img
-                  src="/image.png"
-                  alt="Profile"
-                  className="w-full h-full object-cover"
-                />
+                <UserAvatar seed={profileSeed} className="w-full h-full" />
               </button>
               <div className="flex flex-col items-end">
                 <span
