@@ -15,6 +15,8 @@ import {
   User,
   BookOpen,
   RefreshCw,
+  PartyPopper,
+  Store,
 } from "lucide-react";
 import { requestNotificationPermission } from "@/utils/shared/notifs";
 import { StudentProfile } from "@/types";
@@ -30,6 +32,11 @@ import {
 } from "@/utils/theme/themeUtils";
 import CourseDetailsPage from "@/components/shared/CourseDetailsPage";
 import { UserAvatar } from "@/components/shared/UserAvatar";
+import PrivacyProtocol from "@/components/shared/PrivacyProtocol";
+
+// Import your newly created components
+import WhatsNew from "./WhatsNew"; 
+import Marketplace from "./Marketplace";
 
 const WhatsappIcon = ({ size = 20 }: { size?: number }) => (
   <svg 
@@ -45,43 +52,19 @@ const WhatsappIcon = ({ size = 20 }: { size?: number }) => (
 
 const backdropVariants: any = {
   hidden: { opacity: 0, backdropFilter: "blur(0px)" },
-  visible: {
-    opacity: 1,
-    backdropFilter: "blur(12px)",
-    transition: { duration: 0.5 },
-  },
-  exit: {
-    opacity: 0,
-    backdropFilter: "blur(0px)",
-    transition: { duration: 0.3 },
-  },
+  visible: { opacity: 1, backdropFilter: "blur(12px)", transition: { duration: 0.5 } },
+  exit: { opacity: 0, backdropFilter: "blur(0px)", transition: { duration: 0.3 } },
 };
 
 const panelVariants: any = {
   hidden: { x: "-100%" },
-  visible: {
-    x: "0%",
-    transition: {
-      duration: 0.7,
-      ease: [0.6, 0.05, 0.01, 0.9] as any,
-      when: "beforeChildren",
-      staggerChildren: 0.05,
-    },
-  },
+  visible: { x: "0%", transition: { duration: 0.7, ease: [0.6, 0.05, 0.01, 0.9] as any, when: "beforeChildren", staggerChildren: 0.05 } },
   exit: { x: "-100%", transition: { duration: 0.4, ease: "easeIn" } },
 };
 
 const themePanelVariants: any = {
   hidden: { x: "100%" },
-  visible: {
-    x: "0%",
-    transition: {
-      duration: 0.5,
-      ease: [0.6, 0.05, 0.01, 0.9] as any,
-      when: "beforeChildren",
-      staggerChildren: 0.05,
-    },
-  },
+  visible: { x: "0%", transition: { duration: 0.5, ease: [0.6, 0.05, 0.01, 0.9] as any, when: "beforeChildren", staggerChildren: 0.05 } },
   exit: { x: "100%", transition: { duration: 0.35, ease: "easeIn" } },
 };
 
@@ -113,48 +96,21 @@ interface SettingItemProps {
   value?: string;
 }
 
-const SettingItem = ({
-  icon,
-  label,
-  toggle = false,
-  isActive = false,
-  onClick,
-  value,
-}: SettingItemProps) => {
+const SettingItem = ({ icon, label, toggle = false, isActive = false, onClick, value }: SettingItemProps) => {
   return (
-    <div
-      onClick={onClick}
-      className="flex items-center justify-between px-2 py-4 rounded-xl active:bg-theme-surface transition-colors cursor-pointer"
-    >
+    <div onClick={onClick} className="flex items-center justify-between px-2 py-4 rounded-xl active:bg-theme-surface transition-colors cursor-pointer">
       <div className="flex items-center gap-4">
         <span className="text-lg">{icon}</span>
         <span className="text-[15px] font-medium text-theme-text">{label}</span>
       </div>
       <div className="flex items-center gap-2">
-        {value && (
-          <span className="text-sm text-theme-muted">{value}</span>
-        )}
+        {value && <span className="text-sm text-theme-muted">{value}</span>}
         {toggle ? (
-          <div
-            className={`w-12 h-7 rounded-full relative transition-all duration-300 border-[1.5px] shadow-sm ${
-              isActive 
-                ? "bg-theme-highlight border-theme-highlight" 
-                : "bg-theme-surface border-theme-border"
-            }`}
-          >
-            <div
-              className={`absolute top-0.5 w-[21px] h-[21px] rounded-full transition-all duration-300 shadow-md ${
-                isActive
-                  ? "right-0.5 bg-theme-bg"
-                  : "left-0.5 bg-theme-text"
-              }`}
-            />
+          <div className={`w-12 h-7 rounded-full relative transition-all duration-300 border-[1.5px] shadow-sm ${isActive ? "bg-theme-highlight border-theme-highlight" : "bg-theme-surface border-theme-border"}`}>
+            <div className={`absolute top-0.5 w-[21px] h-[21px] rounded-full transition-all duration-300 shadow-md ${isActive ? "right-0.5 bg-theme-bg" : "left-0.5 bg-theme-text"}`} />
           </div>
         ) : (
-          <ChevronRight
-            className="w-5 h-5 text-theme-muted"
-            strokeWidth={2.5}
-          />
+          <ChevronRight className="w-5 h-5 text-theme-muted" strokeWidth={2.5} />
         )}
       </div>
     </div>
@@ -169,19 +125,8 @@ const ProfileCard = ({ profile, onClose }: { profile: any; onClose: () => void }
   const rotateY = useTransform(x, [-100, 100], [-15, 15]);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.9 }}
-      className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/60 backdrop-blur-md"
-    >
-      <motion.div
-        style={{ x, y, rotateX, rotateY, perspective: 1000 }}
-        drag
-        dragConstraints={{ top: 0, left: 0, right: 0, bottom: 0 }}
-        dragElastic={0.1}
-        className="relative w-full max-w-sm aspect-[3/4.5] rounded-[32px] overflow-hidden bg-theme-bg flex flex-col shadow-2xl touch-none border border-theme-border"
-      >
+    <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/60 backdrop-blur-md">
+      <motion.div style={{ x, y, rotateX, rotateY, perspective: 1000 }} drag dragConstraints={{ top: 0, left: 0, right: 0, bottom: 0 }} dragElastic={0.1} className="relative w-full max-w-sm aspect-[3/4.5] rounded-[32px] overflow-hidden bg-theme-bg flex flex-col shadow-2xl touch-none border border-theme-border">
         <div className="h-[50%] w-full relative overflow-hidden">
            <svg viewBox="0 0 500 500" preserveAspectRatio="none" className="absolute inset-0 w-full h-full opacity-90">
              <defs>
@@ -190,18 +135,12 @@ const ProfileCard = ({ profile, onClose }: { profile: any; onClose: () => void }
                  <stop offset="100%" stopColor="var(--theme-secondary)" />
                </linearGradient>
              </defs>
-             <path 
-               d="M0,0 L500,0 L500,320 C420,320 380,180 250,180 C120,180 80,320 0,320 Z" 
-               fill="url(#arc-grad)" 
-             />
+             <path d="M0,0 L500,0 L500,320 C420,320 380,180 250,180 C120,180 80,320 0,320 Z" fill="url(#arc-grad)" />
            </svg>
            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.2),transparent_70%)]" />
         </div>
 
-        <button 
-          onClick={onClose}
-          className="absolute top-6 right-6 w-10 h-10 rounded-full bg-theme-text/5 hover:bg-theme-text/10 flex items-center justify-center text-theme-text/40 transition-colors z-20"
-        >
+        <button onClick={onClose} className="absolute top-6 right-6 w-10 h-10 rounded-full bg-theme-text/5 hover:bg-theme-text/10 flex items-center justify-center text-theme-text/40 transition-colors z-20">
           <X size={20} />
         </button>
 
@@ -255,8 +194,6 @@ const ProfileCard = ({ profile, onClose }: { profile: any; onClose: () => void }
   );
 };
 
-import PrivacyProtocol from "@/components/shared/PrivacyProtocol";
-
 const SettingsPage = ({
   onBack,
   onLogout,
@@ -273,6 +210,8 @@ const SettingsPage = ({
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [showCourseDetails, setShowCourseDetails] = useState(false);
   const [showProfileCard, setShowProfileCard] = useState(false);
+  const [showWhatsNew, setShowWhatsNew] = useState(false);
+  const [showMarketplace, setShowMarketplace] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState(currentTheme);
 
   const { uiStyle: initialStyle, colorTheme: initialColor } = parseTheme(selectedTheme);
@@ -335,30 +274,11 @@ const SettingsPage = ({
 
   return (
     <>
-      <motion.div
-        variants={backdropVariants}
-        initial="hidden"
-        animate="visible"
-        exit="exit"
-        className="fixed inset-0 z-40 bg-black/40"
-        onClick={onBack}
-      />
+      <motion.div variants={backdropVariants} initial="hidden" animate="visible" exit="exit" className="fixed inset-0 z-40 bg-black/40" onClick={onBack} />
 
-      <motion.div
-        variants={panelVariants}
-        initial="hidden"
-        animate="visible"
-        exit="exit"
-        className="fixed inset-0 z-50 bg-theme-bg text-theme-text flex flex-col overflow-hidden"
-      >
-        <motion.div
-          variants={itemVariants}
-          className="pt-12 pb-4 px-6 flex items-center gap-4"
-        >
-          <button
-            onClick={onBack}
-            className="w-10 h-10 rounded-full bg-theme-surface flex items-center justify-center active:scale-90 transition-transform"
-          >
+      <motion.div variants={panelVariants} initial="hidden" animate="visible" exit="exit" className="fixed inset-0 z-50 bg-theme-bg text-theme-text flex flex-col overflow-hidden">
+        <motion.div variants={itemVariants} className="pt-12 pb-4 px-6 flex items-center gap-4">
+          <button onClick={onBack} className="w-10 h-10 rounded-full bg-theme-surface flex items-center justify-center active:scale-90 transition-transform">
             <ChevronLeft className="w-6 h-6" strokeWidth={2.5} />
           </button>
           <h1 className="text-[26px] font-semibold tracking-tight">Settings</h1>
@@ -384,68 +304,28 @@ const SettingsPage = ({
               <div className="relative min-h-[52px]">
                 <AnimatePresence mode="wait">
                   {!isEditing ? (
-                    <motion.div
-                      key="buttons"
-                      initial={{ opacity: 0, y: 5 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -5 }}
-                      className="flex gap-3"
-                    >
-                      <button
-                        onClick={() => setIsEditing(true)}
-                        className="flex-1 flex items-center justify-center gap-2 py-3 rounded-[22px] bg-theme-surface transition-colors text-sm font-semibold"
-                      >
+                    <motion.div key="buttons" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} className="flex gap-3">
+                      <button onClick={() => setIsEditing(true)} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-[22px] bg-theme-surface transition-colors text-sm font-semibold">
                         <Pencil className="w-4 h-4" /> Edit Profile
                       </button>
-                      <button 
-                        onClick={() => setShowProfileCard(true)}
-                        className="flex-1 flex items-center justify-center gap-2 py-3 rounded-[22px] bg-theme-surface transition-colors text-sm font-semibold"
-                      >
+                      <button onClick={() => setShowProfileCard(true)} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-[22px] bg-theme-surface transition-colors text-sm font-semibold">
                         <User className="w-4 h-4" /> Profile Card
                       </button>
                     </motion.div>
                   ) : (
-                    <motion.div
-                      key="input-stack"
-                      initial={{ opacity: 0, y: 5 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -5 }}
-                      className="flex flex-col gap-3"
-                    >
+                    <motion.div key="input-stack" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} className="flex flex-col gap-3">
                       <div className="flex gap-2">
-                        <input
-                          autoFocus
-                          type="text"
-                          placeholder="New display name..."
-                          className="flex-1 min-w-0 bg-theme-surface border border-theme-border rounded-[22px] px-5 py-3 text-sm focus:outline-none text-theme-text"
-                          value={tempName}
-                          onChange={(e) => setTempName(e.target.value)}
-                          onKeyDown={(e) => e.key === "Enter" && handleSave()}
-                        />
-                        
-                        <button
-                          onClick={handleRandomizeSeed}
-                          className="w-[50px] shrink-0 flex items-center justify-center rounded-[22px] bg-theme-surface border border-theme-border transition-colors active:scale-95"
-                          title="Randomize Avatar"
-                        >
+                        <input autoFocus type="text" placeholder="New display name..." className="flex-1 min-w-0 bg-theme-surface border border-theme-border rounded-[22px] px-5 py-3 text-sm focus:outline-none text-theme-text" value={tempName} onChange={(e) => setTempName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleSave()} />
+                        <button onClick={handleRandomizeSeed} className="w-[50px] shrink-0 flex items-center justify-center rounded-[22px] bg-theme-surface border border-theme-border transition-colors active:scale-95" title="Randomize Avatar">
                           <RefreshCw className="w-4 h-4 text-theme-text" />
                         </button>
                       </div>
                       
                       <div className="flex gap-2">
-                        <button
-                          onClick={handleSave}
-                          className="flex-1 py-3 rounded-[22px] bg-theme-text text-theme-bg font-bold text-sm flex items-center justify-center gap-2 active:scale-95 transition-transform"
-                        >
+                        <button onClick={handleSave} className="flex-1 py-3 rounded-[22px] bg-theme-text text-theme-bg font-bold text-sm flex items-center justify-center gap-2 active:scale-95 transition-transform">
                           <Check className="w-4 h-4" /> Save
                         </button>
-                        <button
-                          onClick={() => {
-                            setIsEditing(false);
-                            setTempName("");
-                          }}
-                          className="px-6 py-3 rounded-[22px] bg-theme-surface text-theme-muted text-sm font-semibold active:scale-95 transition-transform"
-                        >
+                        <button onClick={() => { setIsEditing(false); setTempName(""); }} className="px-6 py-3 rounded-[22px] bg-theme-surface text-theme-muted text-sm font-semibold active:scale-95 transition-transform">
                           Cancel
                         </button>
                       </div>
@@ -456,59 +336,23 @@ const SettingsPage = ({
             </motion.div>
 
             <motion.div variants={itemVariants} className="space-y-4">
-              <p className="text-[11px] uppercase tracking-widest text-theme-muted">
-                Preferences
-              </p>
+              <p className="text-[11px] uppercase tracking-widest text-theme-muted">Preferences</p>
               <div className="space-y-1">
-                <SettingItem
-                  icon={<Bell className="w-5 h-5 opacity-80 text-theme-text" />}
-                  label="Notifications"
-                  toggle
-                  isActive={notifEnabled}
-                  onClick={handleNotificationClick}
-                />
-                <SettingItem
-                  icon={
-                    <Palette className="w-5 h-5 opacity-80 text-theme-text" />
-                  }
-                  label="Select Theme"
-                  onClick={() => setShowThemes(true)}
-                  value={getThemeDisplayName(selectedTheme)}
-                />
-                <SettingItem
-                  icon={<BookOpen className="w-5 h-5 opacity-80 text-theme-text" />}
-                  label="Course Details"
-                  onClick={() => setShowCourseDetails(true)}
-                />
-                <SettingItem
-                  icon={<Lock className="w-5 h-5 opacity-80 text-theme-text" />}
-                  label="Privacy"
-                  onClick={() => setShowPrivacy(true)}
-                />
-                <SettingItem
-                  icon={<Cloud className="w-5 h-5 opacity-80 text-theme-text" />}
-                  label="Sync Data"
-                  onClick={handleSync}
-                  value={isUpdating ? "Syncing..." : ""}
-                />
-                <SettingItem
-                  icon={<WhatsappIcon size={20} />}
-                  label="WhatsApp Community"
-                  onClick={() => window.open("https://chat.whatsapp.com/D7wymoQ1zrQKqf4Qs4gw91", "_blank")}
-                />
+                <SettingItem icon={<Bell className="w-5 h-5 opacity-80 text-theme-text" />} label="Notifications" toggle isActive={notifEnabled} onClick={handleNotificationClick} />
+                <SettingItem icon={<Palette className="w-5 h-5 opacity-80 text-theme-text" />} label="Select Theme" onClick={() => setShowThemes(true)} value={getThemeDisplayName(selectedTheme)} />
+                <SettingItem icon={<BookOpen className="w-5 h-5 opacity-80 text-theme-text" />} label="Course Details" onClick={() => setShowCourseDetails(true)} />
+                <SettingItem icon={<Lock className="w-5 h-5 opacity-80 text-theme-text" />} label="Privacy" onClick={() => setShowPrivacy(true)} />
+                <SettingItem icon={<PartyPopper className="w-5 h-5 opacity-80 text-theme-text" />} label="What's New" onClick={() => setShowWhatsNew(true)} />
+                <SettingItem icon={<Store className="w-5 h-5 opacity-80 text-theme-text" />} label="Marketplace" onClick={() => setShowMarketplace(true)} />
+                <SettingItem icon={<Cloud className="w-5 h-5 opacity-80 text-theme-text" />} label="Sync Data" onClick={handleSync} value={isUpdating ? "Syncing..." : ""} />
+                <SettingItem icon={<WhatsappIcon size={20} />} label="WhatsApp Community" onClick={() => window.open("https://chat.whatsapp.com/D7wymoQ1zrQKqf4Qs4gw91", "_blank")} />
               </div>
             </motion.div>
           </div>
         </div>
 
-        <motion.div
-          variants={itemVariants}
-          className="p-6 pt-4 border-t border-theme-border bg-theme-bg z-10 space-y-6"
-        >
-          <button
-            onClick={onLogout}
-            className="w-full py-4 rounded-[26px] bg-theme-emphasis text-theme-bg font-bold text-base hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
-          >
+        <motion.div variants={itemVariants} className="p-6 pt-4 border-t border-theme-border bg-theme-bg z-10 space-y-6">
+          <button onClick={onLogout} className="w-full py-4 rounded-[26px] bg-theme-emphasis text-theme-bg font-bold text-base hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2">
             <LogOut className="w-5 h-5" /> Log Out
           </button>
           <div className="space-y-2">
@@ -524,43 +368,23 @@ const SettingsPage = ({
 
       <AnimatePresence>
         {showProfileCard && userData?.profile && (
-          <ProfileCard 
-            profile={userData.profile} 
-            onClose={() => setShowProfileCard(false)} 
-          />
+          <ProfileCard profile={userData.profile} onClose={() => setShowProfileCard(false)} />
         )}
       </AnimatePresence>
 
       <PrivacyProtocol isOpen={showPrivacy} onClose={() => setShowPrivacy(false)} />
+      <WhatsNew isOpen={showWhatsNew} onClose={() => setShowWhatsNew(false)} />
+      <Marketplace isOpen={showMarketplace} onClose={() => setShowMarketplace(false)} />
 
-      <CourseDetailsPage
-        isOpen={showCourseDetails}
-        onClose={() => setShowCourseDetails(false)}
-      />
+      <CourseDetailsPage isOpen={showCourseDetails} onClose={() => setShowCourseDetails(false)} />
 
       <AnimatePresence>
         {showThemes && (
           <>
-            <motion.div
-              variants={backdropVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              className="fixed inset-0 z-[60] bg-black/20"
-              onClick={() => setShowThemes(false)}
-            />
-            <motion.div
-              variants={themePanelVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              className="fixed inset-0 z-[70] bg-theme-bg flex flex-col overflow-hidden"
-            >
+            <motion.div variants={backdropVariants} initial="hidden" animate="visible" exit="exit" className="fixed inset-0 z-[60] bg-black/20" onClick={() => setShowThemes(false)} />
+            <motion.div variants={themePanelVariants} initial="hidden" animate="visible" exit="exit" className="fixed inset-0 z-[70] bg-theme-bg flex flex-col overflow-hidden">
               <div className="pt-12 pb-4 px-6 flex items-center gap-4">
-                <button
-                  onClick={() => setShowThemes(false)}
-                  className="w-10 h-10 rounded-full bg-theme-surface flex items-center justify-center active:scale-90 transition-transform"
-                >
+                <button onClick={() => setShowThemes(false)} className="w-10 h-10 rounded-full bg-theme-surface flex items-center justify-center active:scale-90 transition-transform">
                   <ChevronLeft className="w-6 h-6" strokeWidth={2.5} />
                 </button>
                 <h1 className="text-xl font-bold tracking-tight">Select Theme</h1>
@@ -585,47 +409,26 @@ const SettingsPage = ({
                               setColorTheme(ct.id);
                               handleThemeApply(targetStyle, ct.id);
                             }}
-                            className={`w-full relative flex items-start gap-4 p-3.5 rounded-2xl border-[1.5px] transition-all active:scale-[0.98] ${
-                              isActive
-                                ? "border-theme-highlight bg-theme-highlight/10"
-                                : "border-theme-border bg-theme-surface"
-                            }`}
+                            className={`w-full relative flex items-start gap-4 p-3.5 rounded-2xl border-[1.5px] transition-all active:scale-[0.98] ${isActive ? "border-theme-highlight bg-theme-highlight/10" : "border-theme-border bg-theme-surface"}`}
                           >
                             <div className="flex gap-1 shrink-0 mt-0.5">
                               {[bgSwatch, primarySwatch, hlSwatch].map((s, i) => (
-                                <div
-                                  key={i}
-                                  className="w-6 h-6 rounded-full border border-black/10"
-                                  style={{ backgroundColor: s }}
-                                />
+                                <div key={i} className="w-6 h-6 rounded-full border border-black/10" style={{ backgroundColor: s }} />
                               ))}
                             </div>
                             <div className="flex flex-col items-start min-w-0 flex-1 text-left">
-                              <span
-                                className={`text-[15px] font-bold leading-tight ${
-                                  isActive ? "text-theme-highlight" : "text-theme-text"
-                                }`}
-                              >
+                              <span className={`text-[15px] font-bold leading-tight ${isActive ? "text-theme-highlight" : "text-theme-text"}`}>
                                 {ct.name} {ct.id !== "brutalist" ? "(minimalist)" : ""}
                               </span>
                               <span className="text-[11px] text-theme-muted leading-snug mt-0.5">
                                 {ct.deity}<br />{ct.description}
                               </span>
                             </div>
-                            <span
-                              className={`text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full shrink-0 mt-0.5 ${
-                                ct.isDark
-                                  ? "bg-black/30 text-white/70"
-                                  : "bg-black/10 text-white/70"
-                              }`}
-                            >
+                            <span className={`text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full shrink-0 mt-0.5 ${ct.isDark ? "bg-black/30 text-white/70" : "bg-black/10 text-white/70"}`}>
                               {ct.isDark ? "dark" : "light"}
-                            </span>                            {isActive && (
-                              <Check
-                                className="text-theme-highlight absolute bottom-3.5 right-3.5"
-                                size={18}
-                                strokeWidth={3}
-                              />
+                            </span>                            
+                            {isActive && (
+                              <Check className="text-theme-highlight absolute bottom-3.5 right-3.5" size={18} strokeWidth={3} />
                             )}
                           </button>
                         );
@@ -649,27 +452,15 @@ const SettingsPage = ({
                               setColorTheme(ct.id);
                               handleThemeApply("minimalist", ct.id);
                             }}
-                            className={`w-full relative flex items-start gap-4 p-3.5 rounded-2xl border-[1.5px] transition-all active:scale-[0.98] ${
-                              isActive
-                                ? "border-theme-highlight bg-theme-highlight/10"
-                                : "border-theme-border bg-theme-surface"
-                            }`}
+                            className={`w-full relative flex items-start gap-4 p-3.5 rounded-2xl border-[1.5px] transition-all active:scale-[0.98] ${isActive ? "border-theme-highlight bg-theme-highlight/10" : "border-theme-border bg-theme-surface"}`}
                           >
                             <div className="flex gap-1 shrink-0 mt-0.5">
                               {[bgSwatch, primarySwatch, hlSwatch].map((s, i) => (
-                                <div
-                                  key={i}
-                                  className="w-6 h-6 rounded-full border border-black/10"
-                                  style={{ backgroundColor: s }}
-                                />
+                                <div key={i} className="w-6 h-6 rounded-full border border-black/10" style={{ backgroundColor: s }} />
                               ))}
                             </div>
                             <div className="flex flex-col items-start min-w-0 flex-1 text-left">
-                              <span
-                                className={`text-[15px] font-bold leading-tight ${
-                                  isActive ? "text-theme-highlight" : "text-theme-text"
-                                }`}
-                              >
+                              <span className={`text-[15px] font-bold leading-tight ${isActive ? "text-theme-highlight" : "text-theme-text"}`}>
                                 {ct.name}
                               </span>
                               <div className="flex flex-col items-start">
@@ -677,20 +468,11 @@ const SettingsPage = ({
                                 <span className="text-[11px] text-theme-muted leading-tight">{ct.description}</span>
                               </div>
                             </div>
-                            <span
-                              className={`text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full shrink-0 mt-0.5 ${
-                                ct.isDark
-                                  ? "bg-black/30 text-white/70"
-                                  : "bg-black/10 text-white/70"
-                              }`}
-                            >
+                            <span className={`text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full shrink-0 mt-0.5 ${ct.isDark ? "bg-black/30 text-white/70" : "bg-black/10 text-white/70"}`}>
                               {ct.isDark ? "dark" : "light"}
-                            </span>                            {isActive && (
-                              <Check
-                                className="text-theme-highlight absolute bottom-3.5 right-3.5"
-                                size={18}
-                                strokeWidth={3}
-                              />
+                            </span>                            
+                            {isActive && (
+                              <Check className="text-theme-highlight absolute bottom-3.5 right-3.5" size={18} strokeWidth={3} />
                             )}
                           </button>
                         );
