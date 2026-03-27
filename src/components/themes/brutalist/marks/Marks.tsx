@@ -12,6 +12,7 @@ import {
 import BrutalistTarget from "./BrutalistTarget";
 import { AcademiaData } from "@/types";
 import { useAppLayout } from "@/context/AppLayoutContext";
+import { Haptics } from "@/utils/shared/haptics";
 
 const ScoreCounter = ({ value }: any) => {
   const nodeRef = useRef<any>(null);
@@ -177,7 +178,7 @@ const MarksPage = ({ data }: { data: AcademiaData }) => {
       if (container.scrollTop < 20) {
         if (sortedMarks.length > 0 && selectedId !== sortedMarks[0].id) {
           setSelectedId(sortedMarks[0].id);
-          if (navigator.vibrate) navigator.vibrate(2);
+          Haptics.vibe(2);
         }
         scrollTimeout.current = null;
         return;
@@ -192,7 +193,7 @@ const MarksPage = ({ data }: { data: AcademiaData }) => {
       });
       if (closestId !== null && closestId !== selectedId) {
         setSelectedId(closestId);
-        if (navigator.vibrate) navigator.vibrate(2);
+        Haptics.vibe(2);
       }
       scrollTimeout.current = null;
     }, 50);

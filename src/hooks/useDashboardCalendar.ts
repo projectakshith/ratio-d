@@ -1,8 +1,10 @@
 import { useMemo, useState, useEffect, useRef } from "react";
-import calendarDataJson from "@/data/calendar_data.json";
 import { parseTimeValues } from "@/utils/academia/academiaLogic";
+import { useApp } from "@/context/AppContext";
 
 export function useDashboardCalendar(academia: any, data: any) {
+  const { calendarData: contextCalendarData } = useApp();
+  
   const todayStr = useMemo(() => {
     const now = new Date();
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -13,9 +15,8 @@ export function useDashboardCalendar(academia: any, data: any) {
   }, []);
 
   const todayCalendarEntry = useMemo(() => {
-    const calData = academia?.calendarData || calendarDataJson || [];
-    return calData.find((ev: any) => ev.date === todayStr);
-  }, [academia?.calendarData, todayStr]);
+    return contextCalendarData.find((ev: any) => ev.date.getDate() === new Date().getDate() && ev.date.getMonth() === new Date().getMonth());
+  }, [contextCalendarData]);
 
   const currentDayOrderStr = todayCalendarEntry?.dayOrder || todayCalendarEntry?.order || data?.dayOrder || "-";
   const currentDayOrder = parseInt(String(currentDayOrderStr)) || 0;
@@ -32,19 +33,16 @@ export function useDashboardCalendar(academia: any, data: any) {
   const hasInitialized = useRef(false);
 
   const nextWorkingDayOrder = useMemo(() => {
-    const calData = academia?.calendarData || calendarDataJson || [];
     const now = new Date();
     now.setHours(0, 0, 0, 0);
 
-    const futureDays = calData
+    const futureDays = contextCalendarData
       .filter((ev: any) => {
-        const evDate = new Date(ev.date);
-        evDate.setHours(0, 0, 0, 0);
-        return evDate > now;
+        return ev.date > now;
       })
       .sort(
         (a: any, b: any) =>
-          new Date(a.date).getTime() - new Date(b.date).getTime(),
+          a.date.getTime() - b.date.getTime(),
       );
 
     for (const ev of futureDays) {
@@ -54,7 +52,7 @@ export function useDashboardCalendar(academia: any, data: any) {
       }
     }
     return null;
-  }, [academia?.calendarData]);
+  }, [contextCalendarData]);
 
   const isTodayFinished = useMemo(() => {
     if (isHoliday) return true;
@@ -79,19 +77,18 @@ export function useDashboardCalendar(academia: any, data: any) {
   const isTomorrowHoliday = useMemo(() => {
     if (!isTodayFinished) return false;
 
-    const calData = academia?.calendarData || calendarDataJson || [];
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0);
 
-    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    const d = String(tomorrow.getDate()).padStart(2, "0");
-    const m = months[tomorrow.getMonth()];
-    const y = tomorrow.getFullYear();
-    const tomorrowStr = `${d} ${m} ${y}`;
-
-    const entry = calData.find((ev: any) => ev.date === tomorrowStr);
+    const entry = contextCalendarData.find((ev: any) => {
+      const evDate = new Date(ev.date);
+      evDate.setHours(0, 0, 0, 0);
+      return evDate.getTime() === tomorrow.getTime();
+    });
+    
     return !entry || entry.order === "-" || entry.order === "0" || entry.description.toLowerCase().includes("holiday");
-  }, [academia?.calendarData, isTodayFinished]);
+  }, [contextCalendarData, isTodayFinished]);
 
   useEffect(() => {
     if (hasInitialized.current) return;

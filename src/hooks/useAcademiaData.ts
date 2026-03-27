@@ -80,13 +80,13 @@ export const useAcademiaData = (data: AcademiaData | null) => {
         });
       }
       
-      const isSame = JSON.stringify(mergedSchedule) === JSON.stringify(schedule);
-      if (!isSame) {
-        setSchedule(mergedSchedule);
-      }
+      setSchedule((current) => {
+        const isSame = JSON.stringify(mergedSchedule) === JSON.stringify(current);
+        return isSame ? current : mergedSchedule;
+      });
     } catch {
     }
-  }, [initialSchedule, schedule]);
+  }, [initialSchedule]);
 
   useEffect(() => {
     mergeSchedule();

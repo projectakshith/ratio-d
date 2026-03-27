@@ -2,6 +2,7 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
+import { Haptics } from "@/utils/shared/haptics";
 
 interface TargetProps {
   isOpen: boolean;
@@ -61,6 +62,7 @@ export default function BrutalistTarget({
           dragElastic={0.6}
           onDragEnd={(e, info) => {
             if (info.offset.y > 150 || info.velocity.y > 500) {
+              Haptics.medium();
               onClose();
             }
           }}
@@ -77,7 +79,7 @@ export default function BrutalistTarget({
                 sgpa prediction
               </span>
             </div>
-            <button onClick={onClose} className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white transition-all shrink-0">
+            <button onClick={() => { Haptics.selection(); onClose(); }} className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white transition-all shrink-0">
               <X size={20} strokeWidth={2.5} />
             </button>
           </div>
@@ -135,7 +137,7 @@ export default function BrutalistTarget({
                 <div className="flex items-center gap-1 bg-white/5 rounded-[12px] px-1.5 py-1.5 h-10">
                   <button
                     onClick={() => {
-                      if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(8);
+                      Haptics.selection();
                       setExpectedMarks((prev: any) => Math.max(0, (typeof prev === "function" ? prev(expectedMarks) : prev) - 1));
                     }}
                     className="w-7 h-7 rounded-[8px] bg-white/10 flex items-center justify-center text-white font-bold transition-all"
@@ -156,7 +158,7 @@ export default function BrutalistTarget({
                   </div>
                   <button
                     onClick={() => {
-                      if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(8);
+                      Haptics.selection();
                       setExpectedMarks((prev: any) => Math.min(maxPossibleExpected, (typeof prev === "function" ? prev(expectedMarks) : prev) + 1));
                     }}
                     className="w-7 h-7 rounded-[8px] bg-[#ceff1c] text-black flex items-center justify-center font-bold transition-all"
@@ -176,7 +178,7 @@ export default function BrutalistTarget({
                   <button
                     key={g.label}
                     onClick={() => {
-                      if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(8);
+                      Haptics.selection();
                       setTargetGrade(g.min);
                     }}
                     className={`py-3 rounded-[16px] flex flex-col items-center justify-center transition-all ${targetGrade === g.min ? "bg-[#ceff1c] text-black" : "bg-white/5 text-white/40 hover:bg-white/10"}`}
@@ -201,7 +203,7 @@ export default function BrutalistTarget({
                     <div key={sub.id} className="flex flex-col gap-1 shrink-0">
                       <button
                         onClick={() => {
-                          if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(8);
+                          Haptics.selection();
                           setPredSubjectId(sub.id);
                         }}
                         className={`px-4 py-2.5 rounded-[12px] text-[12px] font-bold uppercase tracking-widest transition-all whitespace-nowrap flex flex-col items-center gap-0.5 ${isIgnored ? "opacity-40 grayscale" : ""} ${isActive ? "bg-[#ceff1c] text-black" : "bg-white/5 text-white hover:bg-white/10"}`}
@@ -215,7 +217,7 @@ export default function BrutalistTarget({
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(6);
+                          Haptics.vibe(6);
                           toggleSubjectIgnore(sub.id);
                         }}
                         className={`text-[8px] font-black uppercase tracking-tighter py-1 rounded-md transition-all flex items-center justify-center gap-1.5 ${isIgnored ? "text-white/40 bg-white/5 px-2" : "text-[#ceff1c] bg-[#ceff1c]/10 px-3"}`}

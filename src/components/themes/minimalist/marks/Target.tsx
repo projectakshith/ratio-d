@@ -2,6 +2,7 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
+import { Haptics } from "@/utils/shared/haptics";
 
 interface TargetProps {
   isOpen: boolean;
@@ -63,7 +64,7 @@ export default function Target({
           dragElastic={0.6}
           onDragEnd={(e, info) => {
             if (info.offset.y > 150 || info.velocity.y > 500) {
-              if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(12);
+              Haptics.medium();
               onClose();
             }
           }}
@@ -89,7 +90,7 @@ export default function Target({
             </div>
             <button
               onClick={() => {
-                if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(8);
+                Haptics.selection();
                 onClose();
               }}
               className={`w-10 h-10 rounded-full bg-theme-surface flex items-center justify-center ${textClass} transition-all shrink-0`}
@@ -196,7 +197,7 @@ export default function Target({
                 >
                   <button
                     onClick={() => {
-                      if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(8);
+                      Haptics.selection();
                       setExpectedMarks((prev: any) => Math.max(0, (typeof prev === "function" ? prev(expectedMarks) : prev) - 1));
                     }}
                     className={`w-7 h-7 rounded-[8px] bg-theme-text-10 flex items-center justify-center ${textClass} font-bold transition-all`}
@@ -222,7 +223,7 @@ export default function Target({
                   </div>
                   <button
                     onClick={() => {
-                      if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(8);
+                      Haptics.selection();
                       setExpectedMarks((prev: any) => Math.min(maxPossibleExpected, (typeof prev === "function" ? prev(expectedMarks) : prev) + 1));
                     }}
                     className="w-7 h-7 rounded-[8px] bg-theme-emphasis text-theme-bg flex items-center justify-center font-bold transition-all"
@@ -244,7 +245,7 @@ export default function Target({
                   <button
                     key={g.label}
                     onClick={() => {
-                      if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(8);
+                      Haptics.selection();
                       setTargetGrade(g.min);
                     }}
                     className={`py-3 rounded-[16px] flex flex-col items-center justify-center transition-all ${targetGrade === g.min ? "bg-theme-emphasis text-theme-bg" : "bg-theme-surface text-theme-muted hover:bg-theme-text-10"}`}
@@ -281,7 +282,7 @@ export default function Target({
                     <div key={sub.id} className="flex flex-col gap-1 shrink-0">
                       <button
                         onClick={() => {
-                          if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(8);
+                          Haptics.selection();
                           setPredSubjectId(sub.id);
                           setExpectedMarks(0);
                         }}
@@ -296,7 +297,7 @@ export default function Target({
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(6);
+                          Haptics.vibe(6);
                           toggleSubjectIgnore(sub.id);
                         }}
                         className={`text-[8px] font-black uppercase tracking-tighter py-1 rounded-md transition-all flex items-center justify-center gap-1.5 ${isIgnored ? "text-theme-muted bg-theme-text/5 px-2" : "text-theme-highlight bg-theme-highlight/10 px-3"}`}

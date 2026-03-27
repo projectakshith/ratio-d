@@ -2,6 +2,7 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Haptics } from "@/utils/shared/haptics";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -24,7 +25,7 @@ export default function Navbar() {
             key={tab.id}
             href={tab.path}
             onClick={() => {
-              if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(10);
+              Haptics.light();
             }}
             className={`text-[10px] font-bold uppercase tracking-[0.15em] transition-colors duration-300 ${
               isActive ? "text-theme-text" : "text-theme-subtle"

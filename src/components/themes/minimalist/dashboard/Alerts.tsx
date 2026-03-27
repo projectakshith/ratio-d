@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Lock, Plus, Trash2 } from "lucide-react";
+import { Haptics } from "@/utils/shared/haptics";
 
 interface AlertsProps {
   isOpen: boolean;
@@ -86,7 +87,7 @@ export default function Alerts({
           dragElastic={{ top: 0, bottom: 0.8 }}
           onDragEnd={(e, info) => {
             if (info.offset.y > 100 || info.velocity.y > 500) {
-              if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(12);
+              Haptics.medium();
               onClose();
             }
           }}
@@ -112,7 +113,7 @@ export default function Alerts({
             </div>
             <button
               onClick={() => {
-                if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(8);
+                Haptics.selection();
                 onClose();
               }}
               className="w-10 h-10 rounded-full bg-theme-surface flex items-center justify-center text-theme-text active:scale-95 transition-all shrink-0"
@@ -161,7 +162,7 @@ export default function Alerts({
                     className="bg-theme-card border-theme-subtle border-[1.5px] rounded-[20px] p-4 flex flex-col shadow-sm relative group"
                   >
                     <button
-                      onClick={() => { if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(8); handleDeleteNote(note.id); }}
+                      onClick={() => { Haptics.selection(); handleDeleteNote(note.id); }}
                       className="absolute top-3 right-3 w-8 h-8 rounded-full bg-theme-surface text-theme-subtle flex items-center justify-center hover:text-[#FF4D4D] hover:bg-[#FF4D4D]/5 active:scale-95 transition-all z-10"
                     >
                       <Trash2 size={14} />
@@ -363,7 +364,7 @@ export default function Alerts({
                 }}
               />
               <button
-                onClick={() => { if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(10); handleAddNote(); }}
+                onClick={() => { Haptics.light(); handleAddNote(); }}
                   className="w-10 h-10 rounded-[14px] flex items-center justify-center active:scale-95 transition-all shrink-0 bg-theme-text text-theme-bg shadow-sm"
               >
                 <Plus size={20} strokeWidth={3} />

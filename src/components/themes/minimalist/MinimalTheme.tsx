@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import Navbar from "./Navbar";
 import { usePathname, useRouter } from "next/navigation";
+import { Haptics } from "@/utils/shared/haptics";
 
 interface MinimalThemeProps {
   children: React.ReactNode;
@@ -56,11 +57,11 @@ export default function MinimalTheme({ children, isSwipeDisabled }: MinimalTheme
     if (dx > 70) {
       const currentIndex = paths.indexOf(pathname);
       if (touchX < touchStart.x && currentIndex < paths.length - 1) {
-        try { if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(10); } catch (e) {}
+        Haptics.heavy();
         router.push(paths[currentIndex + 1]);
         setTouchStart(null);
       } else if (touchX > touchStart.x && currentIndex > 0) {
-        try { if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(10); } catch (e) {}
+        Haptics.heavy();
         router.push(paths[currentIndex - 1]);
         setTouchStart(null);
       }

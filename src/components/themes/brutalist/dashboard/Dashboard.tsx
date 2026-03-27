@@ -14,6 +14,7 @@ import {
 import { BentoTile } from "../BentoTile";
 import { StudentProfile, AttendanceRecord } from "@/types";
 import { useDashboardAlerts } from "@/hooks/useDashboardAlerts";
+import { Haptics } from "@/utils/shared/haptics";
 
 const ScoreCounter = ({ value }: any) => {
   const nodeRef = useRef<any>(null);
@@ -197,7 +198,7 @@ const HomeDashboard = ({
     if (pullY > 80) {
       setIsLocalRefreshing(true);
       setPullY(80);
-      if (navigator.vibrate) navigator.vibrate(20);
+      Haptics.heavy();
 
       if (onRefresh) {
         onRefresh().finally(() => {

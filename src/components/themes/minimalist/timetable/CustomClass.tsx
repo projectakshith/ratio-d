@@ -2,6 +2,7 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
+import { Haptics } from "@/utils/shared/haptics";
 
 export default function CustomClass({
   isOpen,
@@ -33,7 +34,7 @@ export default function CustomClass({
           dragListener={true}
           onDragEnd={(e, info) => {
             if (info.offset.y > 150 || info.velocity.y > 500) {
-              if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(12);
+              Haptics.medium();
               onClose();
             }
           }}
@@ -59,7 +60,7 @@ export default function CustomClass({
             </div>
             <button
               onClick={() => {
-                if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(8);
+                Haptics.selection();
                 onClose();
               }}
               className="w-10 h-10 rounded-full bg-theme-surface flex items-center justify-center text-theme-text active:scale-95 transition-all shrink-0"
@@ -147,7 +148,7 @@ export default function CustomClass({
                 <button
                   type="button"
                   onClick={() => {
-                    if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(8);
+                    Haptics.selection();
                     setNewType("theory");
                   }}
                   className={`flex-1 py-4 rounded-[16px] text-[13px] font-bold uppercase tracking-widest transition-all ${newType === "theory" ? "bg-theme-emphasis text-theme-bg" : "bg-theme-surface text-theme-muted border border-theme-subtle"}`}
@@ -158,7 +159,7 @@ export default function CustomClass({
                 <button
                   type="button"
                   onClick={() => {
-                    if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(8);
+                    Haptics.selection();
                     setNewType("lab");
                   }}
                   className={`flex-1 py-4 rounded-[16px] text-[13px] font-bold uppercase tracking-widest transition-all ${newType === "lab" ? "bg-[#0EA5E9] text-white" : "bg-theme-surface text-theme-muted border border-theme-subtle"}`}
@@ -172,7 +173,7 @@ export default function CustomClass({
 
           <button
             onClick={() => {
-              if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(15);
+              Haptics.medium();
               handleAddClass();
             }}
             className="w-full bg-theme-highlight text-theme-bg py-5 rounded-[20px] text-[15px] font-black uppercase tracking-[0.2em] active:scale-[0.98] transition-all mt-auto shrink-0"

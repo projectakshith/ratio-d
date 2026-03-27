@@ -3,6 +3,7 @@ import React, { useEffect } from "react";
 import { motion } from "framer-motion";
 import { useTheme } from "@/context/ThemeContext";
 import { COLOR_THEMES, buildTheme } from "@/utils/theme/themeUtils";
+import { Haptics } from "@/utils/shared/haptics";
 
 interface ThemeSelectorProps {
   onComplete: () => void;
@@ -10,12 +11,6 @@ interface ThemeSelectorProps {
 
 export default function ThemeSelector({ onComplete }: ThemeSelectorProps) {
   const { theme: currentTheme, setTheme } = useTheme();
-
-  const haptic = (intensity = 10) => {
-    if (typeof window !== "undefined" && window.navigator.vibrate) {
-      window.navigator.vibrate(intensity);
-    }
-  };
 
   useEffect(() => {
     const saved = localStorage.getItem("ratiod_theme");
@@ -26,7 +21,7 @@ export default function ThemeSelector({ onComplete }: ThemeSelectorProps) {
   }, []);
 
   const handleThemePick = (colorId: string) => {
-    haptic(15);
+    Haptics.medium();
     const newTheme = buildTheme("minimalist", colorId as any);
     setTheme(newTheme);
   };

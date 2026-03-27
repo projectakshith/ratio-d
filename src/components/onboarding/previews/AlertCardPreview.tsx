@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Bell, BellRing, Check, Activity } from "lucide-react";
 import { requestNotificationPermission } from "@/utils/shared/notifs";
+import { Haptics } from "@/utils/shared/haptics";
 
 export default function AlertCardPreview({ onInteraction }: { onInteraction?: () => void }) {
   const [permission, setPermission] = useState<string>("default");
@@ -25,9 +26,7 @@ export default function AlertCardPreview({ onInteraction }: { onInteraction?: ()
       alert("Permission blocked. Please reset site permissions in your browser settings.");
     }
 
-    if (typeof window !== "undefined" && window.navigator.vibrate) {
-      window.navigator.vibrate(15);
-    }
+    Haptics.medium();
     
     setHasHandled(true);
     if (onInteraction) onInteraction();

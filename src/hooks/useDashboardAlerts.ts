@@ -1,21 +1,20 @@
 import { useState, useEffect, useMemo } from "react";
-import calendarDataJson from "@/data/calendar_data.json";
+import { useApp } from "@/context/AppContext";
 
 export function useDashboardAlerts(academia: any, isTargetAudience: boolean) {
+  const { calendarData: contextCalendarData } = useApp();
+
   const exams = useMemo(() => {
-    const calData = academia?.calendarData || calendarDataJson || [];
     const now = new Date();
     now.setHours(0, 0, 0, 0);
 
-    return calData
+    return contextCalendarData
       .filter((ev: any) => {
-        const d = new Date(ev.date);
-        d.setHours(0, 0, 0, 0);
-        return d >= now && ev.type === "exam" && isTargetAudience;
+        return ev.date >= now && ev.type === "exam" && isTargetAudience;
       })
       .sort(
         (a: any, b: any) =>
-          new Date(a.date).getTime() - new Date(b.date).getTime(),
+          a.date.getTime() - b.date.getTime(),
       )
       .slice(0, 2)
       .map((ev: any, i: number) => ({
@@ -23,27 +22,24 @@ export function useDashboardAlerts(academia: any, isTargetAudience: boolean) {
         title: "Assessment",
         desc: ev.description,
         type: "exam",
-        date: ev.date,
+        date: ev.date.toLocaleDateString(),
       }));
-  }, [academia?.calendarData, isTargetAudience]);
+  }, [contextCalendarData, isTargetAudience]);
 
   const upcomingBreaks = useMemo(() => {
-    const calData = academia?.calendarData || calendarDataJson || [];
     const now = new Date();
     now.setHours(0, 0, 0, 0);
 
-    return calData
+    return contextCalendarData
       .filter((ev: any) => {
-        const d = new Date(ev.date);
-        d.setHours(0, 0, 0, 0);
         return (
-          d.getTime() > now.getTime() &&
+          ev.date.getTime() > now.getTime() &&
           ev.description.toLowerCase().includes("holiday")
         );
       })
       .sort(
         (a: any, b: any) =>
-          new Date(a.date).getTime() - new Date(b.date).getTime(),
+          a.date.getTime() - b.date.getTime(),
       )
       .slice(0, 2)
       .map((ev: any, i: number) => ({
@@ -51,9 +47,9 @@ export function useDashboardAlerts(academia: any, isTargetAudience: boolean) {
         title: "Upcoming Break",
         desc: ev.description,
         type: "holiday",
-        date: ev.date,
+        date: ev.date.toLocaleDateString(),
       }));
-  }, [academia?.calendarData]);
+  }, [contextCalendarData]);
 
   const allAlerts = useMemo(
     () => [...exams, ...upcomingBreaks],

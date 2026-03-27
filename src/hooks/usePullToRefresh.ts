@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { Haptics } from "@/utils/shared/haptics";
 
 export function usePullToRefresh(isAlertsOpen: boolean = false, onRefresh?: () => Promise<void>) {
   const [pullY, setPullY] = useState(0);
@@ -41,7 +42,7 @@ export function usePullToRefresh(isAlertsOpen: boolean = false, onRefresh?: () =
     if (pullY > 80) {
       setIsRefreshing(true);
       setPullY(80);
-      if (navigator.vibrate) navigator.vibrate(20);
+      Haptics.heavy();
       
       if (onRefresh) {
         try {

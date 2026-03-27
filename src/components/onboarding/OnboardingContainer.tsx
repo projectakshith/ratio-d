@@ -18,6 +18,7 @@ import CommunityPreview from "./previews/CommunityPreview";
 import { slides } from "./slidesData";
 import { useApp } from "@/context/AppContext";
 import { useRouter } from "next/navigation";
+import { Haptics } from "@/utils/shared/haptics";
 
 const WhatsappIcon = ({ size = 20 }: { size?: number }) => (
   <svg 
@@ -45,11 +46,15 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
   const [loginError, setLoginError] = useState<string | null>(null);
   const [hasInteracted, setHasInteracted] = useState(false);
 
-  const haptic = (intensity = 10) => {
-    if (typeof window !== "undefined" && window.navigator.vibrate) {
-      window.navigator.vibrate(intensity);
+  useEffect(() => {
+    if (typeof window !== "undefined" && "caches" in window) {
+      const coreRoutes = ["/", "/attendance", "/marks", "/timetable", "/calendar"];
+      coreRoutes.forEach(route => {
+        router.prefetch(route);
+        fetch(route).catch(() => {});
+      });
     }
-  };
+  }, [router]);
 
   useEffect(() => {
     setHasInteracted(false);
@@ -74,7 +79,7 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
   }, [step]);
 
   const handleNext = async () => {
-    haptic(15);
+    Haptics.heavy();
     if (step < slides.length - 1) {
       setDirection(1);
       setStep((prev) => prev + 1);
@@ -99,7 +104,7 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
   };
 
   const handlePrev = () => {
-    haptic(15);
+    Haptics.heavy();
     if (step > 0) {
       setDirection(-1);
       setStep((prev) => prev - 1);
@@ -436,7 +441,7 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
                       <motion.button
                         variants={itemVariants}
                         onClick={() => {
-                          haptic(10);
+                          Haptics.light();
                           setIsPrivacyOpen(true);
                         }}
                         className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest bg-white/10 px-4 py-2 rounded-full border border-current/10 pointer-events-auto"
@@ -492,7 +497,7 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
                           default: { duration: 0.4 }
                         }}
                         whileTap={{ scale: 0.95 }}
-                        onClick={() => haptic(20)}
+                        onClick={() => Haptics.heavy()}
                         href="https://chat.whatsapp.com/D7wymoQ1zrQKqf4Qs4gw91"
                         target="_blank"
                         rel="noopener noreferrer"
@@ -556,7 +561,7 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
                 <button
                   key={i}
                   onClick={() => {
-                    haptic(10);
+                    Haptics.light();
                     setDirection(i > step ? 1 : -1);
                     setStep(i);
                   }}

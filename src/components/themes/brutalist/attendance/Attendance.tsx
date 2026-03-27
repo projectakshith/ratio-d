@@ -18,6 +18,7 @@ import BrutalistPredict from "./BrutalistPredict";
 
 import { AcademiaData } from "@/types";
 import { useAppLayout } from "@/context/AppLayoutContext";
+import { Haptics } from "@/utils/shared/haptics";
 
 const MarginCounter = ({ value }: { value: number }) => {
   const nodeRef = useRef<HTMLSpanElement>(null);
@@ -260,7 +261,7 @@ const MobileAttendance = ({
       if (container.scrollTop < 20) {
         if (processedList.length > 0 && selectedId !== processedList[0].id) {
           setSelectedId(processedList[0].id);
-          if (navigator.vibrate) navigator.vibrate(2);
+          Haptics.vibe(2);
         }
         scrollTimeout.current = null;
         return;
@@ -282,7 +283,7 @@ const MobileAttendance = ({
 
       if (closestId !== null && closestId !== selectedId) {
         setSelectedId(closestId);
-        if (navigator.vibrate) navigator.vibrate(2);
+        Haptics.vibe(2);
       }
       scrollTimeout.current = null;
     }, 50);

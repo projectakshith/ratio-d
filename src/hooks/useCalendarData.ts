@@ -6,6 +6,7 @@ import {
   getCalendarTheme,
 } from "@/utils/dashboard/calendarLogic";
 import { CalendarEvent } from "@/types";
+import { Haptics } from "@/utils/shared/haptics";
 
 export const useCalendarData = (
   calendarDataProp?: CalendarEvent[],
@@ -27,7 +28,7 @@ export const useCalendarData = (
 
   const handleDateClick = useCallback((date: Date) => {
     setSelectedDate(date);
-    if (navigator.vibrate) navigator.vibrate(2);
+    Haptics.vibe(2);
   }, []);
 
   const eventsMap = useMemo(() => {

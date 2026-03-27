@@ -29,6 +29,7 @@ import { useDashboardCalendar } from "@/hooks/useDashboardCalendar";
 import { useDashboardAlerts } from "@/hooks/useDashboardAlerts";
 import { useApp } from "@/context/AppContext";
 import { UserAvatar } from "@/components/shared/UserAvatar";
+import { Haptics } from "@/utils/shared/haptics";
 
 const BEZIER = [0.34, 0.15, 0.16, 0.96] as const;
 
@@ -388,7 +389,7 @@ export default function Dashboard({
             >
               <button
                 onClick={() => {
-                  if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(8);
+                  Haptics.selection();
                   onOpenSettings();
                 }}
                 className="w-[50px] h-[50px] rounded-[16px] overflow-hidden transition-all mt-3 bg-theme-surface border-none"
@@ -470,7 +471,7 @@ export default function Dashboard({
                 {extraGrid.length > 0 && (
                   <button
                     onClick={() => {
-                      if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(8);
+                      Haptics.selection();
                       setShowExtraSlots(!showExtraSlots);
                     }}
                     className="bg-theme-surface text-theme-muted px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest transition-all"
@@ -483,7 +484,7 @@ export default function Dashboard({
               <div className="flex gap-2">
                 <button
                   onClick={() => {
-                    if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(10);
+                    Haptics.light();
                     handleDaySwitch("prev");
                   }}
                   className="transition-transform"
@@ -492,7 +493,7 @@ export default function Dashboard({
                 </button>
                 <button
                   onClick={() => {
-                    if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(10);
+                    Haptics.light();
                     handleDaySwitch("next");
                   }}
                   className="transition-transform"
@@ -619,7 +620,7 @@ export default function Dashboard({
             >
               <div
                 onClick={() => {
-                  if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(15);
+                  Haptics.medium();
                   router.push("/attendance");
                 }}
                 className={`w-full border-[1.5px] rounded-[24px] p-2 pr-5 flex items-center gap-4 shadow-sm transition-all cursor-pointer ${attStyles.bg} ${attStyles.border}`}
@@ -657,7 +658,7 @@ export default function Dashboard({
 
               <div
                 onClick={() => {
-                  if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(15);
+                  Haptics.medium();
                   setIsAlertsOpen(true);
                 }}
                 className="w-full bg-theme-emphasis text-theme-bg border-[1.5px] border-black/5 rounded-[24px] p-2 pr-5 flex items-center gap-4 shadow-sm transition-transform cursor-pointer"
@@ -704,7 +705,7 @@ export default function Dashboard({
 
               <div
                 onClick={() => {
-                  if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(15);
+                  Haptics.medium();
                   router.push("/marks");
                 }}
                 className="w-full bg-theme-card border-theme-subtle border-[1.5px] rounded-[24px] p-2 pr-5 flex items-center gap-4 shadow-sm transition-transform cursor-pointer"

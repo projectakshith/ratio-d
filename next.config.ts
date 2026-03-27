@@ -7,8 +7,8 @@ const withPWA = withPWAInit({
   dest: "public",
   disable: process.env.NODE_ENV === "development",
   register: true,
-  cacheOnFrontEndNav: true,
-  aggressiveFrontEndNavCaching: true,
+  cacheOnFrontEndNav: false,
+  aggressiveFrontEndNavCaching: false,
   reloadOnOnline: true,
   fallbacks: {
     image: "/icons/icon-192.png",
@@ -16,18 +16,6 @@ const withPWA = withPWAInit({
   workboxOptions: {
     skipWaiting: true,
     clientsClaim: true,
-    additionalManifestEntries: [
-      { url: "/", revision },
-      { url: "/attendance", revision },
-      { url: "/marks", revision },
-      { url: "/timetable", revision },
-      { url: "/calendar", revision },
-      { url: "/onboarding", revision },
-      { url: "/login", revision },
-      { url: "/setup", revision },
-      { url: "/~offline", revision },
-      { url: "/_not-found", revision },
-    ],
     runtimeCaching: [
       {
         urlPattern: ({ request }) => request.mode === 'navigate',

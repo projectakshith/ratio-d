@@ -6,6 +6,8 @@ import { AcademiaData } from "@/types";
 import { compareData, DataDiff } from "@/utils/shared/diffUtils";
 import { sendNotification } from "@/utils/shared/notifs";
 
+import calendarDataJson from "@/data/calendar_data.json";
+
 interface AppContextType {
   userData: AcademiaData | null;
   setUserData: (data: AcademiaData | null) => void;
@@ -31,6 +33,7 @@ interface AppContextType {
   setShowWelcome: (val: boolean) => void;
   profileSeed: string;
   setProfileSeed: (seed: string) => void;
+  calendarData: any[];
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -48,11 +51,21 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [showWelcome, setShowWelcome] = useState(false);
   const [profileSeed, setProfileSeed] = useState<string>("");
   const updateInProgress = React.useRef(false);
+  const sessionNotificationsSent = React.useRef<Set<string>>(new Set());
   const router = useRouter();
+
+  const calendarData = useMemo(() => {
+    return (calendarDataJson as any[]).map(item => ({
+      ...item,
+      date: new Date(item.date),
+      isHoliday: item.dayOrder === "Holiday" || item.dayOrder === "Sunday"
+    }));
+  }, []);
 
   const logout = useCallback(() => {
     EncryptionUtils.flushAllStorage();
     localStorage.removeItem("ratiod_custom_name");
+    sessionNotificationsSent.current.clear();
     setUserData(null);
     router.replace("/login");
   }, [router]);
@@ -93,11 +106,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         EncryptionUtils.setSessionCookie();
         setUserData(data);
         localStorage.setItem("ratio_data", JSON.stringify(data));
-
-        if (typeof window !== "undefined" && "caches" in window) {
-          const coreRoutes = ["/", "/attendance", "/marks", "/timetable", "/calendar"];
-          coreRoutes.forEach(route => fetch(route).catch(() => {}));
-        }
 
         return data;
       } catch (err) {
@@ -245,6 +253,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (!latestDiff) return;
 
     latestDiff.attendanceChanges.forEach((change) => {
+      const notifId = `att-${change.course}-${change.newMargin}-${change.newPercent}`;
+      if (sessionNotificationsSent.current.has(notifId)) return;
+
       const direction = change.diff > 0 ? "Increased" : "Decreased";
       const icon = change.diff > 0 ? "📈" : "📉";
       const label = change.newPercent >= 75 ? "Margin" : "Required";
@@ -254,17 +265,21 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         `${icon} ${change.course}: ${label} ${change.oldMargin} -> ${change.newMargin}`,
         `attendance-${change.course}`,
       );
+      sessionNotificationsSent.current.add(notifId);
     });
 
     latestDiff.newMarks.forEach((mark) => {
+      const notifId = `mark-${mark.course}-${mark.test}-${mark.score}`;
+      if (sessionNotificationsSent.current.has(notifId)) return;
+
       sendNotification(
         `New Marks: ${mark.course}`,
         `📝 ${mark.test}: ${mark.score}/${mark.max} scored!`,
         `marks-${mark.course}-${mark.test}`,
       );
+      sessionNotificationsSent.current.add(notifId);
     });
 
-    setLatestDiff(null);
   }, [latestDiff]);
 
 const value = useMemo(() => ({
@@ -292,7 +307,8 @@ const value = useMemo(() => ({
     setShowWelcome,
     profileSeed,
     setProfileSeed,
-  }), [userData, customDisplayName, isUpdating, isOffline, isBackendError, refreshData, performLogin, loginPromise, logout, latestDiff, deferredPrompt, canInstall, showWelcome, profileSeed]);
+    calendarData,
+  }), [userData, customDisplayName, isUpdating, isOffline, isBackendError, refreshData, performLogin, loginPromise, logout, latestDiff, deferredPrompt, canInstall, showWelcome, profileSeed, calendarData]);
 
   return (
     <AppContext.Provider value={value}>

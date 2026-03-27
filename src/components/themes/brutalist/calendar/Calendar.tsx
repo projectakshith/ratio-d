@@ -2,6 +2,7 @@
 import React, { useState, useMemo, useEffect, memo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, Target, Calendar } from "lucide-react";
+import { Haptics } from "@/utils/shared/haptics";
 
 const CalendarDay = memo(
   ({ item, onClick }: { item: any; onClick: (date: Date) => void }) => {
@@ -98,7 +99,7 @@ const CalendarPage = ({ calendarData, academia, data }: any) => {
 
   const handleDateClick = useCallback((date: Date) => {
     setSelectedDate(date);
-    if (navigator.vibrate) navigator.vibrate(2);
+    Haptics.vibe(2);
   }, []);
 
   const eventsMap = useMemo(() => {

@@ -3,6 +3,7 @@ import React, { useState, useCallback } from "react";
 import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
 import { BottomNav } from "./BottomNav";
 import { usePathname, useRouter } from "next/navigation";
+import { Haptics } from "@/utils/shared/haptics";
 
 interface BrutalistThemeProps {
   children: React.ReactNode;
@@ -45,11 +46,11 @@ export default function BrutalistTheme({ children, isSwipeDisabled }: BrutalistT
     if (dx > 70) {
       const currentIndex = paths.indexOf(pathname);
       if (touchX < touchStart.x && currentIndex < paths.length - 1) {
-        try { if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(10); } catch (e) {}
+        Haptics.heavy();
         router.push(paths[currentIndex + 1]);
         setTouchStart(null);
       } else if (touchX > touchStart.x && currentIndex > 0) {
-        try { if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(10); } catch (e) {}
+        Haptics.heavy();
         router.push(paths[currentIndex - 1]);
         setTouchStart(null);
       }
