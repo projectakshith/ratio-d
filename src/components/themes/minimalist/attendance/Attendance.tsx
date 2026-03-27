@@ -399,7 +399,7 @@ export default function Attendance({
           {actionRequired.length > 0 && (
             <motion.div
               key="action-required-section"
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, ease: "easeOut" }}
               className="w-full p-5 flex flex-col gap-4 mb-12 rounded-[32px] shrink-0 border-[2px] border-dashed"
