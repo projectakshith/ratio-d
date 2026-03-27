@@ -99,15 +99,18 @@ export const useAcademiaData = (data: AcademiaData | null) => {
     const updateStatus = () => {
       if (schedule && Object.keys(schedule).length > 0) {
         const newStatus = getScheduleStatus(schedule, effectiveDayOrder);
-        if (JSON.stringify(newStatus) !== JSON.stringify(timeStatus)) {
-          setTimeStatus(newStatus);
-        }
+        setTimeStatus(current => {
+          if (JSON.stringify(newStatus) !== JSON.stringify(current)) {
+            return newStatus;
+          }
+          return current;
+        });
       }
     };
     updateStatus();
     const interval = setInterval(updateStatus, 60000);
     return () => clearInterval(interval);
-  }, [schedule, effectiveDayOrder, timeStatus]);
+  }, [schedule, effectiveDayOrder]);
 
   const overallAttendance = useMemo(() => {
     return calculateOverallAttendance(data?.attendance || []);

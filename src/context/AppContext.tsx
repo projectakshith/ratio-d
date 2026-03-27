@@ -52,6 +52,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [profileSeed, setProfileSeed] = useState<string>("");
   const updateInProgress = React.useRef(false);
   const sessionNotificationsSent = React.useRef<Set<string>>(new Set());
+  const hasRefreshed = React.useRef(false);
   const router = useRouter();
 
   const calendarData = useMemo(() => {
@@ -205,7 +206,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         setUserData(parsed);
         
         const creds = EncryptionUtils.loadDecrypted("ratio_credentials");
-        if (creds) {
+        if (creds && !hasRefreshed.current) {
+          hasRefreshed.current = true;
           refreshData(creds, parsed);
         }
       } catch {

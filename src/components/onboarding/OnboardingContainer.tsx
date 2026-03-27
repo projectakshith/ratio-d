@@ -45,9 +45,11 @@ function PwaSlideshow({ onComplete }: { onComplete?: () => void }) {
   const [isWaitingForLogin, setIsWaitingForLogin] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
   const [hasInteracted, setHasInteracted] = useState(false);
+  const hasPrecached = React.useRef(false);
 
   useEffect(() => {
-    if (typeof window !== "undefined" && "caches" in window) {
+    if (typeof window !== "undefined" && "caches" in window && !hasPrecached.current) {
+      hasPrecached.current = true;
       const coreRoutes = ["/", "/attendance", "/marks", "/timetable", "/calendar"];
       coreRoutes.forEach(route => {
         router.prefetch(route);
