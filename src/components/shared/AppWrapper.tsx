@@ -60,6 +60,7 @@ useEffect(() => {
       <AnimatePresence>
         {isOffline && (
           <motion.div
+            key="offline-status"
             initial={{ y: -20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: -20, opacity: 0 }}
@@ -75,6 +76,7 @@ useEffect(() => {
         )}
         {isBackendError && (
           <motion.div
+            key="backend-status"
             initial={{ y: -20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: -20, opacity: 0 }}
