@@ -34,7 +34,6 @@ import CourseDetailsPage from "@/components/shared/CourseDetailsPage";
 import { UserAvatar } from "@/components/shared/UserAvatar";
 import PrivacyProtocol from "@/components/shared/PrivacyProtocol";
 
-// Import your newly created components
 import WhatsNew from "./WhatsNew"; 
 import Marketplace from "./Marketplace";
 
@@ -205,6 +204,7 @@ const SettingsPage = ({
   const { userData, refreshData, isUpdating, profileSeed, setProfileSeed } = useApp();
   const [isEditing, setIsEditing] = useState(false);
   const [tempName, setTempName] = useState("");
+  const [tempSeed, setTempSeed] = useState(profileSeed);
   const [notifEnabled, setNotifEnabled] = useState(false);
   const [showThemes, setShowThemes] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
@@ -224,12 +224,13 @@ const SettingsPage = ({
     }
   }, []);
 
-  const handleSave = () => {
+  const handleApply = () => {
     if (tempName.trim()) {
       onUpdateName?.(tempName.trim());
-      setIsEditing(false);
-      setTempName("");
     }
+    setProfileSeed(tempSeed);
+    localStorage.setItem("ratio_profile_seed", tempSeed);
+    setIsEditing(false);
   };
 
   const handleNotificationClick = async () => {
@@ -264,8 +265,7 @@ const SettingsPage = ({
 
   const handleRandomizeSeed = () => {
     const newSeed = Math.random().toString(36).substring(7);
-    setProfileSeed(newSeed);
-    localStorage.setItem("ratio_profile_seed", newSeed);
+    setTempSeed(newSeed);
     if (typeof window !== "undefined" && navigator.vibrate) navigator.vibrate(10);
   };
 
@@ -284,71 +284,115 @@ const SettingsPage = ({
           <h1 className="text-[26px] font-semibold tracking-tight">Settings</h1>
         </motion.div>
 
-        <div className="flex-1 overflow-y-auto">
-          <div className="px-6 py-8 space-y-12">
-            <motion.div variants={itemVariants} className="space-y-6">
-              <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-full overflow-hidden bg-theme-surface">
-                  <UserAvatar seed={profileSeed} className="w-full h-full" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold capitalize">
-                    {profile?.name ? profile.name.toLowerCase() : "Student"}
-                  </h3>
-                  <p className="text-xs uppercase tracking-widest text-theme-muted">
-                    {profile?.regNo || "Student Account"}
-                  </p>
-                </div>
-              </div>
+        <div className="flex-1 overflow-y-auto no-scrollbar">
+          <motion.div layout className="px-6 py-8 space-y-12">
+            <motion.div layout variants={itemVariants} className="space-y-6">
+              <AnimatePresence mode="wait">
+                {!isEditing ? (
+                  <motion.div 
+                    key="profile-view" 
+                    initial={{ opacity: 0, y: 10 }} 
+                    animate={{ opacity: 1, y: 0 }} 
+                    exit={{ opacity: 0, y: -10 }} 
+                    className="space-y-6"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-16 h-16 rounded-full overflow-hidden bg-theme-surface">
+                        <UserAvatar seed={profileSeed} className="w-full h-full" />
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-semibold capitalize">
+                          {profile?.name ? profile.name.toLowerCase() : "Student"}
+                        </h3>
+                        <p className="text-xs uppercase tracking-widest text-theme-muted">
+                          {profile?.regNo || "Student Account"}
+                        </p>
+                      </div>
+                    </div>
 
-              <div className="relative min-h-[52px]">
-                <AnimatePresence mode="wait">
-                  {!isEditing ? (
-                    <motion.div key="buttons" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} className="flex gap-3">
-                      <button onClick={() => setIsEditing(true)} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-[22px] bg-theme-surface transition-colors text-sm font-semibold">
+                    <div className="flex gap-3">
+                      <button 
+                        onClick={() => {
+                          const firstName = (profile?.name || "student").split(" ")[0].toLowerCase();
+                          setTempName(firstName);
+                          setTempSeed(profileSeed);
+                          setIsEditing(true);
+                        }} 
+                        className="flex-1 flex items-center justify-center gap-2 py-3 rounded-[22px] bg-theme-surface transition-colors text-sm font-semibold"
+                      >
                         <Pencil className="w-4 h-4" /> Edit Profile
                       </button>
                       <button onClick={() => setShowProfileCard(true)} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-[22px] bg-theme-surface transition-colors text-sm font-semibold">
                         <User className="w-4 h-4" /> Profile Card
                       </button>
-                    </motion.div>
-                  ) : (
-                    <motion.div key="input-stack" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} className="flex flex-col gap-3">
-                      <div className="flex gap-2">
-                        <input autoFocus type="text" placeholder="New display name..." className="flex-1 min-w-0 bg-theme-surface border border-theme-border rounded-[22px] px-5 py-3 text-sm focus:outline-none text-theme-text" value={tempName} onChange={(e) => setTempName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleSave()} />
-                        <button onClick={handleRandomizeSeed} className="w-[50px] shrink-0 flex items-center justify-center rounded-[22px] bg-theme-surface border border-theme-border transition-colors active:scale-95" title="Randomize Avatar">
-                          <RefreshCw className="w-4 h-4 text-theme-text" />
-                        </button>
+                    </div>
+                  </motion.div>
+                ) : (
+                  <motion.div 
+                    key="profile-edit" 
+                    initial={{ opacity: 0, y: 10 }} 
+                    animate={{ opacity: 1, y: 0 }} 
+                    exit={{ opacity: 0, y: -10 }} 
+                    className="flex flex-col gap-6 py-2"
+                  >
+                    <div className="flex flex-col items-center gap-4">
+                      <div className="w-24 h-24 rounded-[32px] overflow-hidden bg-theme-surface border-2 border-theme-border shadow-inner relative group transition-all">
+                        <UserAvatar seed={tempSeed} className="w-full h-full scale-110" />
                       </div>
-                      
-                      <div className="flex gap-2">
-                        <button onClick={handleSave} className="flex-1 py-3 rounded-[22px] bg-theme-text text-theme-bg font-bold text-sm flex items-center justify-center gap-2 active:scale-95 transition-transform">
-                          <Check className="w-4 h-4" /> Save
-                        </button>
-                        <button onClick={() => { setIsEditing(false); setTempName(""); }} className="px-6 py-3 rounded-[22px] bg-theme-surface text-theme-muted text-sm font-semibold active:scale-95 transition-transform">
-                          Cancel
-                        </button>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
+                      <button 
+                        onClick={handleRandomizeSeed}
+                        className="w-full py-3 rounded-[22px] bg-theme-surface border border-theme-border flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] active:scale-95 transition-all text-theme-text"
+                      >
+                        <RefreshCw className="w-3.5 h-3.5" /> randomize avatar
+                      </button>
+                    </div>
+
+                    <div className="w-full space-y-2">
+                      <p className="text-[10px] uppercase tracking-widest text-theme-muted ml-4">display name</p>
+                      <input autoFocus type="text" placeholder="New display name..." className="w-full bg-theme-surface border border-theme-border rounded-[22px] px-6 py-4 text-sm focus:outline-none text-theme-text font-medium" value={tempName} onChange={(e) => setTempName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleApply()} />
+                    </div>
+                    
+                    <div className="flex gap-3 w-full">
+                      <button onClick={handleApply} className="flex-[2] py-4 rounded-[22px] bg-theme-emphasis text-theme-bg font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95 transition-all shadow-lg">
+                        <Check className="w-4 h-4" strokeWidth={3} /> apply
+                      </button>
+                      <button onClick={() => { setIsEditing(false); setTempName(""); }} className="flex-1 py-4 rounded-[22px] bg-theme-surface text-theme-muted font-black text-xs uppercase tracking-widest active:scale-95 transition-all border border-theme-border">
+                        cancel
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </motion.div>
 
-            <motion.div variants={itemVariants} className="space-y-4">
-              <p className="text-[11px] uppercase tracking-widest text-theme-muted">Preferences</p>
-              <div className="space-y-1">
-                <SettingItem icon={<Bell className="w-5 h-5 opacity-80 text-theme-text" />} label="Notifications" toggle isActive={notifEnabled} onClick={handleNotificationClick} />
-                <SettingItem icon={<Palette className="w-5 h-5 opacity-80 text-theme-text" />} label="Select Theme" onClick={() => setShowThemes(true)} value={getThemeDisplayName(selectedTheme)} />
-                <SettingItem icon={<BookOpen className="w-5 h-5 opacity-80 text-theme-text" />} label="Course Details" onClick={() => setShowCourseDetails(true)} />
-                <SettingItem icon={<Lock className="w-5 h-5 opacity-80 text-theme-text" />} label="Privacy" onClick={() => setShowPrivacy(true)} />
-                <SettingItem icon={<PartyPopper className="w-5 h-5 opacity-80 text-theme-text" />} label="What's New" onClick={() => setShowWhatsNew(true)} />
-                <SettingItem icon={<Store className="w-5 h-5 opacity-80 text-theme-text" />} label="Marketplace" onClick={() => setShowMarketplace(true)} />
-                <SettingItem icon={<Cloud className="w-5 h-5 opacity-80 text-theme-text" />} label="Sync Data" onClick={handleSync} value={isUpdating ? "Syncing..." : ""} />
-                <SettingItem icon={<WhatsappIcon size={20} />} label="WhatsApp Community" onClick={() => window.open("https://chat.whatsapp.com/D7wymoQ1zrQKqf4Qs4gw91", "_blank")} />
+            <motion.div layout variants={itemVariants} className="space-y-12">
+              <div className="space-y-6">
+                <div className="flex items-center gap-4 ml-4">
+                  <p className="text-[10px] uppercase tracking-[0.25em] text-theme-muted font-black whitespace-nowrap">Dashboard</p>
+                  <div className="h-[1.5px] flex-1 bg-theme-text opacity-40 rounded-full" />
+                </div>
+                <div className="space-y-1 px-1">
+                  <SettingItem icon={<Bell className="w-5 h-5 opacity-80 text-theme-text" />} label="Notifications" toggle isActive={notifEnabled} onClick={handleNotificationClick} />
+                  <SettingItem icon={<Palette className="w-5 h-5 opacity-80 text-theme-text" />} label="Select Theme" onClick={() => setShowThemes(true)} value={getThemeDisplayName(selectedTheme)} />
+                  <SettingItem icon={<BookOpen className="w-5 h-5 opacity-80 text-theme-text" />} label="Course Details" onClick={() => setShowCourseDetails(true)} />
+                  <SettingItem icon={<Cloud className="w-5 h-5 opacity-80 text-theme-text" />} label="Sync Data" onClick={handleSync} value={isUpdating ? "Syncing..." : ""} />
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                <div className="flex items-center gap-4 ml-4">
+                  <p className="text-[10px] uppercase tracking-[0.25em] text-theme-muted font-black whitespace-nowrap">Discover</p>
+                  <div className="h-[1.5px] flex-1 bg-theme-text opacity-40 rounded-full" />
+                </div>
+                <div className="space-y-1 px-1">
+                  <SettingItem icon={<PartyPopper className="w-5 h-5 opacity-80 text-theme-text" />} label="What's New" onClick={() => setShowWhatsNew(true)} />
+                  <SettingItem icon={<Store className="w-5 h-5 opacity-80 text-theme-text" />} label="Marketplace" onClick={() => setShowMarketplace(true)} />
+                  <SettingItem icon={<Lock className="w-5 h-5 opacity-80 text-theme-text" />} label="Privacy" onClick={() => setShowPrivacy(true)} />
+                  <SettingItem icon={<WhatsappIcon size={20} />} label="WhatsApp Community" onClick={() => window.open("https://chat.whatsapp.com/D7wymoQ1zrQKqf4Qs4gw91", "_blank")} />
+                </div>
               </div>
             </motion.div>
-          </div>
+          </motion.div>
         </div>
 
         <motion.div variants={itemVariants} className="p-6 pt-4 border-t border-theme-border bg-theme-bg z-10 space-y-6">
