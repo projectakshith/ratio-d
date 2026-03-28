@@ -105,11 +105,15 @@ const parseDateString = (str: string) => {
 
 export const getStatus = (pct: number, conducted: number, present: number) => {
   if (pct >= 75) {
-    const margin = Math.floor(present / 0.75 - conducted);
+    const margin = Math.floor((present - 0.75 * conducted) / 0.75);
     return { val: Math.max(0, margin), label: "margin", safe: true };
   }
-  const needed = Math.ceil((0.75 * conducted - present) / 0.25);
-  return { val: Math.max(0, needed), label: "recover", safe: false };
+  
+  let needed = 0;
+  while (((present + needed) / (conducted + needed)) * 100 < 75) {
+    needed++;
+  }
+  return { val: needed, label: "recover", safe: false };
 };
 
 const parseTimeValues = (timeStr: string): number => {
@@ -140,7 +144,7 @@ export const getImpactMap = (
   calendarData: CalendarEvent[],
   effectiveSchedule: ScheduleData,
   baseAttendance: any[],
-  predictAction: "leave" | "attend",
+  predictAction: "leave" | "attend" | "od",
 ) => {
   const impact: Record<string, { conducted: number; present: number }> = {};
   if (calendarData.length === 0 || Object.keys(effectiveSchedule).length === 0)
@@ -154,21 +158,18 @@ export const getImpactMap = (
   const todayStr = parseDateString(new Date().toISOString());
   if (!todayStr) return impact;
 
-  let datesToSimulate: string[] = [];
+  let datesToSimulate: string[] = selectedDates;
 
   if (predictAction === "leave" && selectedDates.length > 0) {
     const sortedSelected = [...selectedDates].sort();
     const lastDateStr = sortedSelected[sortedSelected.length - 1];
-
     const start = new Date(todayStr);
     const end = new Date(lastDateStr);
-
+    datesToSimulate = [];
     for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
       const dStr = parseDateString(d.toISOString());
       if (dStr) datesToSimulate.push(dStr);
     }
-  } else if (predictAction === "attend") {
-    datesToSimulate = selectedDates;
   }
 
   datesToSimulate.forEach((dateStr) => {
@@ -177,31 +178,32 @@ export const getImpactMap = (
       const rawOrder = dayInfo.dayOrder || dayInfo.order;
       if (rawOrder && rawOrder !== "-" && !isNaN(parseInt(rawOrder))) {
         const orderNum = parseInt(rawOrder);
-        const dayKey = `Day ${orderNum}`;
-        const dayClasses = effectiveSchedule[dayKey];
+        const dayClasses =
+          effectiveSchedule[`Day ${orderNum}`] ||
+          effectiveSchedule[`day ${orderNum}`] ||
+          effectiveSchedule[String(orderNum)];
         if (dayClasses) {
-          const isLeaveDate = selectedDates.includes(dateStr);
+          const isSelectedDate = selectedDates.includes(dateStr);
           const isAttendAction = predictAction === "attend";
+          const isODAction = predictAction === "od";
 
           Object.entries(dayClasses).forEach(
             ([timeRange, cls]: [string, any]) => {
               if (!cls) return;
               const clsCode = norm(cls.code || "");
-              const clsType = (cls.type || cls.category || "Theory")
-                .trim()
-                .toLowerCase();
+              const clsType = (cls.type || cls.category || "Theory").trim().toLowerCase();
               const sessionWeight = calculateSessions(timeRange);
 
               let targetSubject = baseAttendance.find((s) => {
-                return (
-                  norm(s.code) === clsCode && s.type.toLowerCase() === clsType
-                );
+                const sCode = norm(s.code);
+                return (sCode === clsCode || clsCode.includes(sCode) || sCode.includes(clsCode)) && s.type.toLowerCase() === clsType;
               });
 
               if (!targetSubject) {
-                targetSubject = baseAttendance.find(
-                  (s) => norm(s.code) === clsCode,
-                );
+                targetSubject = baseAttendance.find((s) => {
+                  const sCode = norm(s.code);
+                  return sCode === clsCode || clsCode.includes(sCode) || sCode.includes(clsCode);
+                });
               }
 
               if (targetSubject) {
@@ -209,13 +211,16 @@ export const getImpactMap = (
                   impact[targetSubject.id] = { conducted: 0, present: 0 };
                 }
 
-                impact[targetSubject.id].conducted += sessionWeight;
-
-                if (isAttendAction) {
-                  impact[targetSubject.id].present += sessionWeight;
+                if (isODAction) {
+                  impact[targetSubject.id].conducted -= sessionWeight;
                 } else {
-                  if (!isLeaveDate) {
+                  impact[targetSubject.id].conducted += sessionWeight;
+                  if (isAttendAction) {
                     impact[targetSubject.id].present += sessionWeight;
+                  } else {
+                    if (!isSelectedDate) {
+                      impact[targetSubject.id].present += sessionWeight;
+                    }
                   }
                 }
               }
@@ -226,6 +231,102 @@ export const getImpactMap = (
     }
   });
   return impact;
+};
+
+export const getRecoveryDate = (
+  subject: any,
+  calendarData: any[],
+  effectiveSchedule: any,
+  selectedDates: string[] = [],
+  predictAction: string = "leave"
+) => {
+  if (!subject) return null;
+  
+  let currentPresent = subject.present;
+  let currentConducted = subject.conducted;
+  
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  if (predictAction === "od" && selectedDates.length > 0) {
+    const normalizedCalData = calendarData.map((c) => ({
+      ...c,
+      normDate: parseDateString(c.date),
+    }));
+
+    selectedDates.forEach((dateStr) => {
+      const dObj = new Date(dateStr);
+      if (dObj < today) {
+        const dayInfo = normalizedCalData.find((c) => c.normDate === dateStr);
+        if (dayInfo) {
+          const rawOrder = dayInfo.dayOrder || dayInfo.order;
+          if (rawOrder && rawOrder !== "-" && !isNaN(parseInt(rawOrder))) {
+            const orderNum = parseInt(rawOrder);
+            const dayClasses = effectiveSchedule[`Day ${orderNum}`] || effectiveSchedule[`day ${orderNum}`] || effectiveSchedule[String(orderNum)];
+            if (dayClasses) {
+              Object.entries(dayClasses).forEach(([timeRange, cls]: [string, any]) => {
+                if (!cls) return;
+                const clsCode = norm(cls.code || "");
+                const clsType = (cls.type || cls.category || "Theory").trim().toLowerCase();
+                const sCode = norm(subject.code);
+                if ((sCode === clsCode || clsCode.includes(sCode) || sCode.includes(clsCode)) && subject.type.toLowerCase() === clsType) {
+                  const weight = calculateSessions(timeRange);
+                  currentConducted -= weight;
+                }
+              });
+            }
+          }
+        }
+      }
+    });
+  }
+  
+  const sortedCal = [...calendarData]
+    .map(c => ({ ...c, dObj: new Date(c.date), norm: parseDateString(c.date) }))
+    .filter(c => c.dObj >= today)
+    .sort((a, b) => a.dObj.getTime() - b.dObj.getTime());
+
+  for (const day of sortedCal) {
+    if ((currentPresent / currentConducted) * 100 >= 75) {
+      return day.date;
+    }
+
+    const rawOrder = day.dayOrder || day.order;
+    if (rawOrder && rawOrder !== "-" && !isNaN(parseInt(rawOrder))) {
+      const orderNum = parseInt(rawOrder);
+      const dayClasses =
+        effectiveSchedule[`Day ${orderNum}`] ||
+        effectiveSchedule[`day ${orderNum}`] ||
+        effectiveSchedule[String(orderNum)];
+        
+      if (dayClasses) {
+        const isSelectedDate = selectedDates.includes(day.norm || "");
+        Object.entries(dayClasses).forEach(([timeRange, cls]: [string, any]) => {
+          if (!cls) return;
+          const clsCode = norm(cls.code || "");
+          const clsType = (cls.type || cls.category || "Theory").trim().toLowerCase();
+          const sCode = norm(subject.code);
+          
+          if ((sCode === clsCode || clsCode.includes(sCode) || sCode.includes(clsCode)) && 
+              subject.type.toLowerCase() === clsType) {
+            const weight = calculateSessions(timeRange);
+            currentConducted += weight;
+            if (predictAction === "attend" && isSelectedDate) currentPresent += weight;
+            else if (predictAction === "leave" && isSelectedDate) currentPresent += 0;
+            else if (predictAction === "od" && isSelectedDate) {
+               currentConducted -= weight;
+            } else {
+              currentPresent += weight;
+            }
+          }
+        });
+      }
+    }
+    
+    if (sortedCal.indexOf(day) > 150) break;
+  }
+  
+  return null;
 };
 
 export const getProcessedList = (

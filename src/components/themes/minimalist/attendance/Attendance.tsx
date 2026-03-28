@@ -9,6 +9,7 @@ import {
   getProcessedList,
   getStatus,
   getAcronym,
+  getRecoveryDate,
 } from "@/utils/attendance/attendanceLogic";
 import calendarDataJson from "@/data/calendar_data.json";
 import Predict from "./Predict";
@@ -66,7 +67,7 @@ export default function Attendance({
     }
   }, [isPredictOverlay, setIsSwipeDisabled]);
 
-  const [predictAction, setPredictAction] = useState<"leave" | "attend">(
+  const [predictAction, setPredictAction] = useState<"leave" | "attend" | "od">(
     "leave",
   );
   const [isRangeMode, setIsRangeMode] = useState(false);
@@ -108,9 +109,19 @@ export default function Attendance({
         s.conducted,
         s.present,
       );
+      
+      const calDataToUse = (academia?.calendarData?.length > 0) ? academia.calendarData : (calendarDataJson || []);
+      const recDate = getRecoveryDate(
+        s, 
+        calDataToUse, 
+        academia?.effectiveSchedule || data?.schedule || data?.timetable || {},
+        selectedDates,
+        predictAction
+      );
+
       return {
         ...s,
-        displayCode: getAcronym(s.title),
+        displayCode: getAcronym(s.title) || s.code || "SUB",
         fullName: s.title.toLowerCase(),
         percent: s.pred.pct.toFixed(1),
         safe: s.pred.status.safe,
@@ -120,9 +131,10 @@ export default function Attendance({
         originalLabel: origStatus.label,
         currentLabel: s.pred.status.label,
         hasChanged: s.pred.status.val !== origStatus.val || s.pred.status.label !== origStatus.label,
+        recoveryDate: recDate,
       };
     });
-  }, [baseAttendance, impactMap, isPredicting]);
+  }, [baseAttendance, impactMap, isPredicting, academia, data, selectedDates, predictAction]);
 
   const actionRequired = useMemo(
     () => processedList.filter((s) => !s.safe).sort((a, b) => b.val - a.val),
@@ -257,6 +269,7 @@ export default function Attendance({
         </div>
 
         <motion.div
+          key={`attendance-content-${isPredicting}-${selectedDates.length}-${predictAction}`}
           variants={containerVariants}
           initial="hidden"
           animate="show"
@@ -350,7 +363,7 @@ export default function Attendance({
                   className="absolute inset-0 bg-theme-text rounded-[24px] translate-y-1.5"
                 />
                 <div
-                  className="relative w-full border-[1.5px] border-theme-text bg-theme-text rounded-[24px] p-4 flex items-center justify-between"
+                  className="relative w-full border-[1.5px] border-theme-text bg-theme-emphasis rounded-[24px] p-4 flex items-center justify-between"
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-theme-bg-alpha flex items-center justify-center">
@@ -358,13 +371,13 @@ export default function Attendance({
                     </div>
                     <div className="flex flex-col items-start">
                       <span
-                        className="text-[14px] font-black uppercase tracking-widest text-theme-bg leading-none"
+                        className="text-[14px] font-black uppercase tracking-widest leading-none text-theme-bg"
                         style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
                       >
                         predicting
                       </span>
                       <span
-                        className="text-[10px] font-bold lowercase tracking-wider text-theme-bg-60 mt-1"
+                        className="text-[10px] font-bold lowercase tracking-wider mt-1 text-theme-bg-70"
                         style={{ fontFamily: "var(--font-afacad), sans-serif" }}
                       >
                         {selectedDates.length} days{" "}
@@ -398,7 +411,7 @@ export default function Attendance({
 
           {actionRequired.length > 0 && (
             <motion.div
-              key="action-required-section"
+              key={`action-required-${isPredicting}-${selectedDates.length}-${predictAction}`}
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, ease: "easeOut" }}
@@ -425,6 +438,17 @@ export default function Attendance({
                 >
                   <div className="flex items-center justify-between w-full">
                     <div className="flex flex-col items-center justify-center min-w-[80px] shrink-0">
+                      {isPredicting && sub.hasChanged && (
+                        <div className="flex items-center gap-1 mb-1.5 px-2 py-0.5 rounded-full bg-[#FF4D4D]/10 border border-[#FF4D4D]/20">
+                          <span className="text-[10px] font-bold opacity-40 text-[#FF4D4D]">
+                            {sub.originalVal}
+                          </span>
+                          <ChevronRightIcon size={8} className="opacity-40 text-[#FF4D4D]" />
+                          <span className="text-[10px] font-black text-[#FF4D4D]">
+                            {sub.val}
+                          </span>
+                        </div>
+                      )}
                       <span
                         className="text-[3.2rem] leading-[0.8] font-black tracking-tighter"
                         style={{
@@ -434,31 +458,25 @@ export default function Attendance({
                       >
                         {sub.val}
                       </span>
-                      {isPredicting && sub.hasChanged ? (
-                        <div className="flex items-center gap-1 mt-1.5 px-2 py-0.5 rounded-full bg-[#FF4D4D]/10 border border-[#FF4D4D]/20">
-                          <span className="text-[10px] font-bold opacity-40 text-[#FF4D4D]">
-                            {sub.originalVal}
-                          </span>
-                          <ChevronRightIcon size={8} className="opacity-40 text-[#FF4D4D]" />
-                          <span className="text-[10px] font-black text-[#FF4D4D]">
-                            {sub.val}
+                      {sub.currentLabel === "recover" && sub.recoveryDate ? (
+                        <div className="mt-1.5 flex items-center gap-1 bg-[#FF4D4D]/10 px-2 py-0.5 rounded-full border border-[#FF4D4D]/10 whitespace-nowrap">
+                          <span className="text-[7px] font-black uppercase tracking-widest text-[#FF4D4D]/60">RECOVER :</span>
+                          <span className="text-[8.5px] font-black text-[#FF4D4D]">
+                            {new Date(sub.recoveryDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase()}
                           </span>
                         </div>
                       ) : (
-                        <span
-                          className="text-[10px] font-bold uppercase tracking-widest mt-1 text-center"
-                          style={{
-                            fontFamily: "var(--font-afacad), sans-serif",
-                            color: "#FF4D4Db3",
-                          }}
-                        >
-                          {sub.currentLabel}
-                        </span>
-                      )}
-                      {isPredicting && sub.hasChanged && sub.originalLabel !== sub.currentLabel && (
-                        <span className="text-[8px] font-black uppercase tracking-tighter mt-1 text-[#FF4D4D]/60 text-center">
-                          {sub.originalLabel} → {sub.currentLabel}
-                        </span>
+                        (!isPredicting || !sub.hasChanged) && (
+                          <span
+                            className="text-[10px] font-bold uppercase tracking-widest mt-1 text-center"
+                            style={{
+                              fontFamily: "var(--font-afacad), sans-serif",
+                              color: "#FF4D4Db3",
+                            }}
+                          >
+                            {sub.currentLabel}
+                          </span>
+                        )
                       )}
                     </div>
                     <div className="flex-1 flex flex-col items-end text-right min-w-0 ml-4">
@@ -527,6 +545,7 @@ export default function Attendance({
           )}
 
           <motion.div
+            key={`safe-subjects-${isPredicting}-${selectedDates.length}-${predictAction}`}
             variants={containerVariants}
             className="flex flex-col gap-3.5 w-full shrink-0"
           >

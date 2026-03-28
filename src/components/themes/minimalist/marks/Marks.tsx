@@ -215,7 +215,7 @@ export default function Marks({
   const maxPossibleExpected = Math.max(0, 60 - (activePredSub.totalMax || 0));
   const projectedInternals = currentInternals + currentExpectedMarks;
   const semNeededPercentage = Math.max(0, currentTargetGrade - projectedInternals);
-  const maxExternal = activePredSub.isPractical ? 40 : 75;
+  const maxExternal = activePredSub.isPractical ? 40 : 100;
   const semRequiredOutOfMax = Math.ceil((semNeededPercentage / 40) * maxExternal);
 
   const predictedGpa = useMemo(() => {
@@ -295,6 +295,7 @@ export default function Marks({
         </div>
 
         <motion.div
+          key={`marks-content-${predictMode}-${Object.keys(expectedMarksMap).length}-${ignoredSubjectIds.length}`}
           variants={containerVariants}
           initial="hidden"
           animate="show"

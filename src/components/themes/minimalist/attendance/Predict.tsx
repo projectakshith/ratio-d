@@ -115,6 +115,13 @@ export default function Predict({
               >
                 attending
               </button>
+              <button
+                onClick={() => { Haptics.selection(); setPredictAction("od"); }}
+                className={`flex-1 py-2.5 rounded-[12px] text-[11px] font-bold uppercase transition-all ${predictAction === "od" ? "bg-theme-highlight text-theme-text" : "text-theme-muted"}`}
+                style={{ fontFamily: "'Montserrat', sans-serif" }}
+              >
+                od/ml
+              </button>
             </div>
             <div className="w-full flex justify-between items-center mb-6 shrink-0">
               <button
@@ -168,7 +175,7 @@ export default function Predict({
                   const isToday = dateObj.getTime() === now.getTime();
                   const isWeekend = isWeekendStr(dStr);
                   const isHoliday = holidayMap.has(dStr);
-                  const isDisabled = isWeekend || isHoliday || isPast;
+                  const isDisabled = (isWeekend || isHoliday) || (isPast && predictAction !== "od");
                   const selected =
                     (isRangeMode && rangeStart === dStr) ||
                     selectedDates.includes(dStr);

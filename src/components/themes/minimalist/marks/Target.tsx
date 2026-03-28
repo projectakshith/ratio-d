@@ -49,7 +49,7 @@ export default function Target({
   toggleSubjectIgnore,
   textClass,
 }: TargetProps) {
-  const maxExternal = activePredSub.isPractical ? 40 : 75;
+  const maxExternal = activePredSub.isPractical ? 40 : 100;
 
   return (
     <AnimatePresence>
