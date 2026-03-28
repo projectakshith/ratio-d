@@ -71,7 +71,7 @@ export default function Attendance({
     "leave",
   );
   const [isRangeMode, setIsRangeMode] = useState(false);
-  const [selectedDates, setSelectedDates] = useState<string[]>([]);
+  const [selectedDates, setSelectedDates] = useState<Record<string, "leave" | "attend" | "od">>({});
   const [rangeStart, setRangeStart] = useState<string | null>(null);
   const [rangeEnd, setRangeEnd] = useState<string | null>(null);
   const [currentCalDate, setCurrentCalDate] = useState(new Date());
@@ -86,16 +86,15 @@ export default function Attendance({
   );
 
   const impactMap = useMemo(() => {
-    if (!isPredicting || selectedDates.length === 0) return {};
+    if (!isPredicting || Object.keys(selectedDates).length === 0) return {};
     const calDataToUse = (academia?.calendarData?.length > 0) ? academia.calendarData : (calendarDataJson || []);
     return getImpactMap(
       selectedDates,
       calDataToUse,
       academia?.effectiveSchedule || data?.schedule || data?.timetable || {},
-      baseAttendance,
-      predictAction
+      baseAttendance
     );
-  }, [isPredicting, selectedDates, academia, baseAttendance, data?.schedule, data?.timetable, predictAction]);
+  }, [isPredicting, selectedDates, academia, baseAttendance, data?.schedule, data?.timetable]);
 
   const processedList = useMemo(() => {
     const list = getProcessedList(
@@ -204,17 +203,22 @@ export default function Attendance({
   const handleDateClick = (day: number) => {
     const dStr = formatDate(calYear, calMonth, day);
     if (isWeekendStr(dStr) || holidayMap.has(dStr)) return;
-    if (!isRangeMode)
-      setSelectedDates((prev) =>
-        prev.includes(dStr) ? prev.filter((d) => d !== dStr) : [...prev, dStr],
-      );
-    else {
+    
+    if (!isRangeMode) {
+      setSelectedDates((prev) => {
+        const next = { ...prev };
+        if (next[dStr] === predictAction) {
+          delete next[dStr];
+        } else {
+          next[dStr] = predictAction;
+        }
+        return next;
+      });
+    } else {
       if (!rangeStart || (rangeStart && rangeEnd)) {
         setRangeStart(dStr);
         setRangeEnd(null);
-        setSelectedDates((prev) =>
-          prev.includes(dStr) ? prev : [...prev, dStr],
-        );
+        setSelectedDates((prev) => ({ ...prev, [dStr]: predictAction }));
       } else {
         setRangeEnd(dStr);
         let start = new Date(
@@ -228,16 +232,16 @@ export default function Attendance({
           Number(dStr.split("-")[2]),
         );
         if (start > end) [start, end] = [end, start];
-        const range: string[] = [];
+        const range: Record<string, "leave" | "attend" | "od"> = {};
         for (
           let dt = new Date(start);
           dt <= end;
           dt.setDate(dt.getDate() + 1)
         ) {
           const s = formatDate(dt.getFullYear(), dt.getMonth(), dt.getDate());
-          if (!isWeekendStr(s) && !holidayMap.has(s)) range.push(s);
+          if (!isWeekendStr(s) && !holidayMap.has(s)) range[s] = predictAction;
         }
-        setSelectedDates((prev) => Array.from(new Set([...prev, ...range])));
+        setSelectedDates((prev) => ({ ...prev, ...range }));
       }
     }
   };
@@ -269,7 +273,7 @@ export default function Attendance({
         </div>
 
         <motion.div
-          key={`attendance-content-${isPredicting}-${selectedDates.length}-${predictAction}`}
+          key={`attendance-content-${isPredicting}-${Object.keys(selectedDates).length}-${predictAction}`}
           variants={containerVariants}
           initial="hidden"
           animate="show"
@@ -395,7 +399,7 @@ export default function Attendance({
                     <button
                       onClick={() => {
                         setIsPredicting(false);
-                        setSelectedDates([]);
+                        setSelectedDates({});
                         setRangeStart(null);
                         setRangeEnd(null);
                       }}
@@ -408,19 +412,18 @@ export default function Attendance({
               </div>
             )}
           </motion.div>
-
-          {actionRequired.length > 0 && (
-            <motion.div
-              key={`action-required-${isPredicting}-${selectedDates.length}-${predictAction}`}
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, ease: "easeOut" }}
-              className="w-full p-5 flex flex-col gap-4 mb-12 rounded-[32px] shrink-0 border-[2px] border-dashed"
-              style={{ 
-                borderColor: 'color-mix(in srgb, var(--theme-secondary) 50%, transparent)',
-                backgroundColor: 'color-mix(in srgb, var(--theme-secondary) 5%, transparent)',
-                borderDasharray: '12 16'
-              } as any}
+{actionRequired.length > 0 && (
+  <motion.div
+    key={`action-required-${isPredicting}-${Object.keys(selectedDates).length}-${predictAction}`}
+    initial={{ opacity: 0, y: -20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.4, ease: "easeOut" }}
+    className="w-full p-5 flex flex-col gap-4 mb-12 rounded-[32px] shrink-0 border-[2px] border-dashed"
+    style={{ 
+      borderColor: 'color-mix(in srgb, var(--theme-secondary) 50%, transparent)',
+      backgroundColor: 'color-mix(in srgb, var(--theme-secondary) 5%, transparent)',
+      borderDasharray: '12 16'
+    } as any}
             >
               <div className="flex items-center gap-3 w-full">
                 <span
@@ -545,7 +548,7 @@ export default function Attendance({
           )}
 
           <motion.div
-            key={`safe-subjects-${isPredicting}-${selectedDates.length}-${predictAction}`}
+            key={`safe-subjects-${isPredicting}-${Object.keys(selectedDates).length}-${predictAction}`}
             variants={containerVariants}
             className="flex flex-col gap-3.5 w-full shrink-0"
           >

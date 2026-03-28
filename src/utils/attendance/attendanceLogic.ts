@@ -140,11 +140,10 @@ const calculateSessions = (timeRange: string) => {
 };
 
 export const getImpactMap = (
-  selectedDates: string[],
+  selectedDates: Record<string, "leave" | "attend" | "od">,
   calendarData: CalendarEvent[],
   effectiveSchedule: ScheduleData,
-  baseAttendance: any[],
-  predictAction: "leave" | "attend" | "od",
+  baseAttendance: any[]
 ) => {
   const impact: Record<string, { conducted: number; present: number }> = {};
   if (calendarData.length === 0 || Object.keys(effectiveSchedule).length === 0)
@@ -158,18 +157,24 @@ export const getImpactMap = (
   const todayStr = parseDateString(new Date().toISOString());
   if (!todayStr) return impact;
 
-  let datesToSimulate: string[] = selectedDates;
+  const dateEntries = Object.entries(selectedDates);
+  if (dateEntries.length === 0) return impact;
 
-  if (predictAction === "leave" && selectedDates.length > 0) {
-    const sortedSelected = [...selectedDates].sort();
-    const lastDateStr = sortedSelected[sortedSelected.length - 1];
+  const leaveDates = dateEntries.filter(([_, type]) => type === "leave").map(([d]) => d);
+  let datesToSimulate = Object.keys(selectedDates);
+
+  if (leaveDates.length > 0) {
+    const sortedLeaves = [...leaveDates].sort();
+    const lastLeaveStr = sortedLeaves[sortedLeaves.length - 1];
     const start = new Date(todayStr);
-    const end = new Date(lastDateStr);
-    datesToSimulate = [];
+    const end = new Date(lastLeaveStr);
+    const simulationSet = new Set(datesToSimulate);
+    
     for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
       const dStr = parseDateString(d.toISOString());
-      if (dStr) datesToSimulate.push(dStr);
+      if (dStr) simulationSet.add(dStr);
     }
+    datesToSimulate = Array.from(simulationSet);
   }
 
   datesToSimulate.forEach((dateStr) => {
@@ -183,49 +188,41 @@ export const getImpactMap = (
           effectiveSchedule[`day ${orderNum}`] ||
           effectiveSchedule[String(orderNum)];
         if (dayClasses) {
-          const isSelectedDate = selectedDates.includes(dateStr);
-          const isAttendAction = predictAction === "attend";
-          const isODAction = predictAction === "od";
+          const action = selectedDates[dateStr];
 
-          Object.entries(dayClasses).forEach(
-            ([timeRange, cls]: [string, any]) => {
-              if (!cls) return;
-              const clsCode = norm(cls.code || "");
-              const clsType = (cls.type || cls.category || "Theory").trim().toLowerCase();
-              const sessionWeight = calculateSessions(timeRange);
+          Object.entries(dayClasses).forEach(([timeRange, cls]: [string, any]) => {
+            if (!cls) return;
+            const clsCode = norm(cls.code || "");
+            const clsType = (cls.type || cls.category || "Theory").trim().toLowerCase();
+            const sessionWeight = calculateSessions(timeRange);
 
-              let targetSubject = baseAttendance.find((s) => {
+            let targetSubject = baseAttendance.find((s) => {
+              const sCode = norm(s.code);
+              return (sCode === clsCode || clsCode.includes(sCode) || sCode.includes(clsCode)) && s.type.toLowerCase() === clsType;
+            });
+
+            if (!targetSubject) {
+              targetSubject = baseAttendance.find((s) => {
                 const sCode = norm(s.code);
-                return (sCode === clsCode || clsCode.includes(sCode) || sCode.includes(clsCode)) && s.type.toLowerCase() === clsType;
+                return sCode === clsCode || clsCode.includes(sCode) || sCode.includes(clsCode);
               });
+            }
 
-              if (!targetSubject) {
-                targetSubject = baseAttendance.find((s) => {
-                  const sCode = norm(s.code);
-                  return sCode === clsCode || clsCode.includes(sCode) || sCode.includes(clsCode);
-                });
+            if (targetSubject) {
+              if (!impact[targetSubject.id]) {
+                impact[targetSubject.id] = { conducted: 0, present: 0 };
               }
 
-              if (targetSubject) {
-                if (!impact[targetSubject.id]) {
-                  impact[targetSubject.id] = { conducted: 0, present: 0 };
-                }
-
-                if (isODAction) {
-                  impact[targetSubject.id].conducted -= sessionWeight;
-                } else {
-                  impact[targetSubject.id].conducted += sessionWeight;
-                  if (isAttendAction) {
-                    impact[targetSubject.id].present += sessionWeight;
-                  } else {
-                    if (!isSelectedDate) {
-                      impact[targetSubject.id].present += sessionWeight;
-                    }
-                  }
+              if (action === "od") {
+                impact[targetSubject.id].conducted -= sessionWeight;
+              } else {
+                impact[targetSubject.id].conducted += sessionWeight;
+                if (action === "attend" || !action) {
+                  impact[targetSubject.id].present += sessionWeight;
                 }
               }
-            },
-          );
+            }
+          });
         }
       }
     }
@@ -237,7 +234,7 @@ export const getRecoveryDate = (
   subject: any,
   calendarData: any[],
   effectiveSchedule: any,
-  selectedDates: string[] = [],
+  selectedDates: Record<string, "leave" | "attend" | "od"> = {},
   predictAction: string = "leave"
 ) => {
   if (!subject) return null;
@@ -248,38 +245,37 @@ export const getRecoveryDate = (
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  if (predictAction === "od" && selectedDates.length > 0) {
-    const normalizedCalData = calendarData.map((c) => ({
-      ...c,
-      normDate: parseDateString(c.date),
-    }));
+  const normalizedCalData = calendarData.map((c) => ({
+    ...c,
+    normDate: parseDateString(c.date),
+  }));
 
-    selectedDates.forEach((dateStr) => {
-      const dObj = new Date(dateStr);
-      if (dObj < today) {
-        const dayInfo = normalizedCalData.find((c) => c.normDate === dateStr);
-        if (dayInfo) {
-          const rawOrder = dayInfo.dayOrder || dayInfo.order;
-          if (rawOrder && rawOrder !== "-" && !isNaN(parseInt(rawOrder))) {
-            const orderNum = parseInt(rawOrder);
-            const dayClasses = effectiveSchedule[`Day ${orderNum}`] || effectiveSchedule[`day ${orderNum}`] || effectiveSchedule[String(orderNum)];
-            if (dayClasses) {
-              Object.entries(dayClasses).forEach(([timeRange, cls]: [string, any]) => {
-                if (!cls) return;
-                const clsCode = norm(cls.code || "");
-                const clsType = (cls.type || cls.category || "Theory").trim().toLowerCase();
-                const sCode = norm(subject.code);
-                if ((sCode === clsCode || clsCode.includes(sCode) || sCode.includes(clsCode)) && subject.type.toLowerCase() === clsType) {
-                  const weight = calculateSessions(timeRange);
-                  currentConducted -= weight;
-                }
-              });
-            }
+  Object.entries(selectedDates).forEach(([dateStr, type]) => {
+    if (type !== "od") return;
+    const dObj = new Date(dateStr);
+    if (dObj < today) {
+      const dayInfo = normalizedCalData.find((c) => c.normDate === dateStr);
+      if (dayInfo) {
+        const rawOrder = dayInfo.dayOrder || dayInfo.order;
+        if (rawOrder && rawOrder !== "-" && !isNaN(parseInt(rawOrder))) {
+          const orderNum = parseInt(rawOrder);
+          const dayClasses = effectiveSchedule[`Day ${orderNum}`] || effectiveSchedule[`day ${orderNum}`] || effectiveSchedule[String(orderNum)];
+          if (dayClasses) {
+            Object.entries(dayClasses).forEach(([timeRange, cls]: [string, any]) => {
+              if (!cls) return;
+              const clsCode = norm(cls.code || "");
+              const clsType = (cls.type || cls.category || "Theory").trim().toLowerCase();
+              const sCode = norm(subject.code);
+              if ((sCode === clsCode || clsCode.includes(sCode) || sCode.includes(clsCode)) && subject.type.toLowerCase() === clsType) {
+                const weight = calculateSessions(timeRange);
+                currentConducted -= weight;
+              }
+            });
           }
         }
       }
-    });
-  }
+    }
+  });
   
   const sortedCal = [...calendarData]
     .map(c => ({ ...c, dObj: new Date(c.date), norm: parseDateString(c.date) }))
@@ -300,7 +296,7 @@ export const getRecoveryDate = (
         effectiveSchedule[String(orderNum)];
         
       if (dayClasses) {
-        const isSelectedDate = selectedDates.includes(day.norm || "");
+        const action = selectedDates[day.norm || ""];
         Object.entries(dayClasses).forEach(([timeRange, cls]: [string, any]) => {
           if (!cls) return;
           const clsCode = norm(cls.code || "");
@@ -311,12 +307,10 @@ export const getRecoveryDate = (
               subject.type.toLowerCase() === clsType) {
             const weight = calculateSessions(timeRange);
             currentConducted += weight;
-            if (predictAction === "attend" && isSelectedDate) currentPresent += weight;
-            else if (predictAction === "leave" && isSelectedDate) currentPresent += 0;
-            else if (predictAction === "od" && isSelectedDate) {
-               currentConducted -= weight;
-            } else {
+            if (action === "attend" || !action) {
               currentPresent += weight;
+            } else if (action === "od") {
+               currentConducted -= weight;
             }
           }
         });

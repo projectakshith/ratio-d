@@ -211,7 +211,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
     if (cachedName) setCustomDisplayName(cachedName);
 
-    let parsed = null;
+    let parsed: any = null;
     if (cachedData) {
       try {
         parsed = JSON.parse(cachedData);
@@ -228,7 +228,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
     if (cachedSeed) {
       setProfileSeed(cachedSeed);
-    } else if (parsed?.profile?.name) {
+    } else if (parsed && parsed.profile && parsed.profile.name) {
       const initialSeed = parsed.profile.name;
       setProfileSeed(initialSeed);
       localStorage.setItem("ratio_profile_seed", initialSeed);

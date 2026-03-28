@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, Variants } from "framer-motion";
 import { X, Coins, Sparkles, Clock } from "lucide-react";
 
 interface MarketplaceProps {
@@ -8,7 +8,7 @@ interface MarketplaceProps {
   onClose: () => void;
 }
 
-const slideVariants = {
+const slideVariants: Variants = {
   hidden: { x: "100%" },
   visible: { 
     x: "0%", 

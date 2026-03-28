@@ -58,8 +58,8 @@ const MobileAttendance = ({
   const [predictMode, setPredictMode] = useState(false);
   const [isPredicting, setIsPredicting] = useState(false);
   const [introMode, setIntroMode] = useState(true);
-  const [selectedDates, setSelectedDates] = useState<string[]>([]);
-  const [predType, setPredType] = useState<"leave" | "attend">("leave");
+  const [selectedDates, setSelectedDates] = useState<Record<string, "leave" | "attend" | "od">>({});
+  const [predType, setPredType] = useState<"leave" | "attend" | "od">("leave");
   const [currentCalDate, setCurrentCalDate] = useState(new Date());
   const [isRangeMode, setIsRangeMode] = useState(false);
   const [rangeStart, setRangeStart] = useState<string | null>(null);
@@ -79,8 +79,8 @@ const MobileAttendance = ({
   const effectiveSchedule = useMemo(() => academia?.effectiveSchedule || data?.schedule || data?.timetable || {}, [academia?.effectiveSchedule, data?.schedule, data?.timetable]);
 
   const predictionImpact = useMemo(
-    () => getImpactMap(selectedDates, calendarData, effectiveSchedule, baseAttendance, predType),
-    [selectedDates, calendarData, effectiveSchedule, baseAttendance, predType]
+    () => getImpactMap(selectedDates, calendarData, effectiveSchedule, baseAttendance),
+    [selectedDates, calendarData, effectiveSchedule, baseAttendance]
   );
 
   const processedList = useMemo(() => {
@@ -155,7 +155,7 @@ const MobileAttendance = ({
 
   useEffect(() => {
     if (!predictMode && !isPredicting) {
-      setSelectedDates([]);
+      setSelectedDates({});
       setPredType("leave");
       setRangeStart(null);
       setIsRangeMode(false);
@@ -203,28 +203,35 @@ const MobileAttendance = ({
     const dStr = formatDate(currentCalDate.getFullYear(), currentCalDate.getMonth(), day);
     const now = new Date();
     now.setHours(0, 0, 0, 0);
-    if (new Date(currentCalDate.getFullYear(), currentCalDate.getMonth(), day) < now) return;
+    const isPast = new Date(currentCalDate.getFullYear(), currentCalDate.getMonth(), day) < now;
+    if (isPast && predType !== "od") return;
     if (isWeekendStr(dStr) || holidayMap.has(dStr)) return;
 
     if (!isRangeMode) {
-      setSelectedDates((prev) =>
-        prev.includes(dStr) ? prev.filter((d) => d !== dStr) : [...prev, dStr]
-      );
+      setSelectedDates((prev) => {
+        const next = { ...prev };
+        if (next[dStr] === predType) {
+          delete next[dStr];
+        } else {
+          next[dStr] = predType;
+        }
+        return next;
+      });
     } else {
       if (!rangeStart) {
         setRangeStart(dStr);
-        if (!selectedDates.includes(dStr)) setSelectedDates([...selectedDates, dStr]);
+        setSelectedDates((prev) => ({ ...prev, [dStr]: predType }));
       } else {
         let start = new Date(rangeStart);
         let end = new Date(dStr);
         if (start > end) [start, end] = [end, start];
         
-        const range: string[] = [];
+        const range: Record<string, "leave" | "attend" | "od"> = {};
         for (let dt = new Date(start); dt <= end; dt.setDate(dt.getDate() + 1)) {
           const s = formatDate(dt.getFullYear(), dt.getMonth(), dt.getDate());
-          if (!isWeekendStr(s) && !holidayMap.has(s)) range.push(s);
+          if (!isWeekendStr(s) && !holidayMap.has(s)) range[s] = predType;
         }
-        setSelectedDates((prev) => Array.from(new Set([...prev, ...range])));
+        setSelectedDates((prev) => ({ ...prev, ...range }));
         setRangeStart(null);
         setIsRangeMode(false);
       }
@@ -375,7 +382,7 @@ const MobileAttendance = ({
                       {predType === "leave" ? "leave" : "attend"}
                     </span>
                     <span className="text-white/20 text-xl font-bold">/</span>
-                    <span className="text-white/60 text-xl font-bold lowercase" style={{ fontFamily: "Aonic" }}>{selectedDates.length} days</span>
+                    <span className="text-white/60 text-xl font-bold lowercase" style={{ fontFamily: "Aonic" }}>{Object.keys(selectedDates).length} days</span>
                   </div>
                 </div>
                 <button
@@ -437,7 +444,7 @@ const MobileAttendance = ({
             const predData = subject.pred;
             const isSafe = predData.status.safe;
             const affected = predData.sessionsAffected;
-            const isPredictActive = isPredicting && selectedDates.length > 0;
+            const isPredictActive = isPredicting && Object.keys(selectedDates).length > 0;
             const isPredictDimmed = isPredicting && isPredictActive && !affected;
 
             return (

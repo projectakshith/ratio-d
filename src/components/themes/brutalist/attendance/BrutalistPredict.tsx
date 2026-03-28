@@ -2,12 +2,13 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ChevronLeft, ChevronRight, Check } from "lucide-react";
+import { Haptics } from "@/utils/shared/haptics";
 
 interface PredictProps {
   isOpen: boolean;
   onClose: () => void;
-  predictAction: "leave" | "attend";
-  setPredictAction: (action: "leave" | "attend") => void;
+  predictAction: "leave" | "attend" | "od";
+  setPredictAction: (action: "leave" | "attend" | "od") => void;
   calYear: number;
   calMonth: number;
   monthName: string;
@@ -22,8 +23,8 @@ interface PredictProps {
   rangeStart: string | null;
   setRangeStart(val: string | null): void;
   setRangeEnd(val: string | null): void;
-  selectedDates: string[];
-  setSelectedDates: (dates: string[] | ((prev: string[]) => string[])) => void;
+  selectedDates: Record<string, "leave" | "attend" | "od">;
+  setSelectedDates: React.Dispatch<React.SetStateAction<Record<string, "leave" | "attend" | "od">>>;
   handleDateClick: (day: number) => void;
   setIsPredicting: (val: boolean) => void;
 }
@@ -76,10 +77,10 @@ export default function BrutalistPredict({
                 PREDICT
               </span>
               <span className="text-[10px] font-bold lowercase tracking-[0.2em] text-[#ceff1c] mt-1.5" style={{ fontFamily: "Aonic" }}>
-                {predictAction === "leave" ? "plan your leaves" : "plan your presence"}
+                {predictAction === "leave" ? "plan your leaves" : predictAction === "attend" ? "plan your presence" : "plan your od/ml"}
               </span>
             </div>
-            <button onClick={onClose} className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white transition-all shrink-0">
+            <button onClick={() => { Haptics.selection(); onClose(); }} className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white transition-all shrink-0">
               <X size={20} strokeWidth={2.5} />
             </button>
           </div>
@@ -87,18 +88,25 @@ export default function BrutalistPredict({
           <div className="flex flex-col flex-1 justify-center w-full mt-6">
             <div className="flex items-center gap-2 bg-white/5 p-1 rounded-[16px] mb-3 shrink-0">
               <button
-                onClick={() => setPredictAction("leave")}
+                onClick={() => { Haptics.selection(); setPredictAction("leave"); }}
                 className={`flex-1 py-2.5 rounded-[12px] text-[11px] font-bold uppercase transition-all ${predictAction === "leave" ? "bg-[#ff003c] text-white" : "text-white/40"}`}
                 style={{ fontFamily: "Montserrat" }}
               >
                 leaves
               </button>
               <button
-                onClick={() => setPredictAction("attend")}
+                onClick={() => { Haptics.selection(); setPredictAction("attend"); }}
                 className={`flex-1 py-2.5 rounded-[12px] text-[11px] font-bold uppercase transition-all ${predictAction === "attend" ? "bg-[#ceff1c] text-black" : "text-white/40"}`}
                 style={{ fontFamily: "Montserrat" }}
               >
                 attending
+              </button>
+              <button
+                onClick={() => { Haptics.selection(); setPredictAction("od"); }}
+                className={`flex-1 py-2.5 rounded-[12px] text-[11px] font-bold uppercase transition-all ${predictAction === "od" ? "bg-[#F97316] text-white" : "text-white/40"}`}
+                style={{ fontFamily: "Montserrat" }}
+              >
+                od/ml
               </button>
             </div>
 
@@ -136,16 +144,27 @@ export default function BrutalistPredict({
                   const isToday = dateObj.getTime() === now.getTime();
                   const isWeekend = isWeekendStr(dStr);
                   const isHoliday = holidayMap.has(dStr);
-                  const isDisabled = isWeekend || isHoliday || isPast;
-                  const selected = (isRangeMode && rangeStart === dStr) || selectedDates.includes(dStr);
+                  const isDisabled = (isWeekend || isHoliday) || (isPast && predictAction !== "od");
+                  
+                  const selectedType = selectedDates[dStr];
+                  const isSelected = !!selectedType;
+                  
+                  let cellStyle = "bg-white/5 text-white";
+                  if (isSelected) {
+                    if (selectedType === "leave") cellStyle = "bg-[#ff003c] text-white shadow-[#ff003c]/20";
+                    else if (selectedType === "od") cellStyle = "bg-[#F97316] text-white shadow-[#F97316]/20";
+                    else if (selectedType === "attend") cellStyle = "bg-[#ceff1c] text-black shadow-[#ceff1c]/20";
+                  } else if (isToday) {
+                    cellStyle = "bg-white/10 text-white ring-1 ring-white/30";
+                  }
                   
                   return (
                     <div key={day} className="relative aspect-square flex flex-col items-center justify-center">
                       <button
-                        onClick={() => handleDateClick(day)}
+                        onClick={() => { Haptics.selection(); handleDateClick(day); }}
                         disabled={isDisabled}
                         className={`w-full h-full rounded-[12px] flex items-center justify-center text-[15px] font-black transition-all 
-                          ${isDisabled ? "text-white/10" : selected ? (predictAction === "leave" ? "bg-[#ff003c] text-white" : "bg-[#ceff1c] text-black") : isToday ? "bg-white/10 text-white ring-1 ring-white/30" : "bg-white/5 text-white"}
+                          ${isDisabled ? "text-white/10" : cellStyle + " shadow-lg"}
                         `}
                         style={{ fontFamily: "Montserrat" }}
                       >
@@ -159,14 +178,14 @@ export default function BrutalistPredict({
 
             <div className="flex items-center gap-2 shrink-0 bg-white/5 p-1 rounded-[16px]">
               <button
-                onClick={() => { setIsRangeMode(false); setRangeStart(null); setRangeEnd(null); setSelectedDates([]); }}
+                onClick={() => { Haptics.selection(); setIsRangeMode(false); setRangeStart(null); setRangeEnd(null); setSelectedDates({}); }}
                 className={`flex-1 py-2.5 rounded-[12px] text-[10px] font-bold uppercase tracking-widest transition-all ${!isRangeMode ? "bg-white/10 text-white" : "text-white/40"}`}
                 style={{ fontFamily: "Montserrat" }}
               >
                 Single Day
               </button>
               <button
-                onClick={() => { setIsRangeMode(true); setSelectedDates([]); }}
+                onClick={() => { Haptics.selection(); setIsRangeMode(true); setSelectedDates({}); }}
                 className={`flex-1 py-2.5 rounded-[12px] text-[10px] font-bold uppercase tracking-widest transition-all ${isRangeMode ? "bg-white/10 text-white" : "text-white/40"}`}
                 style={{ fontFamily: "Montserrat" }}
               >
@@ -181,12 +200,17 @@ export default function BrutalistPredict({
                 total days
               </span>
               <span className="text-[28px] font-black text-white" style={{ fontFamily: "Montserrat" }}>
-                {selectedDates.length}
+                {Object.keys(selectedDates).length}
               </span>
             </div>
             <button
-              onClick={() => { setIsPredicting(true); onClose(); }}
-              className={`px-8 py-4 rounded-[16px] flex items-center gap-3 active:scale-95 shadow-xl transition-all ${predictAction === "leave" ? "bg-[#ff003c] text-white" : "bg-[#ceff1c] text-black"}`}
+              onClick={() => {
+                if (Object.keys(selectedDates).length > 0) {
+                  setIsPredicting(true);
+                  onClose();
+                }
+              }}
+              className={`px-8 py-4 rounded-[16px] flex items-center gap-3 active:scale-95 shadow-xl transition-all ${predictAction === "leave" ? "bg-[#ff003c] text-white" : predictAction === "od" ? "bg-[#F97316] text-white" : "bg-[#ceff1c] text-black"}`}
             >
               <span className="text-[14px] font-black uppercase" style={{ fontFamily: "Montserrat" }}>
                 confirm

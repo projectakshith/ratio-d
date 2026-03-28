@@ -7,8 +7,8 @@ import { Haptics } from "@/utils/shared/haptics";
 interface PredictProps {
   isOpen: boolean;
   onClose: () => void;
-  predictAction: "leave" | "attend";
-  setPredictAction: (action: "leave" | "attend") => void;
+  predictAction: "leave" | "attend" | "od";
+  setPredictAction: (action: "leave" | "attend" | "od") => void;
   calYear: number;
   calMonth: number;
   monthName: string;
@@ -23,8 +23,8 @@ interface PredictProps {
   rangeStart: string | null;
   setRangeStart(val: string | null): void;
   setRangeEnd(val: string | null): void;
-  selectedDates: string[];
-  setSelectedDates: (dates: string[] | ((prev: string[]) => string[])) => void;
+  selectedDates: Record<string, "leave" | "attend" | "od">;
+  setSelectedDates: React.Dispatch<React.SetStateAction<Record<string, "leave" | "attend" | "od">>>;
   handleDateClick: (day: number) => void;
   setIsPredicting: (val: boolean) => void;
 }
@@ -87,7 +87,9 @@ export default function Predict({
               >
                 {predictAction === "leave"
                   ? "plan your leaves"
-                  : "plan your presence"}
+                  : predictAction === "attend" 
+                  ? "plan your presence"
+                  : "plan your od/ml"}
               </span>
             </div>
             <button
@@ -103,7 +105,7 @@ export default function Predict({
             >
               <button
                 onClick={() => { Haptics.selection(); setPredictAction("leave"); }}
-                className={`flex-1 py-2.5 rounded-[12px] text-[11px] font-bold uppercase transition-all ${predictAction === "leave" ? "bg-theme-highlight text-theme-text" : "text-theme-muted"}`}
+                className={`flex-1 py-2.5 rounded-[12px] text-[11px] font-bold uppercase transition-all ${predictAction === "leave" ? "bg-[#FF4D4D] text-white" : "text-theme-muted"}`}
                 style={{ fontFamily: "'Montserrat', sans-serif" }}
               >
                 leaves
@@ -117,7 +119,7 @@ export default function Predict({
               </button>
               <button
                 onClick={() => { Haptics.selection(); setPredictAction("od"); }}
-                className={`flex-1 py-2.5 rounded-[12px] text-[11px] font-bold uppercase transition-all ${predictAction === "od" ? "bg-theme-highlight text-theme-text" : "text-theme-muted"}`}
+                className={`flex-1 py-2.5 rounded-[12px] text-[11px] font-bold uppercase transition-all ${predictAction === "od" ? "bg-[#F97316] text-white" : "text-theme-muted"}`}
                 style={{ fontFamily: "'Montserrat', sans-serif" }}
               >
                 od/ml
@@ -176,9 +178,19 @@ export default function Predict({
                   const isWeekend = isWeekendStr(dStr);
                   const isHoliday = holidayMap.has(dStr);
                   const isDisabled = (isWeekend || isHoliday) || (isPast && predictAction !== "od");
-                  const selected =
-                    (isRangeMode && rangeStart === dStr) ||
-                    selectedDates.includes(dStr);
+                  
+                  const selectedType = selectedDates[dStr];
+                  const isSelected = !!selectedType;
+                  
+                  let cellStyle = "bg-theme-surface text-theme-text";
+                  if (isSelected) {
+                    if (selectedType === "leave") cellStyle = "bg-[#FF4D4D] text-white shadow-[#FF4D4D]/20";
+                    else if (selectedType === "od") cellStyle = "bg-[#F97316] text-white shadow-[#F97316]/20";
+                    else if (selectedType === "attend") cellStyle = "bg-theme-highlight text-theme-text shadow-theme-highlight/20";
+                  } else if (isToday) {
+                    cellStyle = "bg-[#0EA5E9]/10 text-[#0EA5E9] border border-[#0EA5E9]/30";
+                  }
+
                   return (
                     <div
                       key={day}
@@ -187,12 +199,12 @@ export default function Predict({
                       <button
                         onClick={() => { Haptics.selection(); handleDateClick(day); }}
                         disabled={isDisabled}
-                        className={`w-full h-full rounded-[12px] flex items-center justify-center text-[15px] font-black transition-all ${isDisabled ? "text-theme-subtle" : selected ? "bg-theme-highlight text-theme-text shadow-lg" : isToday ? "bg-[#0EA5E9]/10 text-[#0EA5E9] border border-[#0EA5E9]/30" : "bg-theme-surface text-theme-text"}`}
+                        className={`w-full h-full rounded-[12px] flex items-center justify-center text-[15px] font-black transition-all ${isDisabled ? "text-theme-subtle opacity-20" : cellStyle + " shadow-lg"}`}
                         style={{ fontFamily: "'Montserrat', sans-serif" }}
                       >
                         {day}
                       </button>
-                      {isToday && !selected && (
+                      {isToday && !isSelected && (
                         <div className="absolute -top-1 right-1 w-1.5 h-1.5 rounded-full bg-[#0EA5E9]" />
                       )}
                       {isHoliday && !isWeekend && (
@@ -211,7 +223,7 @@ export default function Predict({
                   setIsRangeMode(false);
                   setRangeStart(null);
                   setRangeEnd(null);
-                  setSelectedDates([]);
+                  setSelectedDates({});
                 }}
                 className={`flex-1 py-2.5 rounded-[12px] text-[10px] font-bold uppercase tracking-widest transition-all ${!isRangeMode ? "bg-theme-text-20 text-theme-text" : "text-theme-muted"}`}
                 style={{ fontFamily: "'Montserrat', sans-serif" }}
@@ -221,7 +233,7 @@ export default function Predict({
               <button
                 onClick={() => {
                   setIsRangeMode(true);
-                  setSelectedDates([]);
+                  setSelectedDates({});
                 }}
                 className={`flex-1 py-2.5 rounded-[12px] text-[10px] font-bold uppercase tracking-widest transition-all ${isRangeMode ? "bg-theme-text-20 text-theme-text" : "text-theme-muted"}`}
                 style={{ fontFamily: "'Montserrat', sans-serif" }}
@@ -244,13 +256,15 @@ export default function Predict({
                 className="text-[28px] font-black text-theme-text"
                 style={{ fontFamily: "'Montserrat', sans-serif" }}
               >
-                {selectedDates.length}
+                {Object.keys(selectedDates).length}
               </span>
             </div>
             <button
               onClick={() => {
-                setIsPredicting(true);
-                onClose();
+                if (Object.keys(selectedDates).length > 0) {
+                  setIsPredicting(true);
+                  onClose();
+                }
               }}
               className="bg-theme-highlight text-theme-text px-8 py-4 rounded-[16px] flex items-center gap-3 active:scale-95 shadow-xl transition-all"
             >
