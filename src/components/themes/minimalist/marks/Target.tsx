@@ -11,6 +11,8 @@ interface TargetProps {
   predictedGpa: string;
   gpaColor: string;
   semRequiredOutOfMax: number;
+  maxExternal: number;
+  isCooked: boolean;
   currentInternals: number;
   expectedMarks: number;
   maxPossibleExpected: number;
@@ -34,6 +36,8 @@ export default function Target({
   predictedGpa,
   gpaColor,
   semRequiredOutOfMax,
+  maxExternal,
+  isCooked,
   currentInternals,
   expectedMarks,
   maxPossibleExpected,
@@ -49,8 +53,6 @@ export default function Target({
   toggleSubjectIgnore,
   textClass,
 }: TargetProps) {
-  const maxExternal = activePredSub.isPractical ? 40 : 100;
-
   return (
     <AnimatePresence>
       {isOpen && (
@@ -141,16 +143,16 @@ export default function Target({
               </span>
               <div className="flex items-baseline gap-1">
                 <span
-                  className={`leading-[0.85] font-black tracking-tighter text-center ${semRequiredOutOfMax > maxExternal ? "text-[4rem] text-[#FF4D4D]" : "text-[5rem] text-theme-highlight"}`}
+                  className={`leading-[0.85] font-black tracking-tighter text-center ${isCooked ? "text-[4rem] text-[#FF4D4D]" : "text-[5rem] text-theme-highlight"}`}
                   style={{ fontFamily: "'Montserrat', sans-serif" }}
                 >
-                  {semRequiredOutOfMax > maxExternal
+                  {isCooked
                     ? "cooked."
                     : semRequiredOutOfMax <= 0
                       ? "0"
                       : semRequiredOutOfMax}
                 </span>
-                {semRequiredOutOfMax > 0 && semRequiredOutOfMax <= maxExternal && (
+                {!isCooked && semRequiredOutOfMax > 0 && (
                   <span
                     className="text-[20px] font-bold text-theme-subtle"
                     style={{ fontFamily: "'Montserrat', sans-serif" }}

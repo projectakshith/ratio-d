@@ -8,6 +8,10 @@ import {
   buildCourseMap,
   getGrade,
   gradePoints,
+  getInitialTargetGrades,
+  calculateSemMarksNeeded,
+  calculatePredictedGpa,
+  isPracticalLogic,
 } from "@/utils/marks/marksLogic";
 import BrutalistTarget from "./BrutalistTarget";
 import { AcademiaData } from "@/types";
@@ -73,11 +77,17 @@ const MarksPage = ({ data }: { data: AcademiaData }) => {
       const firstSlot = sStr.split(/[,\s+-]/)[0].trim().toUpperCase();
       let courseDetails = (data.courses as any)?.[firstSlot];
       if (!courseDetails) {
+        const normCode = (sub.code || "").toLowerCase().replace(/[^a-z0-9]/g, "");
         courseDetails = Object.values(data.courses || {}).find((c: any) => 
-          (c.code || "").toLowerCase().replace(/[^a-z0-9]/g, "") === (sub.code || "").toLowerCase().replace(/[^a-z0-9]/g, "")
+          (c.code || "").toLowerCase().replace(/[^a-z0-9]/g, "") === normCode ||
+          (c.courseCode || "").toLowerCase().replace(/[^a-z0-9]/g, "") === normCode
         );
       }
-      return { ...sub, credits: courseDetails?.credits ? parseFloat(courseDetails.credits) : 0 };
+      return { 
+        ...sub, 
+        credits: courseDetails?.credits ? parseFloat(courseDetails.credits) : (sub.credits || 0),
+        isPractical: isPracticalLogic(sub)
+      };
     });
   }, [rawMarks, courseMap, data.courses]);
 
@@ -117,36 +127,30 @@ const MarksPage = ({ data }: { data: AcademiaData }) => {
     { label: "C", min: 50 }
   ], []);
 
+  useEffect(() => {
+    if (sortedMarks.length > 0 && Object.keys(targetGrades).length === 0) {
+      setTargetGrades(getInitialTargetGrades(sortedMarks));
+    }
+  }, [sortedMarks, targetGrades]);
+
   const predictedGpa = useMemo(() => {
-    if (sortedMarks.length === 0) return "0.00";
-    let totalPoints = 0, totalCredits = 0;
-    sortedMarks.forEach((sub: any) => {
-      if (sub.isNA || !sub.credits || ignoredSubjectIds.includes(sub.id)) return;
-      
-      let grade;
-      const subTargetGrade = targetGrades[sub.id];
-      if (subTargetGrade !== undefined) {
-        const gradeObj = grades.find((g) => g.min === subTargetGrade);
-        grade = gradeObj ? gradeObj.label : "O";
-      } else {
-        grade = getGrade(sub.percentage);
-      }
-      
-      totalPoints += sub.credits * (gradePoints[grade] || 0);
-      totalCredits += sub.credits;
-    });
-    return totalCredits === 0 ? "0.00" : (totalPoints / totalCredits).toFixed(2);
-  }, [sortedMarks, targetGrades, grades, ignoredSubjectIds]);
+    return calculatePredictedGpa(sortedMarks, targetGrades, ignoredSubjectIds);
+  }, [sortedMarks, targetGrades, ignoredSubjectIds]);
 
   const currentTargetGrade = targetGrades[selectedId || ""] || 91;
   const currentExpectedMarks = expectedMarksMap[selectedId || ""] || 0;
 
+  const { semRequiredOutOfMax, maxExternal, isCooked } = useMemo(() => {
+    return calculateSemMarksNeeded(
+      currentTargetGrade,
+      activeSubject.totalGot || 0,
+      currentExpectedMarks,
+      activeSubject.isPractical
+    );
+  }, [currentTargetGrade, activeSubject, currentExpectedMarks]);
+
   const currentInternals = activeSubject.totalGot || 0;
   const maxPossibleExpected = Math.max(0, 60 - (activeSubject.totalMax || 0));
-  const projectedInternals = currentInternals + currentExpectedMarks;
-  const semNeededPercentage = Math.max(0, currentTargetGrade - projectedInternals);
-  const maxExternal = activeSubject.isPractical ? 40 : 75;
-  const semRequiredOutOfMax = Math.ceil((semNeededPercentage / 40) * maxExternal);
 
   const handleExpectedChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!selectedId) return;
@@ -331,6 +335,8 @@ const MarksPage = ({ data }: { data: AcademiaData }) => {
         predictedGpa={predictedGpa}
         gpaColor={parseFloat(predictedGpa) >= 9.0 ? "text-[#ceff1c]" : parseFloat(predictedGpa) <= 7.0 ? "text-[#ff003c]" : "text-[#ffb800]"}
         semRequiredOutOfMax={semRequiredOutOfMax}
+        maxExternal={maxExternal}
+        isCooked={isCooked}
         currentInternals={currentInternals}
         expectedMarks={currentExpectedMarks}
         maxPossibleExpected={maxPossibleExpected}

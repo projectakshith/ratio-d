@@ -13,6 +13,7 @@ import {
   getImpactMap, 
   getProcessedList, 
   getStatus,
+  getRecoveryDate,
 } from "@/utils/attendance/attendanceLogic";
 import BrutalistPredict from "./BrutalistPredict";
 
@@ -91,6 +92,15 @@ const MobileAttendance = ({
         s.conducted,
         s.present,
       );
+
+      const recDate = getRecoveryDate(
+        s,
+        calendarData,
+        effectiveSchedule,
+        selectedDates,
+        predType
+      );
+
       return {
         ...s,
         percent: s.pred.pct.toFixed(1),
@@ -102,9 +112,10 @@ const MobileAttendance = ({
         originalLabel: origStatus.label,
         currentLabel: s.pred.status.label,
         hasChanged: s.pred.status.val !== origStatus.val || s.pred.status.label !== origStatus.label,
+        recoveryDate: recDate,
       };
     });
-  }, [baseAttendance, predictionImpact, isPredicting]);
+  }, [baseAttendance, predictionImpact, isPredicting, calendarData, effectiveSchedule, selectedDates, predType]);
 
   const overallStats = useMemo(() => {
     if (baseAttendance.length === 0)
@@ -345,6 +356,14 @@ const MobileAttendance = ({
                     {currentActiveStat.label}
                   </span>
                 </div>
+                {currentActiveStat.label === "recover" && activeSubject.recoveryDate && (
+                  <div className="mt-4 flex items-center gap-2 bg-[#ff003c]/10 px-3 py-1.5 rounded-xl border border-[#ff003c]/10 w-fit">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-[#ff003c]/60">RECOVER :</span>
+                    <span className="text-[14px] font-black text-[#ff003c]">
+                      {new Date(activeSubject.recoveryDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase()}
+                    </span>
+                  </div>
+                )}
               </div>
               <div className="pb-1">
                 <h3 className="text-2xl md:text-3xl font-bold lowercase leading-tight mb-3 line-clamp-1 text-white" style={{ fontFamily: "Aonic" }}>
@@ -402,6 +421,14 @@ const MobileAttendance = ({
                     {currentActiveStat.label}
                   </span>
                 </div>
+                {currentActiveStat.label === "recover" && activeSubject.recoveryDate && (
+                  <div className="mt-4 flex items-center gap-2 bg-[#ff003c]/10 px-3 py-1.5 rounded-xl border border-[#ff003c]/10 w-fit">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-[#ff003c]/60">RECOVER :</span>
+                    <span className="text-[14px] font-black text-[#ff003c]">
+                      {new Date(activeSubject.recoveryDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase()}
+                    </span>
+                  </div>
+                )}
               </div>
 
               <div className="pb-1">

@@ -11,6 +11,10 @@ import {
   getBoxTheme,
   gradePoints,
   getGrade,
+  getInitialTargetGrades,
+  calculateSemMarksNeeded,
+  calculatePredictedGpa,
+  isPracticalLogic,
 } from "@/utils/marks/marksLogic";
 import Target from "./Target";
 import { AcademiaData } from "@/types";
@@ -101,23 +105,18 @@ export default function Marks({
         let courseDetails = (data.courses as any)?.[firstSlot];
 
         if (!courseDetails) {
+          const normCode = normalize(sub.code);
           courseDetails = Object.values(data.courses || {}).find((c: any) => 
-            normalize(c.code) === normalize(sub.code) && 
-            ((c.type || "").toLowerCase().includes("lab") === sub.isPractical)
+            normalize(c.code) === normCode || 
+            normalize(c.courseCode) === normCode
           );
         }
 
         const credits = courseDetails?.credits
           ? parseFloat(courseDetails.credits)
-          : 0;
+          : (sub.credits || 0);
 
-        const isPrac =
-          (sub.type || "").toLowerCase() === "practical" ||
-          (sub.type || "").toLowerCase() === "lab" ||
-          sub.title.toLowerCase().includes("practical") ||
-          sub.title.toLowerCase().includes("lab") ||
-          (sub.slot || "").toUpperCase().includes("LAB") ||
-          (sub.slot || "").toUpperCase().includes("P");
+        const isPrac = isPracticalLogic(sub);
 
         return {
           ...sub,
@@ -144,6 +143,12 @@ export default function Marks({
     { label: "C", min: 50 },
   ], []);
 
+  useEffect(() => {
+    if (subjects.length > 0 && Object.keys(targetGrades).length === 0) {
+      setTargetGrades(getInitialTargetGrades(subjects));
+    }
+  }, [subjects, targetGrades]);
+
   const activePredSub = subjects.find((s: any) => s.id === predSubjectId) ||
     subjects[0] || {
       displayCode: "--",
@@ -159,7 +164,7 @@ export default function Marks({
     if (predSubjectId === null) return;
     let val = parseInt(e.target.value);
     if (isNaN(val)) val = 0;
-    const max = Math.max(0, 60 - (activePredSub.totalGot || 0));
+    const max = Math.max(0, 60 - (activePredSub.totalMax || 0));
     setExpectedMarksMap(prev => ({ ...prev, [predSubjectId]: Math.min(max, Math.max(0, val)) }));
   };
 
@@ -168,7 +173,7 @@ export default function Marks({
     setExpectedMarksMap(prev => {
       const currentVal = prev[predSubjectId] || 0;
       const newVal = typeof val === "function" ? val(currentVal) : val;
-      const max = Math.max(0, 60 - (activePredSub.totalGot || 0));
+      const max = Math.max(0, 60 - (activePredSub.totalMax || 0));
       return { ...prev, [predSubjectId]: Math.min(max, Math.max(0, newVal)) };
     });
   };
@@ -210,43 +215,21 @@ export default function Marks({
       ),
     [subjects],
   );
-  
+  const { semRequiredOutOfMax, maxExternal, isCooked } = useMemo(() => {
+    return calculateSemMarksNeeded(
+      currentTargetGrade,
+      activePredSub.totalGot || 0,
+      currentExpectedMarks,
+      activePredSub.isPractical
+    );
+  }, [currentTargetGrade, activePredSub, currentExpectedMarks]);
+
   const currentInternals = activePredSub.totalGot || 0;
   const maxPossibleExpected = Math.max(0, 60 - (activePredSub.totalMax || 0));
-  const projectedInternals = currentInternals + currentExpectedMarks;
-  const semNeededPercentage = Math.max(0, currentTargetGrade - projectedInternals);
-  const maxExternal = activePredSub.isPractical ? 40 : 100;
-  const semRequiredOutOfMax = Math.ceil((semNeededPercentage / 40) * maxExternal);
 
   const predictedGpa = useMemo(() => {
-    if (subjects.length === 0) return "0.00";
-
-    let totalPoints = 0;
-    let totalCredits = 0;
-
-    subjects.forEach((sub: any) => {
-      if (sub.isNA || ignoredSubjectIds.includes(sub.id)) return;
-
-      const credits = sub.credits || 0;
-      if (credits === 0) return;
-
-      let grade;
-      const subTargetGrade = targetGrades[sub.id];
-      if (subTargetGrade !== undefined) {
-        const gradeObj = grades.find((g) => g.min === subTargetGrade);
-        grade = gradeObj ? gradeObj.label : "O";
-      } else {
-        grade = getGrade(sub.percentage);
-      }
-
-      const points = gradePoints[grade] || 0;
-      totalPoints += credits * points;
-      totalCredits += credits;
-    });
-
-    if (totalCredits === 0) return "0.00";
-    return (totalPoints / totalCredits).toFixed(2);
-  }, [subjects, targetGrades, grades, ignoredSubjectIds]);
+    return calculatePredictedGpa(subjects, targetGrades, ignoredSubjectIds);
+  }, [subjects, targetGrades, ignoredSubjectIds]);
 
   const gpaColor =
     parseFloat(predictedGpa) >= 8.5
@@ -295,7 +278,7 @@ export default function Marks({
         </div>
 
         <motion.div
-          key={`marks-content-${predictMode}-${Object.keys(expectedMarksMap).length}-${ignoredSubjectIds.length}`}
+          key={`marks-content-${Object.keys(expectedMarksMap).length}-${ignoredSubjectIds.length}`}
           variants={containerVariants}
           initial="hidden"
           animate="show"
@@ -674,6 +657,8 @@ export default function Marks({
         predictedGpa={predictedGpa}
         gpaColor={gpaColor}
         semRequiredOutOfMax={semRequiredOutOfMax}
+        maxExternal={maxExternal}
+        isCooked={isCooked}
         currentInternals={currentInternals}
         expectedMarks={currentExpectedMarks}
         maxPossibleExpected={maxPossibleExpected}

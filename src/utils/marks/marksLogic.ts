@@ -56,12 +56,95 @@ export const isPracticalLogic = (sub: any) => {
   return (
     type.includes("practical") || 
     type.includes("lab") || 
+    type.includes("project") ||
     code.includes("-p") || 
     slot.includes("p") ||
     title.includes("lab") ||
     title.includes("practical") ||
+    title.includes("project") ||
     (slot.length > 0 && slot.toUpperCase().includes("LAB"))
   );
+};
+
+export const getInitialTargetGrades = (subjects: any[]) => {
+  const initialGrades: Record<string, number> = {};
+  const grades = [
+    { label: "O", min: 91 },
+    { label: "A+", min: 81 },
+    { label: "A", min: 71 },
+    { label: "B+", min: 61 },
+    { label: "B", min: 56 },
+    { label: "C", min: 50 },
+  ];
+
+  subjects.forEach((sub: any) => {
+    const currentGot = sub.totalGot || 0;
+    const maxRemainingInternals = Math.max(0, 60 - (sub.totalMax || 0));
+    const maxTotalPossible = currentGot + maxRemainingInternals + 40;
+    const bestGrade = grades.find(g => maxTotalPossible >= g.min)?.min || 50;
+    initialGrades[sub.id] = bestGrade;
+  });
+  return initialGrades;
+};
+
+export const calculateSemMarksNeeded = (
+  currentTargetGrade: number,
+  currentInternals: number,
+  currentExpectedMarks: number,
+  isPractical: boolean
+) => {
+  const projectedInternals = currentInternals + currentExpectedMarks;
+  const neededWeight = Math.max(0, currentTargetGrade - projectedInternals);
+  const maxExternal = isPractical ? 40 : 75;
+  const semRequiredOutOfMax = Math.ceil((neededWeight / 40) * maxExternal);
+  
+  return { 
+    semRequiredOutOfMax, 
+    maxExternal,
+    isCooked: neededWeight > 40
+  };
+};
+
+export const calculatePredictedGpa = (
+  subjects: any[],
+  targetGrades: Record<string, number>,
+  ignoredSubjectIds: (number | string)[]
+) => {
+  if (subjects.length === 0) return "0.00";
+  let totalPoints = 0;
+  let totalCredits = 0;
+  
+  const grades = [
+    { label: "O", min: 91 },
+    { label: "A+", min: 81 },
+    { label: "A", min: 71 },
+    { label: "B+", min: 61 },
+    { label: "B", min: 56 },
+    { label: "C", min: 50 },
+  ];
+
+  subjects.forEach((sub: any) => {
+    if (ignoredSubjectIds.includes(sub.id)) return;
+    const credits = sub.credits || 0;
+    if (credits === 0) return;
+
+    let grade = "O";
+    const subTargetGrade = targetGrades[sub.id];
+    if (subTargetGrade !== undefined) {
+      grade = grades.find((g) => g.min === subTargetGrade)?.label || "O";
+    } else {
+      const currentGot = sub.totalGot || 0;
+      const maxRemainingInternals = Math.max(0, 60 - (sub.totalMax || 0));
+      const maxTotalPossible = currentGot + maxRemainingInternals + 40;
+      const bestGradeMin = grades.find(g => maxTotalPossible >= g.min)?.min || 50;
+      grade = grades.find(g => g.min === bestGradeMin)?.label || "O";
+    }
+
+    totalPoints += credits * (gradePoints[grade] || 0);
+    totalCredits += credits;
+  });
+
+  return totalCredits === 0 ? "0.00" : (totalPoints / totalCredits).toFixed(2);
 };
 
 export const getTheme = (pct: number, max: number) => {
@@ -124,6 +207,7 @@ export const processAndSortMarks = (
   rawMarks: any[],
   courseMap: Record<string, string>,
 ): MarksRecord[] => {
+  const normalize = (str: string) => (str || "").toLowerCase().replace(/[^a-z0-9]/g, "").trim();
   return rawMarks
     .map((subject: any, index: number) => {
       const assessments: any[] = (subject.assessments || [])
@@ -238,7 +322,7 @@ export const processAndSortMarks = (
 
 export const getActiveSubject = (
   sortedMarks: MarksRecord[],
-  selectedId: number | null,
+  selectedId: number | string | null,
 ) => {
   if (selectedId === null && sortedMarks.length > 0) return sortedMarks[0];
   return (

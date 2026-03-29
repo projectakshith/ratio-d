@@ -11,6 +11,8 @@ interface TargetProps {
   predictedGpa: string;
   gpaColor: string;
   semRequiredOutOfMax: number;
+  maxExternal: number;
+  isCooked: boolean;
   currentInternals: number;
   expectedMarks: number;
   maxPossibleExpected: number;
@@ -33,6 +35,8 @@ export default function BrutalistTarget({
   predictedGpa,
   gpaColor,
   semRequiredOutOfMax,
+  maxExternal,
+  isCooked,
   currentInternals,
   expectedMarks,
   maxPossibleExpected,
@@ -47,8 +51,6 @@ export default function BrutalistTarget({
   ignoredSubjectIds,
   toggleSubjectIgnore,
 }: TargetProps) {
-  const maxExternal = activePredSub.isPractical ? 40 : 75;
-
   return (
     <AnimatePresence>
       {isOpen && (
@@ -109,10 +111,10 @@ export default function BrutalistTarget({
                 sem marks needed
               </span>
               <div className="flex items-baseline gap-1">
-                <span className={`leading-[0.85] font-black tracking-tighter text-center ${semRequiredOutOfMax > maxExternal ? "text-[4rem] text-[#ff003c]" : "text-[5rem] text-[#ceff1c]"}`} style={{ fontFamily: "Montserrat" }}>
-                  {semRequiredOutOfMax > maxExternal ? "cooked." : semRequiredOutOfMax <= 0 ? "0" : semRequiredOutOfMax}
+                <span className={`leading-[0.85] font-black tracking-tighter text-center ${isCooked ? "text-[4rem] text-[#ff003c]" : "text-[5rem] text-[#ceff1c]"}`} style={{ fontFamily: "Montserrat" }}>
+                  {isCooked ? "cooked." : semRequiredOutOfMax <= 0 ? "0" : semRequiredOutOfMax}
                 </span>
-                {semRequiredOutOfMax > 0 && semRequiredOutOfMax <= maxExternal && (
+                {!isCooked && semRequiredOutOfMax > 0 && semRequiredOutOfMax <= maxExternal && (
                   <span className="text-[20px] font-bold text-white/20" style={{ fontFamily: "Montserrat" }}>/{maxExternal}</span>
                 )}
               </div>
