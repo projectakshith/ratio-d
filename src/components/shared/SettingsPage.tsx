@@ -105,8 +105,8 @@ const SettingItem = ({ icon, label, toggle = false, isActive = false, onClick, v
       <div className="flex items-center gap-2">
         {value && <span className="text-sm text-theme-muted">{value}</span>}
         {toggle ? (
-          <div className={`w-12 h-7 rounded-full relative transition-all duration-300 border-[1.5px] shadow-sm ${isActive ? "bg-theme-highlight border-theme-highlight" : "bg-theme-surface border-theme-border"}`}>
-            <div className={`absolute top-0.5 w-[21px] h-[21px] rounded-full transition-all duration-300 shadow-md ${isActive ? "right-0.5 bg-theme-bg" : "left-0.5 bg-theme-text"}`} />
+          <div className={`w-12 h-7 rounded-full relative transition-all duration-300 shadow-sm ${isActive ? "bg-theme-highlight" : "bg-[#333333]"}`}>
+            <div className={`absolute top-0.5 w-[21px] h-[21px] rounded-full transition-all duration-300 shadow-md ${isActive ? "right-0.5 bg-theme-bg" : "left-0.5 bg-white"}`} />
           </div>
         ) : (
           <ChevronRight className="w-5 h-5 text-theme-muted" strokeWidth={2.5} />
