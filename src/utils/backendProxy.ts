@@ -1,5 +1,5 @@
 export async function fetchWithLoadBalancer(endpoint: string, options: RequestInit = {}) {
-  const urlsString = process.env.BACKEND_URLS || "";
+  const urlsString = process.env.NEXT_PUBLIC_BACKEND_URLS || "";
   const urls = urlsString
     .split(",")
     .map(url => url.trim())
@@ -22,7 +22,6 @@ export async function fetchWithLoadBalancer(endpoint: string, options: RequestIn
         ...options,
         headers: {
           ...options.headers,
-          "X-App-Secret": process.env.INTERNAL_SECRET || "",
         },
         signal: controller.signal,
       });

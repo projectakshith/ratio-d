@@ -10,7 +10,7 @@ import SyncStatusNotification from "./SyncStatusNotification";
 let globalSplashPlayed = false;
 
 export default function AppWrapper({ children }: { children: React.ReactNode }) {
-  const { isOffline, isBackendError, setIsBackendError, showWelcome, setShowWelcome, userData } = useApp();
+  const { isOffline, isBackendError, setIsBackendError, backendErrorMsg, setBackendErrorMsg, showWelcome, setShowWelcome, userData } = useApp();
   const [showSplash, setShowSplash] = useState(false);
   const [isFirstSplash, setIsFirstSplash] = useState(false);
 useEffect(() => {
@@ -40,10 +40,11 @@ useEffect(() => {
   if (isBackendError) {
     const timer = setTimeout(() => {
       setIsBackendError(false);
+      setBackendErrorMsg(null);
     }, 10000);
     return () => clearTimeout(timer);
   }
-}, [isBackendError, setIsBackendError]);
+}, [isBackendError, setIsBackendError, setBackendErrorMsg]);
 
 useEffect(() => {
   if (showWelcome) {
@@ -88,7 +89,7 @@ useEffect(() => {
             >
               <ServerCrash size={12} className="text-white" />
               <span className="text-[10px] font-bold uppercase tracking-widest text-white">
-                Backend Servers Down
+                {backendErrorMsg || "Backend Servers Down"}
               </span>
             </div>
           </motion.div>

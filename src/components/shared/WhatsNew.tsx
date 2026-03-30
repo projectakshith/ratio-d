@@ -24,7 +24,7 @@ export default function WhatsNew({ isOpen, onClose }: WhatsNewProps) {
   const updates = [
 
     {
-      icon: <Zap size={18} className="text-white/60" />,
+      icon: <Bell size={18} className="text-white/60" />,
       version: "v1.0.2",
       date: "Mar 2025",
       title: "Marketplace !!",

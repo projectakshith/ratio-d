@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { AcademiaData } from "@/types";
 import { compareData, DataDiff } from "@/utils/shared/diffUtils";
 import { sendNotification } from "@/utils/shared/notifs";
+import { fetchWithLoadBalancer } from "@/utils/backendProxy";
 
 import calendarDataJson from "@/data/calendar_data.json";
 
@@ -18,6 +19,8 @@ interface AppContextType {
   isOffline: boolean;
   isBackendError: boolean;
   setIsBackendError: (val: boolean) => void;
+  backendErrorMsg: string | null;
+  setBackendErrorMsg: (msg: string | null) => void;
   refreshData: (creds: any, existingData: any) => Promise<any>;
   performLogin: (creds: any) => Promise<any>;
   loginPromise: Promise<any> | null;
@@ -44,6 +47,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [isUpdating, setIsUpdating] = useState(false);
   const [isOffline, setIsOffline] = useState(false);
   const [isBackendError, setIsBackendError] = useState(false);
+  const [backendErrorMsg, setBackendErrorMsg] = useState<string | null>(null);
   const [latestDiff, setLatestDiff] = useState<DataDiff | null>(null);
   const [loginPromise, setLoginPromise] = useState<Promise<any> | null>(null);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
@@ -85,16 +89,25 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const performLogin = useCallback(async (creds: any) => {
     setIsBackendError(false);
+    setBackendErrorMsg(null);
     const promise = (async () => {
       try {
-        const response = await fetch("/api/login", {
+        const response = await fetchWithLoadBalancer("/login", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            "X-Student-Key": creds.username,
+            "X-Ratio-App": "true"
+          },
           body: JSON.stringify(creds),
         });
 
-        if (response.status === 503) {
+        if (response.status === 503 || response.status === 429) {
           setIsBackendError(true);
+          try {
+            const data = await response.json();
+            if (data.detail) setBackendErrorMsg(data.detail);
+          } catch {}
           throw new Error("Backend error");
         }
         
@@ -135,16 +148,25 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     updateInProgress.current = true;
     setIsUpdating(true);
     setIsBackendError(false);
+    setBackendErrorMsg(null);
     try {
       const savedCookies = EncryptionUtils.loadDecrypted("academia_cookies");
-      const response = await fetch("/api/refresh", {
+      const response = await fetchWithLoadBalancer("/refresh", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "X-Student-Key": creds.username,
+          "X-Ratio-App": "true"
+        },
         body: JSON.stringify({ ...creds, cookies: savedCookies }),
       });
 
-      if (response.status === 503) {
+      if (response.status === 503 || response.status === 429) {
         setIsBackendError(true);
+        try {
+          const data = await response.json();
+          if (data.detail) setBackendErrorMsg(data.detail);
+        } catch {}
         return existingData;
       }
 
@@ -306,6 +328,8 @@ const value = useMemo(() => ({
     isOffline,
     isBackendError,
     setIsBackendError,
+    backendErrorMsg,
+    setBackendErrorMsg,
     refreshData,
     performLogin,
     loginPromise,
@@ -322,7 +346,7 @@ const value = useMemo(() => ({
     profileSeed,
     setProfileSeed,
     calendarData,
-  }), [userData, customDisplayName, isUpdating, isOffline, isBackendError, refreshData, performLogin, loginPromise, logout, latestDiff, deferredPrompt, canInstall, showWelcome, profileSeed, calendarData]);
+  }), [userData, customDisplayName, isUpdating, isOffline, isBackendError, backendErrorMsg, refreshData, performLogin, loginPromise, logout, latestDiff, deferredPrompt, canInstall, showWelcome, profileSeed, calendarData]);
 
   return (
     <AppContext.Provider value={value}>

@@ -7,7 +7,7 @@ import httpx
 import uvicorn
 from core.academia_client import AcademiaClient
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, PlainTextResponse
 from fastapi.middleware.cors import CORSMiddleware
 from models.schemas import Credentials
 from services.marks_service import MarksService
@@ -16,13 +16,26 @@ from services.course_service import CourseService
 from services.attendance_service import AttendanceService
 from services.timetable_service import TimetableService
 from dotenv import load_dotenv
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
 load_dotenv()
 load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env.local'))
 
-app = FastAPI()
+def get_rate_limit_key(request: Request):
+    return request.headers.get("X-Student-Key") or get_remote_address(request)
 
-INTERNAL_SECRET = os.getenv("INTERNAL_SECRET")
+limiter = Limiter(key_func=get_rate_limit_key)
+app = FastAPI()
+app.state.limiter = limiter
+
+@app.exception_handler(RateLimitExceeded)
+async def custom_rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded):
+    return JSONResponse(
+        status_code=429,
+        content={"detail": "stop spamming blud"}
+    )
 
 app.add_middleware(
     CORSMiddleware,
@@ -33,17 +46,20 @@ app.add_middleware(
         "http://localhost:9002",
     ],
     allow_methods=["GET", "POST", "OPTIONS"],
-    allow_headers=["Content-Type", "Authorization", "Accept", "X-App-Secret"],
+    allow_headers=["Content-Type", "Authorization", "Accept", "X-Student-Key", "X-Ratio-App"],
 )
 
 @app.middleware("http")
 async def security_middleware(request: Request, call_next):
-    if request.method == "OPTIONS" or request.url.path == "/version":
+    if request.method == "OPTIONS":
         return await call_next(request)
     
-    secret = request.headers.get("X-App-Secret")
-    if not INTERNAL_SECRET or secret != INTERNAL_SECRET:
-        return JSONResponse(status_code=403, content={"detail": "Unauthorized"})
+    app_header = request.headers.get("X-Ratio-App")
+    if app_header != "true":
+        return PlainTextResponse(
+            status_code=403, 
+            content="nice try hackerman\nget out before i call the bouncers"
+        )
         
     return await call_next(request)
 
@@ -55,7 +71,8 @@ async def get_version():
     return {"version": "2.0.0"}
 
 @app.post("/refresh")
-async def refresh_data(creds: Credentials):
+@limiter.limit("3/minute")
+async def refresh_data(creds: Credentials, request: Request):
     start_total = time.time()
     print(f"\n[API] Incoming REFRESH request for: {creds.username}", flush=True)
     try:
@@ -84,6 +101,12 @@ async def refresh_data(creds: Credentials):
             "marks": marks,
             "cookies": current_cookies,
         }
+    except (httpx.NetworkError, httpx.TimeoutException) as e:
+        err_msg = str(e)
+        print(f"{get_now()}\n  -> [API] NETWORK ERROR in /refresh: {err_msg}", flush=True)
+        raise HTTPException(status_code=503, detail="Academia server is unreachable. Please try again later.")
+    except HTTPException as e:
+        raise e
     except Exception as e:
         err_msg = str(e)
         print(f"{get_now()}\n  -> [API] ERROR in /refresh: {err_msg}", flush=True)
@@ -93,10 +116,11 @@ async def refresh_data(creds: Credentials):
                 raise HTTPException(status_code=401, detail=err_data)
         except Exception:
             pass
-        raise HTTPException(status_code=401, detail=err_msg)
+        raise HTTPException(status_code=401, detail="Invalid Credentials")
 
 @app.post("/login")
-async def login(creds: Credentials):
+@limiter.limit("5/minute")
+async def login(creds: Credentials, request: Request):
     start_total = time.time()
     print(f"\n[API] Incoming login request for: {creds.username}", flush=True)
     try:
@@ -147,6 +171,12 @@ async def login(creds: Credentials):
             "courses": course_map,
             "cookies": current_cookies,
         }
+    except (httpx.NetworkError, httpx.TimeoutException) as e:
+        err_msg = str(e)
+        print(f"{get_now()}\n  -> [API] NETWORK ERROR in /login: {err_msg}", flush=True)
+        raise HTTPException(status_code=503, detail="Academia server is unreachable. Please try again later.")
+    except HTTPException as e:
+        raise e
     except Exception as e:
         err_msg = str(e)
         print(f"{get_now()}\n  -> [API] ERROR in /login: {err_msg}", flush=True)
@@ -156,4 +186,4 @@ async def login(creds: Credentials):
                 raise HTTPException(status_code=401, detail=err_data)
         except Exception:
             pass
-        raise HTTPException(status_code=401, detail=err_msg)
+        raise HTTPException(status_code=401, detail="Invalid Credentials")

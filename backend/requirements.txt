@@ -5,3 +5,4 @@ requests
 beautifulsoup4
 pydantic
 python-dotenv
+slowapi
