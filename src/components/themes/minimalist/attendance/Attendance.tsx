@@ -17,6 +17,8 @@ import { AcademiaData } from "@/types";
 import { useAppLayout } from "@/context/AppLayoutContext";
 import { getOverallStats } from "@/utils/attendance/attendanceLogic";
 import { getRandomRoast } from "@/utils/shared/flavortext";
+import { useApp } from "@/context/AppContext";
+import { UserAvatar } from "@/components/shared/UserAvatar";
 
 const BEZIER = [0.34, 0.15, 0.16, 0.96] as const;
 
@@ -48,6 +50,7 @@ export default function Attendance({
   data: AcademiaData;
   academia: any;
 }) {
+  const { profileSeed } = useApp();
   const { setIsSwipeDisabled } = useAppLayout();
   const [isPredictOverlay, setIsPredictOverlay] = useState(false);
   const [isPredicting, setIsPredicting] = useState(false);
@@ -536,7 +539,8 @@ export default function Attendance({
                   </div>
                 </div>
               ))}
-              <div className="w-full flex justify-center mt-1">
+              <div className="w-full flex items-center justify-center gap-1.5 mt-1">
+                <UserAvatar seed={profileSeed} className="w-4 h-4 opacity-80" />
                 <span
                   className="text-[11px] font-bold lowercase tracking-widest text-[#FF4D4D] opacity-80"
                   style={{ fontFamily: "var(--font-afacad), sans-serif" }}

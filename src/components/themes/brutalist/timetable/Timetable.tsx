@@ -7,8 +7,11 @@ import {
   processSchedule,
 } from "@/utils/dashboard/timetableLogic";
 import { flavorText } from "@/utils/shared/flavortext";
+import { useApp } from "@/context/AppContext";
+import { UserAvatar } from "@/components/shared/UserAvatar";
 
 export default function Timetable({ schedule, dayOrder, data }) {
+  const { profileSeed } = useApp();
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeDayOrder, setActiveDayOrder] = useState(1);
   const [customClasses, setCustomClasses] = useState<Record<number, any[]>>({});
@@ -303,9 +306,10 @@ export default function Timetable({ schedule, dayOrder, data }) {
                 timetable
               </h1>
               <p
-                className="text-xl font-bold lowercase text-white/80 leading-tight max-w-[80%]"
+                className="text-xl font-bold lowercase text-white/80 leading-tight max-w-[80%] flex items-center gap-2"
                 style={{ fontFamily: "Aonic" }}
               >
+                <UserAvatar seed={profileSeed} className="w-6 h-6 shrink-0" />
                 {currentRoast}
               </p>
             </motion.div>

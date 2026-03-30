@@ -20,6 +20,8 @@ import Target from "./Target";
 import { AcademiaData } from "@/types";
 import { useAppLayout } from "@/context/AppLayoutContext";
 import { getRandomRoast } from "@/utils/shared/flavortext";
+import { useApp } from "@/context/AppContext";
+import { UserAvatar } from "@/components/shared/UserAvatar";
 
 const BEZIER = [0.34, 0.15, 0.16, 0.96] as const;
 
@@ -51,6 +53,7 @@ export default function Marks({
 }: {
   data: AcademiaData;
 }) {
+  const { profileSeed } = useApp();
   const { setIsSwipeDisabled } = useAppLayout();
   const [predictMode, setPredictMode] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -492,7 +495,8 @@ export default function Marks({
                   </div>
                 </div>
               ))}
-              <div className="w-full flex justify-center mt-1">
+              <div className="w-full flex items-center justify-center gap-1.5 mt-1">
+                <UserAvatar seed={profileSeed} className="w-4 h-4 opacity-80" />
                 <span
                   className={`text-[11px] font-bold lowercase tracking-widest opacity-80 ${attentionRequired.some((s: any) => s.percentage < 75) ? "text-theme-secondary" : "text-theme-highlight"}`}
                   style={{ fontFamily: "var(--font-afacad), sans-serif" }}

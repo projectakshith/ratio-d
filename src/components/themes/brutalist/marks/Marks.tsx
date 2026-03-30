@@ -17,6 +17,8 @@ import BrutalistTarget from "./BrutalistTarget";
 import { AcademiaData } from "@/types";
 import { useAppLayout } from "@/context/AppLayoutContext";
 import { Haptics } from "@/utils/shared/haptics";
+import { useApp } from "@/context/AppContext";
+import { UserAvatar } from "@/components/shared/UserAvatar";
 
 const ScoreCounter = ({ value }: any) => {
   const nodeRef = useRef<any>(null);
@@ -45,6 +47,7 @@ const ScoreCounter = ({ value }: any) => {
 };
 
 const MarksPage = ({ data }: { data: AcademiaData }) => {
+  const { profileSeed } = useApp();
   const { setIsSwipeDisabled } = useAppLayout();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [introMode, setIntroMode] = useState(true);
@@ -270,7 +273,10 @@ const MarksPage = ({ data }: { data: AcademiaData }) => {
           <div className="w-full h-[4px] bg-white/10 mb-2 relative overflow-y-auto rounded-full">
             <motion.div className={`h-full transition-colors duration-300 ${barColorClass}`} initial={{ width: 0 }} animate={{ width: activeSubject.isNA ? "0%" : `${activeSubject.percentage}%` }} transition={{ duration: 0.8, ease: "circOut" }} />
           </div>
-          <span className="block text-[10px] font-mono font-bold lowercase mt-1 opacity-60 text-white/80">{currentRoast}</span>
+          <div className="flex items-center gap-1.5 mt-1 opacity-60">
+            <UserAvatar seed={profileSeed} className="w-3.5 h-3.5" />
+            <span className="text-[10px] font-mono font-bold lowercase text-white/80">{currentRoast}</span>
+          </div>
         </div>
       </div>
 
@@ -322,7 +328,10 @@ const MarksPage = ({ data }: { data: AcademiaData }) => {
               transition={{ delay: 0.15, duration: 0.4 }}
             >
               <h1 className="text-6xl font-black lowercase tracking-tighter text-white mb-2" style={{ fontFamily: "Aonic" }}>marks</h1>
-              <p className="text-xl font-bold lowercase text-white/80 leading-tight max-w-[80%]" style={{ fontFamily: "Aonic" }}>{currentRoast}</p>
+              <p className="text-xl font-bold lowercase text-white/80 leading-tight max-w-[80%] flex items-center gap-2" style={{ fontFamily: "Aonic" }}>
+                <UserAvatar seed={profileSeed} className="w-6 h-6 shrink-0" />
+                {currentRoast}
+              </p>
             </motion.div>
           </motion.div>
         )}

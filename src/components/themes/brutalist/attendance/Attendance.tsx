@@ -20,6 +20,8 @@ import BrutalistPredict from "./BrutalistPredict";
 import { AcademiaData } from "@/types";
 import { useAppLayout } from "@/context/AppLayoutContext";
 import { Haptics } from "@/utils/shared/haptics";
+import { useApp } from "@/context/AppContext";
+import { UserAvatar } from "@/components/shared/UserAvatar";
 
 const MarginCounter = ({ value }: { value: number }) => {
   const nodeRef = useRef<HTMLSpanElement>(null);
@@ -54,6 +56,7 @@ const MobileAttendance = ({
   data: AcademiaData;
   academia: any;
 }) => {
+  const { profileSeed } = useApp();
   const { setIsSwipeDisabled } = useAppLayout();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [predictMode, setPredictMode] = useState(false);
@@ -543,7 +546,8 @@ const MobileAttendance = ({
               <h1 className={`text-6xl font-black lowercase tracking-tighter mb-2 ${overallStats.color}`} style={{ fontFamily: "Aonic" }}>
                 {overallStats.badge}
               </h1>
-              <p className="text-xl font-bold lowercase text-white/80 leading-tight max-w-[80%]" style={{ fontFamily: "Aonic" }}>
+              <p className="text-xl font-bold lowercase text-white/80 leading-tight max-w-[80%] flex items-center gap-2" style={{ fontFamily: "Aonic" }}>
+                <UserAvatar seed={profileSeed} className="w-6 h-6 shrink-0" />
                 {overallStats.tagline}
               </p>
             </motion.div>
