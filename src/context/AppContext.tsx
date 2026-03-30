@@ -7,6 +7,7 @@ import { compareData, DataDiff } from "@/utils/shared/diffUtils";
 import { sendNotification } from "@/utils/shared/notifs";
 import { fetchWithLoadBalancer } from "@/utils/backendProxy";
 
+import { getScheduleStatus } from "@/utils/academia/academiaLogic";
 import calendarDataJson from "@/data/calendar_data.json";
 
 interface AppContextType {
@@ -56,9 +57,54 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [profileSeed, setProfileSeed] = useState<string>("");
   const updateInProgress = React.useRef(false);
   const sessionNotificationsSent = React.useRef<Set<string>>(new Set());
+  const classNotificationsSent = React.useRef<Set<string>>(new Set());
   const hasRefreshed = React.useRef(false);
   const hasPrecached = React.useRef(false);
   const router = useRouter();
+
+  useEffect(() => {
+    if (!userData?.schedule) return;
+
+    const checkClassNotifications = () => {
+      const todayDate = new Date().toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      });
+      const calendar = calendarDataJson as any[];
+      const todayEntry = calendar.find((item) => item.date === todayDate);
+      const effectiveDayOrder =
+        todayEntry && todayEntry.order !== "-"
+          ? todayEntry.order
+          : userData?.dayOrder || "1";
+
+      const status = getScheduleStatus(userData.schedule, effectiveDayOrder);
+      if (!status.nextClass) return;
+
+      const now = new Date();
+      const currentMins = now.getHours() * 60 + now.getMinutes();
+      const diff = (status.nextClass.startMinutes || 0) - currentMins;
+      const nextClassName = status.nextClass.course || "Class";
+      const marker15 = `${nextClassName}-15`;
+      const marker5 = `${nextClassName}-5`;
+
+      if (diff <= 15 && diff > 5 && !classNotificationsSent.current.has(marker15)) {
+        sendNotification(`Next: ${nextClassName}`, `⏳ Starts in ${diff} min`, nextClassName);
+        classNotificationsSent.current.add(marker15);
+      } else if (diff <= 5 && diff >= 0 && !classNotificationsSent.current.has(marker5)) {
+        sendNotification(
+          `Next: ${nextClassName}`,
+          `📍 ${status.nextClass.room || "No Room"} • ⏳ Starts in ${diff} min`,
+          nextClassName
+        );
+        classNotificationsSent.current.add(marker5);
+      }
+    };
+
+    checkClassNotifications();
+    const interval = setInterval(checkClassNotifications, 60000);
+    return () => clearInterval(interval);
+  }, [userData]);
 
   useEffect(() => {
     if (typeof window !== "undefined" && "caches" in window && !hasPrecached.current) {
@@ -187,15 +233,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         delete result.cookies;
       }
 
-      const endpoint = (existingData?.attendance && existingData?.marks) ? "refresh" : "login";
+      const hasOldData = (existingData?.attendance?.length > 0) || (existingData?.marks?.length > 0);
+      
+      const diff = hasOldData ? compareData(existingData, { ...existingData, ...result }) : null;
+      
       let mergedData = endpoint === "login" ? { ...result, cookies: updatedCookies } : {
         ...existingData,
         ...result,
         cookies: updatedCookies,
       };
-
-      const hasOldData = (existingData?.attendance?.length > 0) || (existingData?.marks?.length > 0);
-      const diff = hasOldData ? compareData(existingData, mergedData) : null;
       
       if (diff) {
         setLatestDiff(diff);

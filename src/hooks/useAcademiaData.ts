@@ -120,39 +120,6 @@ export const useAcademiaData = (data: AcademiaData | null) => {
     return getCriticalAttendance(data?.attendance || []);
   }, [data?.attendance]);
 
-  useEffect(() => {
-    const checkNotifications = () => {
-      if (!timeStatus.nextClass) return;
-      
-      const now = new Date();
-      const currentMins = now.getHours() * 60 + now.getMinutes();
-      const diff = (timeStatus.nextClass.startMinutes || 0) - currentMins;
-
-      const nextClassName = timeStatus.nextClass.course || "Class";
-
-      if (diff <= 15 && diff > 5 && !sentMarkers.current.has(`${nextClassName}-15`)) {
-        sendNotification(
-          `Next: ${nextClassName}`,
-          `⏳ Starts in ${diff} min`,
-          nextClassName,
-        );
-        sentMarkers.current.add(`${nextClassName}-15`);
-      } 
-      else if (diff <= 5 && diff >= 0 && !sentMarkers.current.has(`${nextClassName}-5`)) {
-        sendNotification(
-          `Next: ${nextClassName}`,
-          `📍 ${timeStatus.nextClass.room || "No Room"}  •  ⏳ Starts in ${diff} min`,
-          nextClassName,
-        );
-        sentMarkers.current.add(`${nextClassName}-5`);
-      }
-    };
-
-    checkNotifications();
-    const interval = setInterval(checkNotifications, 30000);
-    return () => clearInterval(interval);
-  }, [timeStatus.nextClass]);
-
   const triggerTestClass = useCallback(() => {
     sendNotification(
       "Test Class Incoming",
