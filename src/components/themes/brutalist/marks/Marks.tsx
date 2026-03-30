@@ -328,10 +328,10 @@ const MarksPage = ({ data }: { data: AcademiaData }) => {
               transition={{ delay: 0.15, duration: 0.4 }}
             >
               <h1 className="text-6xl font-black lowercase tracking-tighter text-white mb-2" style={{ fontFamily: "Aonic" }}>marks</h1>
-              <p className="text-xl font-bold lowercase text-white/80 leading-tight max-w-[80%] flex items-center gap-2" style={{ fontFamily: "Aonic" }}>
+              <div className="text-xl font-bold lowercase text-white/80 leading-tight max-w-[80%] flex items-center gap-2" style={{ fontFamily: "Aonic" }}>
                 <UserAvatar seed={profileSeed} className="w-6 h-6 shrink-0" />
                 {currentRoast}
-              </p>
+              </div>
             </motion.div>
           </motion.div>
         )}

@@ -111,29 +111,29 @@ export const getCalendarTheme = (
 ) => {
   if (isExam)
     return {
-      bg: "var(--accent-purple, #8b5cf6)",
-      text: "text-white",
+      bg: "bg-theme-accent",
+      text: "text-theme-bg",
       border: "border-transparent",
-      accent: "bg-white/20 text-white",
+      accent: "bg-theme-bg-alpha text-theme-bg",
     };
   if (isHoliday)
     return {
-      bg: "var(--accent-red, #FF4D4D)",
-      text: "text-white",
+      bg: "bg-theme-secondary",
+      text: "text-theme-bg",
       border: "border-transparent",
-      accent: "bg-white/20 text-white",
+      accent: "bg-theme-bg-alpha text-theme-bg",
     };
   if (hasOrder)
     return {
-      bg: "var(--status-bg-safe)",
-      text: "status-text-safe",
-      border: "status-border-safe",
-      accent: "status-bg-safe status-text-safe",
+      bg: "bg-theme-surface",
+      text: "text-theme-text",
+      border: "border-theme-subtle",
+      accent: "bg-theme-primary text-theme-bg",
     };
   return {
-    bg: "var(--bg-secondary, var(--theme-surface, #ffffff))",
+    bg: "bg-theme-surface",
     text: "text-theme-text",
     border: "border-theme-subtle",
-    accent: "bg-theme-surface text-theme-text",
+    accent: "bg-theme-bg-alpha text-theme-text",
   };
 };

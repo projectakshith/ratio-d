@@ -541,12 +541,12 @@ export default function Attendance({
               ))}
               <div className="w-full flex items-center justify-center gap-1.5 mt-1">
                 <UserAvatar seed={profileSeed} className="w-4 h-4 opacity-80" />
-                <span
+                <div
                   className="text-[11px] font-bold lowercase tracking-widest text-[#FF4D4D] opacity-80"
                   style={{ fontFamily: "var(--font-afacad), sans-serif" }}
                 >
                   {stats.emergencyRoast || "cooked."}
-                </span>
+                </div>
               </div>
             </motion.div>
           )}

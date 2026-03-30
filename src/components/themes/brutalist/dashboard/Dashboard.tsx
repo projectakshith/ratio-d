@@ -15,6 +15,8 @@ import { BentoTile } from "../BentoTile";
 import { StudentProfile, AttendanceRecord } from "@/types";
 import { useDashboardAlerts } from "@/hooks/useDashboardAlerts";
 import { Haptics } from "@/utils/shared/haptics";
+import { useApp } from "@/context/AppContext";
+import { UserAvatar } from "@/components/shared/UserAvatar";
 
 const ScoreCounter = ({ value }: any) => {
   const nodeRef = useRef<any>(null);
@@ -114,6 +116,7 @@ const HomeDashboard = ({
   onRefresh,
   isRefreshing: isParentRefreshing,
 }: HomeDashboardProps) => {
+  const { profileSeed } = useApp();
   const router = useRouter();
   const [isAlertExpanded, setIsAlertExpanded] = useState(false);
   const [isMetricExpanded, setIsMetricExpanded] = useState(false);
@@ -295,13 +298,9 @@ const HomeDashboard = ({
                   </h1>
                   <button
                     onClick={onProfileClick}
-                    className="w-9 h-9 rounded-full overflow-hidden border-2 border-black/5 active:scale-90 transition-transform shadow-sm"
+                    className="w-9 h-9 rounded-full overflow-hidden border-2 border-black/5 active:scale-90 transition-transform shadow-sm flex items-center justify-center bg-white"
                   >
-                    <img
-                      src="/image.png"
-                      className="object-cover w-full h-full"
-                      alt="Profile"
-                    />
+                    <UserAvatar seed={profileSeed} className="w-full h-full" />
                   </button>
                 </motion.div>
 

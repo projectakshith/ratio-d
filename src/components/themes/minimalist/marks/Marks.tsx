@@ -497,12 +497,12 @@ export default function Marks({
               ))}
               <div className="w-full flex items-center justify-center gap-1.5 mt-1">
                 <UserAvatar seed={profileSeed} className="w-4 h-4 opacity-80" />
-                <span
+                <div
                   className={`text-[11px] font-bold lowercase tracking-widest opacity-80 ${attentionRequired.some((s: any) => s.percentage < 75) ? "text-theme-secondary" : "text-theme-highlight"}`}
                   style={{ fontFamily: "var(--font-afacad), sans-serif" }}
                 >
                   {attentionFlavorText}
-                </span>
+                </div>
               </div>
             </motion.div>
           )}
