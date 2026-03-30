@@ -83,8 +83,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
       const now = new Date();
       const currentMins = now.getHours() * 60 + now.getMinutes();
-      const diff = (status.nextClass.startMinutes || 0) - currentMins;
-      const nextClassName = status.nextClass.course || "Class";
+      const diff = ((status.nextClass as any).startMinutes || 0) - currentMins;
+      const nextClassName = (status.nextClass as any).course || "Class";
       const marker15 = `${nextClassName}-15`;
       const marker5 = `${nextClassName}-5`;
 
@@ -94,7 +94,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       } else if (diff <= 5 && diff >= 0 && !classNotificationsSent.current.has(marker5)) {
         sendNotification(
           `Next: ${nextClassName}`,
-          `📍 ${status.nextClass.room || "No Room"} • ⏳ Starts in ${diff} min`,
+          `📍 ${(status.nextClass as any).room || "No Room"} • ⏳ Starts in ${diff} min`,
           nextClassName
         );
         classNotificationsSent.current.add(marker5);
@@ -236,7 +236,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       
       const diff = hasOldData ? compareData(existingData, { ...existingData, ...result }) : null;
       
-      let mergedData = endpoint === "login" ? { ...result, cookies: updatedCookies } : {
+      let mergedData = {
         ...existingData,
         ...result,
         cookies: updatedCookies,

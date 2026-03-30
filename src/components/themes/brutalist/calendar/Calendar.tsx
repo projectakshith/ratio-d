@@ -262,10 +262,10 @@ const CalendarPage = ({ calendarData, academia, data }: any) => {
       <motion.div
         className="w-full relative z-20 shadow-xl overflow-hidden flex flex-col shrink-0"
         initial={false}
-        animate={{ height: "38%", backgroundColor: theme.bg }}
+        animate={{ height: "28%", backgroundColor: theme.bg }}
         transition={{ duration: 0.3 }}
       >
-        <div className="flex flex-col h-full p-6 pb-2 relative z-20">
+        <div className="flex flex-col h-full p-5 pb-1 relative z-20">
           <div className="self-start mb-auto pt-2">
             <div
               className={`px-3 py-1 bg-white/20 backdrop-blur-md rounded-full border border-white/30 flex items-center gap-2 shadow-sm`}
@@ -290,7 +290,7 @@ const CalendarPage = ({ calendarData, academia, data }: any) => {
                 </span>
               </div>
               <span
-                className={`text-[9rem] leading-[0.8] font-black tracking-tighter ${theme.text}`}
+                className={`text-[7rem] leading-[0.8] font-black tracking-tighter ${theme.text}`}
                 style={{ fontFamily: "Urbanosta" }}
               >
                 {display.bigText}
@@ -315,7 +315,7 @@ const CalendarPage = ({ calendarData, academia, data }: any) => {
       </motion.div>
 
       {/* CALENDAR GRID */}
-      <div className="flex-1 flex flex-col pb-24 pt-6 px-4 z-10">
+      <div className="flex-1 flex flex-col pb-40 pt-6 px-4 z-10">
         <div className="flex justify-between items-center mb-6 px-1 relative">
           <div
             className="absolute left-1/2 -translate-x-1/2 font-black text-xl tracking-tight text-[#050505]"
