@@ -89,47 +89,32 @@ export default function Marks({
     const courseMap = buildCourseMap(data);
     const sorted = processAndSortMarks(data.marks, courseMap);
     
-    const theoryCodes = new Set(
-      sorted
-        .filter((s: any) => !s.isPractical)
-        .map((s: any) => normalize(s.code))
-    );
+    return sorted.map((sub: any) => {
+      const sStr = sub.slot || "";
+      const firstSlot = sStr.split(/[,\s+-]/)[0].trim().toUpperCase();
+      let courseDetails = (data.courses as any)?.[firstSlot];
 
-    return sorted
-      .filter((sub: any) => {
-        if (sub.isPractical && theoryCodes.has(normalize(sub.code))) {
-          return false;
-        }
-        return true;
-      })
-      .map((sub: any) => {
-        const sStr = sub.slot || "";
-        const firstSlot = sStr.split(/[,\s+-]/)[0].trim().toUpperCase();
-        let courseDetails = (data.courses as any)?.[firstSlot];
+      if (!courseDetails) {
+        const normCode = normalize(sub.code);
+        courseDetails = Object.values(data.courses || {}).find((c: any) => 
+          (normalize(c.code) === normCode || normalize(c.courseCode) === normCode) &&
+          ((c.type || "").toLowerCase().includes("lab") === sub.isPractical || 
+           (c.type || "").toLowerCase().includes("practical") === sub.isPractical)
+        );
+      }
 
-        if (!courseDetails) {
-          const normCode = normalize(sub.code);
-          courseDetails = Object.values(data.courses || {}).find((c: any) => 
-            normalize(c.code) === normCode || 
-            normalize(c.courseCode) === normCode
-          );
-        }
+      const credits = courseDetails?.credits
+        ? parseFloat(courseDetails.credits)
+        : (sub.credits || 0);
 
-        const credits = courseDetails?.credits
-          ? parseFloat(courseDetails.credits)
-          : (sub.credits || 0);
-
-        const isPrac = isPracticalLogic(sub);
-
-        return {
-          ...sub,
-          credits,
-          displayCode: getAcronym(sub.title) || sub.code,
-          displayName: sub.title.toLowerCase(),
-          isPractical: isPrac,
-          theme: getTheme(sub.percentage, sub.totalMax),
-        };
-      });
+      return {
+        ...sub,
+        credits,
+        displayCode: getAcronym(sub.title) || sub.code,
+        displayName: sub.title.toLowerCase(),
+        theme: getTheme(sub.percentage, sub.totalMax),
+      };
+    });
   }, [data]);
 
   useEffect(() => {
@@ -197,7 +182,11 @@ export default function Marks({
       .slice(0, 2);
   }, [subjects]);
 
-  const allMarks = subjects;
+  const allMarks = useMemo(() => {
+    const attentionIds = new Set(attentionRequired.map((s: any) => s.id));
+    return subjects.filter((s: any) => !attentionIds.has(s.id));
+  }, [subjects, attentionRequired]);
+
   const totalObtained = useMemo(
     () =>
       subjects.reduce(
@@ -519,7 +508,7 @@ export default function Marks({
                 className="text-[12px] font-bold lowercase tracking-[0.25em] text-theme-muted whitespace-nowrap"
                 style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
               >
-                all subjects
+                {attentionRequired.length > 0 ? "other subjects" : "all subjects"}
               </span>
               <div
                 className="flex-1 h-[1.5px] bg-theme-text-10 rounded-full"
