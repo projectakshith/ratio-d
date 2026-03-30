@@ -6,11 +6,12 @@ import { WifiOff, ServerCrash } from "lucide-react";
 import MinecraftParticles from "./MinecraftParticles";
 import MinecraftAmbience from "./MinecraftAmbience";
 import SyncStatusNotification from "./SyncStatusNotification";
+import UpdateHistory from "./UpdateHistory";
 
 let globalSplashPlayed = false;
 
 export default function AppWrapper({ children }: { children: React.ReactNode }) {
-  const { isOffline, isBackendError, setIsBackendError, backendErrorMsg, setBackendErrorMsg, showWelcome, setShowWelcome, userData } = useApp();
+  const { isOffline, isBackendError, setIsBackendError, backendErrorMsg, setBackendErrorMsg, showWelcome, setShowWelcome, userData, isUpdateHistoryOpen, setIsUpdateHistoryOpen } = useApp();
   const [showSplash, setShowSplash] = useState(false);
   const [isFirstSplash, setIsFirstSplash] = useState(false);
 useEffect(() => {
@@ -111,6 +112,7 @@ useEffect(() => {
       <MinecraftParticles />
       <MinecraftAmbience />
       <SyncStatusNotification />
+      <UpdateHistory isOpen={isUpdateHistoryOpen} onClose={() => setIsUpdateHistoryOpen(false)} />
 
       <AnimatePresence>
         {showWelcome && (

@@ -6,6 +6,7 @@ import { AcademiaData } from "@/types";
 import { compareData, DataDiff } from "@/utils/shared/diffUtils";
 import { sendNotification } from "@/utils/shared/notifs";
 import { fetchWithLoadBalancer } from "@/utils/backendProxy";
+import { UpdateHistoryItem } from "@/types";
 
 import { getScheduleStatus } from "@/utils/academia/academiaLogic";
 import calendarDataJson from "@/data/calendar_data.json";
@@ -29,6 +30,10 @@ interface AppContextType {
   logout: () => Promise<void>;
   latestDiff: DataDiff | null;
   setLatestDiff: (diff: DataDiff | null) => void;
+  updateHistory: UpdateHistoryItem[];
+  setUpdateHistory: (history: UpdateHistoryItem[]) => void;
+  isUpdateHistoryOpen: boolean;
+  setIsUpdateHistoryOpen: (open: boolean) => void;
   deferredPrompt: any;
   canInstall: boolean;
   setCanInstall: (val: boolean) => void;
@@ -50,6 +55,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [isBackendError, setIsBackendError] = useState(false);
   const [backendErrorMsg, setBackendErrorMsg] = useState<string | null>(null);
   const [latestDiff, setLatestDiff] = useState<DataDiff | null>(null);
+  const [updateHistory, setUpdateHistory] = useState<UpdateHistoryItem[]>([]);
+  const [isUpdateHistoryOpen, setIsUpdateHistoryOpen] = useState(false);
   const [loginPromise, setLoginPromise] = useState<Promise<any> | null>(null);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [canInstall, setCanInstall] = useState<boolean>(false);
@@ -61,6 +68,28 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const hasRefreshed = React.useRef(false);
   const hasPrecached = React.useRef(false);
   const router = useRouter();
+
+  const cleanupHistory = (history: UpdateHistoryItem[]) => {
+    const twoDaysAgo = new Date();
+    twoDaysAgo.setHours(0, 0, 0, 0);
+    twoDaysAgo.setDate(twoDaysAgo.getDate() - 1); // Yesterday at 00:00
+    
+    return history.filter(item => item.timestamp >= twoDaysAgo.getTime());
+  };
+
+  useEffect(() => {
+    const savedHistory = localStorage.getItem("ratio_update_history");
+    if (savedHistory) {
+      try {
+        const parsed = JSON.parse(savedHistory);
+        const cleaned = cleanupHistory(parsed);
+        setUpdateHistory(cleaned);
+        localStorage.setItem("ratio_update_history", JSON.stringify(cleaned));
+      } catch (e) {
+        setUpdateHistory([]);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     if (!userData?.schedule) return;
@@ -244,6 +273,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       
       if (diff) {
         setLatestDiff(diff);
+        const timestamp = Date.now();
+        const newHistoryItem: UpdateHistoryItem = {
+          id: `update-${timestamp}`,
+          timestamp,
+          diff,
+        };
+        
+        setUpdateHistory(prev => {
+          const updated = cleanupHistory([newHistoryItem, ...prev]);
+          localStorage.setItem("ratio_update_history", JSON.stringify(updated));
+          return updated;
+        });
+
         const changedCourseIds = new Set([
           ...diff.attendanceChanges.map(a => a.course),
           ...diff.newMarks.map(m => m.course)
@@ -382,6 +424,10 @@ const value = useMemo(() => ({
     logout,
     latestDiff,
     setLatestDiff,
+    updateHistory,
+    setUpdateHistory,
+    isUpdateHistoryOpen,
+    setIsUpdateHistoryOpen,
     deferredPrompt,
     canInstall,
     setCanInstall,
@@ -391,7 +437,7 @@ const value = useMemo(() => ({
     profileSeed,
     setProfileSeed,
     calendarData,
-  }), [userData, customDisplayName, isUpdating, isOffline, isBackendError, backendErrorMsg, refreshData, performLogin, loginPromise, logout, latestDiff, deferredPrompt, canInstall, showWelcome, profileSeed, calendarData]);
+  }), [userData, customDisplayName, isUpdating, isOffline, isBackendError, backendErrorMsg, refreshData, performLogin, loginPromise, logout, latestDiff, updateHistory, isUpdateHistoryOpen, deferredPrompt, canInstall, showWelcome, profileSeed, calendarData]);
 
   return (
     <AppContext.Provider value={value}>

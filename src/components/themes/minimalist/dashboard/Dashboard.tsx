@@ -9,6 +9,7 @@ import {
   CheckCircle,
   GraduationCap,
   Loader,
+  Clock,
 } from "lucide-react";
 import {
   calculateOverallAttendance,
@@ -90,7 +91,7 @@ export default function Dashboard({
   isRefreshing?: boolean;
 }) {
   const router = useRouter();
-  const { customDisplayName, profileSeed } = useApp();
+  const { customDisplayName, profileSeed, setIsUpdateHistoryOpen } = useApp();
   const {
     pullY,
     isRefreshing: isLocalRefreshing,
@@ -387,15 +388,26 @@ export default function Dashboard({
               variants={delayedItemVariants}
               className="flex justify-between items-center mb-6 shrink-0"
             >
-              <button
-                onClick={() => {
-                  Haptics.selection();
-                  onOpenSettings();
-                }}
-                className="w-[50px] h-[50px] rounded-[16px] overflow-hidden transition-all mt-3 bg-theme-surface border-none"
-              >
-                <UserAvatar seed={profileSeed} className="w-full h-full" />
-              </button>
+              <div className="flex items-center gap-3 mt-3">
+                <button
+                  onClick={() => {
+                    Haptics.selection();
+                    onOpenSettings();
+                  }}
+                  className="w-[50px] h-[50px] rounded-[16px] overflow-hidden transition-all bg-theme-surface border-none"
+                >
+                  <UserAvatar seed={profileSeed} className="w-full h-full" />
+                </button>
+                <button
+                  onClick={() => {
+                    Haptics.medium();
+                    setIsUpdateHistoryOpen(true);
+                  }}
+                  className="w-[50px] h-[50px] rounded-[16px] flex items-center justify-center transition-all bg-theme-surface border-none text-theme-muted hover:text-theme-text"
+                >
+                  <Clock size={22} strokeWidth={2.5} />
+                </button>
+              </div>
               <div className="flex flex-col items-end">
                 <span
                   className="text-[16px] font-semibold lowercase tracking-widest text-theme-muted mb-[-4px]"

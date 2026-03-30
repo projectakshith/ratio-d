@@ -1,3 +1,9 @@
+export interface UpdateHistoryItem {
+  id: string;
+  timestamp: number;
+  diff: any;
+}
+
 export interface StudentProfile {
   name: string;
   regNo?: string;
