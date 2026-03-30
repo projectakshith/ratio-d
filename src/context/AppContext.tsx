@@ -26,7 +26,7 @@ interface AppContextType {
   performLogin: (creds: any) => Promise<any>;
   loginPromise: Promise<any> | null;
   setLoginPromise: (promise: Promise<any> | null) => void;
-  logout: () => void;
+  logout: () => Promise<void>;
   latestDiff: DataDiff | null;
   setLatestDiff: (diff: DataDiff | null) => void;
   deferredPrompt: any;
@@ -125,9 +125,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }));
   }, []);
 
-  const logout = useCallback(() => {
-    EncryptionUtils.flushAllStorage();
-    localStorage.removeItem("ratiod_custom_name");
+  const logout = useCallback(async () => {
+    await EncryptionUtils.flushAllStorage();
     sessionNotificationsSent.current.clear();
     setUserData(null);
     router.replace("/login");
@@ -219,7 +218,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const result = await response.json();
       if (!result.success) {
         if (response.status === 401) {
-          logout();
+          await logout();
         }
         return existingData;
       }

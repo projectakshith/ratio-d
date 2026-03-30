@@ -79,7 +79,7 @@ const themeItemVariants: any = {
 
 interface SettingsPageProps {
   onBack: () => void;
-  onLogout: () => void;
+  onLogout: () => void | Promise<void>;
   profile?: StudentProfile;
   onUpdateName?: (name: string) => void;
   onSelectTheme?: (id: string) => void;

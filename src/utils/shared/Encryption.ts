@@ -61,12 +61,26 @@ export const EncryptionUtils = {
     });
   },
 
-  flushAllStorage: () => {
-    localStorage.removeItem("academia_cookies");
-    localStorage.removeItem("ratio_credentials");
-    localStorage.removeItem("ratio_data");
-    localStorage.removeItem("ratiod_theme");
+  flushAllStorage: async () => {
+    const onboarded = localStorage.getItem("ratiod_onboarded");
+    
+    localStorage.clear();
+    sessionStorage.clear();
+    
+    if (onboarded) {
+      localStorage.setItem("ratiod_onboarded", onboarded);
+    }
+    
     document.cookie = "ratio_session=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+    
+    if (typeof window !== "undefined" && "caches" in window) {
+      try {
+        const cacheNames = await caches.keys();
+        await Promise.all(cacheNames.map(name => caches.delete(name)));
+      } catch (err) {
+        console.error("Cache cleanup failed", err);
+      }
+    }
   },
 
   setSessionCookie: () => {
