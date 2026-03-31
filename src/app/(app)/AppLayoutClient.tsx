@@ -28,6 +28,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const academia = useAcademiaData(userData as any);
   const router = useRouter();
 
+  useEffect(() => {
+    const isOnboarded = localStorage.getItem("ratiod_onboarded") === "true";
+    const hasSession = document.cookie.includes("ratio_session=");
+    
+    if (!isOnboarded || !hasSession) {
+      router.replace("/onboarding");
+      return;
+    }
+  }, [router]);
+
   const handleUpdateName = (name: string) => {
     setCustomDisplayName(name);
     localStorage.setItem("ratiod_custom_name", name);
