@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useEffect } from "react";
 import LoginPage from "@/components/shared/LoginPage";
 import { useApp } from "@/context/AppContext";
 import { useRouter } from "next/navigation";
@@ -8,6 +8,13 @@ import { EncryptionUtils } from "@/utils/shared/Encryption";
 export default function LoginRoute() {
   const { setUserData } = useApp();
   const router = useRouter();
+
+  useEffect(() => {
+    const hasSession = document.cookie.includes("ratio_session=");
+    if (hasSession) {
+      router.replace("/");
+    }
+  }, [router]);
 
   const handleLoginSuccess = (data: any) => {
     setUserData(data);
