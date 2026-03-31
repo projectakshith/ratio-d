@@ -1,6 +1,9 @@
 "use client";
 import React, { useState, useCallback } from "react";
 import { useApp } from "@/context/AppContext";
+
+export const runtime = "edge";
+
 import { useTheme } from "@/context/ThemeContext";
 import DashboardMinimalist from "@/components/themes/minimalist/dashboard/Dashboard";
 import DashboardBrutalist from "@/components/themes/brutalist/dashboard/Dashboard";
