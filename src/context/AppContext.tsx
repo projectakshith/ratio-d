@@ -327,6 +327,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
     if (cachedName) setCustomDisplayName(cachedName);
 
+    const onboarded = localStorage.getItem("ratiod_onboarded") === "true";
+    if (onboarded) {
+      document.cookie = "ratio_onboarded=true; path=/; max-age=31536000; SameSite=Lax";
+    }
+
     let parsed: any = null;
     if (cachedData) {
       try {
