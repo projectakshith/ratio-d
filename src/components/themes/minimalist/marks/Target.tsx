@@ -286,7 +286,6 @@ export default function Target({
                         onClick={() => {
                           Haptics.selection();
                           setPredSubjectId(sub.id);
-                          setExpectedMarks(0);
                         }}
                         className={`px-4 py-2.5 rounded-[12px] text-[12px] font-bold uppercase tracking-widest transition-all whitespace-nowrap flex flex-col items-center gap-0.5 ${isIgnored ? "opacity-40 grayscale" : ""} ${isActive ? "bg-theme-highlight text-theme-bg" : "bg-theme-surface text-theme-text hover:bg-theme-text-10"}`}
                         style={{ fontFamily: "'Afacad', sans-serif" }}

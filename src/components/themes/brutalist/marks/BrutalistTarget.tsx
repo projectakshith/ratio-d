@@ -207,7 +207,6 @@ export default function BrutalistTarget({
                         onClick={() => {
                           Haptics.selection();
                           setPredSubjectId(sub.id);
-                          setExpectedMarks(0);
                         }}
                         className={`px-4 py-2.5 rounded-[12px] text-[12px] font-bold uppercase tracking-widest transition-all whitespace-nowrap flex flex-col items-center gap-0.5 ${isIgnored ? "opacity-40 grayscale" : ""} ${isActive ? "bg-[#ceff1c] text-black" : "bg-white/5 text-white hover:bg-white/10"}`}
                         style={{ fontFamily: "Aonic" }}
