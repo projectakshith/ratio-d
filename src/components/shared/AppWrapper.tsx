@@ -115,7 +115,7 @@ useEffect(() => {
             </div>
           </motion.div>
         )}
-        {isBackendError && (
+        {isBackendError && !isOffline && (
           <motion.div
             key="backend-status"
             initial={{ y: -20, opacity: 0 }}

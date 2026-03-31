@@ -214,7 +214,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
         return data;
       } catch (err) {
-        setIsBackendError(true);
+        if (navigator.onLine) {
+          setIsBackendError(true);
+        }
         throw err;
       }
     })();
@@ -312,7 +314,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem("ratio_data", JSON.stringify(mergedData));
       return mergedData;
     } catch (err) {
-      setIsBackendError(true);
+      if (navigator.onLine) {
+        setIsBackendError(true);
+      }
       return existingData;
     } finally {
       setIsUpdating(false);
