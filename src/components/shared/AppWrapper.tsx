@@ -2,11 +2,12 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useApp } from "@/context/AppContext";
-import { WifiOff, ServerCrash } from "lucide-react";
+import { WifiOff, ServerCrash, RefreshCw } from "lucide-react";
 import MinecraftParticles from "./MinecraftParticles";
 import MinecraftAmbience from "./MinecraftAmbience";
 import SyncStatusNotification from "./SyncStatusNotification";
 import UpdateHistory from "./UpdateHistory";
+import WhatsNew from "./WhatsNew";
 
 let globalSplashPlayed = false;
 
@@ -14,6 +15,44 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
   const { isOffline, isBackendError, setIsBackendError, backendErrorMsg, setBackendErrorMsg, showWelcome, setShowWelcome, userData, isUpdateHistoryOpen, setIsUpdateHistoryOpen } = useApp();
   const [showSplash, setShowSplash] = useState(false);
   const [isFirstSplash, setIsFirstSplash] = useState(false);
+  const [showAutoWhatsNew, setShowAutoWhatsNew] = useState(false);
+  const [updateAvailable, setUpdateAvailable] = useState(false);
+
+useEffect(() => {
+  if (typeof window !== "undefined" && "serviceWorker" in navigator) {
+    const wb = (window as any).workbox;
+    if (wb) {
+      wb.addEventListener("waiting", () => setUpdateAvailable(true));
+      wb.addEventListener("externalwaiting", () => setUpdateAvailable(true));
+    }
+  }
+}, []);
+
+const handleUpdate = () => {
+  if (typeof window !== "undefined") {
+    window.location.reload();
+  }
+};
+
+useEffect(() => {
+  const CURRENT_VERSION = "1.1.0";
+  const seenVersion = localStorage.getItem("ratio_seen_version");
+  const isOnboarded = localStorage.getItem("ratiod_onboarded") === "true";
+
+  if (isOnboarded && seenVersion !== CURRENT_VERSION) {
+    const timer = setTimeout(() => {
+      setShowAutoWhatsNew(true);
+    }, 3000);
+    return () => clearTimeout(timer);
+  }
+}, []);
+
+const handleCloseWhatsNew = () => {
+  const CURRENT_VERSION = "1.1.0";
+  localStorage.setItem("ratio_seen_version", CURRENT_VERSION);
+  setShowAutoWhatsNew(false);
+};
+
 useEffect(() => {
   if (globalSplashPlayed) return;
   
@@ -113,6 +152,30 @@ useEffect(() => {
       <MinecraftAmbience />
       <SyncStatusNotification />
       <UpdateHistory isOpen={isUpdateHistoryOpen} onClose={() => setIsUpdateHistoryOpen(false)} />
+      <WhatsNew isOpen={showAutoWhatsNew} onClose={handleCloseWhatsNew} />
+
+      <AnimatePresence>
+        {updateAvailable && (
+          <motion.div
+            initial={{ y: 50, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            className="fixed bottom-24 left-0 right-0 z-[10001] flex justify-center px-6 pointer-events-none"
+          >
+            <div className="bg-theme-bg border border-theme-border p-2 pl-5 rounded-full shadow-2xl flex items-center gap-4 pointer-events-auto min-w-[240px] justify-between">
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-theme-muted">
+                new version ready
+              </span>
+              <button
+                onClick={handleUpdate}
+                className="bg-theme-emphasis text-theme-bg px-4 py-2 rounded-full flex items-center gap-2 active:scale-95 transition-transform"
+              >
+                <RefreshCw size={12} strokeWidth={3} />
+                <span className="text-[10px] font-black uppercase tracking-widest">refresh</span>
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>
         {showWelcome && (

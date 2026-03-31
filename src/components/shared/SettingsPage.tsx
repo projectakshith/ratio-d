@@ -36,7 +36,6 @@ import { UserAvatar } from "@/components/shared/UserAvatar";
 import PrivacyProtocol from "@/components/shared/PrivacyProtocol";
 
 import WhatsNew from "./WhatsNew"; 
-import Marketplace from "./Marketplace";
 
 const WhatsappIcon = ({ size = 20 }: { size?: number }) => (
   <svg 
@@ -214,7 +213,6 @@ const SettingsPage = ({
   const [showCourseDetails, setShowCourseDetails] = useState(false);
   const [showProfileCard, setShowProfileCard] = useState(false);
   const [showWhatsNew, setShowWhatsNew] = useState(false);
-  const [showMarketplace, setShowMarketplace] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState(currentTheme);
 
   const { uiStyle: initialStyle, colorTheme: initialColor } = parseTheme(selectedTheme);
@@ -390,7 +388,6 @@ const SettingsPage = ({
                 </div>
                 <div className="space-y-1 px-1">
                   <SettingItem icon={<PartyPopper className="w-5 h-5 opacity-80 text-theme-text" />} label="What's New" onClick={() => setShowWhatsNew(true)} />
-                  <SettingItem icon={<Store className="w-5 h-5 opacity-80 text-theme-text" />} label="Marketplace" onClick={() => setShowMarketplace(true)} />
                   <SettingItem icon={<Lock className="w-5 h-5 opacity-80 text-theme-text" />} label="Privacy" onClick={() => setShowPrivacy(true)} />
                   <SettingItem icon={<WhatsappIcon size={20} />} label="WhatsApp Community" onClick={() => window.open("https://chat.whatsapp.com/D7wymoQ1zrQKqf4Qs4gw91", "_blank")} />
                 </div>
@@ -422,7 +419,6 @@ const SettingsPage = ({
 
       <PrivacyProtocol isOpen={showPrivacy} onClose={() => setShowPrivacy(false)} />
       <WhatsNew isOpen={showWhatsNew} onClose={() => setShowWhatsNew(false)} />
-      <Marketplace isOpen={showMarketplace} onClose={() => setShowMarketplace(false)} />
 
       <CourseDetailsPage isOpen={showCourseDetails} onClose={() => setShowCourseDetails(false)} />
 

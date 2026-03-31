@@ -52,6 +52,11 @@ export const EncryptionUtils = {
       "ratio_private_notes",
       "ratio_custom_classes",
       "ratiod_onboarded",
+      "ratio_update_history",
+      "ratio_seen_version",
+      "ratio_profile_seed",
+      "ratiod_bypass_pwa",
+      "ratiod_setup_bypassed",
     ];
 
     Object.keys(localStorage).forEach((key) => {
