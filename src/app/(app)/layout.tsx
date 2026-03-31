@@ -21,7 +21,7 @@ const MinimalistThemeLayout = dynamic(
 import { AppLayoutContext } from "@/context/AppLayoutContext";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const { userData, logout, customDisplayName, setCustomDisplayName, isUpdating } = useApp();
+  const { userData, logout, customDisplayName, setCustomDisplayName, isUpdating, setIsUpdateHistoryOpen } = useApp();
   const { theme, setTheme, uiStyle, isDark } = useTheme();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isSwipeDisabled, setIsSwipeDisabled] = useState(false);
@@ -85,6 +85,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 setTheme(newTheme);
                 setIsSettingsOpen(false);
               }}
+              onOpenHistory={() => setIsUpdateHistoryOpen(true)}
               currentTheme={theme}
             />
           )}

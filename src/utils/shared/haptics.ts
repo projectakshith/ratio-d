@@ -3,23 +3,28 @@ let hasInteracted = false;
 if (typeof window !== "undefined") {
   const setInteracted = () => {
     hasInteracted = true;
-    window.removeEventListener("touchstart", setInteracted);
-    window.removeEventListener("mousedown", setInteracted);
+    window.removeEventListener("pointerdown", setInteracted);
     window.removeEventListener("keydown", setInteracted);
+    window.removeEventListener("click", setInteracted);
   };
-  window.addEventListener("touchstart", setInteracted, { passive: true });
-  window.addEventListener("mousedown", setInteracted, { passive: true });
+  window.addEventListener("pointerdown", setInteracted, { passive: true });
   window.addEventListener("keydown", setInteracted, { passive: true });
+  window.addEventListener("click", setInteracted, { passive: true });
 }
 
 export const Haptics = {
   vibe: (pattern: number | number[] = 8) => {
-    if (!hasInteracted) return;
-    if (typeof window !== "undefined" && typeof navigator !== "undefined" && navigator.vibrate) {
-      try {
-        navigator.vibrate(pattern);
-      } catch (e) {
-      }
+    if (typeof window === "undefined" || typeof navigator === "undefined" || !navigator.vibrate) return;
+    
+    const isActuallyActive = (navigator as any).userActivation 
+      ? (navigator as any).userActivation.isActive 
+      : hasInteracted;
+
+    if (!isActuallyActive) return;
+
+    try {
+      navigator.vibrate(pattern);
+    } catch (e) {
     }
   },
 

@@ -17,6 +17,7 @@ import {
   RefreshCw,
   PartyPopper,
   Store,
+  Clock,
 } from "lucide-react";
 import { requestNotificationPermission } from "@/utils/shared/notifs";
 import { StudentProfile } from "@/types";
@@ -83,6 +84,7 @@ interface SettingsPageProps {
   profile?: StudentProfile;
   onUpdateName?: (name: string) => void;
   onSelectTheme?: (id: string) => void;
+  onOpenHistory?: () => void;
   currentTheme?: string;
 }
 
@@ -199,6 +201,7 @@ const SettingsPage = ({
   profile,
   onUpdateName,
   onSelectTheme,
+  onOpenHistory,
   currentTheme = "minimalist_minimalist-dark",
 }: SettingsPageProps) => {
   const { userData, refreshData, isUpdating, profileSeed, setProfileSeed } = useApp();
@@ -376,6 +379,7 @@ const SettingsPage = ({
                   <SettingItem icon={<Palette className="w-5 h-5 opacity-80 text-theme-text" />} label="Select Theme" onClick={() => setShowThemes(true)} value={getThemeDisplayName(selectedTheme)} />
                   <SettingItem icon={<BookOpen className="w-5 h-5 opacity-80 text-theme-text" />} label="Course Details" onClick={() => setShowCourseDetails(true)} />
                   <SettingItem icon={<Cloud className="w-5 h-5 opacity-80 text-theme-text" />} label="Sync Data" onClick={handleSync} value={isUpdating ? "Syncing..." : ""} />
+                  <SettingItem icon={<Clock className="w-5 h-5 opacity-80 text-theme-text" />} label="History Log" onClick={onOpenHistory} />
                 </div>
               </div>
 

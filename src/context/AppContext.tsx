@@ -72,7 +72,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const cleanupHistory = (history: UpdateHistoryItem[]) => {
     const twoDaysAgo = new Date();
     twoDaysAgo.setHours(0, 0, 0, 0);
-    twoDaysAgo.setDate(twoDaysAgo.getDate() - 1); // Yesterday at 00:00
+    twoDaysAgo.setDate(twoDaysAgo.getDate() - 1);
     
     return history.filter(item => item.timestamp >= twoDaysAgo.getTime());
   };
@@ -102,6 +102,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       });
       const calendar = calendarDataJson as any[];
       const todayEntry = calendar.find((item) => item.date === todayDate);
+      
+      if (todayEntry && (todayEntry.order === "-" || todayEntry.order === "Holiday" || todayEntry.order === "Sunday")) {
+        return;
+      }
+
       const effectiveDayOrder =
         todayEntry && todayEntry.order !== "-"
           ? todayEntry.order
@@ -209,6 +214,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
         return data;
       } catch (err) {
+        setIsBackendError(true);
         throw err;
       }
     })();
@@ -305,7 +311,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setUserData(mergedData);
       localStorage.setItem("ratio_data", JSON.stringify(mergedData));
       return mergedData;
-    } catch {
+    } catch (err) {
+      setIsBackendError(true);
       return existingData;
     } finally {
       setIsUpdating(false);

@@ -10,7 +10,6 @@ import {
   Loader,
   AlertTriangle,
   GraduationCap,
-  Clock,
 } from "lucide-react";
 import { BentoTile } from "../BentoTile";
 import { StudentProfile, AttendanceRecord } from "@/types";
@@ -117,7 +116,7 @@ const HomeDashboard = ({
   onRefresh,
   isRefreshing: isParentRefreshing,
 }: HomeDashboardProps) => {
-  const { profileSeed, setIsUpdateHistoryOpen } = useApp();
+  const { profileSeed } = useApp();
   const router = useRouter();
   const [isAlertExpanded, setIsAlertExpanded] = useState(false);
   const [isMetricExpanded, setIsMetricExpanded] = useState(false);
@@ -297,23 +296,12 @@ const HomeDashboard = ({
                   >
                     hello, <span className="text-black">{studentName}</span>
                   </h1>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => {
-                        Haptics.medium();
-                        setIsUpdateHistoryOpen(true);
-                      }}
-                      className="w-9 h-9 rounded-full overflow-hidden border-2 border-black/5 active:scale-90 transition-transform shadow-sm flex items-center justify-center bg-white text-black/60"
-                    >
-                      <Clock size={18} />
-                    </button>
-                    <button
-                      onClick={onProfileClick}
-                      className="w-9 h-9 rounded-full overflow-hidden border-2 border-black/5 active:scale-90 transition-transform shadow-sm flex items-center justify-center bg-white"
-                    >
-                      <UserAvatar seed={profileSeed} className="w-full h-full" />
-                    </button>
-                  </div>
+                  <button
+                    onClick={onProfileClick}
+                    className="w-9 h-9 rounded-full overflow-hidden border-2 border-black/5 active:scale-90 transition-transform shadow-sm flex items-center justify-center bg-white"
+                  >
+                    <UserAvatar seed={profileSeed} className="w-full h-full" />
+                  </button>
                 </motion.div>
 
                 {!isAlertExpanded && !isMetricExpanded && (
