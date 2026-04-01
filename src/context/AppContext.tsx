@@ -345,7 +345,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         const creds = EncryptionUtils.loadDecrypted("ratio_credentials");
         if (creds && !hasRefreshed.current) {
           hasRefreshed.current = true;
-          refreshData(creds, parsed);
+          setTimeout(() => {
+            refreshData(creds, parsed);
+          }, 2000);
         }
       } catch {
       }
