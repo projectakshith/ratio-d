@@ -7,9 +7,8 @@ export const runtime = "edge";
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const cookieStore = await cookies();
   const hasSession = cookieStore.has("ratio_session");
-  const isOnboarded = cookieStore.has("ratio_onboarded");
 
-  if (!hasSession || !isOnboarded) {
+  if (!hasSession) {
     redirect("/onboarding");
   }
 

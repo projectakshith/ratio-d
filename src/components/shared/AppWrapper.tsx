@@ -9,8 +9,6 @@ import SyncStatusNotification from "./SyncStatusNotification";
 import UpdateHistory from "./UpdateHistory";
 import WhatsNew from "./WhatsNew";
 
-let globalSplashPlayed = false;
-
 export default function AppWrapper({ children }: { children: React.ReactNode }) {
   const { isOffline, isBackendError, setIsBackendError, backendErrorMsg, setBackendErrorMsg, showWelcome, setShowWelcome, userData, isUpdateHistoryOpen, setIsUpdateHistoryOpen } = useApp();
   const [showSplash, setShowSplash] = useState(false);
@@ -54,14 +52,15 @@ const handleCloseWhatsNew = () => {
 };
 
 useEffect(() => {
-  if (globalSplashPlayed) return;
+  const splashPlayed = sessionStorage.getItem("ratio_splash_played") === "true";
+  if (splashPlayed) return;
   
   const isStandalone =
     window.matchMedia("(display-mode: standalone)").matches ||
     (window.navigator as any).standalone;
 
   if (isStandalone) {
-    globalSplashPlayed = true;
+    sessionStorage.setItem("ratio_splash_played", "true");
     const isOnboarded = localStorage.getItem("ratiod_onboarded") === "true";
     
     if (!isOnboarded) {
