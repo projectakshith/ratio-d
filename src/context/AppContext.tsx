@@ -146,7 +146,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const coreRoutes = ["/", "/attendance", "/marks", "/timetable", "/calendar"];
       coreRoutes.forEach(route => {
         router.prefetch(route);
-        fetch(route).catch(() => {});
       });
     }
   }, [router]);
