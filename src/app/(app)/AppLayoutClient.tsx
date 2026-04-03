@@ -63,15 +63,21 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       setIsSwipeDisabled
     }}>
       <div className="h-full w-full bg-theme-bg overflow-hidden relative">
-        {uiStyle === "brutalist" ? (
-          <BrutalistThemeLayout {...sharedProps}>
-            {children}
-          </BrutalistThemeLayout>
-        ) : (
-          <MinimalistThemeLayout {...sharedProps}>
-            {children}
-          </MinimalistThemeLayout>
-        )}
+        <div className="lg:hidden h-full w-full">
+          {uiStyle === "brutalist" ? (
+            <BrutalistThemeLayout {...sharedProps}>
+              {children}
+            </BrutalistThemeLayout>
+          ) : (
+            <MinimalistThemeLayout {...sharedProps}>
+              {children}
+            </MinimalistThemeLayout>
+          )}
+        </div>
+
+        <div className="hidden lg:block h-full w-full">
+          {children}
+        </div>
 
         <AnimatePresence>
           {isSettingsOpen && (

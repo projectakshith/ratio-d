@@ -7,9 +7,11 @@ export const runtime = "edge";
 import { useTheme } from "@/context/ThemeContext";
 import DashboardMinimalist from "@/components/themes/minimalist/dashboard/Dashboard";
 import DashboardBrutalist from "@/components/themes/brutalist/dashboard/Dashboard";
+import DesktopDashboard from "@/components/desktop/dashboard/Dashboard";
 import { useAcademiaData } from "@/hooks/useAcademiaData";
 import { useAppLayout } from "@/context/AppLayoutContext";
 import { EncryptionUtils } from "@/utils/shared/Encryption";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function DashboardPage() {
   const { userData, customDisplayName, refreshData, isUpdating } = useApp();
@@ -17,6 +19,7 @@ export default function DashboardPage() {
   const { onOpenSettings } = useAppLayout();
   const [isAlertsOpen, setIsAlertsOpen] = useState(false);
   const academia = useAcademiaData(userData as any);
+  const isMobile = useIsMobile();
 
   const handleRefresh = useCallback(async () => {
     const creds = EncryptionUtils.loadDecrypted("ratio_credentials");
@@ -24,6 +27,10 @@ export default function DashboardPage() {
       await refreshData(creds, userData);
     }
   }, [userData, refreshData]);
+
+  if (!isMobile) {
+    return <DesktopDashboard />;
+  }
 
   if (uiStyle === "brutalist") {
     return (
