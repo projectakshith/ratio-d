@@ -84,6 +84,7 @@ export const processSchedule = (
       return {
         id: details.id || `sch-${activeDay}-${idx}-${cleanCode}`,
         code: getAcronym(fullName) || cleanCode,
+        courseCode: cleanCode,
         name: fullName.toLowerCase(),
         time: details.time,
         start: startStr,

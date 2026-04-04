@@ -110,7 +110,7 @@ export const getStatus = (pct: number, conducted: number, present: number) => {
   }
   
   let needed = 0;
-  while (((present + needed) / (conducted + needed)) * 100 < 75) {
+  while (conducted + needed > 0 && ((present + needed) / (conducted + needed)) * 100 < 75) {
     needed++;
   }
   return { val: needed, label: "recover", safe: false };
@@ -137,6 +137,39 @@ const calculateSessions = (timeRange: string) => {
   } catch {
     return 1;
   }
+};
+
+export const matchAttendance = (
+  targetClass: any,
+  attendanceList: any[]
+) => {
+  if (!targetClass || !attendanceList.length) return null;
+
+  const clsCode = (targetClass.courseCode || targetClass.code || "").trim().toLowerCase();
+  const clsType = (targetClass.type || "Theory").trim().toLowerCase();
+  const clsName = (targetClass.name || "").trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+
+  const exactMatch = attendanceList.find(a => {
+    const aCode = (a.code || "").trim().toLowerCase();
+    const aType = (a.type || "").trim().toLowerCase();
+    const aTitle = (a.title || "").trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+
+    const codeMatch = (aCode === clsCode || (aCode && clsCode && (aCode.includes(clsCode) || clsCode.includes(aCode))));
+    const typeMatch = (aType === clsType);
+    const nameMatch = (aTitle === clsName || (aTitle && clsName && (aTitle.includes(clsName) || clsName.includes(aTitle))));
+
+    return (codeMatch || nameMatch) && typeMatch;
+  });
+
+  if (exactMatch) return exactMatch;
+
+  return attendanceList.find(a => {
+    const aCode = (a.code || "").trim().toLowerCase();
+    const aTitle = (a.title || "").trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+    const codeMatch = (aCode === clsCode || (aCode && clsCode && (aCode.includes(clsCode) || clsCode.includes(aCode))));
+    const nameMatch = (aTitle === clsName || (aTitle && clsName && (aTitle.includes(clsName) || clsName.includes(aTitle))));
+    return codeMatch || nameMatch;
+  });
 };
 
 export const getImpactMap = (
@@ -192,34 +225,17 @@ export const getImpactMap = (
 
           Object.entries(dayClasses).forEach(([timeRange, cls]: [string, any]) => {
             if (!cls) return;
-            const clsCode = norm(cls.code || "");
-            const clsType = (cls.type || cls.category || "Theory").trim().toLowerCase();
+            const targetSubject = matchAttendance(cls, baseAttendance);
             const sessionWeight = calculateSessions(timeRange);
-
-            let targetSubject = baseAttendance.find((s) => {
-              const sCode = norm(s.code);
-              return (sCode === clsCode || clsCode.includes(sCode) || sCode.includes(clsCode)) && s.type.toLowerCase() === clsType;
-            });
-
-            if (!targetSubject) {
-              targetSubject = baseAttendance.find((s) => {
-                const sCode = norm(s.code);
-                return sCode === clsCode || clsCode.includes(sCode) || sCode.includes(clsCode);
-              });
-            }
 
             if (targetSubject) {
               if (!impact[targetSubject.id]) {
                 impact[targetSubject.id] = { conducted: 0, present: 0 };
               }
 
-              if (action === "od") {
-                impact[targetSubject.id].conducted -= sessionWeight;
-              } else {
-                impact[targetSubject.id].conducted += sessionWeight;
-                if (action === "attend" || !action) {
-                  impact[targetSubject.id].present += sessionWeight;
-                }
+              impact[targetSubject.id].conducted += sessionWeight;
+              if (action === "od" || action === "attend" || !action) {
+                impact[targetSubject.id].present += sessionWeight;
               }
             }
           });
@@ -263,12 +279,10 @@ export const getRecoveryDate = (
           if (dayClasses) {
             Object.entries(dayClasses).forEach(([timeRange, cls]: [string, any]) => {
               if (!cls) return;
-              const clsCode = norm(cls.code || "");
-              const clsType = (cls.type || cls.category || "Theory").trim().toLowerCase();
-              const sCode = norm(subject.code);
-              if ((sCode === clsCode || clsCode.includes(sCode) || sCode.includes(clsCode)) && subject.type.toLowerCase() === clsType) {
+              const matched = matchAttendance(cls, [subject]);
+              if (matched || (cls.id && cls.id === subject.id)) {
                 const weight = calculateSessions(timeRange);
-                currentConducted -= weight;
+                currentPresent += weight;
               }
             });
           }
@@ -282,11 +296,11 @@ export const getRecoveryDate = (
     .filter(c => c.dObj >= today)
     .sort((a, b) => a.dObj.getTime() - b.dObj.getTime());
 
-  for (const day of sortedCal) {
-    if ((currentPresent / currentConducted) * 100 >= 75) {
-      return day.date;
-    }
+  if (currentConducted > 0 && (currentPresent / currentConducted) * 100 >= 75) {
+    return sortedCal[0]?.date || null;
+  }
 
+  for (const day of sortedCal) {
     const rawOrder = day.dayOrder || day.order;
     if (rawOrder && rawOrder !== "-" && !isNaN(parseInt(rawOrder))) {
       const orderNum = parseInt(rawOrder);
@@ -299,22 +313,20 @@ export const getRecoveryDate = (
         const action = selectedDates[day.norm || ""];
         Object.entries(dayClasses).forEach(([timeRange, cls]: [string, any]) => {
           if (!cls) return;
-          const clsCode = norm(cls.code || "");
-          const clsType = (cls.type || cls.category || "Theory").trim().toLowerCase();
-          const sCode = norm(subject.code);
-          
-          if ((sCode === clsCode || clsCode.includes(sCode) || sCode.includes(clsCode)) && 
-              subject.type.toLowerCase() === clsType) {
+          const matched = matchAttendance(cls, [subject]);
+          if (matched || (cls.id && cls.id === subject.id)) {
             const weight = calculateSessions(timeRange);
             currentConducted += weight;
-            if (action === "attend" || !action) {
+            if (action === "attend" || action === "od" || !action) {
               currentPresent += weight;
-            } else if (action === "od") {
-               currentConducted -= weight;
             }
           }
         });
       }
+    }
+    
+    if (currentConducted > 0 && (currentPresent / currentConducted) * 100 >= 75) {
+      return day.date;
     }
     
     if (sortedCal.indexOf(day) > 150) break;
@@ -333,8 +345,8 @@ export const getProcessedList = (
     const currentPresent = subject.present;
     const currentConducted = subject.conducted;
 
-    const newPresent = currentPresent + imp.present;
     const newConducted = currentConducted + imp.conducted;
+    const newPresent = Math.min(currentPresent + imp.present, newConducted);
 
     const newPct = newConducted === 0 ? 0 : (newPresent / newConducted) * 100;
     const newStatus = getStatus(newPct, newConducted, newPresent);
@@ -344,7 +356,7 @@ export const getProcessedList = (
       pred: {
         pct: newPct,
         status: newStatus,
-        sessionsAffected: imp.conducted > 0,
+        sessionsAffected: imp.conducted > 0 || imp.present > 0,
       },
     };
   });
