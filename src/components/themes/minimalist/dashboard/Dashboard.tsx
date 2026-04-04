@@ -14,6 +14,7 @@ import {
   calculateOverallAttendance,
   getCriticalAttendance,
 } from "@/utils/academia/academiaLogic";
+import { getBaseAttendance, getStatus, matchAttendance } from "@/utils/attendance/attendanceLogic";
 import { processAndSortMarks, buildCourseMap } from "@/utils/marks/marksLogic";
 import { getAcronym } from "@/utils/dashboard/timetableLogic";
 import calendarDataJson from "@/data/calendar_data.json";
@@ -222,83 +223,67 @@ export default function Dashboard({
     null) as ScheduleSlot | null;
 
   const { alertName, alertPctNum, alertPct, alertMargin, alertLabel } =
-    useMemo(() => {
-      const targetClass = (nextClass || currentClass) as ScheduleSlot | null;
-      const critical = getCriticalAttendance(data?.attendance || []);
-      let targetSubject =
-        critical.length > 0 ? critical[0] : data?.attendance?.[0] || null;
+  useMemo(() => {
+    const targetClass = (nextClass || currentClass) as ScheduleSlot | null;
+    const baseAttendance = getBaseAttendance(data?.attendance || []);
+    const critical = getCriticalAttendance(data?.attendance || []);
 
-      if (targetClass && data?.attendance) {
-        const match = data.attendance.find((a: any) => {
-          const cName = (
-            targetClass.name ||
-            targetClass.courseTitle ||
-            targetClass.course ||
-            ""
-          )
-            .toLowerCase()
-            .replace(/[^a-z0-9]/g, "");
-          const aName = (a.title || a.course || "")
-            .toLowerCase()
-            .replace(/[^a-z0-9]/g, "");
-          return (
-            cName === aName || aName.includes(cName) || cName.includes(aName)
-          );
-        });
-        if (match) targetSubject = match;
-      }
+    let targetSubject = baseAttendance.length > 0 
+      ? baseAttendance.find(a => {
+          const crit = critical[0];
+          if (!crit) return false;
+          const aCode = (a.code || "").trim().toLowerCase();
+          const cCode = (crit.code || crit.courseCode || "").trim().toLowerCase();
+          return aCode === cCode;
+        }) || baseAttendance[0]
+      : null;
 
-      const scheduleData =
-        academia?.effectiveSchedule || data?.timetable || data?.schedule || {};
-      const todaySchedule = scheduleData[`Day ${currentDayOrder}`] || {};
-      const scheduledHoursToday = Object.values(todaySchedule).filter(
-        (slot: any) => {
-          if (!targetSubject || !slot) return false;
-          const sCode = (slot.courseCode || slot.code || "")
-            .split("-")[0]
-            .trim()
-            .toLowerCase();
-          const tCode = (targetSubject.courseCode || targetSubject.code || "")
-            .trim()
-            .toLowerCase();
-          return sCode === tCode;
-        },
-      ).length;
+    if (targetClass && baseAttendance.length > 0) {
+      const match = matchAttendance(targetClass, baseAttendance);
+      if (match) targetSubject = match;
+    }
 
-      const conducted = targetSubject ? targetSubject.conducted : 0;
-      const present = targetSubject ? conducted - targetSubject.absent : 0;
+    const scheduleData =
+      academia?.effectiveSchedule || data?.timetable || data?.schedule || {};
+    const todaySchedule = scheduleData[`Day ${currentDayOrder}`] || {};
+    const scheduledHoursToday = Object.values(todaySchedule).filter(
+      (slot: any) => {
+        if (!targetSubject || !slot) return false;
+        const sCode = (slot.courseCode || slot.code || "").trim().toLowerCase();
+        const sType = (slot.type || "Theory").trim().toLowerCase();
+        const tCode = (targetSubject.code || "").trim().toLowerCase();
+        const tType = (targetSubject.type || "").trim().toLowerCase();
+        return sCode === tCode && sType === tType;
+      },
+    ).length;
 
-      const predictedConducted = conducted + scheduledHoursToday;
-      const predictedPresent = present + scheduledHoursToday;
-      const pct = conducted > 0 ? (present / conducted) * 100 : 100;
-      const predictedPct =
-        predictedConducted > 0
-          ? (predictedPresent / predictedConducted) * 100
-          : 100;
+    const conducted = targetSubject ? targetSubject.conducted : 0;
+    const present = targetSubject ? targetSubject.present : 0;
 
-      const isSafe = pct >= 75;
+    const predictedConducted = conducted + scheduledHoursToday;
+    const predictedPresent = present + scheduledHoursToday;
 
-      let margin = 0;
-      if (isSafe && conducted > 0) {
-        margin = Math.floor(present / 0.75 - conducted);
-      } else if (!isSafe && conducted > 0) {
-        margin = Math.ceil((0.75 * conducted - present) / 0.25);
-      }
+    const pct = conducted > 0 ? (present / conducted) * 100 : 100;
+    const predictedPct =
+      predictedConducted > 0
+        ? (predictedPresent / predictedConducted) * 100
+        : 100;
 
-      return {
-        alertName:
-          targetSubject?.title?.toLowerCase() ||
-          targetSubject?.course?.toLowerCase() ||
-          "attendance",
-        alertPctNum: pct,
-        alertPct: pct.toFixed(1),
-        alertPredictedPct: predictedPct.toFixed(1),
-        alertMargin: Math.max(0, margin),
-        alertLabel: isSafe ? "margin" : "recover",
-        scheduledHoursToday,
-      };
-    }, [data, nextClass, currentClass, currentDayOrder, academia]);
+    const status = getStatus(pct, conducted, present);
 
+    return {
+      alertName:
+        targetSubject?.title?.toLowerCase() ||
+        targetSubject?.rawTitle?.toLowerCase() ||
+        "attendance",
+      alertPctNum: pct,
+      alertPct: pct.toFixed(1),
+      alertPredictedPct: predictedPct.toFixed(1),
+      alertMargin: status.val,
+      alertLabel: status.label,
+      scheduledHoursToday,
+    };
+  }, [data, nextClass, currentClass, currentDayOrder, academia]);
   const attendanceCategory =
     alertPctNum < 75 ? "cooked" : alertPctNum >= 85 ? "safe" : "danger";
   const attStyles = {
