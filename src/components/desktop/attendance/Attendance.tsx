@@ -1,19 +1,6 @@
 "use client";
 import React from "react";
-import { 
-  LayoutDashboard,
-  GraduationCap,
-  BookOpen,
-  Clock,
-  Calendar,
-  User
-} from "lucide-react";
-
-const NavIcon = ({ icon: Icon, active = false }: { icon: any, active?: boolean }) => (
-  <div className={`p-2 rounded-full cursor-pointer transition-all duration-300 ${active ? 'bg-white text-black' : 'text-white/40 hover:text-white hover:bg-white/5'}`}>
-    <Icon size={20} strokeWidth={1.5} />
-  </div>
-);
+import DesktopSidebar from "../DesktopSidebar";
 
 const AttentionCard = ({ shortName, fullName, attended, total, percent, margin, isSafe, recoveryDate }: any) => (
   <div className="flex items-center px-6 py-5 rounded-[20px] bg-white/[0.02] hover:bg-white/[0.04] transition-all duration-300 group border border-white/5">
@@ -158,19 +145,7 @@ export default function DesktopAttendance() {
         </div>
       </div>
 
-      <div className="w-[52px] h-full flex flex-col items-center py-6 justify-between shrink-0">
-        <div className="flex flex-col items-center gap-7">
-          <NavIcon icon={LayoutDashboard} />
-          <NavIcon icon={GraduationCap} active />
-          <NavIcon icon={BookOpen} />
-          <NavIcon icon={Clock} />
-          <NavIcon icon={Calendar} />
-        </div>
-        
-        <div className="pb-2">
-          <NavIcon icon={User} />
-        </div>
-      </div>
+      <DesktopSidebar />
     </div>
   );
 }
