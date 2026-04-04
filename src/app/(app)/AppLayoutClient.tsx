@@ -7,6 +7,7 @@ import SettingsPage from "@/components/shared/SettingsPage";
 import { useApp } from "@/context/AppContext";
 import { useTheme } from "@/context/ThemeContext";
 import { useAcademiaData } from "@/hooks/useAcademiaData";
+import CommandPalette from "@/components/desktop/CommandPalette";
 
 const BrutalistThemeLayout = dynamic(
   () => import("@/components/themes/brutalist/BrutalistTheme"),
@@ -77,6 +78,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
         <div className="hidden lg:block h-full w-full">
           {children}
+          <CommandPalette />
         </div>
 
         <AnimatePresence>

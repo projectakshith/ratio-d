@@ -214,6 +214,10 @@ input:focus {
   color: var(--theme-text) !important;
 }
 
+.command-palette-input:focus {
+  color: white !important;
+}
+
 ::selection {
   background: var(--theme-highlight, #ceff1c);
   color: var(--theme-bg, #0c30ff);
