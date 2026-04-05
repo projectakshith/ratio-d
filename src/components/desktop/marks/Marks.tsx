@@ -1,13 +1,14 @@
 "use client";
 import React from "react";
 import DesktopSidebar from "../DesktopSidebar";
+import { ReactLenis } from "lenis/react";
 
 export default function DesktopMarks() {
   return (
     <div className="h-screen w-full bg-black flex flex-row p-1 font-sans overflow-hidden">
       <div className="flex-1 bg-[#121212] rounded-[24px] relative overflow-hidden flex flex-col">
         
-        <div className="flex-1 overflow-y-auto no-scrollbar pt-10 pb-48 px-12">
+        <ReactLenis className="flex-1 overflow-y-auto no-scrollbar pt-10 pb-48 px-12">
           <div className="w-full max-w-5xl mx-auto flex flex-col items-center">
             
             <div className="w-full flex flex-col gap-4 mb-16 p-8 rounded-[32px] border-2 border-dashed border-white/10 bg-white/[0.02]">
@@ -38,7 +39,7 @@ export default function DesktopMarks() {
               </div>
               
               <div className="grid grid-cols-3 gap-4">
-                {[1, 2, 3, 4, 5, 6].map((i) => (
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((i) => (
                   <div key={i} className="aspect-square p-6 rounded-[24px] bg-white/[0.01] border border-white/5 flex flex-col justify-between">
                     <div className="h-6 w-12 bg-white/10 rounded-md" />
                     <div className="h-4 w-full bg-white/5 rounded-full" />
@@ -47,7 +48,7 @@ export default function DesktopMarks() {
               </div>
             </div>
           </div>
-        </div>
+        </ReactLenis>
 
         <div className="absolute bottom-0 left-0 right-0 h-40 pointer-events-none bg-gradient-to-t from-[#121212] via-[#121212] to-transparent z-20" />
         

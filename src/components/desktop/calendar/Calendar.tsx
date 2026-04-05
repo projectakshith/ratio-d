@@ -1,13 +1,14 @@
 "use client";
 import React from "react";
 import DesktopSidebar from "../DesktopSidebar";
+import { ReactLenis } from "lenis/react";
 
 export default function DesktopCalendar() {
   return (
     <div className="h-screen w-full bg-black flex flex-row p-1 font-sans overflow-hidden">
       <div className="flex-1 bg-[#121212] rounded-[24px] relative overflow-hidden flex flex-col">
         
-        <div className="flex-1 overflow-y-auto no-scrollbar pt-10 pb-48 px-12">
+        <ReactLenis className="flex-1 overflow-y-auto no-scrollbar pt-10 pb-48 px-12">
           <div className="w-full max-w-5xl mx-auto flex flex-col items-center">
             
             <div className="w-full grid grid-cols-7 gap-2 mb-16">
@@ -20,7 +21,7 @@ export default function DesktopCalendar() {
             </div>
 
           </div>
-        </div>
+        </ReactLenis>
 
         <div className="absolute bottom-0 left-0 right-0 h-40 pointer-events-none bg-gradient-to-t from-[#121212] via-[#121212] to-transparent z-20" />
         
