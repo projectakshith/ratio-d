@@ -1,11 +1,6 @@
 
 <img width="1867" height="369" alt="image" src="https://github.com/user-attachments/assets/cf152291-6290-431a-bf97-448f42a21586" />
 
-# ratio'd
-
-### built for speed.
-swipe through the lore of academia hehe
-
 <p align="center">
   <img src="https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white" />
   <img src="https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi&logoColor=white" />
@@ -13,6 +8,10 @@ swipe through the lore of academia hehe
   <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" />
   <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" />
 </p>
+
+# ratio'd
+
+### built for speed.
 
 > ratio'd is a dashboard built by students, for students. it's lowkey private, failproof, and designed to replace the stress of traditional academic portals.
 
