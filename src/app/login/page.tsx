@@ -12,7 +12,7 @@ export default function LoginRoute() {
   useEffect(() => {
     const hasSession = document.cookie.includes("ratio_session=");
     if (hasSession) {
-      router.replace("/");
+      router.replace("/dashboard");
     }
   }, [router]);
 
@@ -20,7 +20,7 @@ export default function LoginRoute() {
     setUserData(data);
     localStorage.setItem("ratio_data", JSON.stringify(data));
     EncryptionUtils.setSessionCookie();
-    router.replace("/");
+    router.replace("/dashboard");
   };
 
   return (

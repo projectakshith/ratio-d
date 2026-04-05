@@ -24,7 +24,7 @@ export default function DesktopSidebar() {
   const pathname = usePathname();
 
   const navItems = [
-    { icon: LayoutDashboard, path: "/" },
+    { icon: LayoutDashboard, path: "/dashboard" },
     { icon: GraduationCap, path: "/attendance" },
     { icon: BookOpen, path: "/marks" },
     { icon: Clock, path: "/timetable" },

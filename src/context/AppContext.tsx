@@ -143,7 +143,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (typeof window !== "undefined" && "caches" in window && !hasPrecached.current) {
       hasPrecached.current = true;
-      const coreRoutes = ["/", "/attendance", "/marks", "/timetable", "/calendar"];
+      const coreRoutes = ["/dashboard", "/attendance", "/marks", "/timetable", "/calendar"];
       coreRoutes.forEach(route => {
         router.prefetch(route);
       });

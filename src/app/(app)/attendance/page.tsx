@@ -16,6 +16,8 @@ export default function AttendancePage() {
   const academia = useAcademiaData(userData as any);
   const isMobile = useIsMobile();
 
+  if (isMobile === undefined) return <div className="h-full w-full bg-theme-bg" />;
+
   if (!isMobile) {
     return <DesktopAttendance />;
   }

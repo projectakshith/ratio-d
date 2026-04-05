@@ -16,6 +16,8 @@ export default function CalendarPage() {
   const academia = useAcademiaData(userData as any);
   const isMobile = useIsMobile();
 
+  if (isMobile === undefined) return <div className="h-full w-full bg-theme-bg" />;
+
   if (!isMobile) {
     return <DesktopCalendar />;
   }

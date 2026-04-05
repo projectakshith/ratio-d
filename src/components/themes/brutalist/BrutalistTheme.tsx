@@ -15,7 +15,7 @@ export default function BrutalistTheme({ children, isSwipeDisabled }: BrutalistT
   const pathname = usePathname();
   const router = useRouter();
 
-  const paths = ["/marks", "/attendance", "/", "/timetable", "/calendar"];
+  const paths = ["/marks", "/attendance", "/dashboard", "/timetable", "/calendar"];
 
   const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null);
   const [isScrollingVertical, setIsScrollingVertical] = useState(false);

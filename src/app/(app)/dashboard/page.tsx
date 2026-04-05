@@ -28,6 +28,10 @@ export default function DashboardPage() {
     }
   }, [userData, refreshData]);
 
+  if (isMobile === undefined) {
+    return <div className="h-full w-full bg-theme-bg" />;
+  }
+
   if (!isMobile) {
     return <DesktopDashboard />;
   }

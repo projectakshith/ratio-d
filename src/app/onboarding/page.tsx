@@ -19,7 +19,7 @@ export default function OnboardingRoute() {
 
       if (isStandalone) {
         if (isOnboarded && hasData && (hasSession || userData)) {
-          router.replace("/");
+          router.replace("/dashboard");
           return;
         } else if (!hasData && !hasSession && !loginPromise) {
           router.replace("/login");
@@ -34,7 +34,7 @@ export default function OnboardingRoute() {
   const handleComplete = () => {
     localStorage.setItem("ratiod_onboarded", "true");
     document.cookie = "ratio_onboarded=true; path=/; max-age=31536000; SameSite=Lax";
-    router.push("/");
+    router.push("/dashboard");
   };
 
   return <OnboardingPage onComplete={handleComplete} />;

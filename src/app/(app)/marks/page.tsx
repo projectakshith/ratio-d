@@ -14,6 +14,8 @@ export default function MarksPage() {
   const { uiStyle } = useTheme();
   const isMobile = useIsMobile();
 
+  if (isMobile === undefined) return <div className="h-full w-full bg-theme-bg" />;
+
   if (!isMobile) {
     return <DesktopMarks />;
   }
