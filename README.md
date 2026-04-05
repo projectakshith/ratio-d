@@ -1,3 +1,6 @@
+
+<img width="1867" height="369" alt="image" src="https://github.com/user-attachments/assets/cf152291-6290-431a-bf97-448f42a21586" />
+
 # ratio'd
 
 ### built for speed.
