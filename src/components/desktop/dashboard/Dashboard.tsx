@@ -284,7 +284,11 @@ export default function DesktopDashboard() {
                 <div className="flex-1 overflow-hidden">
                   <h1 
                     className="text-theme-text text-[3.5rem] font-black tracking-tighter leading-[0.92] lowercase line-clamp-2" 
-                    style={{ fontFamily: 'var(--font-montserrat)', paddingBottom: '0.15em' }}
+                    style={{ 
+                      fontFamily: 'var(--font-montserrat)', 
+                      paddingBottom: '0.15em',
+                      maxHeight: 'calc(3.5rem * 0.92 * 2)'
+                    }}
                   >
                     {displayCourse}
                   </h1>
