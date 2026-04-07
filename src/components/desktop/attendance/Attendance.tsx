@@ -32,14 +32,14 @@ const SubjectCard = ({ code, title, percent, present, conducted, val, safe, type
   let progressBarFill = '';
 
   if (isCritical) {
-    cardStyles = 'status-boxbg-cooked border-status-border-cooked backdrop-blur-xl hover:opacity-90';
-    textStyles = 'status-text-cooked';
-    subTextStyles = 'status-text-cooked opacity-60';
-    statusColor = 'status-text-cooked';
-    progressBarBg = 'status-bg-cooked';
+    cardStyles = 'bg-[#FF4D4D]/5 border-[#FF4D4D]/25 backdrop-blur-xl hover:bg-[#FF4D4D]/10';
+    textStyles = 'text-[#FF4D4D]';
+    subTextStyles = 'text-[#FF4D4D]/60';
+    statusColor = 'text-[#FF4D4D]';
+    progressBarBg = 'bg-[#FF4D4D]/10';
     progressBarFill = '#FF4D4D';
   } else if (isPractical) {
-    cardStyles = 'bg-[#0EA5E9]/10 border-[#0EA5E9]/25 backdrop-blur-md hover:bg-[#0EA5E9]/15';
+    cardStyles = 'bg-[#0EA5E9]/5 border-[#0EA5E9]/25 backdrop-blur-md hover:bg-[#0EA5E9]/10';
     textStyles = 'text-[#0EA5E9]';
     subTextStyles = 'text-[#0EA5E9]/60';
     statusColor = 'text-[#0EA5E9]';
@@ -65,7 +65,9 @@ const SubjectCard = ({ code, title, percent, present, conducted, val, safe, type
 
   const badgeColors = isPractical 
     ? 'border-[#0EA5E9]/40 bg-[#0EA5E9]/20 text-[#0EA5E9]' 
-    : (isCritical ? 'border-status-border-cooked bg-status-bg-cooked status-text-cooked' : 'border-theme-text/20 bg-theme-text/10 text-theme-text/60');
+    : (isCritical 
+        ? 'border-[#FF4D4D]/40 bg-[#FF4D4D]/20 text-[#FF4D4D]' 
+        : 'border-status-border-safe bg-status-bg-safe status-text-safe');
 
   const formattedDate = useMemo(() => {
     if (!recoveryDate) return null;
