@@ -46,7 +46,7 @@ const SubjectCard = ({ code, title, percent, present, conducted, val, safe, type
     progressBarBg = 'bg-[#0EA5E9]/10';
     progressBarFill = '#0EA5E9';
   } else {
-    cardStyles = 'bg-theme-card backdrop-blur-md hover:bg-theme-card/80';
+    cardStyles = 'bg-theme-highlight/[0.08] backdrop-blur-md hover:bg-theme-highlight/[0.12]';
     textStyles = 'text-theme-text';
     subTextStyles = 'text-theme-text/60';
     statusColor = 'text-theme-text';
@@ -55,10 +55,10 @@ const SubjectCard = ({ code, title, percent, present, conducted, val, safe, type
   }
 
   const badgeBg = isPractical 
-    ? 'rgba(14, 165, 233, 0.2)' 
+    ? 'rgba(14, 165, 233, 0.3)' 
     : (isCritical 
-        ? 'rgba(255, 77, 77, 0.2)' 
-        : 'color-mix(in srgb, var(--theme-highlight) 20%, transparent)');
+        ? 'rgba(255, 77, 77, 0.3)' 
+        : 'color-mix(in srgb, var(--theme-highlight) 30%, transparent)');
 
   const badgeText = isPractical 
     ? 'text-[#0EA5E9]' 
@@ -70,7 +70,7 @@ const SubjectCard = ({ code, title, percent, present, conducted, val, safe, type
     ? 'rgba(255, 77, 77, 0.25)' 
     : (isPractical 
         ? 'rgba(14, 165, 233, 0.25)' 
-        : 'color-mix(in srgb, var(--theme-text) 25%, transparent)');
+        : 'color-mix(in srgb, var(--theme-highlight) 25%, transparent)');
 
   const formattedDate = useMemo(() => {
     if (!recoveryDate) return null;
@@ -83,7 +83,7 @@ const SubjectCard = ({ code, title, percent, present, conducted, val, safe, type
     <motion.div 
       layout
       className={`shrink-0 w-[280px] h-[380px] rounded-[32px] border-[1.5px] p-8 flex flex-col justify-between transition-all duration-300 hover:scale-[1.02] relative overflow-hidden ${cardStyles} ${hasChanged ? 'ring-2 ring-theme-text/10' : ''}`}
-      style={{ borderColor: cardBorderColor }}
+      style={cardBorderColor ? { borderColor: cardBorderColor } : {}}
     >
       <div className="flex flex-col gap-4">
         <div className="flex justify-between items-start">
@@ -355,7 +355,7 @@ export default function DesktopAttendance() {
                     <span className="text-theme-muted text-[10px] font-bold uppercase tracking-[0.3em] mb-2" style={{ fontFamily: 'var(--font-afacad)' }}>overall percentage</span>
                     <span className="text-theme-text text-5xl font-black tracking-tighter leading-none" style={{ fontFamily: 'var(--font-montserrat)' }}>{stats.pct.toFixed(1)}%</span>
                   </div>
-                  <div className="absolute bottom-16 left-0 right-0 flex justify-center">
+                  <div className="absolute bottom-32 left-0 right-0 flex justify-center">
                     <button onClick={togglePrediction} className={`w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-xl ${isPredicting ? 'bg-theme-highlight text-theme-bg' : 'bg-theme-surface border border-theme-border text-theme-muted hover:text-theme-text'}`}><Calculator size={18} /></button>
                   </div>
                 </motion.div>
@@ -392,8 +392,8 @@ export default function DesktopAttendance() {
               {normalSubjects.length > 0 && (
                 <div className="flex flex-col gap-4">
                   <div className="flex items-center gap-4 px-4 mb-2">
-                    <span className="text-theme-text/20 text-[10px] font-bold uppercase tracking-[0.5em] shrink-0" style={{ fontFamily: 'var(--font-afacad)' }}>subjects</span>
-                    <div className="w-12 h-px bg-theme-text/20" />
+                    <span className="text-theme-text/40 text-[10px] font-bold uppercase tracking-[0.5em] shrink-0" style={{ fontFamily: 'var(--font-afacad)' }}>subjects</span>
+                    <div className="w-12 h-px bg-theme-text/40" />
                   </div>
                   <div className="flex flex-row gap-6">
                     {normalSubjects.map(s => <SubjectCard key={s.id} {...s} />)}
