@@ -46,7 +46,7 @@ const SubjectCard = ({ code, title, percent, present, conducted, val, safe, type
     progressBarBg = 'bg-[#0EA5E9]/10';
     progressBarFill = '#0EA5E9';
   } else {
-    cardStyles = 'bg-theme-card border-theme-border backdrop-blur-md hover:bg-theme-card/80';
+    cardStyles = 'bg-theme-card backdrop-blur-md hover:bg-theme-card/80';
     textStyles = 'text-theme-text';
     subTextStyles = 'text-theme-text/60';
     statusColor = 'text-theme-text';
@@ -54,11 +54,23 @@ const SubjectCard = ({ code, title, percent, present, conducted, val, safe, type
     progressBarFill = 'var(--theme-highlight)';
   }
 
-  const badgeColors = isPractical 
-    ? 'border-[#0EA5E9]/40 bg-[#0EA5E9]/20 text-[#0EA5E9]' 
+  const badgeBg = isPractical 
+    ? 'rgba(14, 165, 233, 0.2)' 
     : (isCritical 
-        ? 'border-[#FF4D4D]/40 bg-[#FF4D4D]/20 text-[#FF4D4D]' 
-        : 'border-theme-highlight/40 bg-theme-highlight/20 text-theme-highlight');
+        ? 'rgba(255, 77, 77, 0.2)' 
+        : 'color-mix(in srgb, var(--theme-highlight) 20%, transparent)');
+
+  const badgeText = isPractical 
+    ? 'text-[#0EA5E9]' 
+    : (isCritical 
+        ? 'text-[#FF4D4D]' 
+        : 'text-theme-text');
+
+  const cardBorderColor = isCritical 
+    ? 'rgba(255, 77, 77, 0.25)' 
+    : (isPractical 
+        ? 'rgba(14, 165, 233, 0.25)' 
+        : 'color-mix(in srgb, var(--theme-text) 25%, transparent)');
 
   const formattedDate = useMemo(() => {
     if (!recoveryDate) return null;
@@ -71,13 +83,17 @@ const SubjectCard = ({ code, title, percent, present, conducted, val, safe, type
     <motion.div 
       layout
       className={`shrink-0 w-[280px] h-[380px] rounded-[32px] border-[1.5px] p-8 flex flex-col justify-between transition-all duration-300 hover:scale-[1.02] relative overflow-hidden ${cardStyles} ${hasChanged ? 'ring-2 ring-theme-text/10' : ''}`}
+      style={{ borderColor: cardBorderColor }}
     >
       <div className="flex flex-col gap-4">
         <div className="flex justify-between items-start">
           <span className={`text-[12px] font-black uppercase tracking-[0.2em] ${subTextStyles}`} style={{ fontFamily: 'var(--font-montserrat)' }}>
             {code}
           </span>
-          <div className={`h-4 px-1.5 rounded-full border flex items-center justify-center ${badgeColors}`}>
+          <div 
+            className={`h-4 px-1.5 rounded-full flex items-center justify-center ${badgeText}`}
+            style={{ backgroundColor: badgeBg }}
+          >
             <span className="text-[7px] font-bold uppercase tracking-widest leading-none" style={{ fontFamily: 'var(--font-afacad)' }}>
               {type || 'Theory'}
             </span>
