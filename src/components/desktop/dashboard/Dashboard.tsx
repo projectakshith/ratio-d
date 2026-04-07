@@ -42,7 +42,6 @@ export default function DesktopDashboard() {
   const academia = useAcademiaData(userData as any);
   
   const {
-    mounted,
     currentDayOrder,
     isHoliday,
     selectedDay,
@@ -187,8 +186,6 @@ export default function DesktopDashboard() {
     String(selectedDay) === String(nextScheduledDay) &&
     String(selectedDay) !== String(currentDayOrder);
 
-  if (!mounted) return <div className="h-screen w-full bg-black flex items-center justify-center"><Loader className="text-white/20" /></div>;
-
   return (
     <div 
       className="h-screen w-full flex flex-row p-1.5 font-sans overflow-hidden transition-colors duration-500"
@@ -196,7 +193,6 @@ export default function DesktopDashboard() {
     >
       <div className="flex-1 bg-theme-bg rounded-[24px] relative overflow-hidden flex flex-row border border-theme-border shadow-xl">
         
-        {/* Left Section: Welcome & Schedule */}
         <div className="flex-[1.1] flex flex-col p-8 overflow-y-auto no-scrollbar border-r border-theme-border">
           <header className="flex justify-between items-center mb-10">
             <div className="flex items-center gap-4">
@@ -263,7 +259,6 @@ export default function DesktopDashboard() {
           )}
         </div>
 
-        {/* Right Section: Focus & Widgets */}
         <div className="flex-1 flex flex-col p-8 bg-theme-surface/20">
           <section className="mb-3">
             <div className="flex items-center gap-3 mb-6 px-1">
@@ -293,7 +288,7 @@ export default function DesktopDashboard() {
                     {displayCourse}
                   </h1>
                 </div>
-                <span className="text-[1.25rem] font-bold uppercase tracking-widest text-theme-muted mb-4 whitespace-nowrap" style={{ fontFamily: 'var(--font-afacad)' }}>
+                <span className="text-[1.25rem] font-bold uppercase tracking-widest text-theme-muted whitespace-nowrap" style={{ fontFamily: 'var(--font-afacad)' }}>
                   {focusClass?.time || "--:--"}
                 </span>
               </div>
@@ -303,7 +298,7 @@ export default function DesktopDashboard() {
               >
                 <div className="flex items-center gap-3 min-w-0 flex-1">
                   <span
-                    className={`w-2 h-2 rounded-full shrink-0 ${currentClass && !isHoliday ? "bg-theme-text animate-pulse" : "bg-theme-text-20"}`}
+                    className={`h-2 rounded-full shrink-0 ${currentClass && !isHoliday ? "bg-theme-text animate-pulse" : "bg-theme-text-20"}`}
                   />
                   <span
                     className="text-[14px] font-bold lowercase text-theme-text-70 truncate"
@@ -361,7 +356,7 @@ export default function DesktopDashboard() {
                 className="bg-theme-card border border-theme-border rounded-[24px] p-4 flex flex-col justify-between shadow-sm hover:scale-[1.01] active:scale-98 transition-all cursor-pointer"
               >
                 <div className="w-12 h-12 rounded-xl bg-theme-surface flex items-center justify-center mb-4">
-                  <GoldCup size={20} strokeWidth={2.5} className="text-theme-text" />
+                  <GraduationCap size={20} strokeWidth={2.5} className="text-theme-text" />
                 </div>
                 <div>
                   <p className="text-theme-muted text-[9px] font-bold uppercase tracking-[0.3em] mb-1" style={{ fontFamily: 'var(--font-afacad)' }}>marks</p>
@@ -393,8 +388,4 @@ export default function DesktopDashboard() {
       <DesktopSidebar />
     </div>
   );
-}
-
-function GoldCup({ size, strokeWidth, className }: { size: number, strokeWidth: number, className: string }) {
-  return <GraduationCap size={size} strokeWidth={strokeWidth} className={className} />;
 }
