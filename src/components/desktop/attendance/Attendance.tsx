@@ -46,28 +46,19 @@ const SubjectCard = ({ code, title, percent, present, conducted, val, safe, type
     progressBarBg = 'bg-[#0EA5E9]/10';
     progressBarFill = '#0EA5E9';
   } else {
-    if (category === "safe") {
-      cardStyles = 'status-boxbg-safe border-status-border-safe backdrop-blur-md hover:opacity-90';
-      textStyles = 'status-text-safe';
-      subTextStyles = 'status-text-safe opacity-60';
-      statusColor = 'status-text-safe';
-      progressBarBg = 'status-bg-safe';
-      progressBarFill = 'var(--theme-highlight)';
-    } else {
-      cardStyles = 'status-boxbg-danger border-status-border-danger backdrop-blur-md hover:opacity-90';
-      textStyles = 'status-text-danger';
-      subTextStyles = 'status-text-danger opacity-60';
-      statusColor = 'status-text-danger';
-      progressBarBg = 'status-bg-danger';
-      progressBarFill = 'var(--theme-highlight)';
-    }
+    cardStyles = 'bg-theme-card border-theme-border backdrop-blur-md hover:bg-theme-card/80';
+    textStyles = 'text-theme-text';
+    subTextStyles = 'text-theme-text/60';
+    statusColor = 'text-theme-text';
+    progressBarBg = 'bg-theme-text/10';
+    progressBarFill = 'var(--theme-highlight)';
   }
 
   const badgeColors = isPractical 
     ? 'border-[#0EA5E9]/40 bg-[#0EA5E9]/20 text-[#0EA5E9]' 
     : (isCritical 
         ? 'border-[#FF4D4D]/40 bg-[#FF4D4D]/20 text-[#FF4D4D]' 
-        : 'border-status-border-safe bg-status-bg-safe status-text-safe');
+        : 'border-theme-highlight/40 bg-theme-highlight/20 text-theme-highlight');
 
   const formattedDate = useMemo(() => {
     if (!recoveryDate) return null;
