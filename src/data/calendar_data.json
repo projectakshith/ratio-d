@@ -705,15 +705,15 @@
   {
     "date": "23 Apr 2026",
     "day": "Thu",
-    "description": "LLJ-2: Quantum Computation / LLT-1: Internet of Things",
-    "order": "3",
-    "type": "exam"
+    "description": "General Election - Holiday",
+    "order": "-"
   },
   {
     "date": "24 Apr 2026",
     "day": "Fri",
-    "description": "Instructional Day",
-    "order": "4"
+    "description": "LLJ-2: Quantum Computation / LLT-1: Internet of Things",
+    "order": "3",
+    "type": "exam"
   },
   {
     "date": "25 Apr 2026",
@@ -730,29 +730,28 @@
   {
     "date": "27 Apr 2026",
     "day": "Mon",
+    "description": "Instructional Day",
+    "order": "4"
+  },
+  {
+    "date": "28 Apr 2026",
+    "day": "Tue",
     "description": "LLT-1: Social Engineering",
     "order": "5",
     "type": "exam"
   },
   {
-    "date": "28 Apr 2026",
-    "day": "Tue",
+    "date": "29 Apr 2026",
+    "day": "Wed",
     "description": "FT-4: PQT / LLT-1: PQT / LLT-1: AI",
     "order": "1",
     "type": "exam"
   },
   {
-    "date": "29 Apr 2026",
-    "day": "Wed",
-    "description": "FJ-3: DAA / LLJ-2: DAA",
-    "order": "2",
-    "type": "exam"
-  },
-  {
     "date": "30 Apr 2026",
     "day": "Thu",
-    "description": "FJ-3: Quantum Computation / FT-4: Digital Image Processing / FT-4: Bio Inspired Computing / FT-4: VLSI Physical Design",
-    "order": "3",
+    "description": "FJ-3: DAA / LLJ-2: DAA",
+    "order": "2",
     "type": "exam"
   },
   {
@@ -776,22 +775,22 @@
   {
     "date": "04 May 2026",
     "day": "Mon",
-    "description": "LLT-1: Bio Inspired Computing",
-    "order": "4",
+    "description": "FJ-3: Quantum Computation / FT-4: Digital Image Processing / FT-4: Bio Inspired Computing / FT-4: VLSI Physical Design",
+    "order": "3",
     "type": "exam"
   },
   {
     "date": "05 May 2026",
     "day": "Tue",
-    "description": "PD-Internal: Digital Image Processing / LLT-1: Computer Graphics and Animation / LLT-1: VLSI Physical Design",
-    "order": "5",
+    "description": "LLT-1: Bio Inspired Computing",
+    "order": "4",
     "type": "exam"
   },
   {
     "date": "06 May 2026",
     "day": "Wed",
-    "description": "CLA-1: Analytical and Logical Thinking Skills",
-    "order": "1",
+    "description": "Last working Day - PD-Internal: Digital Image Processing / LLT-1: Computer Graphics and Animation / LLT-1: VLSI Physical Design",
+    "order": "5",
     "type": "exam"
   }
 ]
