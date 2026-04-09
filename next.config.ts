@@ -105,9 +105,18 @@ const withPWA = withPWAInit({
   },
 });
 
+const workerUrl = process.env.NEXT_PUBLIC_WORKER_URL ?? "";
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   async headers() {
+    const connectSrc = [
+      "'self'",
+      "https://getratiod.lol",
+      "https://academia.srmist.edu.in",
+      workerUrl,
+    ].filter(Boolean).join(" ");
+
     return [
       {
         source: "/(.*)",
@@ -122,7 +131,7 @@ const nextConfig: NextConfig = {
               "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: https://academia.srmist.edu.in",
-              "connect-src 'self' https://getratiod.lol https://academia.srmist.edu.in",
+              `connect-src ${connectSrc}`,
               "font-src 'self'",
               "frame-ancestors 'none'",
             ].join("; "),
