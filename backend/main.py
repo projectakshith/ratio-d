@@ -9,7 +9,7 @@ from core.academia_client import AcademiaClient
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse, PlainTextResponse
 from fastapi.middleware.cors import CORSMiddleware
-from models.schemas import Credentials
+from models.schemas import Credentials, LoginCredentials
 from services.marks_service import MarksService
 from services.profile_service import ProfileService
 from services.course_service import CourseService
@@ -24,7 +24,10 @@ load_dotenv()
 load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env.local'))
 
 def get_rate_limit_key(request: Request):
-    return request.headers.get("X-Student-Key") or get_remote_address(request)
+    return (
+        request.headers.get("CF-Connecting-IP") or
+        get_remote_address(request)
+    )
 
 limiter = Limiter(key_func=get_rate_limit_key)
 app = FastAPI()
@@ -37,16 +40,18 @@ async def custom_rate_limit_exceeded_handler(request: Request, exc: RateLimitExc
         content={"detail": "stop spamming blud"}
     )
 
+_dev_origins = ["http://localhost:3000", "http://localhost:9002"] if os.getenv("ENV") == "development" else []
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "https://getratiod.lol",
         "https://www.getratiod.lol",
-        "http://localhost:3000",
-        "http://localhost:9002",
+        *_dev_origins,
     ],
-    allow_methods=["GET", "POST", "OPTIONS"],
-    allow_headers=["Content-Type", "Authorization", "Accept", "X-Student-Key", "X-Ratio-App"],
+    allow_methods=["POST"],
+    allow_headers=["Content-Type"],
+    max_age=86400,
 )
 
 @app.middleware("http")
@@ -74,25 +79,30 @@ async def get_version():
 @limiter.limit("3/minute")
 async def refresh_data(creds: Credentials, request: Request):
     start_total = time.time()
-    print(f"\n[API] Incoming REFRESH request for: {creds.username}", flush=True)
+    print(f"[API] Incoming REFRESH request for: ...{creds.username[-4:]}", flush=True)
     try:
+        if not creds.cookies and not creds.password:
+            raise HTTPException(status_code=401, detail={"type": "SESSION_EXPIRED"})
+
         client = AcademiaClient(creds.username, creds.password, creds.cookies)
         if not creds.cookies:
             await client.authenticate(creds.captcha, creds.cdigest)
-        
+
         att_html = await client.get_attendance_html()
         if not att_html or att_html == "CONCURRENT_ERROR":
-            print(f"{get_now()}\n  -> [AUTH] Session invalid or concurrent error. Re-authenticating...", flush=True)
+            if not creds.password:
+                raise HTTPException(status_code=401, detail={"type": "SESSION_EXPIRED"})
+            print(f"{get_now()}\n  -> [AUTH] Session invalid. Re-authenticating...", flush=True)
             await client.authenticate(creds.captcha, creds.cdigest)
             att_html = await client.get_attendance_html()
-        
+
         if not att_html:
             print(f"{get_now()}\n  -> [AUTH] FAILED: Could not retrieve data after re-auth.", flush=True)
             raise HTTPException(status_code=401, detail="Invalid Credentials")
-            
+
         attendance = AttendanceService.parse_attendance(att_html)
         marks = MarksService.parse_test_performance(att_html)
-        
+
         current_cookies = {c.name: c.value for c in client.session_handler.client.cookies.jar}
         print(f"[API] Refresh completed in {time.time() - start_total:.2f}s", flush=True)
         return {
@@ -120,9 +130,9 @@ async def refresh_data(creds: Credentials, request: Request):
 
 @app.post("/login")
 @limiter.limit("5/minute")
-async def login(creds: Credentials, request: Request):
+async def login(creds: LoginCredentials, request: Request):
     start_total = time.time()
-    print(f"\n[API] Incoming login request for: {creds.username}", flush=True)
+    print(f"[API] Incoming login request for: ...{creds.username[-4:]}", flush=True)
     try:
         client = AcademiaClient(creds.username, creds.password, creds.cookies)
         if not creds.cookies:
