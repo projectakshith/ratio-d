@@ -1,129 +1,252 @@
+<div align="center">
+
 # ratio'd
 
-### built for speed.
-swipe through the lore of academia hehe
+**your academia portal, but it doesn't suck.**
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white" />
-  <img src="https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi&logoColor=white" />
-  <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white" />
-  <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" />
-  <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" />
-</p>
+[![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)](https://nextjs.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://typescriptlang.org)
+[![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
+[![Cloudflare](https://img.shields.io/badge/Cloudflare-F38020?style=for-the-badge&logo=cloudflare&logoColor=white)](https://cloudflare.com)
 
-> ratio'd is a dashboard built by students, for students. it's lowkey private, failproof, and designed to replace the stress of traditional academic portals.
+<img src="public/screenshots/mobile.jpeg" width="42%" />
+&nbsp;&nbsp;
+<img src="public/screenshots/attendance.jpeg" width="42%" />
+
+</div>
 
 ---
 
-## Project Structure
+## what's this
+
+ratio'd is a PWA dashboard for SRM students. the official academia portal is painfully slow, mobile-unfriendly, and logs you out every five minutes. ratio'd wraps it — scrapes the HTML, parses it into clean JSON, and serves it in an interface that doesn't make you want to close the tab immediately.
+
+built by students. used by students. no data stored on our end.
+
+---
+
+## features
+
+| | feature | what it does |
+|---|---|---|
+| ⚡ | **sub-second sync** | background refresh keeps data fresh without interrupting you |
+| 📶 | **offline first** | schedule, marks, and attendance cached locally — works without wifi |
+| 🔐 | **device-local encryption** | credentials encrypted with a non-exportable AES-256 key stored in your browser's secure key store, never leaves your device |
+| 🎨 | **dual themes** | minimalist or brutalist — pick your vibe |
+| 📊 | **attendance predictor** | calculates exactly how many classes you can bunk and still survive |
+| 🎯 | **marks target** | reverse-engineers what you need in finals to hit your target grade |
+| 🔔 | **live alerts** | class reminders, attendance dips, new marks — all as push notifications |
+| 📝 | **private notes** | per-subject notes, stored locally, never synced anywhere |
+| 🔄 | **session recovery** | auto-handles expired sessions and concurrent login conflicts |
+
+---
+
+## architecture
+
+```
+students
+   │
+   ▼
+cloudflare pages          ← static frontend (PWA)
+   │
+   ▼
+cloudflare worker         ← proxy: HMAC signing, load balancing, hides backend URLs
+   │
+   ├──▶ render instance   ─┐
+   ├──▶ personal PC #1    ─┼─ fastapi backends
+   └──▶ personal PC #2    ─┘
+              │
+              ▼
+       srm academia        ← the actual portal we're wrapping
+```
+
+the worker sits between the frontend and all backends. it adds a cryptographic signature to every request so the backends can verify it actually came from ratio'd and not some random person. backend URLs are stored as worker secrets — they never touch the browser.
+
+---
+
+## stack
+
+| layer | tech |
+|---|---|
+| frontend | Next.js 14, TypeScript, Tailwind CSS, Framer Motion |
+| backend | Python, FastAPI, httpx, BeautifulSoup4 |
+| proxy | Cloudflare Workers |
+| hosting | Cloudflare Pages + Render |
+| pwa | Workbox via `@ducanh2912/next-pwa` |
+| auth | Web Crypto API, AES-GCM, IndexedDB |
+
+---
+
+## project structure
 
 ```
 ratio-d/
-├── src/               # nextjs frontend [pwa]
-├── backend/           # python fastapi backend
-├── public/            # static assets and fonts
-└── package.json
+├── src/
+│   ├── app/              # next.js app router pages
+│   ├── components/       # ui components (themes: minimalist, brutalist)
+│   ├── context/          # app state, theme, layout context
+│   ├── hooks/            # custom react hooks
+│   ├── utils/            # logic: attendance, marks, encryption, api
+│   └── types/            # typescript types
+├── backend/
+│   ├── core/             # session handling, academia client, config
+│   ├── services/         # parsers: attendance, marks, timetable, profile
+│   ├── models/           # pydantic schemas
+│   └── main.py           # fastapi app, routes, middleware
+├── worker/
+│   ├── index.ts          # cloudflare worker: proxy + HMAC signing
+│   └── wrangler.toml     # worker config
+└── public/               # static assets, fonts, pwa icons
 ```
 
 ---
 
-## What makes ratio'd different?
+## setup
 
-* **failproof auth engine**
-  seamlessly bypass session expired or concurrent session issues with a custom logic.
-* **sub-second sync**
-  zero-lag background data fetching that keeps your dashboard fresh while you chill.
-* **offline first**
-  your schedule, marks, and notes are always cached and available even without wifi.
-* **live alerts**
-  get real-time notifications for classes, exams, and marks (with special support for 2nd yr cse).
-* **custom notes**
-  built-in private notes for every subject. stay organized without extra apps.
-* **dual visual identities**
-  pick between minimalist and brutalist themes based on your vibe.
-* **smart attendance tracking**
-  instant calculation of margins and recovery paths for every subject.
-* **academic predictions**
-  advanced marks predictor to plan your path to specific target grades.
-* **end-to-end encryption**
-  unique device-specific keys generated locally to protect your credentials.
+### prerequisites
 
-### The Logic Behind ratio'd
-
-we built this to streamline the student experience. by using modern web standards and asynchronous processing, ratio'd provides a fluid interface that works across all your devices.
+- Node.js 18+
+- Python 3.10+
+- [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/) (for the worker)
 
 ---
 
-## Setup
-
-### 1. Clone the repository
+### 1. clone
 
 ```bash
 git clone https://github.com/projectakshith/ratio-d
 cd ratio-d
 ```
 
-### 2. Backend Setup (Python FastAPI)
+---
 
-The backend handles the data fetching and session management logic.
+### 2. backend
 
 ```bash
 cd backend
-# create a virtual environment
 python -m venv .venv
-source .venv/bin/activate  # on Windows use: .venv\Scripts\activate
-
-# install dependencies
+source .venv/bin/activate        # windows: .venv\Scripts\activate
 pip install -r requirements.txt
-
-# start the backend server
 uvicorn main:app --reload --port 8000
 ```
 
-### 3. Frontend Setup (Next.js)
+**backend env vars** — create `backend/.env`:
 
-The frontend is a PWA built with Next.js and Tailwind CSS.
+```env
+HMAC_SECRET=your_secret_here     # must match the worker secret
+ENV=development                  # set to "production" in prod
+```
+
+---
+
+### 3. worker
 
 ```bash
-# from the root ratio-d directory
-npm install
+cd worker
+npm install -g wrangler
+wrangler login
 
-# start the development server
+# set secrets (these never go in any file)
+wrangler secret put HMAC_SECRET      # same value as backend
+wrangler secret put BACKEND_URLS     # comma-separated: http://localhost:8000
+
+wrangler dev                         # local dev
+wrangler deploy                      # deploy to cloudflare
+```
+
+---
+
+### 4. frontend
+
+```bash
+# from the root directory
+npm install
 npm run dev
 ```
 
-### 4. Environment Configuration
+**frontend env vars** — create `.env.local`:
 
-Create a `.env.local` file in the root `ratio-d` directory:
-
-```bash
-# Frontend: comma-separated URLs for your backend instances
-BACKEND_URLS="http://localhost:8000"
-
-# Security: must be identical on both frontend and backend
-INTERNAL_SECRET="your_secure_random_string"
+```env
+NEXT_PUBLIC_WORKER_URL=http://localhost:8787    # your worker URL (local or deployed)
 ```
 
 > [!TIP]
-> The `INTERNAL_SECRET` is used for a server-to-server handshake between Next.js and FastAPI. It ensures that only your frontend can communicate with your backend.
+> in local dev, run `wrangler dev` in the `worker/` directory first. it spins up on `localhost:8787` by default.
 
 ---
 
-## Visuals
+### 5. production env vars (Cloudflare Pages)
 
-<p align="center">
-  <img src="public/screenshots/mobile.jpeg" width="45%" />
-  <img src="public/screenshots/attendance.jpeg" width="45%" />
-</p>
+```env
+NEXT_PUBLIC_WORKER_URL=https://your-worker.your-account.workers.dev
+```
+
+> [!NOTE]
+> the frontend only needs one env var. all backend URLs and secrets are stored in the worker — never in the frontend bundle.
 
 ---
 
-## Technical Specs
+<details>
+<summary><strong>how the encryption works</strong></summary>
 
-* **frontend** nextjs with framer motion
-* **backend** python fastapi
+<br>
+
+when you log in, ratio'd generates an AES-256-GCM key using `window.crypto.subtle.generateKey` with `extractable: false`. this means:
+
+- the key is stored as a `CryptoKey` object in IndexedDB
+- **it cannot be exported or read by any JavaScript, including our own**
+- the browser's engine enforces this at the native level
+
+your credentials are encrypted with this key. the ciphertext goes in `localStorage`. without the key object (which never leaves your device's secure store), the ciphertext is useless.
+
+if you clear your browser data, the key is gone — and so is everything ratio'd stored. that's the kill switch.
+
+</details>
+
+<details>
+<summary><strong>how the HMAC signing works</strong></summary>
+
+<br>
+
+every request from the worker to a backend carries an `X-Ratio-Sig` header:
+
+```
+X-Ratio-Sig: t=1234567890,v1=<hmac-sha256>
+```
+
+the signature is `HMAC-SHA256(timestamp + "." + sha256(body), secret)`.
+
+the backend verifies it and checks the timestamp is within ±5 minutes. requests without a valid signature are rejected with 403. the secret lives only in worker environment variables — it never touches the browser bundle.
+
+</details>
+
+---
+
+## contributing
+
+this is a student project so keep it chill. if you find a bug or want to add something:
+
+1. fork it
+2. branch off `dev` — `git checkout -b your-thing`
+3. commit with conventional commits (`feat:`, `fix:`, `chore:`)
+4. open a PR against `dev`, not `main`
 
 > [!WARNING]
-> ensure your backend servers have the correct cors origins set for your frontend domain.
+> don't commit `.env` files, don't hardcode secrets, don't push to `main` directly.
 
-built with heart for students who value efficiency and design.
+---
+
+## disclaimer
+
+ratio'd is not affiliated with SRM in any way. we don't own the portal, we don't store your data, we just make it less painful to look at. use it at your own risk, gng.
+
+---
+
+<div align="center">
+
+built with too much caffeine by [@projectakshith](https://github.com/projectakshith) and contributors
+
+⭐ star it if it saved your attendance
+
+</div>
