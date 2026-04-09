@@ -2,6 +2,8 @@ import time
 import asyncio
 import os
 import json
+import hmac
+import hashlib
 from datetime import datetime
 import httpx
 import uvicorn
@@ -54,18 +56,40 @@ app.add_middleware(
     max_age=86400,
 )
 
+HMAC_SECRET = os.getenv("HMAC_SECRET", "")
+
+def verify_request(sig_header: str, body: bytes) -> bool:
+    if not HMAC_SECRET:
+        return True
+    try:
+        parts = dict(p.split("=", 1) for p in sig_header.split(","))
+        timestamp = int(parts["t"])
+        received = parts["v1"]
+        if abs(time.time() - timestamp) > 300:
+            return False
+        body_hash = hashlib.sha256(body).hexdigest()
+        message = f"{timestamp}.{body_hash}".encode()
+        expected = hmac.new(HMAC_SECRET.encode(), message, hashlib.sha256).hexdigest()
+        return hmac.compare_digest(received, expected)
+    except Exception:
+        return False
+
 @app.middleware("http")
 async def security_middleware(request: Request, call_next):
     if request.method == "OPTIONS":
         return await call_next(request)
-    
-    app_header = request.headers.get("X-Ratio-App")
-    if app_header != "true":
-        return PlainTextResponse(
-            status_code=403, 
-            content="nice try hackerman\nget out before i call the bouncers"
-        )
-        
+
+    body = await request.body()
+
+    async def receive():
+        return {"type": "http.request", "body": body}
+
+    request._receive = receive
+
+    sig = request.headers.get("X-Ratio-Sig", "")
+    if not verify_request(sig, body):
+        return PlainTextResponse(status_code=403, content="forbidden")
+
     return await call_next(request)
 
 def get_now():
