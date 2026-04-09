@@ -4,8 +4,6 @@ export interface Env {
   ALLOWED_ORIGIN: string;
 }
 
-const CACHE_TTL = 10 * 60;
-
 async function hmacSign(secret: string, timestamp: number, bodyHash: string): Promise<string> {
   const key = await crypto.subtle.importKey(
     "raw",
@@ -28,7 +26,7 @@ function getBackends(env: Env): string[] {
   return env.BACKEND_URLS.split(",").map((u) => u.trim()).filter(Boolean);
 }
 
-async function forwardToBackend(
+async function forward(
   backends: string[],
   path: string,
   body: string,
@@ -54,7 +52,6 @@ async function forwardToBackend(
       });
 
       if (res.ok || (res.status >= 400 && res.status < 500)) return res;
-
       lastErr = new Error(`${base} returned ${res.status}`);
     } catch (e) {
       lastErr = e;
@@ -79,7 +76,7 @@ function corsHeaders(origin: string, allowed: string): HeadersInit {
 }
 
 export default {
-  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+  async fetch(request: Request, env: Env): Promise<Response> {
     const origin = request.headers.get("Origin") ?? "";
     const cors = corsHeaders(origin, env.ALLOWED_ORIGIN);
 
@@ -94,72 +91,18 @@ export default {
       return new Response("not found", { status: 404, headers: cors });
     }
 
-    if (request.method !== "POST" && path !== "/version") {
+    if (request.method !== "POST") {
       return new Response("method not allowed", { status: 405, headers: cors });
     }
 
-    if (path === "/version") {
-      const backends = getBackends(env);
-      try {
-        const res = await forwardToBackend(backends, "/version", "", env);
-        const data = await res.text();
-        return new Response(data, {
-          status: res.status,
-          headers: { ...cors, "Content-Type": "application/json" },
-        });
-      } catch {
-        return new Response(JSON.stringify({ error: "backend unavailable" }), {
-          status: 503,
-          headers: { ...cors, "Content-Type": "application/json" },
-        });
-      }
-    }
-
     const body = await request.text();
-
-    if (path === "/refresh") {
-      const cacheKey = new Request(`https://ratio-cache${path}/${await sha256Hex(body)}`);
-      const cached = await caches.default.match(cacheKey);
-      if (cached) {
-        return new Response(cached.body, {
-          status: 200,
-          headers: { ...cors, "Content-Type": "application/json", "X-Cache": "HIT" },
-        });
-      }
-
-      const backends = getBackends(env);
-      let backendRes: Response;
-      try {
-        backendRes = await forwardToBackend(backends, path, body, env);
-      } catch {
-        return new Response(JSON.stringify({ error: "all backends unavailable" }), {
-          status: 503,
-          headers: { ...cors, "Content-Type": "application/json" },
-        });
-      }
-
-      const responseBody = await backendRes.text();
-      const response = new Response(responseBody, {
-        status: backendRes.status,
-        headers: { ...cors, "Content-Type": "application/json", "X-Cache": "MISS" },
-      });
-
-      if (backendRes.ok) {
-        const toCache = new Response(responseBody, {
-          headers: { "Cache-Control": `max-age=${CACHE_TTL}` },
-        });
-        ctx.waitUntil(caches.default.put(cacheKey, toCache));
-      }
-
-      return response;
-    }
-
     const backends = getBackends(env);
+
     try {
-      const backendRes = await forwardToBackend(backends, path, body, env);
-      const responseBody = await backendRes.text();
-      return new Response(responseBody, {
-        status: backendRes.status,
+      const res = await forward(backends, path, body, env);
+      const text = await res.text();
+      return new Response(text, {
+        status: res.status,
         headers: { ...cors, "Content-Type": "application/json" },
       });
     } catch {
