@@ -1,6 +1,7 @@
-<div align="center">
 
-# ratio'd
+<img width="1867" height="369" alt="image" src="https://github.com/user-attachments/assets/cf152291-6290-431a-bf97-448f42a21586" />
+
+<div align="center">
 
 **your academia portal, but it doesn't suck.**
 
@@ -20,7 +21,7 @@
 
 ## what's this
 
-ratio'd is a PWA dashboard for SRM students. the official academia portal is painfully slow, mobile-unfriendly, and logs you out every five minutes. ratio'd wraps it — scrapes the HTML, parses it into clean JSON, and serves it in an interface that doesn't make you want to close the tab immediately.
+ratio'd is a PWA dashboard for SRM students. the official academia portal is painfully slow, mobile unfriendly. ratio'd wraps it, scrapes the HTML, parses it into clean JSON, and serves it in an interface that doesn't make you want to close the tab immediately.
 
 built by students. used by students. no data stored on our end.
 
@@ -28,17 +29,17 @@ built by students. used by students. no data stored on our end.
 
 ## features
 
-| | feature | what it does |
-|---|---|---|
-| ⚡ | **sub-second sync** | background refresh keeps data fresh without interrupting you |
-| 📶 | **offline first** | schedule, marks, and attendance cached locally — works without wifi |
-| 🔐 | **device-local encryption** | credentials encrypted with a non-exportable AES-256 key stored in your browser's secure key store, never leaves your device |
-| 🎨 | **dual themes** | minimalist or brutalist — pick your vibe |
-| 📊 | **attendance predictor** | calculates exactly how many classes you can bunk and still survive |
-| 🎯 | **marks target** | reverse-engineers what you need in finals to hit your target grade |
-| 🔔 | **live alerts** | class reminders, attendance dips, new marks — all as push notifications |
-| 📝 | **private notes** | per-subject notes, stored locally, never synced anywhere |
-| 🔄 | **session recovery** | auto-handles expired sessions and concurrent login conflicts |
+| feature | what it does |
+|---|---|
+| **sub-second sync** | background refresh keeps data fresh without interrupting you |
+| **offline first** | schedule, marks, and attendance cached locally — works without wifi |
+| **device-local encryption** | credentials encrypted with a non-exportable AES-256 key stored in your browser's secure key store |
+| **dual themes** | minimalist or brutalist|
+| **attendance predictor** | calculates exactly how many classes you can bunk and still survive |
+| **marks target** | reverse engineers what you need in finals to hit your target grade |
+| **live alerts** | class reminders, attendance dips, new marks — all as push notifications |
+| **private notes** | per subject notes, stored locally, never synced anywhere |
+ **session recovery** | auto handles expired sessions and concurrent login conflicts |
 
 ---
 
@@ -51,17 +52,17 @@ students
 cloudflare pages          ← static frontend (PWA)
    │
    ▼
-cloudflare worker         ← proxy: HMAC signing, load balancing, hides backend URLs
+cloudflare worker         ← proxy: HMAC signing, load balancing
    │
-   ├──▶ render instance   ─┐
-   ├──▶ personal PC #1    ─┼─ fastapi backends
-   └──▶ personal PC #2    ─┘
+   ├──▶ server 1    ─┐
+   ├──▶ server 2    ─┼─ fastapi backends
+   └──▶ server 3    ─┘
               │
               ▼
-       srm academia        ← the actual portal we're wrapping
+       srm academia        ← the official portal
 ```
 
-the worker sits between the frontend and all backends. it adds a cryptographic signature to every request so the backends can verify it actually came from ratio'd and not some random person. backend URLs are stored as worker secrets — they never touch the browser.
+the worker sits between the frontend and all backends. it adds a cryptographic signature to every request so the backends can verify it actually came from ratio'd and not some random person. 
 
 ---
 
@@ -147,7 +148,6 @@ cd worker
 npm install -g wrangler
 wrangler login
 
-# set secrets (these never go in any file)
 wrangler secret put HMAC_SECRET      # same value as backend
 wrangler secret put BACKEND_URLS     # comma-separated: http://localhost:8000
 
@@ -244,8 +244,6 @@ ratio'd is not affiliated with SRM in any way. we don't own the portal, we don't
 ---
 
 <div align="center">
-
-built with too much caffeine by [@projectakshith](https://github.com/projectakshith) and contributors
 
 ⭐ star it if it saved your attendance
 
