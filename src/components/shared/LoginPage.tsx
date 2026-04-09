@@ -40,7 +40,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
 
     try {
       EncryptionUtils.cleanOldKeys();
-      const savedCookies = EncryptionUtils.loadDecrypted("academia_cookies");
+      const savedCookies = await EncryptionUtils.loadDecrypted("academia_cookies");
       const creds = {
         username: fullUsername,
         password: password,

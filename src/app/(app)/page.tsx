@@ -2,8 +2,6 @@
 import React, { useState, useCallback } from "react";
 import { useApp } from "@/context/AppContext";
 
-export const runtime = "edge";
-
 import { useTheme } from "@/context/ThemeContext";
 import DashboardMinimalist from "@/components/themes/minimalist/dashboard/Dashboard";
 import DashboardBrutalist from "@/components/themes/brutalist/dashboard/Dashboard";
@@ -22,9 +20,9 @@ export default function DashboardPage() {
   const isMobile = useIsMobile();
 
   const handleRefresh = useCallback(async () => {
-    const creds = EncryptionUtils.loadDecrypted("ratio_credentials");
+    const creds = await EncryptionUtils.loadDecrypted("ratio_credentials");
     if (creds && userData) {
-      await refreshData(creds, userData);
+      await refreshData(creds as any, userData);
     }
   }, [userData, refreshData]);
 
