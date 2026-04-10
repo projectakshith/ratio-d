@@ -1,0 +1,10 @@
+name = "ratiod-proxy"
+main = "index.ts"
+compatibility_date = "2024-11-01"
+
+[vars]
+ALLOWED_ORIGIN = "https://getratiod.lol"
+
+# Set these as secrets via: wrangler secret put HMAC_SECRET
+# Set BACKEND_URLS as: wrangler secret put BACKEND_URLS
+# Format: https://render-instance.onrender.com,https://your-tunnel.cfargotunnel.com

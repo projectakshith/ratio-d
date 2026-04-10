@@ -1,42 +1,20 @@
 export async function fetchWithLoadBalancer(endpoint: string, options: RequestInit = {}) {
-  const urlsString = process.env.NEXT_PUBLIC_BACKEND_URLS || "";
-  const urls = urlsString
-    .split(",")
-    .map(url => url.trim())
-    .filter(Boolean);
+  const workerUrl = process.env.NEXT_PUBLIC_WORKER_URL;
 
-  if (urls.length === 0) {
-    throw new Error("No backend URLs configured.");
+  if (!workerUrl) {
+    throw new Error("NEXT_PUBLIC_WORKER_URL not set");
   }
 
-  const shuffledUrls = [...urls].sort(() => Math.random() - 0.5);
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 25000);
 
-  let lastError: any = null;
-
-  for (const baseUrl of shuffledUrls) {
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 20000); 
-
-      const res = await fetch(`${baseUrl}${endpoint}`, {
-        ...options,
-        headers: {
-          ...options.headers,
-        },
-        signal: controller.signal,
-      });
-      
-      clearTimeout(timeoutId);
-
-      if (res.ok || (res.status >= 400 && res.status < 500)) {
-        return res;
-      }
-      
-      lastError = new Error(`Server ${baseUrl} responded with status ${res.status}`);
-    } catch (err: any) {
-      lastError = err;
-    }
+  try {
+    const res = await fetch(`${workerUrl}${endpoint}`, {
+      ...options,
+      signal: controller.signal,
+    });
+    return res;
+  } finally {
+    clearTimeout(timeoutId);
   }
-
-  throw lastError;
 }

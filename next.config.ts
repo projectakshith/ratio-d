@@ -105,8 +105,41 @@ const withPWA = withPWAInit({
   },
 });
 
+const workerUrl = process.env.NEXT_PUBLIC_WORKER_URL ?? "";
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  async headers() {
+    const connectSrc = [
+      "'self'",
+      "https://getratiod.lol",
+      "https://academia.srmist.edu.in",
+      workerUrl,
+    ].filter(Boolean).join(" ");
+
+    return [
+      {
+        source: "/(.*)",
+        headers: [
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          {
+            key: "Content-Security-Policy",
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+              "style-src 'self' 'unsafe-inline'",
+              "img-src 'self' data: https://academia.srmist.edu.in",
+              `connect-src ${connectSrc}`,
+              "font-src 'self'",
+              "frame-ancestors 'none'",
+            ].join("; "),
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default withPWA(nextConfig);
