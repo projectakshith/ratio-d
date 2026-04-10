@@ -2,13 +2,14 @@
 import React, { useState, useMemo } from "react";
 import DesktopSidebar from "../DesktopSidebar";
 import { ReactLenis } from "lenis/react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Info } from "lucide-react";
 import { useApp } from "@/context/AppContext";
 import { getCalendarGrid, getCalendarDisplay } from "@/utils/dashboard/calendarLogic";
 import calendarDataJson from "@/data/calendar_data.json";
+import { CalendarEvent, CalendarSlot } from "@/types";
 
-const DayCell = ({ slot, onClick }: { slot: any, onClick: () => void }) => {
+const DayCell = ({ slot, onClick }: { slot: CalendarSlot & { event?: CalendarEvent }, onClick: () => void }) => {
   if (slot.type === "padding") {
     return <div className="aspect-square rounded-[22px] bg-theme-surface/5 opacity-20 border border-transparent" />;
   }
@@ -61,9 +62,10 @@ export default function DesktopCalendar() {
   const [selectedDate, setSelectedDate] = useState(new Date());
 
   const calendarData = useMemo(() => {
-    const raw = (userData?.calendarData?.length > 0) ? userData.calendarData : (calendarDataJson || []);
-    const map: any = {};
-    raw.forEach((item: any) => {
+    const calData = userData?.calendarData;
+    const raw = (calData && calData.length > 0) ? calData : (calendarDataJson as any[] || []);
+    const map: Record<string, CalendarEvent> = {};
+    (raw as CalendarEvent[]).forEach((item) => {
       if (item.date) {
         const d = new Date(item.date);
         map[d.toDateString()] = item;
@@ -91,8 +93,8 @@ export default function DesktopCalendar() {
     selectedEvent
   );
 
-  const nextMonth = () => setCurrentDate(new Date(currentDate.setMonth(currentDate.getMonth() + 1)));
-  const prevMonth = () => setCurrentDate(new Date(currentDate.setMonth(currentDate.getMonth() - 1)));
+  const nextMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+  const prevMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
 
   return (
     <div 
@@ -123,10 +125,10 @@ export default function DesktopCalendar() {
 
           <ReactLenis className="flex-1 overflow-y-auto no-scrollbar p-10">
             <div className="grid grid-cols-7 gap-4">
-              {monthGrid.map((slot: any, idx: number) => (
+              {monthGrid.map((slot: CalendarSlot, idx: number) => (
                 <DayCell 
                   key={slot.key || idx} 
-                  slot={{...slot, event: calendarData[slot.dateObj?.toDateString()]}} 
+                  slot={{...slot, event: calendarData[slot.dateObj?.toDateString() || ""]}} 
                   onClick={() => slot.dateObj && setSelectedDate(slot.dateObj)}
                 />
               ))}

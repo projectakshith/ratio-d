@@ -157,10 +157,10 @@ export default function CommandPalette() {
                       {searchResults.nextSession ? (
                         <div className="flex flex-col">
                           <span className="text-white text-lg font-bold leading-tight mb-1">
-                            {searchResults.nextSession.day} • {searchResults.nextSession.time}
+                            {(searchResults.nextSession as any).day} • {(searchResults.nextSession as any).time}
                           </span>
                           <span className="text-white/40 text-xs font-medium">
-                            Room {searchResults.nextSession.room} • {searchResults.nextSession.slot}
+                            Room {(searchResults.nextSession as any).room} • {(searchResults.nextSession as any).slot}
                           </span>
                         </div>
                       ) : (
@@ -173,9 +173,9 @@ export default function CommandPalette() {
                         <Trophy size={16} />
                         <span className="text-[10px] font-black uppercase tracking-widest">recent marks</span>
                       </div>
-                      {searchResults.marks?.assessments?.length > 0 ? (
+                      {((searchResults.marks as any)?.assessments?.length || 0) > 0 ? (
                         <div className="flex flex-col gap-2">
-                          {searchResults.marks.assessments.slice(0, 2).map((m: any, i: number) => (
+                          {(searchResults.marks as any).assessments.slice(0, 2).map((m: any, i: number) => (
                             <div key={i} className="flex justify-between items-center">
                               <span className="text-white/40 text-xs truncate mr-4">{m.title}</span>
                               <span className="text-white text-xs font-black">{m.marks}/{m.total}</span>

@@ -8,8 +8,8 @@
 [![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)](https://nextjs.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://typescriptlang.org)
-[![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
-[![Cloudflare](https://img.shields.io/badge/Cloudflare-F38020?style=for-the-badge&logo=cloudflare&logoColor=white)](https://cloudflare.com)
+[![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python)
+[![Cloudflare](https://img.shields.io/badge/Cloudflare-F38020?style=for-the-badge&logo=cloudflare&logoColor=white)](https://cloudflare)
 
 <img src="public/screenshots/mobile.jpeg" width="42%" />
 &nbsp;&nbsp;
@@ -39,7 +39,7 @@ built by students. used by students. no data stored on our end.
 | **marks target** | reverse engineers what you need in finals to hit your target grade |
 | **live alerts** | class reminders, attendance dips, new marks — all as push notifications |
 | **private notes** | per subject notes, stored locally, never synced anywhere |
- **session recovery** | auto handles expired sessions and concurrent login conflicts |
+| **session recovery** | auto handles expired sessions and concurrent login conflicts |
 
 ---
 
@@ -63,6 +63,18 @@ cloudflare worker         ← proxy: HMAC signing, load balancing
 ```
 
 the worker sits between the frontend and all backends. it adds a cryptographic signature to every request so the backends can verify it actually came from ratio'd and not some random person. 
+
+---
+
+## local development (simpler setup)
+
+to develop locally without setting up the entire cloudflare worker and HMAC infra, you can use the development bypass:
+
+1.  **backend**: set `ENV=development` in your `backend/.env`. this disables HMAC verification.
+2.  **frontend**: set `NEXT_PUBLIC_ENV=development` and `NEXT_PUBLIC_BACKEND_URLS=http://localhost:8000` in `.env.local`. this makes the app hit the backend directly.
+
+> [!TIP]
+> ensure both `ENV` (backend) and `NEXT_PUBLIC_ENV` (frontend) are set to `development` to sync the bypass.
 
 ---
 
@@ -109,7 +121,7 @@ ratio-d/
 
 - Node.js 18+
 - Python 3.10+
-- [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/) (for the worker)
+- [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/)
 
 ---
 
@@ -127,7 +139,7 @@ cd ratio-d
 ```bash
 cd backend
 python -m venv .venv
-source .venv/bin/activate        # windows: .venv\Scripts\activate
+source .venv/bin/activate
 pip install -r requirements.txt
 uvicorn main:app --reload --port 8000
 ```
@@ -135,24 +147,24 @@ uvicorn main:app --reload --port 8000
 **backend env vars** — create `backend/.env`:
 
 ```env
-HMAC_SECRET=your_secret_here     # must match the worker secret
-ENV=development                  # set to "production" in prod
+HMAC_SECRET=your_secret_here
+ENV=development
 ```
 
 ---
 
-### 3. worker
+### 3. worker (optional for local dev)
 
 ```bash
 cd worker
 npm install -g wrangler
 wrangler login
 
-wrangler secret put HMAC_SECRET      # same value as backend
-wrangler secret put BACKEND_URLS     # comma-separated: http://localhost:8000
+wrangler secret put HMAC_SECRET
+wrangler secret put BACKEND_URLS
 
-wrangler dev                         # local dev
-wrangler deploy                      # deploy to cloudflare
+wrangler dev
+wrangler deploy
 ```
 
 ---
@@ -160,7 +172,6 @@ wrangler deploy                      # deploy to cloudflare
 ### 4. frontend
 
 ```bash
-# from the root directory
 npm install
 npm run dev
 ```
@@ -168,22 +179,19 @@ npm run dev
 **frontend env vars** — create `.env.local`:
 
 ```env
-NEXT_PUBLIC_WORKER_URL=http://localhost:8787    # your worker URL (local or deployed)
+NEXT_PUBLIC_ENV=development
+NEXT_PUBLIC_BACKEND_URLS=http://localhost:8000
+NEXT_PUBLIC_WORKER_URL=http://localhost:8787
 ```
-
-> [!TIP]
-> in local dev, run `wrangler dev` in the `worker/` directory first. it spins up on `localhost:8787` by default.
 
 ---
 
 ### 5. production env vars (Cloudflare Pages)
 
 ```env
+NEXT_PUBLIC_ENV=production
 NEXT_PUBLIC_WORKER_URL=https://your-worker.your-account.workers.dev
 ```
-
-> [!NOTE]
-> the frontend only needs one env var. all backend URLs and secrets are stored in the worker — never in the frontend bundle.
 
 ---
 
@@ -228,9 +236,8 @@ the backend verifies it and checks the timestamp is within ±5 minutes. requests
 this is a student project so keep it chill. if you find a bug or want to add something:
 
 1. fork it
-2. branch off `dev` — `git checkout -b your-thing`
-3. commit with conventional commits (`feat:`, `fix:`, `chore:`)
-4. open a PR against `dev`, not `main`
+2. branch off `dev` — `git checkout -b your-feature`
+3. open a PR against `dev`, not `main`
 
 > [!WARNING]
 > don't commit `.env` files, don't hardcode secrets, don't push to `main` directly.

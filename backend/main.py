@@ -79,6 +79,9 @@ async def security_middleware(request: Request, call_next):
     if request.method == "OPTIONS":
         return await call_next(request)
 
+    if os.getenv("ENV") == "development":
+        return await call_next(request)
+
     body = await request.body()
 
     async def receive():

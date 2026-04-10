@@ -3,9 +3,8 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 import DesktopSidebar from "../DesktopSidebar";
 import { ReactLenis } from "lenis/react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, Calculator, RotateCcw, Loader, GraduationCap } from "lucide-react";
+import { ChevronLeft, Calculator, RotateCcw } from "lucide-react";
 import { 
-  getOverallStats, 
   getBaseAttendance, 
   getImpactMap, 
   getProcessedList, 
@@ -17,12 +16,23 @@ import { useApp } from "@/context/AppContext";
 import calendarDataJson from "@/data/calendar_data.json";
 import { DayPicker } from "react-day-picker";
 import { format } from "date-fns";
+import { AttendanceRecord, CalendarEvent } from "@/types";
 
-const SubjectCard = ({ code, title, percent, present, conducted, val, safe, type, recoveryDate, hasChanged, currentLabel }: any) => {
+const SubjectCard = ({ code, title, percent, present, conducted, val, safe, type, recoveryDate, hasChanged }: {
+  code: string;
+  title: string;
+  percent: string;
+  present: number;
+  conducted: number;
+  val: string;
+  safe: boolean;
+  type?: string;
+  recoveryDate?: string | null;
+  hasChanged?: boolean;
+}) => {
   const isPractical = type?.toLowerCase() === 'practical';
   const isCritical = !safe;
   const pctNum = parseFloat(percent);
-  const category = pctNum < 75 ? "cooked" : pctNum >= 85 ? "safe" : "danger";
   
   let cardStyles = '';
   let textStyles = '';
@@ -190,10 +200,11 @@ export default function DesktopAttendance() {
 
   const impactMap = useMemo(() => {
     if (!isPredicting || Object.keys(selectedDates).length === 0) return {};
-    const calDataToUse = (userData?.calendarData?.length > 0) ? userData.calendarData : (calendarDataJson || []);
+    const calData = userData?.calendarData;
+    const calDataToUse = (calData && calData.length > 0) ? calData : (calendarDataJson as any[] || []);
     return getImpactMap(
       selectedDates,
-      calDataToUse as any,
+      calDataToUse as CalendarEvent[],
       userData?.timetable || userData?.schedule || {},
       baseAttendance
     );
@@ -203,8 +214,9 @@ export default function DesktopAttendance() {
     const list = getProcessedList(baseAttendance, impactMap, isPredicting);
     return list.map((s) => {
       const origStatus = getStatus(parseFloat(s.percentage), s.conducted, s.present);
-      const calDataToUse = (userData?.calendarData?.length > 0) ? userData.calendarData : (calendarDataJson || []);
-      const recDate = getRecoveryDate(s, calDataToUse, userData?.timetable || userData?.schedule || {}, selectedDates, predictAction);
+      const calData = userData?.calendarData;
+      const calDataToUse = (calData && calData.length > 0) ? calData : (calendarDataJson as any[] || []);
+      const recDate = getRecoveryDate(s, calDataToUse as CalendarEvent[], userData?.timetable || userData?.schedule || {}, selectedDates, predictAction);
       return {
         ...s,
         percent: s.pred.pct.toFixed(1),

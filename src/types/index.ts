@@ -66,7 +66,7 @@ export interface Assessment {
 export interface MarksRecord {
   course: string;
   assessments: Assessment[];
-  id?: number;
+  id?: number | string;
   code?: string;
   title?: string;
   courseTitle?: string;
@@ -81,6 +81,7 @@ export interface MarksRecord {
   max?: number;
   status?: string;
   badge?: string;
+  isPractical?: boolean;
 }
 
 export interface CalendarEvent {
