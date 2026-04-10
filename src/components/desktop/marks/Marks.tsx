@@ -17,16 +17,23 @@ import {
   getBoxTheme,
   calculateSemMarksNeeded,
   calculatePredictedGpa,
-  getInitialTargetGrades
+  getInitialTargetGrades,
+  calculateBestAchievableGrade
 } from "@/utils/marks/marksLogic";
 import { getRandomRoast } from "@/utils/shared/flavortext";
 import { useApp } from "@/context/AppContext";
 
 const SubjectMarkCard = ({ sub, onClick }: any) => {
   const pctNum = parseFloat(sub.percentage);
-  const isCritical = pctNum < 70 && !sub.isNA;
-  const isPractical = sub.type?.toLowerCase() === 'practical';
   const isNA = sub.isNA;
+  
+  const bestAchievable = useMemo(() => {
+    if (isNA) return null;
+    return calculateBestAchievableGrade(sub.totalGot, sub.totalMax, 40);
+  }, [sub.totalGot, sub.totalMax, isNA]);
+
+  const isCritical = !isNA && (bestAchievable?.isOImpossible || pctNum < 70);
+  const isPractical = sub.type?.toLowerCase() === 'practical';
   
   let cardStyles = '';
   let textStyles = '';
@@ -85,79 +92,81 @@ const SubjectMarkCard = ({ sub, onClick }: any) => {
             : 'color-mix(in srgb, var(--theme-highlight) 25%, transparent)'));
 
   return (
-    <motion.div 
-      layout
-      onClick={onClick}
-      className={`shrink-0 w-[280px] h-[380px] rounded-[32px] border-[1.5px] p-8 flex flex-col justify-between transition-all duration-300 hover:scale-[1.02] relative overflow-hidden ${cardStyles}`}
-      style={{ borderColor: cardBorderColor }}
-    >
-      <div className="flex flex-col gap-4">
-        <div className="flex justify-between items-start">
-          <span className={`text-[12px] font-black uppercase tracking-[0.2em] ${subTextStyles}`} style={{ fontFamily: 'var(--font-montserrat)' }}>
-            {sub.code}
-          </span>
-          <div 
-            className={`h-4 px-1.5 rounded-full flex items-center justify-center ${badgeText}`}
-            style={{ backgroundColor: badgeBg }}
-          >
-            <span className="text-[7px] font-bold uppercase tracking-widest leading-none" style={{ fontFamily: 'var(--font-afacad)' }}>
-              {isNA ? 'No Data' : (sub.type || 'Theory')}
+    <div className="flex flex-col gap-4 shrink-0">
+      <motion.div 
+        layout
+        onClick={onClick}
+        className={`w-[280px] h-[380px] rounded-[32px] border-[1.5px] p-8 flex flex-col justify-between transition-all duration-300 hover:scale-[1.02] relative overflow-hidden ${cardStyles}`}
+        style={{ borderColor: cardBorderColor }}
+      >
+        <div className="flex flex-col gap-4">
+          <div className="flex justify-between items-start">
+            <span className={`text-[12px] font-black uppercase tracking-[0.2em] ${subTextStyles}`} style={{ fontFamily: 'var(--font-montserrat)' }}>
+              {sub.code}
             </span>
-          </div>
-        </div>
-        <span className={`text-xl font-bold lowercase tracking-tight leading-tight ${textStyles}`} style={{ fontFamily: 'var(--font-montserrat)' }}>
-          {sub.title}
-        </span>
-      </div>
-
-      <div className="flex flex-col gap-6">
-        <div className="flex flex-col gap-1">
-          <span className={`text-[10px] font-bold uppercase tracking-[0.2em] ${subTextStyles}`} style={{ fontFamily: 'var(--font-afacad)' }}>
-            assessments
-          </span>
-          <div className="flex gap-2 overflow-x-auto no-scrollbar py-1">
-            {isNA ? (
-              <div className="flex-1 py-4 flex items-center justify-center border border-dashed border-theme-border/20 rounded-xl">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-theme-muted opacity-40" style={{ fontFamily: 'var(--font-afacad)' }}>pending...</span>
-              </div>
-            ) : (
-              sub.assessments.slice(-3).map((ass: any, idx: number) => {
-                const box = getBoxTheme(ass.got, ass.max);
-                return (
-                  <div key={idx} className={`min-w-[65px] flex-1 rounded-xl p-2 border ${box.boxBg} ${box.border} flex flex-col items-center justify-center`}>
-                    <span className={`text-[8px] font-black uppercase tracking-tighter mb-1 truncate w-full text-center ${box.text}`} style={{ fontFamily: 'var(--font-montserrat)' }}>{ass.title}</span>
-                    <div className="flex items-baseline gap-0.5">
-                      <span className={`text-sm font-black ${box.text}`} style={{ fontFamily: 'var(--font-montserrat)' }}>{ass.got}</span>
-                      <span className={`text-[8px] font-bold opacity-50 ${box.text}`} style={{ fontFamily: 'var(--font-montserrat)' }}>/{ass.max}</span>
-                    </div>
-                  </div>
-                );
-              })
-            )}
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-1 relative">
-          <div className="flex justify-between items-end">
-            <div className="flex items-baseline gap-1">
-              <span className={`text-5xl font-black tracking-tighter leading-none ${textStyles}`} style={{ fontFamily: 'var(--font-montserrat)' }}>
-                {isNA ? '0' : (Number.isInteger(sub.totalGot) ? sub.totalGot : sub.totalGot.toFixed(1))}
+            <div 
+              className={`h-4 px-1.5 rounded-full flex items-center justify-center ${badgeText}`}
+              style={{ backgroundColor: badgeBg }}
+            >
+              <span className="text-[7px] font-bold uppercase tracking-widest leading-none" style={{ fontFamily: 'var(--font-afacad)' }}>
+                {isNA ? 'No Data' : (sub.type || 'Theory')}
               </span>
-              <span className={`text-lg font-black ${textStyles} opacity-40`} style={{ fontFamily: 'var(--font-montserrat)' }}>/{sub.totalMax}</span>
             </div>
           </div>
-          <div className={`w-full h-1.5 rounded-full overflow-hidden mt-2 ${progressBarBg}`}>
-            <div 
-              className="h-full rounded-full transition-all duration-1000" 
-              style={{ 
-                width: `${sub.percentage}%`,
-                backgroundColor: isNA ? 'transparent' : progressBarFill
-              }} 
-            />
+          <span className={`text-xl font-bold lowercase tracking-tight leading-tight ${textStyles}`} style={{ fontFamily: 'var(--font-montserrat)' }}>
+            {sub.title}
+          </span>
+        </div>
+
+        <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-1">
+            <span className={`text-[10px] font-bold uppercase tracking-[0.2em] ${subTextStyles}`} style={{ fontFamily: 'var(--font-afacad)' }}>
+              assessments
+            </span>
+            <div className="flex gap-2 overflow-x-auto no-scrollbar py-1">
+              {isNA ? (
+                <div className="flex-1 py-4 flex items-center justify-center border border-dashed border-theme-border/20 rounded-xl">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-theme-muted opacity-40" style={{ fontFamily: 'var(--font-afacad)' }}>pending...</span>
+                </div>
+              ) : (
+                sub.assessments.slice(-3).map((ass: any, idx: number) => {
+                  const box = getBoxTheme(ass.got, ass.max);
+                  return (
+                    <div key={idx} className={`min-w-[65px] flex-1 rounded-xl p-2 border ${box.boxBg} ${box.border} flex flex-col items-center justify-center`}>
+                      <span className={`text-[8px] font-black uppercase tracking-tighter mb-1 truncate w-full text-center ${box.text}`} style={{ fontFamily: 'var(--font-montserrat)' }}>{ass.title}</span>
+                      <div className="flex items-baseline gap-0.5">
+                        <span className={`text-sm font-black ${box.text}`} style={{ fontFamily: 'var(--font-montserrat)' }}>{ass.got}</span>
+                        <span className={`text-[8px] font-bold opacity-50 ${box.text}`} style={{ fontFamily: 'var(--font-montserrat)' }}>/{ass.max}</span>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-1 relative">
+            <div className="flex justify-between items-end">
+              <div className="flex items-baseline gap-1">
+                <span className={`text-5xl font-black tracking-tighter leading-none ${textStyles}`} style={{ fontFamily: 'var(--font-montserrat)' }}>
+                  {isNA ? '0' : (Number.isInteger(sub.totalGot) ? sub.totalGot : sub.totalGot.toFixed(1))}
+                </span>
+                <span className={`text-lg font-black ${textStyles} opacity-40`} style={{ fontFamily: 'var(--font-montserrat)' }}>/{sub.totalMax}</span>
+              </div>
+            </div>
+            <div className={`w-full h-1.5 rounded-full overflow-hidden mt-2 ${progressBarBg}`}>
+              <div 
+                className="h-full rounded-full transition-all duration-1000" 
+                style={{ 
+                  width: `${sub.percentage}%`,
+                  backgroundColor: isNA ? 'transparent' : progressBarFill
+                }} 
+              />
+            </div>
           </div>
         </div>
-      </div>
-    </motion.div>
+      </motion.div>
+    </div>
   );
 };
 
@@ -186,16 +195,25 @@ export default function DesktopMarks() {
   }, [userData]);
 
   const { criticalSubjects, normalSubjects } = useMemo(() => {
-    const critical = subjects
-      .filter(s => s.percentage < 70 && !s.isNA)
-      .sort((a, b) => a.percentage - b.percentage);
+    const subjectsWithLogic = subjects.map(s => {
+      const lostMarks = s.totalMax - s.totalGot;
+      const best = s.isNA ? null : calculateBestAchievableGrade(s.totalGot, s.totalMax, 40);
+      return { ...s, lostMarks, best };
+    });
+
+    const critical = subjectsWithLogic
+      .filter(s => !s.isNA && (s.best?.isOImpossible || s.percentage < 70))
+      .sort((a, b) => b.lostMarks - a.lostMarks); // Sort by marks lost descending
     
-    const normal = subjects.filter(s => s.percentage >= 70 || s.isNA);
+    const normal = subjectsWithLogic
+      .filter(s => s.isNA || (!s.best?.isOImpossible && s.percentage >= 70))
+      .sort((a, b) => {
+        if (a.isNA && !b.isNA) return 1;
+        if (!a.isNA && b.isNA) return -1;
+        return a.percentage - b.percentage;
+      });
     
-    return {
-      criticalSubjects: critical,
-      normalSubjects: normal
-    };
+    return { criticalSubjects: critical, normalSubjects: normal };
   }, [subjects]);
 
   useEffect(() => {
@@ -231,6 +249,13 @@ export default function DesktopMarks() {
   const roast = useMemo(() => {
     return getRandomRoast(stats.badge as any, "marks");
   }, [stats.badge]);
+
+  const categoryRoasts = useMemo(() => {
+    return {
+      critical: getRandomRoast("cooked", "marks"),
+      normal: getRandomRoast("safe", "marks"),
+    };
+  }, [criticalSubjects, normalSubjects]);
 
   const predictedGpa = useMemo(() => 
     calculatePredictedGpa(subjects, targetGrades, []), 
@@ -428,7 +453,8 @@ export default function DesktopMarks() {
                 <div className="flex flex-col gap-4">
                   <div className="flex items-center gap-4 px-4 mb-2">
                     <span className="text-[#FF4D4D] text-[10px] font-bold uppercase tracking-[0.5em] shrink-0" style={{ fontFamily: 'var(--font-afacad)' }}>action required</span>
-                    <div className="w-12 h-px bg-[#FF4D4D]/20" />
+                    <div className="w-12 h-[1.5px] bg-[#FF4D4D] opacity-20 mx-2" />
+                    <span className="text-[#FF4D4D]/80 text-[11px] font-semibold uppercase tracking-widest whitespace-nowrap" style={{ fontFamily: 'var(--font-montserrat)' }}>{categoryRoasts.critical}</span>
                   </div>
                   <div className="flex flex-row gap-6">
                     {criticalSubjects.map(s => <SubjectMarkCard key={s.id} sub={s} onClick={() => setPredSubjectId(s.id)} />)}
@@ -439,7 +465,8 @@ export default function DesktopMarks() {
                 <div className="flex flex-col gap-4">
                   <div className="flex items-center gap-4 px-4 mb-2">
                     <span className="text-theme-text/40 text-[10px] font-bold uppercase tracking-[0.5em] shrink-0" style={{ fontFamily: 'var(--font-afacad)' }}>subjects</span>
-                    <div className="w-12 h-px bg-theme-text/40" />
+                    <div className="w-12 h-[1.5px] bg-theme-text opacity-40 mx-2" />
+                    <span className="text-theme-text/60 text-[11px] font-semibold uppercase tracking-widest whitespace-nowrap" style={{ fontFamily: 'var(--font-montserrat)' }}>{categoryRoasts.normal}</span>
                   </div>
                   <div className="flex flex-row gap-6">
                     {normalSubjects.map(s => <SubjectMarkCard key={s.id} sub={s} onClick={() => setPredSubjectId(s.id)} />)}

@@ -47,6 +47,32 @@ export const flavorText = {
       "aint no way you got nothing yet",
       "suspiciously quiet records",
     ],
+    impossible: [
+      "O is officially a dream now",
+      "bro lost too many, A+ is the ceiling",
+      "cooked internals, aim for A blud",
+      "you fumbled the O, lock in for A+",
+      "100/100 is not for everyone clearly",
+    ],
+    lostO: [
+      "O is cooked, aim for A+",
+      "fumbled the O, lock in for A+",
+      "O dream is dead, A+ is the move",
+      "bye bye O grade, hello A+",
+    ],
+    lostAPlus: [
+      "A+ is a dream now, get A",
+      "fumbled A+ asw? aim for A",
+      "A+ is cooked, focus on A",
+      "locking in for A now, A+ is gone",
+    ],
+    achievable: [
+      "O is still on the table, lock in",
+      "don't lose more, keep the O dream alive",
+      "A+ is easy if you don't fumble now",
+      "you're on track for a goated grade",
+      "insane internals, just don't sleep in sem",
+    ],
   },
   badges: {
     low: ["cooked", "ggwp", "fumbled", "skill issue", "holy moly"],

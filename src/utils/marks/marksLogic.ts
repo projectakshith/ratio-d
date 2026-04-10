@@ -66,6 +66,34 @@ export const isPracticalLogic = (sub: any) => {
   );
 };
 
+export const calculateBestAchievableGrade = (
+  currentInternals: number,
+  totalInternalMax: number = 60,
+  semMax: number = 40
+) => {
+  const lostMarks = totalInternalMax - currentInternals;
+  const maxPossibleTotal = 100 - lostMarks;
+
+  const grades = [
+    { label: "O", min: 91 },
+    { label: "A+", min: 81 },
+    { label: "A", min: 71 },
+    { label: "B+", min: 61 },
+    { label: "B", min: 56 },
+    { label: "C", min: 50 },
+  ];
+
+  const bestGrade = grades.find((g) => maxPossibleTotal >= g.min);
+  const nextBest = grades.find((g) => maxPossibleTotal < g.min);
+
+  return {
+    best: bestGrade || { label: "F", min: 0 },
+    maxPossibleTotal,
+    isOImpossible: maxPossibleTotal < 91,
+    lostMarks,
+  };
+};
+
 export const getInitialTargetGrades = (subjects: any[]) => {
   const initialGrades: Record<string, number> = {};
   const grades = [
