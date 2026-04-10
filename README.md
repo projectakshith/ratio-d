@@ -64,7 +64,7 @@ cloudflare worker         ← proxy: HMAC signing, load balancing
 
 the worker sits between the frontend and all backends. it adds a cryptographic signature to every request so the backends can verify it actually came from ratio'd and not some random person. 
 
----
+---s
 
 ## local development (simpler setup)
 
@@ -252,6 +252,6 @@ ratio'd is not affiliated with SRM in any way. we don't own the portal, we don't
 
 <div align="center">
 
-⭐ star it if it saved your attendance
+⭐ star if you loved this hehe uwu
 
 </div>
