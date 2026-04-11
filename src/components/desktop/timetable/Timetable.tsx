@@ -59,11 +59,14 @@ const TimelineCard = ({ slot, time, active, onClick }: { slot: any, time: string
     return (
       <div 
         onClick={onClick}
-        className={`flex-1 min-w-0 h-full rounded-[24px] border-[1.5px] border-dashed flex flex-col items-center justify-center gap-1 cursor-pointer transition-all hover:bg-theme-surface/30 ${active ? 'bg-theme-surface/50 border-theme-text/20' : 'border-theme-text/10'}`}
-        style={{ borderDasharray: "4 6" }}
+        className={`flex-1 min-w-0 h-full rounded-2xl border-[1.5px] border-dashed flex flex-col items-center justify-center gap-1 cursor-pointer transition-all hover:bg-theme-surface/30 ${active ? 'bg-theme-emphasis/10' : ''}`}
+        style={{ 
+          borderColor: active ? "var(--theme-emphasis)" : "color-mix(in srgb, var(--theme-text) 10%, transparent)",
+          borderDasharray: "4 6"
+        } as any}
       >
-        <Coffee size={14} className="text-theme-muted opacity-20" />
-        <span className="text-theme-muted/30 text-[8px] font-black uppercase tracking-widest" style={{ fontFamily: 'var(--font-montserrat)' }}>free</span>
+        <Coffee size={20} className={`transition-colors ${active ? 'text-theme-emphasis' : 'text-theme-muted opacity-40'}`} />
+        <span className={`text-[8px] font-black uppercase tracking-widest transition-colors ${active ? 'text-theme-emphasis' : 'text-theme-muted/40'}`} style={{ fontFamily: 'var(--font-montserrat)' }}>free</span>
       </div>
     );
   }
@@ -72,7 +75,7 @@ const TimelineCard = ({ slot, time, active, onClick }: { slot: any, time: string
     <motion.div
       whileHover={{ y: -2 }}
       onClick={onClick}
-      className={`flex-1 min-w-0 h-full p-3.5 rounded-[24px] flex flex-col justify-between cursor-pointer transition-all duration-300 shadow-sm border-[1.5px] ${
+      className={`flex-1 min-w-0 h-full p-3 rounded-2xl flex flex-col justify-between cursor-pointer transition-all duration-300 shadow-sm border-[1.5px] ${
         active 
           ? "bg-theme-emphasis text-theme-bg border-theme-emphasis" 
           : isLab 
@@ -81,19 +84,16 @@ const TimelineCard = ({ slot, time, active, onClick }: { slot: any, time: string
       }`}
     >
       <div className="flex flex-col">
-        <span className={`text-[8px] font-black uppercase tracking-widest opacity-60 mb-0.5`} style={{ fontFamily: 'var(--font-afacad)' }}>
+        <span className={`text-[13px] font-black uppercase tracking-tighter leading-none mb-1`} style={{ fontFamily: 'var(--font-montserrat)' }}>
           {time.split('-')[0].trim()}
         </span>
-        <h4 className="text-[11px] font-black lowercase tracking-tighter line-clamp-2 leading-[1.1]" style={{ fontFamily: 'var(--font-montserrat)' }}>
+        <h4 className={`text-[9px] font-bold lowercase tracking-tight line-clamp-2 leading-tight ${active ? 'opacity-90' : 'opacity-60'}`} style={{ fontFamily: 'var(--font-afacad)' }}>
           {slot.name}
         </h4>
       </div>
 
-      <div className="flex flex-col gap-0.5">
-        <span className={`text-[9px] font-black uppercase tracking-tighter opacity-40`} style={{ fontFamily: 'var(--font-montserrat)' }}>
-          {slot.slot}
-        </span>
-        <span className={`text-[9px] font-black uppercase tracking-widest truncate`} style={{ fontFamily: 'var(--font-afacad)' }}>
+      <div className="flex flex-col">
+        <span className={`text-[8px] font-black uppercase tracking-widest truncate ${active ? 'opacity-80' : 'opacity-40'}`} style={{ fontFamily: 'var(--font-afacad)' }}>
           {slot.room}
         </span>
       </div>
@@ -170,30 +170,21 @@ export default function DesktopTimetable() {
     
     const now = new Date();
     const currentMinutes = now.getHours() * 60 + now.getMinutes();
-    
     const dayOrder = getDayOrder();
-    if (selectedDay !== dayOrder) return displayTimings[0];
+    
+    if (selectedDay !== dayOrder) return null;
 
-    const upcoming = displayTimings.find(time => {
-      const startStr = time.split("-")[0].trim();
-      return parseTimetableTime(startStr) >= currentMinutes;
+    const ongoing = displayTimings.find(time => {
+      const parts = time.split("-");
+      const start = parseTimetableTime(parts[0].trim());
+      const end = parseTimetableTime(parts[1]?.trim() || "");
+      return currentMinutes >= start && currentMinutes <= end;
     });
 
-    return upcoming || displayTimings[displayTimings.length - 1];
+    return ongoing || null;
   }, [previewTime, displayTimings, selectedDay, userData]);
 
-  const activeHeroSlot = gridData[selectedDay][activeHeroTime];
-
-  const isDayOver = useMemo(() => {
-    const dayOrder = getDayOrder();
-    if (selectedDay !== dayOrder) return false;
-    
-    const now = new Date();
-    const currentMinutes = now.getHours() * 60 + now.getMinutes();
-    const lastTime = displayTimings[displayTimings.length - 1];
-    const endStr = lastTime.split("-")[1]?.trim();
-    return endStr ? parseTimetableTime(endStr) < currentMinutes : false;
-  }, [selectedDay, displayTimings, userData]);
+  const activeHeroSlot = activeHeroTime ? gridData[selectedDay][activeHeroTime] : null;
 
   return (
     <div className="h-screen w-full flex flex-row p-1.5 font-sans overflow-hidden transition-colors duration-500"
@@ -201,7 +192,7 @@ export default function DesktopTimetable() {
     >
       <div className="flex-1 bg-theme-bg rounded-[24px] relative overflow-hidden flex flex-col border border-theme-border shadow-xl">
         
-        <div className="flex-1 overflow-hidden px-6 pt-6 pb-2 relative flex flex-col">
+        <div className="flex-1 overflow-hidden relative flex flex-col">
           <AnimatePresence mode="wait">
             {view === "full" ? (
               <motion.div 
@@ -209,7 +200,7 @@ export default function DesktopTimetable() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="h-full flex flex-col gap-1.5"
+                className="h-full flex flex-col gap-1.5 px-6 pt-12"
               >
                 <div className="grid gap-1.5" style={{ gridTemplateColumns: `60px repeat(${displayTimings.length}, minmax(0, 1fr))` }}>
                   <div className="flex items-center justify-center opacity-20">
@@ -251,59 +242,78 @@ export default function DesktopTimetable() {
                 exit={{ opacity: 0 }}
                 className="h-full flex flex-col"
               >
-                <div className="flex-1 flex flex-col justify-center px-10">
-                  <div className="flex items-center gap-4 mb-4">
-                    <div className="px-4 py-1.5 rounded-full bg-theme-surface border border-theme-border flex items-center gap-2">
-                      <Zap size={14} className="text-theme-highlight" />
-                      <span className="text-[11px] font-black uppercase tracking-[0.2em] text-theme-muted" style={{ fontFamily: 'var(--font-montserrat)' }}>
-                        {isDayOver ? "Day Finished" : activeHeroSlot ? `Slot ${activeHeroSlot.slot}` : "Free Time"}
+                <div className="flex-[1.8] flex flex-col justify-center px-12 pt-24">
+                  <div className="flex items-center gap-4 mb-6 h-6">
+                    {activeHeroTime && (
+                      <span className="text-theme-highlight font-black text-sm uppercase tracking-[0.5em]" style={{ fontFamily: 'var(--font-montserrat)' }}>
+                        {activeHeroTime}
                       </span>
-                    </div>
-                    <span className="text-theme-muted/30 font-black text-xs uppercase tracking-[0.5em]" style={{ fontFamily: 'var(--font-afacad)' }}>
-                      {activeHeroTime}
-                    </span>
+                    )}
                   </div>
 
                   <div className="max-w-5xl">
                     <h1 
-                      className="text-[100px] font-black lowercase tracking-[-0.06em] leading-[0.85] text-theme-text mb-8" 
+                      className="text-6xl font-black lowercase tracking-[-0.06em] leading-[0.85] text-theme-text mb-10" 
                       style={{ fontFamily: 'var(--font-montserrat)' }}
                     >
-                      {isDayOver ? "see ya." : activeHeroSlot ? activeHeroSlot.name : "chill out."}
+                      {activeHeroSlot ? activeHeroSlot.name : "chill out."}
                     </h1>
                     
                     <div className="flex items-center gap-12">
                       <div className="flex flex-col">
                         <span className="text-theme-muted text-[10px] font-bold uppercase tracking-[0.4em] mb-2" style={{ fontFamily: 'var(--font-afacad)' }}>location</span>
                         <span className="text-2xl font-black uppercase text-theme-highlight" style={{ fontFamily: 'var(--font-montserrat)' }}>
-                          {isDayOver ? "Home" : activeHeroSlot?.room || "Anywhere"}
+                          {activeHeroSlot?.room || "Anywhere"}
                         </span>
                       </div>
                       <div className="w-[1px] h-12 bg-theme-border" />
                       <div className="flex flex-col">
                         <span className="text-theme-muted text-[10px] font-bold uppercase tracking-[0.4em] mb-2" style={{ fontFamily: 'var(--font-afacad)' }}>faculty</span>
                         <span className="text-2xl font-black lowercase text-theme-text opacity-70" style={{ fontFamily: 'var(--font-montserrat)' }}>
-                          {isDayOver ? "You" : activeHeroSlot?.faculty?.split('(')[0].trim() || "Nobody"}
+                          {activeHeroSlot?.faculty?.split('(')[0].trim() || "Nobody"}
                         </span>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="h-[140px] flex items-center gap-2.5 mt-auto mb-4">
-                  {displayTimings.map(time => (
-                    <TimelineCard 
-                      key={time} 
-                      time={time} 
-                      slot={gridData[selectedDay][time]} 
-                      active={activeHeroTime === time}
-                      onClick={() => setPreviewTime(time)}
-                    />
-                  ))}
+                <div className="flex-1 flex flex-col mt-auto pb-16">
+                  <div className="px-12 mb-4 flex justify-end">
+                    <div className="flex gap-1 bg-theme-surface/30 p-1 rounded-[18px]">
+                      {days.map(d => (
+                        <button
+                          key={d}
+                          onClick={() => { setSelectedDay(d); setPreviewTime(null); }}
+                          className={`w-9 h-9 flex items-center justify-center rounded-[14px] text-xs font-black transition-all ${selectedDay === d ? 'bg-theme-emphasis text-theme-bg' : 'text-theme-muted hover:text-theme-text'}`}
+                          style={{ fontFamily: 'var(--font-montserrat)' }}
+                        >
+                          {d}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="px-10">
+                    <div className="h-[110px] bg-theme-emphasis/5 rounded-[32px] flex items-center px-4 gap-2.5">
+                      {displayTimings.map(time => (
+                        <TimelineCard 
+                          key={time} 
+                          time={time} 
+                          slot={gridData[selectedDay][time]} 
+                          active={activeHeroTime === time}
+                          onClick={() => setPreviewTime(time)}
+                        />
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </motion.div>
             )}
           </AnimatePresence>
+        </div>
+
+        <div className="absolute bottom-10 right-12 pointer-events-none z-30 text-right">
+          <h1 className="text-theme-text font-regular lowercase leading-none select-none opacity-80" style={{ fontFamily: 'var(--font-afacad)', fontSize: '55px', letterSpacing: '-4px' }}>timetable</h1>
         </div>
 
         <div className="px-8 py-6 flex items-center justify-between z-20 bg-gradient-to-t from-theme-bg via-theme-bg/95 to-transparent mt-auto">
@@ -326,24 +336,9 @@ export default function DesktopTimetable() {
                 full
               </button>
             </div>
-
-            {view === "default" && (
-              <div className="flex gap-1 bg-theme-surface/50 p-1 rounded-xl border border-theme-border/50">
-                {days.map(d => (
-                  <button
-                    key={d}
-                    onClick={() => { setSelectedDay(d); setPreviewTime(null); }}
-                    className={`w-8 h-8 flex items-center justify-center rounded-lg text-xs font-black transition-all ${selectedDay === d ? 'bg-theme-emphasis text-theme-bg shadow-md' : 'text-theme-muted hover:text-theme-text'}`}
-                    style={{ fontFamily: 'var(--font-montserrat)' }}
-                  >
-                    {d}
-                  </button>
-                ))}
-              </div>
-            )}
           </div>
           
-          <div className="flex items-center gap-8">
+          <div className="flex items-center gap-8 pr-[200px]">
             {extraTimeSlots.length > 0 && view === "full" && (
               <button 
                 onClick={() => setShowExtra(!showExtra)}
@@ -355,10 +350,6 @@ export default function DesktopTimetable() {
                 </span>
               </button>
             )}
-
-            <div className="pointer-events-none text-right">
-              <h1 className="text-theme-text font-regular lowercase leading-none select-none opacity-80" style={{ fontFamily: 'var(--font-afacad)', fontSize: '55px', letterSpacing: '-4px' }}>timetable</h1>
-            </div>
           </div>
         </div>
       </div>
