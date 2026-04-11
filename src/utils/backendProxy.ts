@@ -1,19 +1,27 @@
 export async function fetchWithLoadBalancer(endpoint: string, options: RequestInit = {}) {
-  const isDev = process.env.NEXT_PUBLIC_ENV === "development";
+  const isLocal = typeof window !== 'undefined' && 
+    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+    
+  const isDev = isLocal || 
+    process.env.NODE_ENV === "development" || 
+    process.env.NEXT_PUBLIC_ENV === "development";
+
+  const urls = (process.env.NEXT_PUBLIC_BACKEND_URLS || "").split(",").filter(Boolean);
   const workerUrl = process.env.NEXT_PUBLIC_WORKER_URL;
-  const directBackendUrl = process.env.NEXT_PUBLIC_BACKEND_URLS?.split(",")[0] || "http://localhost:8000";
+  
+  const localBackend = urls.find(u => u.includes("localhost")) || "http://localhost:8000";
+  let targetUrl = isDev ? localBackend : (workerUrl || urls[0] || localBackend);
 
-  const targetUrl = isDev ? directBackendUrl : workerUrl;
-
-  if (!targetUrl) {
-    throw new Error("Target URL (Worker or Backend) not set");
+  if (targetUrl.endsWith('/')) {
+    targetUrl = targetUrl.slice(0, -1);
   }
 
+  const fullUrl = `${targetUrl}${endpoint}`;
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 25000);
 
   try {
-    const res = await fetch(`${targetUrl}${endpoint}`, {
+    const res = await fetch(fullUrl, {
       ...options,
       signal: controller.signal,
     });

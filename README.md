@@ -64,18 +64,6 @@ cloudflare worker         ← proxy: HMAC signing, load balancing
 
 the worker sits between the frontend and all backends. it adds a cryptographic signature to every request so the backends can verify it actually came from ratio'd and not some random person. 
 
----s
-
-## local development (simpler setup)
-
-to develop locally without setting up the entire cloudflare worker and HMAC infra, you can use the development bypass:
-
-1.  **backend**: set `ENV=development` in your `backend/.env`. this disables HMAC verification.
-2.  **frontend**: set `NEXT_PUBLIC_ENV=development` and `NEXT_PUBLIC_BACKEND_URLS=http://localhost:8000` in `.env.local`. this makes the app hit the backend directly.
-
-> [!TIP]
-> ensure both `ENV` (backend) and `NEXT_PUBLIC_ENV` (frontend) are set to `development` to sync the bypass.
-
 ---
 
 ## stack
@@ -115,15 +103,18 @@ ratio-d/
 
 ---
 
-## setup
+## local development (simpler setup)
 
-### prerequisites
+to develop locally, you can use the development bypass. the app automatically detects if you are running on `localhost`:
 
-- Node.js 18+
-- Python 3.10+
-- [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/)
+1.  **backend**: set `ENV=development` in `backend/.env`. this disables HMAC verification.
+2.  **frontend**: set `NEXT_PUBLIC_BACKEND_URLS=http://localhost:8000` in `.env.local`.
+
+the app will now hit your local backend directly without needing a cloudflare worker.
 
 ---
+
+## setup (local)
 
 ### 1. clone
 
@@ -131,8 +122,6 @@ ratio-d/
 git clone https://github.com/projectakshith/ratio-d
 cd ratio-d
 ```
-
----
 
 ### 2. backend
 
@@ -144,54 +133,40 @@ pip install -r requirements.txt
 uvicorn main:app --reload --port 8000
 ```
 
-**backend env vars** — create `backend/.env`:
-
+**backend env** (`backend/.env`):
 ```env
-HMAC_SECRET=your_secret_here
 ENV=development
 ```
 
----
-
-### 3. worker (optional for local dev)
-
-```bash
-cd worker
-npm install -g wrangler
-wrangler login
-
-wrangler secret put HMAC_SECRET
-wrangler secret put BACKEND_URLS
-
-wrangler dev
-wrangler deploy
-```
-
----
-
-### 4. frontend
+### 3. frontend
 
 ```bash
 npm install
 npm run dev
 ```
 
-**frontend env vars** — create `.env.local`:
-
+**frontend env** (`.env.local`):
 ```env
-NEXT_PUBLIC_ENV=development
 NEXT_PUBLIC_BACKEND_URLS=http://localhost:8000
-NEXT_PUBLIC_WORKER_URL=http://localhost:8787
 ```
 
 ---
 
-### 5. production env vars (Cloudflare Pages)
+## production deployment
 
-```env
-NEXT_PUBLIC_ENV=production
-NEXT_PUBLIC_WORKER_URL=https://your-worker.your-account.workers.dev
-```
+for production, a cloudflare worker is required to handle HMAC signing and load balancing.
+
+### 1. worker
+
+deploy the worker with your `HMAC_SECRET` and `BACKEND_URLS`.
+
+### 2. environment variables
+
+| layer | variable | value |
+|---|---|---|
+| **frontend** | `NEXT_PUBLIC_WORKER_URL` | your worker's address |
+| **backend** | `ENV` | `production` |
+| **backend** | `HMAC_SECRET` | must match worker secret |
 
 ---
 

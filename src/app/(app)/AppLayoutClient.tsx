@@ -65,7 +65,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       setIsSwipeDisabled
     }}>
       <div className="h-full w-full bg-theme-bg overflow-hidden relative">
-        <div className="lg:hidden h-full w-full">
+        <div className="md:hidden h-full w-full">
           {uiStyle === "brutalist" ? (
             <BrutalistThemeLayout {...sharedProps}>
               {children}
@@ -77,7 +77,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           )}
         </div>
 
-        <div className="hidden lg:block h-full w-full">
+        <div className="hidden md:block h-full w-full">
           <SmoothScroll>
             {children}
             <CommandPalette />

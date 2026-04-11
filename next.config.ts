@@ -106,6 +106,7 @@ const withPWA = withPWAInit({
 });
 
 const workerUrl = process.env.NEXT_PUBLIC_WORKER_URL ?? "";
+const backendUrls = (process.env.NEXT_PUBLIC_BACKEND_URLS ?? "").split(",").map(u => u.trim()).filter(Boolean);
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
@@ -115,6 +116,9 @@ const nextConfig: NextConfig = {
       "https://getratiod.lol",
       "https://academia.srmist.edu.in",
       workerUrl,
+      ...backendUrls,
+      "http://localhost:8000",
+      "ws://localhost:*"
     ].filter(Boolean).join(" ");
 
     return [

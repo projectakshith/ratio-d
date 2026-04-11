@@ -68,7 +68,7 @@ export default function DesktopDashboard() {
   }, []);
 
   const handleRefresh = useCallback(async () => {
-    const creds = EncryptionUtils.loadDecrypted("ratio_credentials");
+    const creds = await EncryptionUtils.loadDecrypted("ratio_credentials");
     if (creds && userData) {
       await refreshData(creds, userData);
     }

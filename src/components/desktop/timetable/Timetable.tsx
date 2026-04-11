@@ -317,7 +317,7 @@ export default function DesktopTimetable() {
         </div>
 
         <div className="px-8 py-6 flex items-center justify-between z-20 bg-gradient-to-t from-theme-bg via-theme-bg/95 to-transparent mt-auto">
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-6 translate-y-[-8px]">
             <div className="flex bg-theme-surface p-1 rounded-2xl border border-theme-border shadow-sm">
               <button 
                 onClick={() => setView("default")}
@@ -325,7 +325,7 @@ export default function DesktopTimetable() {
                 style={{ fontFamily: 'var(--font-montserrat)' }}
               >
                 <List size={14} />
-                default
+                list
               </button>
               <button 
                 onClick={() => setView("full")}
@@ -333,7 +333,7 @@ export default function DesktopTimetable() {
                 style={{ fontFamily: 'var(--font-montserrat)' }}
               >
                 <LayoutGrid size={14} />
-                full
+                grid
               </button>
             </div>
           </div>
