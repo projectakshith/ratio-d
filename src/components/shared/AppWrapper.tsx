@@ -96,7 +96,7 @@ useEffect(() => {
 }, [showWelcome, setShowWelcome]);
 
   return (
-    <main className="bg-theme-bg fixed inset-0 w-full overflow-hidden flex flex-col">
+    <main className="bg-theme-bg min-h-full w-full flex flex-col relative">
       <AnimatePresence>
         {isOffline && (
           <motion.div

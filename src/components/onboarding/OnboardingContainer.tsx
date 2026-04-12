@@ -720,43 +720,29 @@ export default function OnboardingContainer({
               className="flex flex-col gap-6"
             >
               <div className="flex flex-col gap-3">
-                <div className="flex items-center gap-2 text-[#ceff1c]">
-                  <Smartphone size={14} />
-                  <span className="font-mono text-[10px] uppercase tracking-widest">
-                    Mobile Exclusive
-                  </span>
-                </div>
-
                 <h2
                   className="text-4xl md:text-[3.5rem] text-white tracking-tight leading-[1.05]"
                   style={{ fontFamily: "var(--font-aonic)" }}
                 >
-                  ratio'd is currently <br /> mobile-only.
+                  your academia,<br />
+                  redefined.
                 </h2>
 
                 <p className="text-white/60 font-mono text-[11px] md:text-xs leading-relaxed max-w-md mt-2">
-                  We're building the best experience for handhelds first.
-                  <br />
-                  Leave your email to get notified when we launch on
-                  <br />
-                  desktop.
+                  ratio'd is now available on desktop. experience the same clean interface with native-grade performance.
                 </p>
               </div>
 
-              <div className="group relative border-b border-white mt-8 pb-2">
-                <input
-                  type="email"
-                  className="w-full bg-transparent py-2 text-3xl md:text-5xl text-white outline-none placeholder:text-white/20 transition-colors"
-                  placeholder="email@address.com"
-                  style={{ fontFamily: "var(--font-aonic)" }}
-                />
-                <button className="absolute right-0 bottom-4 text-white hover:text-[#ceff1c] transition-colors">
-                  <ArrowRight size={24} />
-                </button>
-              </div>
+              <button
+                onClick={() => setForceOnboarding(true)}
+                className="w-fit mt-8 px-12 py-4 bg-[#ceff1c] text-[#0c30ff] font-black lowercase text-2xl tracking-tighter hover:scale-105 transition-transform rounded-full shadow-[0_0_30px_rgba(206,255,28,0.2)]"
+                style={{ fontFamily: 'var(--font-montserrat)' }}
+              >
+                get started
+              </button>
 
               <span className="text-[9px] font-mono uppercase tracking-[0.3em] text-white/40 mt-2 block">
-                Join the waitlist — 001
+                ready to redefine your portal? — 001
               </span>
             </motion.div>
           ) : (

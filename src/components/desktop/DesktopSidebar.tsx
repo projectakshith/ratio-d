@@ -10,6 +10,7 @@ import {
   User
 } from "lucide-react";
 import { Haptics } from "@/utils/shared/haptics";
+import { useAppLayout } from "@/context/AppLayoutContext";
 
 const NavIcon = ({ icon: Icon, active = false, onClick }: { icon: any, active?: boolean, onClick: () => void }) => (
   <div 
@@ -27,6 +28,7 @@ const NavIcon = ({ icon: Icon, active = false, onClick }: { icon: any, active?: 
 export default function DesktopSidebar() {
   const router = useRouter();
   const pathname = usePathname();
+  const { onOpenSettings } = useAppLayout();
 
   const navItems = [
     { icon: LayoutDashboard, path: "/dashboard" },
@@ -57,8 +59,8 @@ export default function DesktopSidebar() {
       <div className="pb-2">
         <NavIcon 
           icon={User} 
-          active={pathname === "/settings"}
-          onClick={() => handleNav("/settings")}
+          active={false}
+          onClick={() => { Haptics.selection(); onOpenSettings(); }}
         />
       </div>
     </div>
