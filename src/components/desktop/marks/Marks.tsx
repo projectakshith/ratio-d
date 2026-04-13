@@ -1,171 +1,149 @@
 "use client";
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import DesktopSidebar from "../DesktopSidebar";
 import { ReactLenis } from "lenis/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  Calculator, 
-  RotateCcw, 
-  ChevronLeft, 
-  Plus, 
+  LayoutGrid,
+  Columns,
+  Plus,
   Minus,
-  Target as TargetIcon
+  Target as TargetIcon,
+  Zap
 } from "lucide-react";
 import { 
   processAndSortMarks, 
   buildCourseMap, 
   getBoxTheme,
   calculateSemMarksNeeded,
-  calculatePredictedGpa,
   getInitialTargetGrades,
   calculateBestAchievableGrade
 } from "@/utils/marks/marksLogic";
-import { getRandomRoast } from "@/utils/shared/flavortext";
 import { useApp } from "@/context/AppContext";
 
-const SubjectMarkCard = ({ sub, onClick }: any) => {
-  const pctNum = parseFloat(sub.percentage);
-  const isNA = sub.isNA;
-  
-  const bestAchievable = useMemo(() => {
-    if (isNA) return null;
-    return calculateBestAchievableGrade(sub.totalGot, sub.totalMax, 40);
-  }, [sub.totalGot, sub.totalMax, isNA]);
+/* DEFAULT VIEW - HIGH VISIBILITY HORIZONTAL GRID */
+const CompactMarkTile = ({ ass }: any) => {
+  const box = getBoxTheme(ass.got, ass.max);
+  return (
+    <div className={`p-2.5 rounded-xl border-2 ${box.boxBg} ${box.border} flex flex-col justify-center min-w-[80px]`}>
+      <span className={`text-[9px] font-black uppercase tracking-tight ${box.text} mb-1 truncate`} style={{ fontFamily: 'var(--font-afacad)' }}>
+        {ass.title}
+      </span>
+      <div className="flex items-baseline gap-0.5">
+        <span className={`text-sm font-black ${box.text}`} style={{ fontFamily: 'var(--font-montserrat)' }}>
+          {ass.got}
+        </span>
+        <span className={`text-[10px] font-black opacity-60 ${box.text}`} style={{ fontFamily: 'var(--font-montserrat)' }}>
+          /{ass.max}
+        </span>
+      </div>
+    </div>
+  );
+};
 
-  const isCritical = !isNA && (bestAchievable?.isOImpossible || pctNum < 70);
-  const isPractical = sub.type?.toLowerCase() === 'practical';
-  
-  let cardStyles = '';
-  let textStyles = '';
-  let subTextStyles = '';
-  let progressBarBg = '';
-  let progressBarFill = '';
+const SubjectBlockCompact = ({ sub }: any) => {
+  const isCritical = sub.percentage < 70;
+  return (
+    <div className="w-full bg-theme-surface/5 border border-theme-border rounded-[28px] p-5 flex flex-row items-center gap-10 transition-all hover:bg-theme-surface/10">
+      
+      <div className="w-56 shrink-0 flex flex-col gap-1">
+        <span className="text-[10px] font-black uppercase tracking-widest text-theme-muted" style={{ fontFamily: 'var(--font-montserrat)' }}>{sub.code}</span>
+        <h2 className="text-base font-black text-theme-text lowercase tracking-tight leading-tight line-clamp-2" style={{ fontFamily: 'var(--font-montserrat)' }}>{sub.title}</h2>
+      </div>
 
-  if (isNA) {
-    cardStyles = 'bg-theme-surface/10 border-theme-border opacity-60 grayscale';
-    textStyles = 'text-theme-text/60';
-    subTextStyles = 'text-theme-text/40';
-    progressBarBg = 'bg-theme-text/5';
-    progressBarFill = 'transparent';
-  } else if (isCritical) {
-    cardStyles = 'bg-[#FF4D4D]/5 border-[#FF4D4D]/25 backdrop-blur-xl hover:bg-[#FF4D4D]/10';
-    textStyles = 'text-[#FF4D4D]';
-    subTextStyles = 'text-[#FF4D4D]/60';
-    progressBarBg = 'bg-[#FF4D4D]/10';
-    progressBarFill = '#FF4D4D';
-  } else if (isPractical) {
-    cardStyles = 'bg-[#0EA5E9]/5 border-[#0EA5E9]/25 backdrop-blur-md hover:bg-[#0EA5E9]/10';
-    textStyles = 'text-[#0EA5E9]';
-    subTextStyles = 'text-[#0EA5E9]/60';
-    progressBarBg = 'bg-[#0EA5E9]/10';
-    progressBarFill = '#0EA5E9';
-  } else {
-    cardStyles = 'bg-theme-highlight/[0.08] backdrop-blur-md hover:bg-theme-highlight/[0.12]';
-    textStyles = 'text-theme-text';
-    subTextStyles = 'text-theme-text/60';
-    progressBarBg = 'bg-theme-text/10';
-    progressBarFill = 'var(--theme-highlight)';
-  }
+      <div className="flex-1 flex flex-wrap gap-2">
+        {sub.assessments.map((ass: any, i: number) => <CompactMarkTile key={i} ass={ass} />)}
+        {sub.assessments.length === 0 && (
+          <span className="text-xs font-black text-theme-muted/20 lowercase py-2" style={{ fontFamily: 'var(--font-afacad)' }}>pending data stream...</span>
+        )}
+      </div>
 
-  const badgeBg = isNA 
-    ? 'rgba(255, 255, 255, 0.1)'
-    : (isPractical 
-        ? 'rgba(14, 165, 233, 0.3)' 
-        : (isCritical 
-            ? 'rgba(255, 77, 77, 0.3)' 
-            : 'color-mix(in srgb, var(--theme-highlight) 30%, transparent)'));
+      <div className="w-28 shrink-0 flex flex-col items-end gap-1">
+        <span className={`text-4xl font-black tracking-tighter ${isCritical ? 'text-[#FF4D4D]' : 'text-theme-text'}`} style={{ fontFamily: 'var(--font-montserrat)' }}>{Math.round(sub.percentage)}%</span>
+        <div className="w-full h-1.5 bg-theme-text/5 rounded-full overflow-hidden">
+          <div className={`h-full rounded-full ${isCritical ? 'bg-[#FF4D4D]' : 'bg-theme-highlight'}`} style={{ width: `${sub.percentage}%` }} />
+        </div>
+      </div>
+    </div>
+  );
+};
 
-  const badgeText = isNA
-    ? 'text-theme-muted'
-    : (isPractical 
-        ? 'text-[#0EA5E9]' 
-        : (isCritical 
-            ? 'text-[#FF4D4D]' 
-            : 'text-theme-text'));
+/* LIST VIEW - BOLD WORKSPACE DETAIL */
+const DetailedMarkCard = ({ ass }: any) => {
+  const box = getBoxTheme(ass.got, ass.max);
+  return (
+    <div className={`p-6 rounded-[32px] border-2 ${box.boxBg} ${box.border} flex flex-col justify-between transition-all duration-300 hover:scale-[1.03] min-h-[150px]`}>
+      <span className={`text-[13px] font-black uppercase tracking-wide ${box.text} leading-tight mb-4`} style={{ fontFamily: 'var(--font-afacad)' }}>
+        {ass.title}
+      </span>
+      <div className="flex items-baseline gap-1.5 mt-auto">
+        <span className={`text-6xl font-black tracking-tighter ${box.text}`} style={{ fontFamily: 'var(--font-montserrat)' }}>{ass.got}</span>
+        <span className={`text-2xl font-black opacity-40 ${box.text}`} style={{ fontFamily: 'var(--font-montserrat)' }}>/{ass.max}</span>
+      </div>
+    </div>
+  );
+};
 
-  const cardBorderColor = isNA
-    ? 'var(--theme-border)'
-    : (isCritical 
-        ? 'rgba(255, 77, 77, 0.25)' 
-        : (isPractical 
-            ? 'rgba(14, 165, 233, 0.25)' 
-            : 'color-mix(in srgb, var(--theme-highlight) 25%, transparent)'));
+const DetailedWorkspace = ({ sub, targetGrade, expectedMarks, setExpectedMarks }: any) => {
+  const isCritical = sub.percentage < 70;
+  const best = useMemo(() => calculateBestAchievableGrade(sub.totalGot, sub.totalMax, 40), [sub]);
+  const { semRequiredOutOfMax, isCooked } = useMemo(() => 
+    calculateSemMarksNeeded(targetGrade, sub.totalGot, expectedMarks, sub.isPractical),
+    [targetGrade, sub.totalGot, expectedMarks, sub.isPractical]
+  );
 
   return (
-    <div className="flex flex-col gap-4 shrink-0">
-      <motion.div 
-        layout
-        onClick={onClick}
-        className={`w-[280px] h-[380px] rounded-[32px] border-[1.5px] p-8 flex flex-col justify-between transition-all duration-300 hover:scale-[1.02] relative overflow-hidden ${cardStyles}`}
-        style={{ borderColor: cardBorderColor }}
-      >
-        <div className="flex flex-col gap-4">
-          <div className="flex justify-between items-start">
-            <span className={`text-[12px] font-black uppercase tracking-[0.2em] ${subTextStyles}`} style={{ fontFamily: 'var(--font-montserrat)' }}>
-              {sub.code}
-            </span>
-            <div 
-              className={`h-4 px-1.5 rounded-full flex items-center justify-center ${badgeText}`}
-              style={{ backgroundColor: badgeBg }}
-            >
-              <span className="text-[7px] font-bold uppercase tracking-widest leading-none" style={{ fontFamily: 'var(--font-afacad)' }}>
-                {isNA ? 'No Data' : (sub.type || 'Theory')}
-              </span>
-            </div>
+    <div className="flex flex-col gap-12">
+      <div className="flex justify-between items-center border-b-2 border-theme-border pb-10">
+        <div className="space-y-2">
+          <span className="text-[11px] font-black uppercase tracking-[0.4em] text-theme-muted" style={{ fontFamily: 'var(--font-montserrat)' }}>{sub.code}</span>
+          <h2 className="text-6xl font-black text-theme-text lowercase tracking-tighter" style={{ fontFamily: 'var(--font-montserrat)' }}>{sub.title}</h2>
+        </div>
+        <div className="flex items-baseline gap-3">
+          <span className={`text-[100px] font-black tracking-tighter leading-none ${isCritical ? 'text-[#FF4D4D]' : 'text-theme-text'}`} style={{ fontFamily: 'var(--font-montserrat)' }}>{Math.round(sub.percentage)}</span>
+          <span className="text-4xl font-black text-theme-muted opacity-20" style={{ fontFamily: 'var(--font-montserrat)' }}>%</span>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-12 gap-10">
+        <div className="col-span-12 xl:col-span-8 space-y-8">
+          <div className="flex items-center gap-6">
+            <span className="text-[11px] font-black uppercase tracking-[0.6em] text-theme-muted" style={{ fontFamily: 'var(--font-montserrat)' }}>Individual Scores</span>
+            <div className="h-[2px] flex-1 bg-theme-border opacity-30" />
           </div>
-          <span className={`text-xl font-bold lowercase tracking-tight leading-tight ${textStyles}`} style={{ fontFamily: 'var(--font-montserrat)' }}>
-            {sub.title}
-          </span>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {sub.assessments.map((ass: any, i: number) => <DetailedMarkCard key={i} ass={ass} />)}
+          </div>
         </div>
 
-        <div className="flex flex-col gap-6">
-          <div className="flex flex-col gap-1">
-            <span className={`text-[10px] font-bold uppercase tracking-[0.2em] ${subTextStyles}`} style={{ fontFamily: 'var(--font-afacad)' }}>
-              assessments
-            </span>
-            <div className="flex gap-2 overflow-x-auto no-scrollbar py-1">
-              {isNA ? (
-                <div className="flex-1 py-4 flex items-center justify-center border border-dashed border-theme-border/20 rounded-xl">
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-theme-muted opacity-40" style={{ fontFamily: 'var(--font-afacad)' }}>pending...</span>
+        <div className="col-span-12 xl:col-span-4 flex flex-col gap-8">
+          <div className="bg-theme-text text-theme-bg rounded-[48px] p-10 flex flex-col gap-10 relative overflow-hidden shadow-2xl">
+            <div className="absolute -bottom-10 -right-10 opacity-[0.03] rotate-12"><TargetIcon size={240} /></div>
+            <div className="relative z-10 flex flex-col h-full justify-between">
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-[0.4em] opacity-40 mb-2 block" style={{ fontFamily: 'var(--font-montserrat)' }}>Target Goal: {targetGrade}</span>
+                <div className="flex items-baseline gap-2">
+                  <span className={`text-[90px] font-black tracking-tighter leading-none ${isCooked ? 'text-[#FF4D4D]' : 'text-theme-bg'}`} style={{ fontFamily: 'var(--font-montserrat)' }}>{isCooked ? 'cooked' : semRequiredOutOfMax}</span>
+                  {!isCooked && <span className="text-4xl font-black opacity-20" style={{ fontFamily: 'var(--font-montserrat)' }}>/40</span>}
                 </div>
-              ) : (
-                sub.assessments.slice(-3).map((ass: any, idx: number) => {
-                  const box = getBoxTheme(ass.got, ass.max);
-                  return (
-                    <div key={idx} className={`min-w-[65px] flex-1 rounded-xl p-2 border ${box.boxBg} ${box.border} flex flex-col items-center justify-center`}>
-                      <span className={`text-[8px] font-black uppercase tracking-tighter mb-1 truncate w-full text-center ${box.text}`} style={{ fontFamily: 'var(--font-montserrat)' }}>{ass.title}</span>
-                      <div className="flex items-baseline gap-0.5">
-                        <span className={`text-sm font-black ${box.text}`} style={{ fontFamily: 'var(--font-montserrat)' }}>{ass.got}</span>
-                        <span className={`text-[8px] font-bold opacity-50 ${box.text}`} style={{ fontFamily: 'var(--font-montserrat)' }}>/{ass.max}</span>
-                      </div>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-1 relative">
-            <div className="flex justify-between items-end">
-              <div className="flex items-baseline gap-1">
-                <span className={`text-5xl font-black tracking-tighter leading-none ${textStyles}`} style={{ fontFamily: 'var(--font-montserrat)' }}>
-                  {isNA ? '0' : (Number.isInteger(sub.totalGot) ? sub.totalGot : sub.totalGot.toFixed(1))}
-                </span>
-                <span className={`text-lg font-black ${textStyles} opacity-40`} style={{ fontFamily: 'var(--font-montserrat)' }}>/{sub.totalMax}</span>
+                <p className="text-xs font-bold uppercase tracking-[0.3em] opacity-40 mt-4" style={{ fontFamily: 'var(--font-afacad)' }}>needed in final exam</p>
+              </div>
+              <div className="flex flex-col gap-4 mt-12">
+                <span className="text-[10px] font-black uppercase tracking-widest opacity-40" style={{ fontFamily: 'var(--font-montserrat)' }}>Simulate Internals</span>
+                <div className="flex items-center justify-between bg-theme-bg p-1.5 rounded-2xl shadow-inner border border-white/5">
+                  <button onClick={() => setExpectedMarks(Math.max(0, expectedMarks - 1))} className="w-12 h-12 rounded-xl text-theme-text hover:bg-theme-surface flex items-center justify-center active:scale-90 transition-all"><Minus size={20} /></button>
+                  <span className="text-xl font-black text-theme-text" style={{ fontFamily: 'var(--font-montserrat)' }}>+{expectedMarks}</span>
+                  <button onClick={() => setExpectedMarks(Math.min(60-sub.totalMax, expectedMarks + 1))} className="w-12 h-12 rounded-xl text-theme-text hover:bg-theme-surface flex items-center justify-center active:scale-90 transition-all"><Plus size={20} /></button>
+                </div>
               </div>
             </div>
-            <div className={`w-full h-1.5 rounded-full overflow-hidden mt-2 ${progressBarBg}`}>
-              <div 
-                className="h-full rounded-full transition-all duration-1000" 
-                style={{ 
-                  width: `${sub.percentage}%`,
-                  backgroundColor: isNA ? 'transparent' : progressBarFill
-                }} 
-              />
-            </div>
+          </div>
+          <div className="p-8 rounded-[40px] bg-theme-highlight/10 border-2 border-theme-highlight/20 flex flex-col gap-1">
+            <span className="text-[10px] font-black uppercase tracking-widest text-theme-highlight/60" style={{ fontFamily: 'var(--font-montserrat)' }}>Outlook</span>
+            <span className="text-2xl font-black text-theme-highlight lowercase" style={{ fontFamily: 'var(--font-montserrat)' }}>{best?.maxAchievableGrade} achievable</span>
           </div>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 };
@@ -173,317 +151,87 @@ const SubjectMarkCard = ({ sub, onClick }: any) => {
 export default function DesktopMarks() {
   const { userData } = useApp();
   const [mounted, setMounted] = useState(false);
-  const [isStatsExpanded, setIsStatsExpanded] = useState(true);
-  const [isAnimating, setIsAnimating] = useState(false);
-  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  const [isTargetMode, setIsTargetMode] = useState(false);
-  const [predSubjectId, setPredSubjectId] = useState<string | null>(null);
-  const [expectedMarks, setExpectedMarks] = useState<number>(0);
+  const [viewMode, setViewMode] = useState<"feed" | "list">("feed");
+  const [selectedSubId, setSelectedSubId] = useState<string | null>(null);
   const [targetGrades, setTargetGrades] = useState<Record<string, number>>({});
+  const [expectedMarksMap, setExpectedMarksMap] = useState<Record<string, number>>({});
 
   useEffect(() => {
     setMounted(true);
-    const timer = setTimeout(() => setIsStatsExpanded(false), 1500);
-    return () => clearTimeout(timer);
   }, []);
 
   const subjects = useMemo(() => {
     if (!userData?.marks) return [];
     const courseMap = buildCourseMap(userData);
-    return processAndSortMarks(userData.marks, courseMap);
-  }, [userData]);
-
-  const { criticalSubjects, normalSubjects } = useMemo(() => {
-    const subjectsWithLogic = subjects.map(s => {
-      const lostMarks = s.totalMax - s.totalGot;
-      const best = s.isNA ? null : calculateBestAchievableGrade(s.totalGot, s.totalMax, 40);
-      return { ...s, lostMarks, best };
-    });
-
-    const critical = subjectsWithLogic
-      .filter(s => !s.isNA && (s.best?.isOImpossible || s.percentage < 70))
-      .sort((a, b) => b.lostMarks - a.lostMarks); // Sort by marks lost descending
-    
-    const normal = subjectsWithLogic
-      .filter(s => s.isNA || (!s.best?.isOImpossible && s.percentage >= 70))
-      .sort((a, b) => {
-        if (a.isNA && !b.isNA) return 1;
-        if (!a.isNA && b.isNA) return -1;
-        return a.percentage - b.percentage;
-      });
-    
-    return { criticalSubjects: critical, normalSubjects: normal };
-  }, [subjects]);
+    const list = processAndSortMarks(userData.marks, courseMap);
+    if (list.length > 0 && !selectedSubId) setSelectedSubId(list[0].id);
+    return list;
+  }, [userData, selectedSubId]);
 
   useEffect(() => {
     if (subjects.length > 0 && Object.keys(targetGrades).length === 0) {
       setTargetGrades(getInitialTargetGrades(subjects));
+      const initialExpected: Record<string, number> = {};
+      subjects.forEach(s => initialExpected[s.id] = 0);
+      setExpectedMarksMap(initialExpected);
     }
-    if (subjects.length > 0 && !predSubjectId) {
-      setPredSubjectId(subjects[0].id);
-    }
-  }, [subjects, targetGrades, predSubjectId]);
+  }, [subjects, targetGrades]);
 
-  const activePredSub = useMemo(() => 
-    subjects.find(s => s.id === predSubjectId) || subjects[0], 
-    [subjects, predSubjectId]
-  );
-
-  const totalObtained = useMemo(() => 
-    subjects.reduce((acc, sub) => acc + sub.totalGot, 0), 
-    [subjects]
-  );
-
-  const totalMax = useMemo(() => 
-    subjects.reduce((acc, sub) => acc + sub.totalMax, 0), 
-    [subjects]
-  );
-
-  const stats = useMemo(() => {
-    const pct = totalMax === 0 ? 0 : (totalObtained / totalMax) * 100;
-    const badge = pct < 50 ? "cooked" : pct < 75 ? "danger" : pct >= 85 ? "safe" : "neutral";
-    return { pct, badge };
-  }, [totalObtained, totalMax]);
-
-  const roast = useMemo(() => {
-    return getRandomRoast(stats.badge as any, "marks");
-  }, [stats.badge]);
-
-  const categoryRoasts = useMemo(() => {
-    return {
-      critical: getRandomRoast("cooked", "marks"),
-      normal: getRandomRoast("safe", "marks"),
-    };
-  }, [criticalSubjects, normalSubjects]);
-
-  const predictedGpa = useMemo(() => 
-    calculatePredictedGpa(subjects, targetGrades, []), 
-    [subjects, targetGrades]
-  );
-
-  const currentTargetGrade = activePredSub ? targetGrades[activePredSub.id] || 91 : 91;
-  const currentInternals = activePredSub?.totalGot || 0;
-  const maxPossibleExpected = activePredSub ? Math.max(0, 60 - activePredSub.totalMax) : 0;
-  
-  const { semRequiredOutOfMax, maxExternal, isCooked } = useMemo(() => {
-    if (!activePredSub) return { semRequiredOutOfMax: 0, maxExternal: 40, isCooked: false };
-    return calculateSemMarksNeeded(
-      currentTargetGrade,
-      currentInternals,
-      expectedMarks,
-      activePredSub.isPractical
-    );
-  }, [activePredSub, currentTargetGrade, currentInternals, expectedMarks]);
-
-  const handleMouseEnter = () => {
-    if (!isStatsExpanded) {
-      hoverTimeoutRef.current = setTimeout(() => setIsStatsExpanded(true), 2000);
-    }
-  };
-
-  const handleMouseLeave = () => {
-    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
-    if (isStatsExpanded && !isTargetMode) setIsStatsExpanded(false);
-  };
-
-  const toggleTargetMode = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (isTargetMode) {
-      setIsTargetMode(false);
-      setIsStatsExpanded(false);
-    } else {
-      setIsTargetMode(true);
-      setIsStatsExpanded(true);
-    }
-  };
-
-  const grades = [
-    { label: "O", min: 91 },
-    { label: "A+", min: 81 },
-    { label: "A", min: 71 },
-    { label: "B+", min: 61 },
-    { label: "B", min: 56 },
-    { label: "C", min: 50 },
-  ];
+  const activeSub = useMemo(() => subjects.find(s => s.id === selectedSubId) || subjects[0], [subjects, selectedSubId]);
 
   if (!mounted) return null;
 
   return (
-    <div 
-      className="h-screen w-full flex flex-row p-1.5 font-sans overflow-hidden transition-colors duration-500 text-theme-text"
-      style={{ backgroundColor: 'color-mix(in srgb, var(--theme-bg), black 12%)' }}
-    >
-      <div className="flex-1 bg-theme-bg rounded-[24px] relative overflow-hidden flex flex-col border border-theme-border shadow-xl">
-        <div className="flex-1 flex flex-row items-center">
-          <motion.div 
-            initial={false}
-            animate={{ width: isStatsExpanded ? (isTargetMode ? 480 : 320) : 80 }}
-            transition={{ type: "spring", damping: 25, stiffness: 120 }}
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
-            onAnimationStart={() => setIsAnimating(true)}
-            onAnimationComplete={() => setIsAnimating(false)}
-            onClick={() => !isStatsExpanded && setIsStatsExpanded(true)}
-            className={`shrink-0 h-full relative z-10 bg-theme-surface/10 flex flex-col items-center justify-center overflow-visible ${!isStatsExpanded ? 'cursor-pointer' : ''}`}
-          >
-            <div className="absolute inset-y-0 right-0 w-4 bg-gradient-to-r from-theme-surface/10 to-transparent translate-x-full pointer-events-none z-20" />
-            
-            <AnimatePresence mode="wait">
-              {isStatsExpanded ? (
-                <motion.div key={isTargetMode ? "target-mode" : "expanded"} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="w-full h-full flex flex-col justify-center px-10 relative">
-                  {isTargetMode ? (
-                    <div className="flex flex-col h-full py-12">
-                      <div className="flex items-center justify-between mb-8">
-                        <span className="text-theme-highlight text-[10px] font-black uppercase tracking-[0.5em]" style={{ fontFamily: 'var(--font-montserrat)' }}>target mode</span>
-                        <button onClick={toggleTargetMode} className="text-theme-muted hover:text-theme-text transition-colors"><RotateCcw size={16} /></button>
-                      </div>
+    <div className="h-screen w-full flex flex-row p-1.5 font-sans overflow-hidden bg-black text-theme-text">
+      <div className="flex-1 bg-theme-bg rounded-[24px] relative overflow-hidden flex flex-col border border-theme-border shadow-2xl">
+        <div className="w-full h-16 border-b border-theme-border flex items-center justify-between px-10 bg-theme-surface/5 z-20">
+          <div className="flex items-center gap-6">
+            <div className="flex bg-theme-surface/40 p-1 rounded-xl border border-theme-border">
+              <button onClick={() => setViewMode("feed")} className={`p-1.5 rounded-lg transition-all ${viewMode === "feed" ? 'bg-theme-text text-theme-bg shadow-md' : 'text-theme-muted hover:text-theme-text'}`}><LayoutGrid size={16} /></button>
+              <button onClick={() => setViewMode("list")} className={`p-1.5 rounded-lg transition-all ${viewMode === "list" ? 'bg-theme-text text-theme-bg shadow-md' : 'text-theme-muted hover:text-theme-text'}`}><Columns size={16} /></button>
+            </div>
+            <span className="text-[11px] font-black uppercase tracking-[0.5em] text-theme-muted ml-4" style={{ fontFamily: 'var(--font-afacad)' }}>{subjects.length} subjects active</span>
+          </div>
+        </div>
 
-                      <div className="flex flex-col gap-6 mb-8">
-                        <div className="bg-theme-card/50 border border-theme-border rounded-[32px] p-6 flex flex-col shadow-inner">
-                          <div className="flex justify-between items-start mb-4">
-                            <div className="min-w-0 flex-1">
-                              <p className="text-theme-muted text-[9px] font-bold uppercase tracking-[0.25em] mb-1" style={{ fontFamily: 'var(--font-montserrat)' }}>{activePredSub?.code || 'SELECT'}</p>
-                              <h3 className="text-theme-text text-lg font-black lowercase truncate" style={{ fontFamily: 'var(--font-montserrat)' }}>{activePredSub?.title || 'choose a subject'}</h3>
-                            </div>
-                            <TargetIcon className="text-theme-highlight/40 shrink-0" size={20} />
-                          </div>
-
-                          <div className="flex flex-col gap-6">
-                            <div>
-                              <p className="text-theme-muted text-[9px] font-bold uppercase tracking-widest mb-1" style={{ fontFamily: 'var(--font-afacad)' }}>sem marks needed</p>
-                              <div className="flex items-baseline gap-1">
-                                <span className={`text-5xl font-black tracking-tighter leading-none ${isCooked ? 'text-[#FF4D4D]' : 'text-theme-text'}`} style={{ fontFamily: 'var(--font-montserrat)' }}>
-                                  {isCooked ? 'cooked' : semRequiredOutOfMax}
-                                </span>
-                                {!isCooked && <span className="text-xl font-bold opacity-30" style={{ fontFamily: 'var(--font-montserrat)' }}>/{maxExternal}</span>}
-                              </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                              <div className="flex flex-col gap-2">
-                                <span className="text-theme-muted text-[8px] font-black uppercase tracking-widest" style={{ fontFamily: 'var(--font-montserrat)' }}>expected</span>
-                                <div className="flex items-center justify-between bg-theme-surface p-1 rounded-xl border border-theme-border shadow-inner">
-                                  <button onClick={() => setExpectedMarks(Math.max(0, expectedMarks - 1))} className="w-8 h-8 rounded-lg text-theme-muted hover:text-theme-text transition-colors"><Minus size={14} /></button>
-                                  <span className="text-sm font-black" style={{ fontFamily: 'var(--font-montserrat)' }}>{expectedMarks}</span>
-                                  <button onClick={() => setExpectedMarks(Math.min(maxPossibleExpected, expectedMarks + 1))} className="w-8 h-8 rounded-lg text-theme-muted hover:text-theme-text transition-colors"><Plus size={14} /></button>
-                                </div>
-                              </div>
-                              <div className="flex flex-col gap-2">
-                                <span className="text-theme-muted text-[8px] font-black uppercase tracking-widest" style={{ fontFamily: 'var(--font-montserrat)' }}>target</span>
-                                <div className="flex items-center justify-center bg-theme-surface h-10 rounded-xl border border-theme-border shadow-inner">
-                                  <span className="text-sm font-black text-theme-highlight" style={{ fontFamily: 'var(--font-montserrat)' }}>{grades.find(g => g.min === (targetGrades[activePredSub?.id] || 91))?.label}</span>
-                                </div>
-                              </div>
-                            </div>
-
-                            <div className="grid grid-cols-3 gap-1.5">
-                              {grades.slice(0, 6).map((g) => (
-                                <button 
-                                  key={g.label}
-                                  onClick={() => activePredSub && setTargetGrades(prev => ({ ...prev, [activePredSub.id]: g.min }))}
-                                  className={`py-2.5 rounded-xl text-[10px] font-black transition-all ${targetGrades[activePredSub?.id] === g.min ? 'bg-theme-text text-theme-bg' : 'bg-theme-surface text-theme-muted border border-theme-border hover:text-theme-text'}`}
-                                  style={{ fontFamily: 'var(--font-montserrat)' }}
-                                >
-                                  {g.label}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="mt-auto pb-12 pt-6 border-t border-theme-border">
-                        <div className="flex items-baseline justify-between mb-2">
-                          <span className="text-theme-muted text-[10px] font-bold uppercase tracking-widest" style={{ fontFamily: 'var(--font-afacad)' }}>predicted gpa</span>
-                          <span className="text-theme-text text-3xl font-black tracking-tighter" style={{ fontFamily: 'var(--font-montserrat)' }}>{predictedGpa}</span>
-                        </div>
-                        <p className={`text-theme-muted text-xs font-medium lowercase tracking-tight leading-relaxed ${isAnimating ? 'whitespace-nowrap' : 'whitespace-normal'}`} style={{ fontFamily: 'var(--font-afacad)' }}>{roast}</p>
-                      </div>
+        <ReactLenis options={{ orientation: 'vertical', smoothWheel: true }} className="flex-1 overflow-y-auto no-scrollbar">
+          <AnimatePresence mode="wait">
+            {viewMode === "feed" ? (
+              <motion.div key="feed" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="p-10 pb-48 flex flex-col gap-4 max-w-[1700px] mx-auto w-full">
+                {subjects.map(s => <SubjectBlockCompact key={s.id} sub={s} />)}
+              </motion.div>
+            ) : (
+              <motion.div key="list" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full flex flex-row overflow-hidden">
+                <div className="w-[340px] h-full border-r border-theme-border p-6 flex flex-col gap-2 overflow-y-auto no-scrollbar bg-theme-surface/5">
+                  {subjects.map(s => (
+                    <div key={s.id} onClick={() => setSelectedSubId(s.id)} className={`p-5 rounded-[24px] cursor-pointer border-2 transition-all duration-300 ${selectedSubId === s.id ? 'bg-theme-text border-theme-text shadow-xl scale-[1.02]' : 'bg-transparent border-transparent hover:border-theme-text/20 hover:bg-theme-text/5'}`}>
+                      <span className={`text-[9px] font-black uppercase tracking-widest mb-1 block ${selectedSubId === s.id ? 'text-theme-bg opacity-50' : 'text-theme-muted'}`} style={{ fontFamily: 'var(--font-montserrat)' }}>{s.code}</span>
+                      <h3 className={`text-sm font-black lowercase truncate tracking-tight ${selectedSubId === s.id ? 'text-theme-bg' : 'text-theme-text'}`} style={{ fontFamily: 'var(--font-montserrat)' }}>{s.title}</h3>
                     </div>
-                  ) : (
-                    <div className="flex flex-col justify-center">
-                      <div className="mb-12">
-                        <span className="text-theme-muted text-[11px] font-bold uppercase tracking-[0.5em] block mb-3" style={{ fontFamily: 'var(--font-afacad)' }}>overall marks</span>
-                        <div className="flex items-baseline">
-                          <h2 className="text-[80px] font-black text-theme-text leading-[0.8] tracking-[-0.08em]" style={{ fontFamily: 'var(--font-montserrat)' }}>{Number.isInteger(totalObtained) ? totalObtained : totalObtained.toFixed(1)}</h2>
-                          <span className="text-2xl font-black text-theme-muted ml-2" style={{ fontFamily: 'var(--font-montserrat)' }}>/{totalMax}</span>
-                        </div>
-                      </div>
-                      <div className="space-y-8">
-                        <p className={`text-theme-muted/80 text-2xl font-semibold lowercase tracking-tight leading-snug ${isAnimating ? 'whitespace-nowrap' : 'whitespace-normal'}`} style={{ fontFamily: 'var(--font-afacad)' }}>{roast}</p>
-                        <button onClick={toggleTargetMode} className="flex items-center gap-3 px-6 py-3 bg-theme-surface border border-theme-border rounded-2xl text-theme-muted hover:text-theme-text hover:bg-theme-surface transition-all w-fit group">
-                          <Calculator size={18} className="group-hover:scale-110 transition-transform" />
-                          <span className="text-[10px] font-black uppercase tracking-widest" style={{ fontFamily: 'var(--font-montserrat)' }}>target</span>
-                        </button>
-                      </div>
-                    </div>
+                  ))}
+                </div>
+                <div className="flex-1 p-16 overflow-y-auto no-scrollbar">
+                  {activeSub && (
+                    <DetailedWorkspace 
+                      sub={activeSub} 
+                      targetGrade={targetGrades[activeSub.id] || 91}
+                      expectedMarks={expectedMarksMap[activeSub.id] || 0}
+                      setExpectedMarks={(val: number) => setExpectedMarksMap(prev => ({ ...prev, [activeSub.id]: val }))}
+                    />
                   )}
-                </motion.div>
-              ) : (
-                <motion.div key="collapsed" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex-1 flex flex-col items-center justify-center w-full h-full relative">
-                  <div className="rotate-[-90deg] flex flex-col items-center justify-center whitespace-nowrap min-w-[400px] translate-y-[-20px]">
-                    <span className="text-theme-muted text-[10px] font-bold uppercase tracking-[0.3em] mb-2" style={{ fontFamily: 'var(--font-afacad)' }}>overall marks</span>
-                    <span className="text-theme-text text-5xl font-black tracking-tighter leading-none" style={{ fontFamily: 'var(--font-montserrat)' }}>{Number.isInteger(totalObtained) ? totalObtained : totalObtained.toFixed(1)}</span>
-                  </div>
-                  <div className="absolute bottom-32 left-0 right-0 flex justify-center">
-                    <button onClick={toggleTargetMode} className={`w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-xl ${isTargetMode ? 'bg-theme-highlight text-theme-bg' : 'bg-theme-surface border border-theme-border text-theme-muted hover:text-theme-text'}`}><Calculator size={18} /></button>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-            <AnimatePresence>
-              {isStatsExpanded && (
-                <motion.button 
-                  initial={{ opacity: 0, scale: 0.5 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.5 }}
-                  onClick={(e) => { e.stopPropagation(); isTargetMode ? toggleTargetMode(e) : setIsStatsExpanded(false); }}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-theme-bg border border-theme-border flex items-center justify-center text-theme-muted hover:text-theme-text transition-all shadow-2xl z-30"
-                >
-                  <ChevronLeft size={20} />
-                </motion.button>
-              )}
-            </AnimatePresence>
-          </motion.div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </ReactLenis>
 
-          <ReactLenis options={{ orientation: 'horizontal', smoothWheel: true }} className="flex-1 h-full overflow-x-auto no-scrollbar flex items-center translate-y-[-40px]">
-            <motion.div layout className="flex flex-row gap-20 px-24 pt-20 pb-20">
-              {criticalSubjects.length > 0 && (
-                <div className="flex flex-col gap-4">
-                  <div className="flex items-center gap-4 px-4 mb-2">
-                    <span className="text-[#FF4D4D] text-[10px] font-bold uppercase tracking-[0.5em] shrink-0" style={{ fontFamily: 'var(--font-afacad)' }}>action required</span>
-                    <div className="w-12 h-[1.5px] bg-[#FF4D4D] opacity-20 mx-2" />
-                    <span className="text-[#FF4D4D]/80 text-[11px] font-semibold uppercase tracking-widest whitespace-nowrap" style={{ fontFamily: 'var(--font-montserrat)' }}>{categoryRoasts.critical}</span>
-                  </div>
-                  <div className="flex flex-row gap-6">
-                    {criticalSubjects.map(s => <SubjectMarkCard key={s.id} sub={s} onClick={() => setPredSubjectId(s.id)} />)}
-                  </div>
-                </div>
-              )}
-              {normalSubjects.length > 0 && (
-                <div className="flex flex-col gap-4">
-                  <div className="flex items-center gap-4 px-4 mb-2">
-                    <span className="text-theme-text/40 text-[10px] font-bold uppercase tracking-[0.5em] shrink-0" style={{ fontFamily: 'var(--font-afacad)' }}>subjects</span>
-                    <div className="w-12 h-[1.5px] bg-theme-text opacity-40 mx-2" />
-                    <span className="text-theme-text/60 text-[11px] font-semibold uppercase tracking-widest whitespace-nowrap" style={{ fontFamily: 'var(--font-montserrat)' }}>{categoryRoasts.normal}</span>
-                  </div>
-                  <div className="flex flex-row gap-6">
-                    {normalSubjects.map(s => <SubjectMarkCard key={s.id} sub={s} onClick={() => setPredSubjectId(s.id)} />)}
-                  </div>
-                </div>
-              )}
-            </motion.div>
-          </ReactLenis>
+        <div className="absolute bottom-10 left-10 pointer-events-none z-30 opacity-10">
+          <h1 className="text-3xl font-black tracking-tighter lowercase text-theme-text" style={{ fontFamily: 'var(--font-urbanosta)' }}>ratio'd</h1>
         </div>
-        <div className="absolute bottom-10 left-10 pointer-events-none z-30">
-          <h1 className="text-2xl font-black tracking-tighter lowercase text-theme-text opacity-20" style={{ fontFamily: 'var(--font-urbanosta)' }}>ratio'd</h1>
-        </div>
-        <div className="absolute bottom-10 right-12 pointer-events-none z-30 text-right">
-          <h1 className="text-theme-text font-regular lowercase leading-none select-none opacity-80" style={{ fontFamily: 'var(--font-afacad)', fontSize: '55px', letterSpacing: '-4px' }}>marks</h1>
+        <div className="absolute bottom-10 right-12 pointer-events-none z-30 text-right opacity-80">
+          <h1 className="text-theme-text font-regular lowercase leading-none select-none" style={{ fontFamily: 'var(--font-afacad)', fontSize: '65px', letterSpacing: '-5px' }}>marks</h1>
         </div>
       </div>
-
       <DesktopSidebar />
     </div>
   );
