@@ -31,7 +31,7 @@ import {
   getDashboardSchedule,
   getStatusLogic,
 } from "@/utils/dashboard/dashboardLogic";
-import { ScheduleSlot } from "@/types";
+import { ScheduleSlot, StudentProfile } from "@/types";
 import { UserAvatar } from "@/components/shared/UserAvatar";
 import { Haptics } from "@/utils/shared/haptics";
 
@@ -80,7 +80,7 @@ export default function DesktopDashboard() {
     "student"
   ).toLowerCase();
 
-  const profile = userData?.profile || {};
+  const profile = (userData?.profile || {}) as StudentProfile;
   const isTargetAudience =
     (profile.dept || "").toLowerCase().includes("computer science and engineering") &&
     String(profile.semester) === "4";
@@ -361,7 +361,7 @@ export default function DesktopDashboard() {
                 <div>
                   <p className="text-theme-muted text-[9px] font-bold uppercase tracking-[0.3em] mb-1" style={{ fontFamily: 'var(--font-afacad)' }}>marks</p>
                   <h3 className="text-theme-text text-lg font-black lowercase tracking-tight truncate" style={{ fontFamily: 'var(--font-montserrat)' }}>
-                    {latestMark ? getAcronym(latestMark.title || latestMark.code).toUpperCase() : "no marks"}
+                    {latestMark ? getAcronym(latestMark.title || latestMark.code || "").toUpperCase() : "no marks"}
                   </h3>
                 </div>
               </div>

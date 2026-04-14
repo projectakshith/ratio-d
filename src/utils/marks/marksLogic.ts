@@ -71,8 +71,8 @@ export const calculateBestAchievableGrade = (
   totalInternalMax: number = 60,
   semMax: number = 40
 ) => {
-  const lostMarks = totalInternalMax - currentInternals;
-  const maxPossibleTotal = 100 - lostMarks;
+  const lostInternals = Math.max(0, totalInternalMax - currentInternals);
+  const maxPossibleTotal = 100 - lostInternals;
 
   const grades = [
     { label: "O", min: 91 },
@@ -84,13 +84,12 @@ export const calculateBestAchievableGrade = (
   ];
 
   const bestGrade = grades.find((g) => maxPossibleTotal >= g.min);
-  const nextBest = grades.find((g) => maxPossibleTotal < g.min);
 
   return {
     best: bestGrade || { label: "F", min: 0 },
     maxPossibleTotal,
     isOImpossible: maxPossibleTotal < 91,
-    lostMarks,
+    lostMarks: lostInternals,
   };
 };
 
@@ -153,9 +152,8 @@ export const calculatePredictedGpa = (
 
   subjects.forEach((sub: any) => {
     if (ignoredSubjectIds.includes(sub.id)) return;
-    const credits = sub.credits || 0;
-    if (credits === 0) return;
-
+    const credits = sub.credits || 3;
+    
     let grade = "O";
     const subTargetGrade = targetGrades[sub.id];
     if (subTargetGrade !== undefined) {
@@ -319,6 +317,8 @@ export const processAndSortMarks = (
         assessments.length > 0 ? assessments[assessments.length - 1] : null;
       const type = subject.type || "Theory";
       const isPractical = isPracticalLogic(subject);
+      const credits = subject.credits || 3;
+
       return {
         id: `${cleanCode}-${type}-${index}`,
         title,
@@ -339,6 +339,7 @@ export const processAndSortMarks = (
         status,
         badge,
         isPractical,
+        credits,
       } as any;
     })
     .sort((a: any, b: any) => {

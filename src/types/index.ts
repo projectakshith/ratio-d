@@ -9,10 +9,11 @@ export interface StudentProfile {
   regNo?: string;
   batch?: string;
   dept?: string;
-  semester?: string;
+  semester?: string | number;
   section?: string;
   photo?: string;
   cgpa?: string;
+  dayOrder?: string | number;
 }
 
 export interface AttendanceRecord {
@@ -66,7 +67,7 @@ export interface Assessment {
 export interface MarksRecord {
   course: string;
   assessments: Assessment[];
-  id?: number | string;
+  id: string;
   code?: string;
   title?: string;
   courseTitle?: string;

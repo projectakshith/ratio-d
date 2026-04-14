@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 import { ReactLenis } from "lenis/react";
 
-const BEZIER = [0.16, 1, 0.3, 1];
+const BEZIER = [0.16, 1, 0.3, 1] as const;
 
 const FeatureCard = ({ title, desc, index }: { title: string, desc: string, index: number }) => (
   <motion.div 
