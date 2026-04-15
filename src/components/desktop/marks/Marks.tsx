@@ -301,7 +301,7 @@ const DetailedWorkspace = ({ sub, targetGrade, updateTarget, expectedMarks, setE
                         <button 
                           key={g.label}
                           onClick={() => updateTarget(sub.id, g.min)}
-                          className={`px-2.5 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all border-2 ${targetGrade === g.min ? 'bg-theme-highlight text-theme-bg border-theme-highlight shadow-sm' : 'bg-transparent text-theme-text border-theme-border hover:border-theme-text/40'}`}
+                          className={`px-2.5 py-1.5 rounded-full text-[9px] font-black uppercase transition-all border-2 ${targetGrade === g.min ? 'bg-theme-highlight text-theme-bg border-theme-highlight shadow-sm' : 'bg-transparent text-theme-text border-theme-border hover:border-theme-text/40'}`}
                           style={{ fontFamily: 'var(--font-montserrat)' }}
                         >
                           {g.label}
@@ -485,7 +485,8 @@ export default function DesktopMarks() {
   if (!mounted) return null;
 
   return (
-    <div className="h-screen w-full flex flex-row p-1.5 font-sans overflow-hidden bg-black text-theme-text selection:bg-theme-highlight selection:text-theme-bg">
+    <div className="h-screen w-full flex flex-row p-1.5 font-sans overflow-hidden transition-colors duration-500 selection:bg-theme-highlight selection:text-theme-bg"
+      style={{ backgroundColor: 'color-mix(in srgb, var(--theme-bg), black 12%)' }}>
       <div className="flex-1 bg-theme-bg rounded-[24px] relative overflow-hidden flex flex-col border border-theme-border shadow-2xl h-full">
         
         <div className="w-full h-14 border-b border-theme-border flex items-center px-10 bg-theme-surface z-20 shrink-0">
@@ -557,11 +558,8 @@ export default function DesktopMarks() {
           </AnimatePresence>
         </div>
 
-        <div className="absolute bottom-10 left-10 pointer-events-none z-30 opacity-10 shrink-0">
-          <h1 className="text-3xl font-black tracking-tighter lowercase text-theme-text" style={{ fontFamily: 'var(--font-urbanosta)' }}>ratio'd</h1>
-        </div>
-        <div className="absolute bottom-10 right-12 pointer-events-none z-30 text-right opacity-80 shrink-0">
-          <h1 className="text-theme-text font-regular lowercase leading-none select-none" style={{ fontFamily: 'var(--font-afacad)', fontSize: '65px', letterSpacing: '-5px' }}>marks</h1>
+        <div className="absolute bottom-10 right-12 pointer-events-none z-30 text-right">
+          <h1 className="text-theme-text font-regular lowercase leading-none select-none opacity-80" style={{ fontFamily: 'var(--font-afacad)', fontSize: '55px', letterSpacing: '-4px' }}>marks</h1>
         </div>
       </div>
       <DesktopSidebar />

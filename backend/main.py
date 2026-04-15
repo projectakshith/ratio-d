@@ -51,7 +51,7 @@ app.add_middleware(
         "https://www.getratiod.lol",
         *_dev_origins,
     ],
-    allow_methods=["POST"],
+    allow_methods=["POST", "GET"],
     allow_headers=["Content-Type"],
     max_age=86400,
 )
@@ -101,6 +101,31 @@ def get_now():
 @app.get("/version")
 async def get_version():
     return {"version": "2.0.0"}
+
+@app.get("/pyq-proxy")
+async def pyq_proxy(path: str, q: str = None, limit: int = None, cursor: str = None):
+    """
+    Proxy requests to the SRM PYQ API to bypass CORS.
+    Example: /pyq-proxy?path=/v1/courses/21CSE253T/papers
+    """
+    target_base = "https://srm-pyq-api.onrender.com"
+    target_url = f"{target_base}{path}"
+    
+    params = {}
+    if q: params["q"] = q
+    if limit: params["limit"] = limit
+    if cursor: params["cursor"] = cursor
+
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.get(target_url, params=params, timeout=10.0)
+            return JSONResponse(
+                status_code=response.status_code,
+                content=response.json()
+            )
+        except Exception as e:
+            print(f"[API] PYQ Proxy Error: {str(e)}")
+            raise HTTPException(status_code=500, detail="Failed to fetch from PYQ API")
 
 @app.post("/refresh")
 @limiter.limit("3/minute")
