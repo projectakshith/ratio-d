@@ -1,6 +1,5 @@
 "use client";
 import React, { useMemo, useState, useEffect } from "react";
-import DesktopSidebar from "../DesktopSidebar";
 import { motion, AnimatePresence } from "framer-motion";
 import { useApp } from "@/context/AppContext";
 import { buildCourseMap, processSchedule, parseTimetableTime } from "@/utils/dashboard/timetableLogic";
@@ -187,12 +186,9 @@ export default function DesktopTimetable() {
   const activeHeroSlot = activeHeroTime ? gridData[selectedDay][activeHeroTime] : null;
 
   return (
-    <div className="h-screen w-full flex flex-row p-1.5 font-sans overflow-hidden transition-colors duration-500"
-      style={{ backgroundColor: 'color-mix(in srgb, var(--theme-bg), black 12%)' }}
-    >
-      <div className="flex-1 bg-theme-bg rounded-[24px] relative overflow-hidden flex flex-col border border-theme-border shadow-xl">
+    <>
         
-        <div className="flex-1 overflow-hidden relative flex flex-col">
+      <div className="flex-1 overflow-hidden relative flex flex-col">
           <AnimatePresence mode="wait">
             {view === "full" ? (
               <motion.div 
@@ -312,7 +308,7 @@ export default function DesktopTimetable() {
           </AnimatePresence>
         </div>
 
-        <div className="absolute bottom-10 right-12 pointer-events-none z-30 text-right">
+        <div className="absolute bottom-8 right-8 pointer-events-none z-0 text-right">
           <h1 className="text-theme-text font-regular lowercase leading-none select-none opacity-80" style={{ fontFamily: 'var(--font-afacad)', fontSize: '55px', letterSpacing: '-4px' }}>timetable</h1>
         </div>
 
@@ -352,9 +348,6 @@ export default function DesktopTimetable() {
             )}
           </div>
         </div>
-      </div>
-
-      <DesktopSidebar />
-    </div>
+    </>
   );
 }

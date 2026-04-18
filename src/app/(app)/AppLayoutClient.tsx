@@ -9,6 +9,7 @@ import { useTheme } from "@/context/ThemeContext";
 import { useAcademiaData } from "@/hooks/useAcademiaData";
 import CommandPalette from "@/components/desktop/CommandPalette";
 import SmoothScroll from "@/components/desktop/SmoothScroll";
+import DesktopSidebar from "@/components/desktop/DesktopSidebar";
 
 const BrutalistThemeLayout = dynamic(
   () => import("@/components/themes/brutalist/BrutalistTheme"),
@@ -77,11 +78,17 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           )}
         </div>
 
-        <div className="hidden md:block h-full w-full">
-          <SmoothScroll>
-            {children}
-            <CommandPalette />
-          </SmoothScroll>
+        <div 
+          className="hidden md:flex h-screen w-full flex-row overflow-hidden p-1.5 gap-1.5"
+          style={{ backgroundColor: 'color-mix(in srgb, var(--theme-bg), black 12%)' }}
+        >
+          <div className="flex-1 h-full bg-theme-bg rounded-[24px] overflow-hidden border border-theme-border shadow-2xl">
+            <SmoothScroll>
+                {children}
+            </SmoothScroll>
+          </div>
+          <CommandPalette />
+          <DesktopSidebar />
         </div>
 
         <AnimatePresence>

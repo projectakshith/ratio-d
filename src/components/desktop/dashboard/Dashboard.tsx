@@ -10,7 +10,6 @@ import {
   Loader,
   RefreshCw,
 } from "lucide-react";
-import DesktopSidebar from "../DesktopSidebar";
 import { useApp } from "@/context/AppContext";
 import { useTheme } from "@/context/ThemeContext";
 import { useAcademiaData } from "@/hooks/useAcademiaData";
@@ -187,12 +186,8 @@ export default function DesktopDashboard() {
     String(selectedDay) !== String(currentDayOrder);
 
   return (
-    <div 
-      className="h-screen w-full flex flex-row p-1.5 font-sans overflow-hidden transition-colors duration-500"
-      style={{ backgroundColor: 'color-mix(in srgb, var(--theme-bg), black 12%)' }}
-    >
-      <div className="flex-1 bg-theme-bg rounded-[24px] relative overflow-hidden flex flex-row border border-theme-border shadow-xl">
-        
+    <>
+      <div className="flex-1 flex flex-row overflow-hidden relative">
         <div className="flex-[1.1] flex flex-col p-8 overflow-y-auto no-scrollbar border-r border-theme-border">
           <header className="flex justify-between items-center mb-10">
             <div className="flex items-center gap-4">
@@ -260,6 +255,9 @@ export default function DesktopDashboard() {
         </div>
 
         <div className="flex-1 flex flex-col p-8 bg-theme-surface/20">
+          <div className="absolute bottom-8 right-8 pointer-events-none z-0 text-right">
+            <h1 className="text-theme-text font-regular lowercase leading-none select-none opacity-80" style={{ fontFamily: 'var(--font-afacad)', fontSize: '55px', letterSpacing: '-4px' }}>dashboard</h1>
+          </div>
           <section className="mb-3">
             <div className="flex items-center gap-3 mb-6 px-1">
               <span 
@@ -384,8 +382,6 @@ export default function DesktopDashboard() {
           </div>
         </div>
       </div>
-
-      <DesktopSidebar />
-    </div>
+    </>
   );
 }

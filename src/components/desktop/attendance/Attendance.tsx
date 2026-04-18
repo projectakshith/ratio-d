@@ -1,6 +1,5 @@
 "use client";
 import React, { useState, useEffect, useRef, useMemo } from "react";
-import DesktopSidebar from "../DesktopSidebar";
 import { ReactLenis } from "lenis/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, Calculator, RotateCcw } from "lucide-react";
@@ -284,10 +283,7 @@ export default function DesktopAttendance() {
   const normalSubjects = processedList.filter(s => s.safe);
 
   return (
-    <div 
-      className="h-screen w-full flex flex-row p-1.5 font-sans overflow-hidden transition-colors duration-500 text-theme-text"
-      style={{ backgroundColor: 'color-mix(in srgb, var(--theme-bg), black 12%)' }}
-    >
+    <>
       <style>{`
         .rdp-root { --rdp-accent-color: var(--theme-highlight); margin: 0; font-family: var(--font-afacad) !important; }
         .rdp-day { font-size: 11px !important; font-weight: 600 !important; width: 32px !important; height: 32px !important; border-radius: 10px !important; transition: all 0.2s; color: var(--theme-text) !important; }
@@ -299,9 +295,8 @@ export default function DesktopAttendance() {
         .rdp-nav_button:hover { color: var(--theme-text) !important; background-color: var(--theme-surface) !important; }
         .rdp-table { border-collapse: separate !important; border-spacing: 4px !important; }
       `}</style>
-      
-      <div className="flex-1 bg-theme-bg rounded-[24px] relative overflow-hidden flex flex-col border border-theme-border shadow-xl">
-        <div className="flex-1 flex flex-row items-center">
+        
+      <div className="flex-1 flex flex-row items-center">
           <motion.div 
             initial={false}
             animate={{ width: isStatsExpanded ? (isPredicting ? 480 : 320) : 80 }}
@@ -418,11 +413,9 @@ export default function DesktopAttendance() {
         <div className="absolute bottom-10 left-10 pointer-events-none z-30">
           <h1 className="text-2xl font-black tracking-tighter lowercase text-theme-text opacity-20" style={{ fontFamily: 'var(--font-urbanosta)' }}>ratio'd</h1>
         </div>
-        <div className="absolute bottom-10 right-12 pointer-events-none z-30 text-right">
+        <div className="absolute bottom-8 right-8 pointer-events-none z-0 text-right">
           <h1 className="text-theme-text font-regular lowercase leading-none select-none opacity-80" style={{ fontFamily: 'var(--font-afacad)', fontSize: '55px', letterSpacing: '-4px' }}>attendance</h1>
         </div>
-      </div>
-      <DesktopSidebar />
-    </div>
-  );
-}
+        </>
+        );
+        }

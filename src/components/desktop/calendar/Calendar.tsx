@@ -1,6 +1,5 @@
 "use client";
 import React, { useState, useMemo } from "react";
-import DesktopSidebar from "../DesktopSidebar";
 import { ReactLenis } from "lenis/react";
 import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Info } from "lucide-react";
@@ -97,12 +96,8 @@ export default function DesktopCalendar() {
   const prevMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
 
   return (
-    <div 
-      className="h-screen w-full flex flex-row p-1.5 font-sans overflow-hidden transition-colors duration-500"
-      style={{ backgroundColor: 'color-mix(in srgb, var(--theme-bg), black 12%)' }}
-    >
-      <div className="flex-1 bg-theme-bg rounded-[24px] relative overflow-hidden flex flex-row border border-theme-border shadow-xl">
-        
+    <>
+      <div className="flex-1 flex flex-row overflow-hidden relative">
         <div className="flex-[1.4] flex flex-col border-r border-theme-border">
           <header className="px-10 pt-10 pb-6 flex justify-between items-end">
             <div>
@@ -181,12 +176,10 @@ export default function DesktopCalendar() {
           </div>
         </div>
 
-        <div className="absolute bottom-10 right-12 pointer-events-none z-30 text-right">
+        <div className="absolute bottom-8 right-8 pointer-events-none z-0 text-right">
           <h1 className="text-theme-text font-regular lowercase leading-none select-none opacity-80" style={{ fontFamily: 'var(--font-afacad)', fontSize: '55px', letterSpacing: '-4px' }}>calendar</h1>
         </div>
-      </div>
-
-      <DesktopSidebar />
-    </div>
-  );
-}
+        </div>
+        </>
+        );
+        }

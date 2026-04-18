@@ -1,6 +1,5 @@
 "use client";
 import React, { useState, useEffect, useRef, useMemo } from "react";
-import DesktopSidebar from "../DesktopSidebar";
 import { ReactLenis } from "lenis/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
@@ -485,11 +484,9 @@ export default function DesktopMarks() {
   if (!mounted) return null;
 
   return (
-    <div className="h-screen w-full flex flex-row p-1.5 font-sans overflow-hidden transition-colors duration-500 selection:bg-theme-highlight selection:text-theme-bg"
-      style={{ backgroundColor: 'color-mix(in srgb, var(--theme-bg), black 12%)' }}>
-      <div className="flex-1 bg-theme-bg rounded-[24px] relative overflow-hidden flex flex-col border border-theme-border shadow-2xl h-full">
+    <>
         
-        <div className="w-full h-14 border-b border-theme-border flex items-center px-10 bg-theme-surface z-20 shrink-0">
+      <div className="w-full h-14 border-b border-theme-border flex items-center px-10 bg-theme-surface z-20 shrink-0">
           <div className="flex bg-theme-bg p-1 rounded-xl border border-theme-border shadow-inner gap-1">
             <button 
               onClick={() => setViewMode("feed")} 
@@ -558,12 +555,10 @@ export default function DesktopMarks() {
           </AnimatePresence>
         </div>
 
-        <div className="absolute bottom-10 right-12 pointer-events-none z-30 text-right">
+        <div className="absolute bottom-8 right-8 pointer-events-none z-0 text-right">
           <h1 className="text-theme-text font-regular lowercase leading-none select-none opacity-80" style={{ fontFamily: 'var(--font-afacad)', fontSize: '55px', letterSpacing: '-4px' }}>marks</h1>
         </div>
-      </div>
-      <DesktopSidebar />
-    </div>
+    </>
   );
 }
 

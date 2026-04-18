@@ -1,6 +1,5 @@
 "use client";
 import React, { useState, useEffect, useMemo } from "react";
-import DesktopSidebar from "../DesktopSidebar";
 import { ReactLenis } from "lenis/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
@@ -172,13 +171,11 @@ export default function DesktopPYQs() {
   if (!mounted) return null;
 
   return (
-    <div className="h-screen w-full flex flex-row p-1.5 font-sans overflow-hidden transition-colors duration-500 selection:bg-theme-highlight selection:text-theme-bg"
-      style={{ backgroundColor: 'color-mix(in srgb, var(--theme-bg), black 12%)' }}>
-      
+    <>
       <AnimatePresence>
         {isFetchingFile && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[120] bg-black/60 backdrop-blur-sm flex items-center justify-center">
+            className="absolute inset-0 z-[120] bg-black/60 backdrop-blur-sm flex items-center justify-center">
             <div className="flex flex-col items-center gap-4">
               <Loader2 size={40} className="text-theme-highlight animate-spin" />
               <span className="text-[10px] font-black uppercase tracking-[0.4em] text-white" style={{ fontFamily: 'var(--font-montserrat)' }}>grabbing your paper...</span>
@@ -190,7 +187,7 @@ export default function DesktopPYQs() {
       <AnimatePresence>
         {viewingPapers.length > 0 && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-black/95 flex flex-col"
+            className="absolute inset-0 z-[100] bg-black/95 flex flex-col"
           >
             <div className="absolute top-6 left-1/2 -translate-x-1/2 z-[110] flex items-center gap-4 bg-black/40 backdrop-blur-xl px-6 py-2.5 rounded-2xl border border-white/10 shadow-2xl">
               <div className="flex items-center gap-3">
@@ -219,9 +216,8 @@ export default function DesktopPYQs() {
           </motion.div>
         )}
       </AnimatePresence>
-
-      <div className="flex-1 bg-theme-bg rounded-[24px] relative overflow-hidden flex flex-col border border-theme-border shadow-2xl h-full">
-        <div className="w-full h-14 border-b border-theme-border flex items-center justify-between px-10 bg-theme-surface z-20 shrink-0">
+        
+      <div className="w-full h-14 border-b border-theme-border flex items-center justify-between px-10 bg-theme-surface z-20 shrink-0">
           <div className="flex bg-theme-bg p-1 rounded-xl border border-theme-border shadow-inner gap-1">
             <button onClick={() => setActiveTab("my-courses")} 
               className={`px-4 py-1.5 rounded-lg transition-all flex items-center gap-2 ${activeTab === "my-courses" ? 'bg-theme-text/10 text-theme-text' : 'text-theme-muted hover:bg-theme-text/5'}`}>
@@ -398,11 +394,9 @@ export default function DesktopPYQs() {
             </ReactLenis>
           </div>
         </div>
-        <div className="absolute bottom-10 right-12 pointer-events-none z-30 text-right">
+        <div className="absolute bottom-8 right-8 pointer-events-none z-0 text-right">
           <h1 className="text-theme-text font-regular lowercase leading-none select-none opacity-80" style={{ fontFamily: 'var(--font-afacad)', fontSize: '55px', letterSpacing: '-4px' }}>pyqs</h1>
         </div>
-      </div>
-      <DesktopSidebar />
-    </div>
+    </>
   );
 }
