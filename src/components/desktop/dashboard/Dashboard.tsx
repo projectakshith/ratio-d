@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   ChevronRight,
   ChevronLeft,
@@ -136,60 +137,88 @@ export default function DesktopDashboard() {
   const statusClass = (currentClass || nextClass || null) as ScheduleSlot | null;
 
   const { alertName, alertPct, alertMargin, alertLabel, alertPctNum } = useMemo(() => {
-    const targetClass = (nextClass || currentClass) as ScheduleSlot | null;
     const baseAttendance = getBaseAttendance(userData?.attendance || []);
-    const critical = getCriticalAttendance(userData?.attendance || []);
-
-    let targetSubject = baseAttendance.length > 0 
-      ? baseAttendance.find(a => {
-          const crit = critical[0];
-          if (!crit) return false;
-          return (a.code || "").trim().toLowerCase() === (crit.code || crit.courseCode || "").trim().toLowerCase();
-        }) || baseAttendance[0]
-      : null;
+    const targetClass = (nextClass || currentClass) as ScheduleSlot | null;
+    
+    let targetSubject = baseAttendance.length > 0 ? baseAttendance[0] : null;
 
     if (targetClass && baseAttendance.length > 0) {
-      const match = matchAttendance(targetClass, baseAttendance);
-      if (match) targetSubject = match;
+      const matched = matchAttendance(targetClass, baseAttendance);
+      if (matched) targetSubject = matched;
     }
 
-    const pct = targetSubject ? (targetSubject.conducted > 0 ? (targetSubject.present / targetSubject.conducted) * 100 : 100) : 0;
-    const status = getStatus(pct, targetSubject?.conducted || 0, targetSubject?.present || 0);
+    const { val, label } = getStatus(
+      parseFloat(targetSubject?.percentage || "0"), 
+      targetSubject?.conducted || 0, 
+      targetSubject?.present || 0
+    );
 
     return {
-      alertName: targetSubject?.title?.toLowerCase() || "attendance",
-      alertPct: pct.toFixed(1),
-      alertPctNum: pct,
-      alertMargin: status.val,
-      alertLabel: status.label,
+      alertName: (targetSubject?.title || "attendance").toLowerCase(),
+      alertPct: targetSubject?.percentage || "0",
+      alertPctNum: parseFloat(targetSubject?.percentage || "0"),
+      alertMargin: val,
+      alertLabel: label,
     };
-  }, [userData, nextClass, currentClass]);
+  }, [userData, currentClass, nextClass]);
 
-  const attendanceCategory = alertPctNum < 75 ? "cooked" : alertPctNum >= 85 ? "safe" : "danger";
-  const attStyles = {
-    safe: { bg: "status-boxbg-safe", border: "status-border-safe", text: "status-text-safe", iconBg: "status-bg-safe" },
-    danger: { bg: "status-boxbg-danger", border: "status-border-danger", text: "status-text-danger", iconBg: "status-bg-danger" },
-    cooked: { bg: "status-boxbg-cooked", border: "status-border-cooked", text: "status-text-cooked", iconBg: "status-bg-cooked" },
-  }[attendanceCategory];
+  const attStyles = useMemo(() => {
+    if (alertPctNum < 75) return {
+      bg: "status-boxbg-cooked",
+      border: "status-border-cooked",
+      text: "status-text-cooked",
+      iconBg: "status-bg-cooked",
+      arrow: "status-text-cooked"
+    };
+    if (alertPctNum < 85) return {
+      bg: "status-boxbg-danger",
+      border: "status-border-danger",
+      text: "status-text-danger",
+      iconBg: "status-bg-danger",
+      arrow: "status-text-danger"
+    };
+    return {
+      bg: "status-boxbg-safe",
+      border: "status-border-safe",
+      text: "status-text-safe",
+      iconBg: "status-bg-safe",
+      arrow: "status-text-safe"
+    };
+  }, [alertPctNum]);
 
   const latestMark = useMemo(() => {
-    const sortedMarks = processAndSortMarks(userData?.marks || [], courseMap);
-    return sortedMarks.length > 0 ? sortedMarks[0] : null;
+    const allMarks = processAndSortMarks(userData?.marks || [], courseMap);
+    return allMarks.filter(m => !m.isNA)[0];
   }, [userData, courseMap]);
 
-  const displayGrid = showExtraSlots ? [...standardGrid, ...extraGrid] : standardGrid;
-
-  const nextScheduledDay =
-    nextWorkingDayOrder || (currentDayOrder < 5 ? currentDayOrder + 1 : 1);
   const isViewingNext =
-    String(selectedDay) === String(nextScheduledDay) &&
+    String(selectedDay) === String(nextWorkingDayOrder) &&
     String(selectedDay) !== String(currentDayOrder);
+
+  const row2 = useMemo(() => {
+    const base = standardGrid.slice(5, 10);
+    return showExtraSlots ? [...base, ...extraGrid] : base;
+  }, [standardGrid, extraGrid, showExtraSlots]);
+
+  const row1 = useMemo(() => {
+    const base = standardGrid.slice(0, 5);
+    if (showExtraSlots && row2.length > 5) {
+      const extras = Array(row2.length - 5).fill({ active: false });
+      return [...base, ...extras];
+    }
+    return base;
+  }, [standardGrid, showExtraSlots, row2.length]);
 
   return (
     <>
-      <div className="flex-1 flex flex-row overflow-hidden relative">
-        <div className="flex-[1.1] flex flex-col p-8 overflow-y-auto no-scrollbar border-r border-theme-border">
-          <header className="flex justify-between items-center mb-10">
+      <div className="flex-1 flex flex-row overflow-hidden relative h-full">
+        <motion.div 
+          initial={{ width: 600 }}
+          animate={{ width: showExtraSlots ? 850 : 600 }}
+          transition={{ type: "spring", damping: 25, stiffness: 120 }}
+          className="shrink-0 flex flex-col p-8 overflow-y-auto no-scrollbar border-r border-theme-border h-full"
+        >
+          <header className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-4">
               <button
                 onClick={() => { Haptics.selection(); onOpenSettings(); }}
@@ -211,7 +240,23 @@ export default function DesktopDashboard() {
             </button>
           </header>
 
-          <div className="flex items-center justify-between mb-6">
+          {isHoliday && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="w-full status-bg-safe status-border-safe border-[1.5px] rounded-[24px] p-4 mb-6 flex items-center gap-3 shrink-0"
+            >
+              <span className="text-xl">🌴</span>
+              <span
+                className="text-xs font-bold status-text-safe lowercase tracking-wide"
+                style={{ fontFamily: "var(--font-afacad), sans-serif" }}
+              >
+                holiday today! viewing upcoming classes.
+              </span>
+            </motion.div>
+          )}
+
+          <div className="flex items-center justify-between mb-4 shrink-0">
             <div className="flex items-center gap-3">
               <span 
                 className="text-theme-muted text-[10px] font-bold uppercase tracking-[0.25em] flex items-center gap-1.5"
@@ -228,6 +273,18 @@ export default function DesktopDashboard() {
                   <span> • selected</span>
                 )}
               </span>
+              {extraGrid.length > 0 && (
+                  <button
+                    onClick={() => {
+                      Haptics.selection();
+                      setShowExtraSlots(!showExtraSlots);
+                    }}
+                    className="bg-theme-surface text-theme-muted px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest transition-all border border-theme-border"
+                    style={{ fontFamily: "var(--font-afacad), sans-serif" }}
+                  >
+                    {showExtraSlots ? "hide extra" : `+${extraGrid.length} extra`}
+                  </button>
+                )}
             </div>
             <div className="flex gap-1">
               <button onClick={() => handleDaySwitch("prev")} className="p-1.5 text-theme-muted hover:text-theme-text transition-all"><ChevronLeft size={20} /></button>
@@ -235,31 +292,65 @@ export default function DesktopDashboard() {
             </div>
           </div>
 
-          <div className="max-w-md">
-            <ScheduleGrid
-              displayGrid={displayGrid}
-              selectedDay={selectedDay}
-              currentDayOrder={currentDayOrder}
-              isHoliday={isHoliday}
-            />
+          <div className="flex flex-col gap-1.5 mb-8 cursor-pointer shrink-0" onClick={() => router.push("/timetable")}>
+            <motion.div 
+              key={`${selectedDay}-r1-${showExtraSlots}`}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <ScheduleGrid
+                displayGrid={row1}
+                selectedDay={selectedDay}
+                currentDayOrder={currentDayOrder}
+                isHoliday={isHoliday}
+                cols={row1.length}
+              />
+            </motion.div>
+            <motion.div 
+              key={`${selectedDay}-r2-${showExtraSlots}`}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <ScheduleGrid
+                displayGrid={row2}
+                selectedDay={selectedDay}
+                currentDayOrder={currentDayOrder}
+                isHoliday={isHoliday}
+                cols={row2.length}
+              />
+            </motion.div>
           </div>
 
-          {extraGrid.length > 0 && (
-            <button
-              onClick={() => setShowExtraSlots(!showExtraSlots)}
-              className="mt-4 text-theme-muted text-[9px] font-black uppercase tracking-[0.2em] hover:text-theme-text transition-colors w-fit px-3 py-1.5 bg-theme-surface rounded-full border border-theme-border"
-            >
-              {showExtraSlots ? "hide extra" : `+ ${extraGrid.length} extra`}
-            </button>
-          )}
-        </div>
+          <div className="grid grid-cols-3 gap-3 mb-0 max-w-full shrink-0">
+            <div className="bg-theme-surface/30 border border-theme-border rounded-[20px] p-4 flex flex-col justify-between">
+              <span className="text-theme-muted text-[8px] font-bold uppercase tracking-[0.2em] mb-2" style={{ fontFamily: 'var(--font-afacad)' }}>starts</span>
+              <h4 className="text-theme-text text-base font-black tracking-tight" style={{ fontFamily: 'var(--font-montserrat)' }}>
+                {standardGrid.find(s => s.active)?.time?.split("-")[0] || "--:--"}
+              </h4>
+            </div>
+            <div className="bg-theme-surface/30 border border-theme-border rounded-[20px] p-4 flex flex-col justify-between">
+              <span className="text-theme-muted text-[8px] font-bold uppercase tracking-[0.2em] mb-2" style={{ fontFamily: 'var(--font-afacad)' }}>ends</span>
+              <h4 className="text-theme-text text-base font-black tracking-tight" style={{ fontFamily: 'var(--font-montserrat)' }}>
+                {[...standardGrid].reverse().find(s => s.active)?.time?.split("-")[1] || "--:--"}
+              </h4>
+            </div>
+            <div className="bg-theme-surface/30 border border-theme-border rounded-[20px] p-4 flex flex-col justify-between">
+              <span className="text-theme-muted text-[8px] font-bold uppercase tracking-[0.2em] mb-2" style={{ fontFamily: 'var(--font-afacad)' }}>total</span>
+              <h4 className="text-theme-text text-base font-black tracking-tight" style={{ fontFamily: 'var(--font-montserrat)' }}>
+                {standardGrid.filter(s => s.active).length + extraGrid.length}
+              </h4>
+            </div>
+          </div>
+        </motion.div>
 
-        <div className="flex-1 flex flex-col p-8 bg-theme-surface/20">
+        <div className="flex-1 flex flex-col p-8 bg-theme-surface/20 relative gap-8 min-w-0 h-full">
           <div className="absolute bottom-8 right-8 pointer-events-none z-0 text-right">
             <h1 className="text-theme-text font-regular lowercase leading-none select-none opacity-80" style={{ fontFamily: 'var(--font-afacad)', fontSize: '55px', letterSpacing: '-4px' }}>dashboard</h1>
           </div>
-          <section className="mb-3">
-            <div className="flex items-center gap-3 mb-6 px-1">
+          <section className="mb-0 flex flex-col gap-8">
+            <div className="flex items-center gap-3 px-1">
               <span 
                 className="text-theme-muted text-[11px] font-bold lowercase tracking-[0.25em] whitespace-nowrap" 
                 style={{ fontFamily: 'var(--font-montserrat)' }}
@@ -272,21 +363,20 @@ export default function DesktopDashboard() {
               </span>
             </div>
             
-            <div className="mb-6 flex flex-col justify-center">
-              <div className="flex items-end justify-between gap-6 mb-2">
-                <div className="flex-1 overflow-hidden">
+            <div className="flex flex-col justify-center min-w-0">
+              <div className="flex items-end justify-between gap-6 mb-4 min-w-0">
+                <div className="flex-1 min-w-0">
                   <h1 
                     className="text-theme-text text-[3.5rem] font-black tracking-tighter leading-[0.92] lowercase line-clamp-2" 
                     style={{ 
                       fontFamily: 'var(--font-montserrat)', 
-                      paddingBottom: '0.15em',
-                      maxHeight: 'calc(3.5rem * 0.92 * 2)'
+                      paddingBottom: '0.05em',
                     }}
                   >
                     {displayCourse}
                   </h1>
                 </div>
-                <span className="text-[1.25rem] font-bold uppercase tracking-widest text-theme-muted whitespace-nowrap" style={{ fontFamily: 'var(--font-afacad)' }}>
+                <span className="text-[1.25rem] font-bold uppercase tracking-widest text-theme-muted whitespace-nowrap shrink-0 pb-1" style={{ fontFamily: 'var(--font-afacad)' }}>
                   {focusClass?.time || "--:--"}
                 </span>
               </div>
@@ -296,7 +386,8 @@ export default function DesktopDashboard() {
               >
                 <div className="flex items-center gap-3 min-w-0 flex-1">
                   <span
-                    className={`h-2 rounded-full shrink-0 ${currentClass && !isHoliday ? "bg-theme-text animate-pulse" : "bg-theme-text-20"}`}
+                    className={`h-2.5 rounded-full shrink-0 ${currentClass && !isHoliday ? "bg-theme-text animate-pulse" : "bg-theme-text-20"}`}
+                    style={{ width: '10px', height: '10px' }}
                   />
                   <span
                     className="text-[14px] font-bold lowercase text-theme-text-70 truncate"
@@ -332,10 +423,10 @@ export default function DesktopDashboard() {
             </div>
           </section>
 
-          <div className="grid grid-cols-1 gap-4 mt-auto">
+          <div className="grid grid-cols-1 gap-4 mt-0">
             <div
               onClick={() => router.push("/attendance")}
-              className={`group w-full border-[1.5px] rounded-[24px] p-4 flex items-center gap-4 shadow-sm transition-all cursor-pointer hover:scale-[1.01] active:scale-98 ${attStyles.bg} ${attStyles.border}`}
+              className={`group w-full border-[1.5px] rounded-[24px] p-3 flex items-center gap-4 shadow-sm transition-all cursor-pointer hover:scale-[1.01] active:scale-98 ${attStyles.bg} ${attStyles.border}`}
             >
               <div className={`w-14 h-14 rounded-xl flex items-center justify-center shrink-0 ${attStyles.iconBg}`}>
                 <CheckCircle size={22} strokeWidth={2.5} className={attStyles.text} />
@@ -343,7 +434,7 @@ export default function DesktopDashboard() {
               <div className="flex-1 min-w-0">
                 <p className={`text-[9px] font-bold uppercase tracking-[0.3em] mb-0.5 opacity-60 ${attStyles.text}`} style={{ fontFamily: 'var(--font-afacad)' }}>attendance</p>
                 <h3 className={`text-xl font-black lowercase tracking-tight truncate ${attStyles.text}`} style={{ fontFamily: 'var(--font-montserrat)' }}>{alertName}</h3>
-                <p className={`text-sm font-medium lowercase ${attStyles.text} opacity-80`} style={{ fontFamily: 'var(--font-afacad)' }}>{alertPct}% • {alertMargin} {alertLabel}</p>
+                <p className={`text-[13px] font-medium lowercase ${attStyles.text} opacity-80`} style={{ fontFamily: 'var(--font-afacad)' }}>{alertPct}% • {alertMargin} {alertLabel}</p>
               </div>
               <ChevronRight size={24} className={attStyles.text} />
             </div>
@@ -351,7 +442,7 @@ export default function DesktopDashboard() {
             <div className="grid grid-cols-2 gap-4">
               <div
                 onClick={() => router.push("/marks")}
-                className="bg-theme-card border border-theme-border rounded-[24px] p-4 flex flex-col justify-between shadow-sm hover:scale-[1.01] active:scale-98 transition-all cursor-pointer"
+                className="bg-theme-card border border-theme-border rounded-[24px] p-5 flex flex-col justify-between shadow-sm hover:scale-[1.01] active:scale-98 transition-all cursor-pointer"
               >
                 <div className="w-12 h-12 rounded-xl bg-theme-surface flex items-center justify-center mb-4">
                   <GraduationCap size={20} strokeWidth={2.5} className="text-theme-text" />
@@ -366,7 +457,7 @@ export default function DesktopDashboard() {
 
               <div
                 onClick={() => router.push("/calendar")}
-                className="bg-theme-emphasis text-theme-bg rounded-[24px] p-4 flex flex-col justify-between shadow-sm hover:scale-[1.01] active:scale-98 transition-all cursor-pointer"
+                className="bg-theme-emphasis text-theme-bg rounded-[24px] p-5 flex flex-col justify-between shadow-sm hover:scale-[1.01] active:scale-98 transition-all cursor-pointer"
               >
                 <div className="w-12 h-12 rounded-xl bg-theme-bg/10 flex items-center justify-center mb-4">
                   <Bell size={20} strokeWidth={2.5} className="text-theme-bg" />
