@@ -25,6 +25,7 @@ import {
 import { getBaseAttendance, getStatus, matchAttendance } from "@/utils/attendance/attendanceLogic";
 import { processAndSortMarks, buildCourseMap } from "@/utils/marks/marksLogic";
 import { getAcronym } from "@/utils/dashboard/timetableLogic";
+import { flavorText } from "@/utils/shared/flavortext";
 import calendarDataJson from "@/data/calendar_data.json";
 import ScheduleGrid from "@/components/themes/minimalist/dashboard/ScheduleGrid";
 import {
@@ -79,6 +80,16 @@ export default function DesktopDashboard() {
     userData?.profile?.name?.split(" ")[0] ||
     "student"
   ).toLowerCase();
+
+  const welcomeText = useMemo(() => {
+    const list = flavorText.welcomes || ["welcome back."];
+    return list[Math.floor(Math.random() * list.length)];
+  }, []);
+
+  const asciiArt = useMemo(() => {
+    const list = (flavorText as any).ascii || ["(¬‿¬)"];
+    return list[Math.floor(Math.random() * list.length)];
+  }, []);
 
   const profile = (userData?.profile || {}) as StudentProfile;
   const isTargetAudience =
@@ -240,92 +251,95 @@ export default function DesktopDashboard() {
             </button>
           </header>
 
-          <div className="mt-4 flex-1 flex flex-col">
-            <div className="flex flex-col gap-6 mb-auto">
-              {isHoliday && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="w-full status-bg-safe status-border-safe border-[1.5px] rounded-[24px] p-4 flex items-center gap-3 shrink-0"
+          <div className="flex-1 flex flex-col">
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className={`w-full border-[1.5px] rounded-[24px] p-4 mt-6 mb-10 flex items-center justify-between gap-3 shrink-0 ${
+                isHoliday ? "status-bg-safe status-border-safe" : "bg-theme-surface/30 border border-theme-border"
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                {isHoliday && <span className="shrink-0" style={{ fontSize: '16px' }}>😎</span>}
+                <span
+                  className={`text-xs font-bold lowercase tracking-wide ${isHoliday ? "status-text-safe" : "text-theme-muted"}`}
+                  style={{ fontFamily: "var(--font-afacad), sans-serif" }}
                 >
-                  <span className="text-xl">🌴</span>
-                  <span
-                    className="text-xs font-bold status-text-safe lowercase tracking-wide"
-                    style={{ fontFamily: "var(--font-afacad), sans-serif" }}
-                  >
-                    holiday today! viewing upcoming classes.
-                  </span>
-                </motion.div>
-              )}
-
-              <div className="flex items-center justify-between shrink-0 px-1">
-                <div className="flex items-center gap-3">
-                  <span 
-                    className="text-theme-muted text-[10px] font-bold uppercase tracking-[0.25em] flex items-center gap-1.5"
-                    style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
-                  >
-                    {`Day Order ${selectedDay}`}
-                    {String(selectedDay) === String(currentDayOrder) && !isHoliday ? (
-                      <span>• today</span>
-                    ) : isHoliday && selectedDay === nextWorkingDayOrder ? (
-                      <span className="text-theme-highlight font-black tracking-widest"> • upcoming</span>
-                    ) : isViewingNext ? (
-                      <span className="text-theme-highlight font-black tracking-widest"> • upcoming</span>
-                    ) : (
-                      <span> • selected</span>
-                    )}
-                  </span>
-                  {extraGrid.length > 0 && (
-                      <button
-                        onClick={() => {
-                          Haptics.selection();
-                          setShowExtraSlots(!showExtraSlots);
-                        }}
-                        className="bg-theme-surface text-theme-muted px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest transition-all border border-theme-border"
-                        style={{ fontFamily: "var(--font-afacad), sans-serif" }}
-                      >
-                        {showExtraSlots ? "hide extra" : `+${extraGrid.length} extra`}
-                      </button>
-                    )}
-                </div>
-                <div className="flex gap-1">
-                  <button onClick={() => handleDaySwitch("prev")} className="p-1.5 text-theme-muted hover:text-theme-text transition-all"><ChevronLeft size={20} /></button>
-                  <button onClick={() => handleDaySwitch("next")} className="p-1.5 text-theme-muted hover:text-theme-text transition-all"><ChevronRight size={20} /></button>
-                </div>
+                  {isHoliday ? "holiday today! viewing upcoming classes." : welcomeText}
+                </span>
               </div>
+              <span className={`shrink-0 ${isHoliday ? "text-[12px] font-black status-text-safe font-mono tracking-tighter opacity-80" : "text-[12px] font-black opacity-60 font-mono tracking-tighter"}`}>
+                {asciiArt}
+              </span>
+            </motion.div>
 
-              <div className="flex flex-col gap-1.5 cursor-pointer shrink-0" onClick={() => router.push("/timetable")}>
-                <motion.div 
-                  key={`${selectedDay}-r1-${showExtraSlots}`}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3 }}
+            <div className="flex items-center justify-between mb-4 shrink-0 px-1">
+              <div className="flex items-center gap-3">
+                <span 
+                  className="text-theme-muted text-[10px] font-bold uppercase tracking-[0.25em] flex items-center gap-1.5"
+                  style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
                 >
-                  <ScheduleGrid
-                    displayGrid={row1}
-                    selectedDay={selectedDay}
-                    currentDayOrder={currentDayOrder}
-                    isHoliday={isHoliday}
-                    cols={row1.length}
-                    isExpanded={showExtraSlots}
-                  />
-                </motion.div>
-                <motion.div 
-                  key={`${selectedDay}-r2-${showExtraSlots}`}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <ScheduleGrid
-                    displayGrid={row2}
-                    selectedDay={selectedDay}
-                    currentDayOrder={currentDayOrder}
-                    isHoliday={isHoliday}
-                    cols={row2.length}
-                    isExpanded={showExtraSlots}
-                  />
-                </motion.div>
+                  {`Day Order ${selectedDay}`}
+                  {String(selectedDay) === String(currentDayOrder) && !isHoliday ? (
+                    <span>• today</span>
+                  ) : isHoliday && selectedDay === nextWorkingDayOrder ? (
+                    <span className="text-theme-highlight font-black tracking-widest"> • upcoming</span>
+                  ) : isViewingNext ? (
+                    <span className="text-theme-highlight font-black tracking-widest"> • upcoming</span>
+                  ) : (
+                    <span> • selected</span>
+                  )}
+                </span>
+                {extraGrid.length > 0 && (
+                    <button
+                      onClick={() => {
+                        Haptics.selection();
+                        setShowExtraSlots(!showExtraSlots);
+                      }}
+                      className="bg-theme-surface text-theme-muted px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest transition-all border border-theme-border"
+                      style={{ fontFamily: "var(--font-afacad), sans-serif" }}
+                    >
+                      {showExtraSlots ? "hide extra" : `+${extraGrid.length} extra`}
+                    </button>
+                  )}
               </div>
+              <div className="flex gap-1">
+                <button onClick={() => handleDaySwitch("prev")} className="p-1.5 text-theme-muted hover:text-theme-text transition-all"><ChevronLeft size={20} /></button>
+                <button onClick={() => handleDaySwitch("next")} className="p-1.5 text-theme-muted hover:text-theme-text transition-all"><ChevronRight size={20} /></button>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1.5 mb-8 cursor-pointer shrink-0" onClick={() => router.push("/timetable")}>
+              <motion.div 
+                key={`${selectedDay}-r1-${showExtraSlots}`}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <ScheduleGrid
+                  displayGrid={row1}
+                  selectedDay={selectedDay}
+                  currentDayOrder={currentDayOrder}
+                  isHoliday={isHoliday}
+                  cols={row1.length}
+                  isExpanded={showExtraSlots}
+                />
+              </motion.div>
+              <motion.div 
+                key={`${selectedDay}-r2-${showExtraSlots}`}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <ScheduleGrid
+                  displayGrid={row2}
+                  selectedDay={selectedDay}
+                  currentDayOrder={currentDayOrder}
+                  isHoliday={isHoliday}
+                  cols={row2.length}
+                  isExpanded={showExtraSlots}
+                />
+              </motion.div>
             </div>
 
             <div className="grid grid-cols-3 gap-3 mb-0 max-w-full shrink-0 mt-auto">
@@ -360,7 +374,7 @@ export default function DesktopDashboard() {
               >
                 {focusLabel}
               </span>
-              <div className="flex-1 h-[1.5px] rounded-full" style={{ backgroundColor: 'var(--theme-text)', opacity: 0.2 }} />
+              <div className="flex-1 h-[1.5px] rounded-full" style={{ backgroundColor: 'var(--theme-text)', opacity: 0.1 }} />
               <span className="text-theme-text text-[12px] font-black uppercase tracking-[0.2em] whitespace-nowrap" style={{ fontFamily: 'var(--font-afacad)' }}>
                 {focusClass?.room || "FREE"}
               </span>
