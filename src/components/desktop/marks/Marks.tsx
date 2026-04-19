@@ -20,7 +20,8 @@ import {
   BarChart3,
   ChevronLeft,
   Calculator,
-  RotateCcw
+  RotateCcw,
+  Power
 } from "lucide-react";
 import { 
   processAndSortMarks, 
@@ -34,7 +35,7 @@ import {
 import { useApp } from "@/context/AppContext";
 import { flavorText } from "@/utils/shared/flavortext";
 
-const STORAGE_KEY = "ratio_marks_targets";
+const STORAGE_KEY = "ratio_marks_targets_v2";
 
 const DetailedMarkCard = ({ ass }: any) => {
   const box = getBoxTheme(ass.got, ass.max);
@@ -245,7 +246,7 @@ const TBAMarkCard = () => (
   </div>
 );
 
-const GradeNeedCard = ({ grade, min, sub, expected, isCurrentOnTrack }: any) => {
+const GradeNeedCard = ({ grade, min, sub, isCurrentOnTrack }: any) => {
   const internalsRemaining = Math.max(0, 60 - (sub?.totalMax || 0));
   const currentGot = sub?.totalGot || 0;
   const assumedEndSemContribution = sub.isPractical ? 40 : 34.7;
@@ -253,7 +254,7 @@ const GradeNeedCard = ({ grade, min, sub, expected, isCurrentOnTrack }: any) => 
   const neededFromRemaining = Math.max(0, neededInternalsTotal - currentGot);
   
   const isPossible = (currentGot + internalsRemaining + assumedEndSemContribution) >= min;
-  const isAlreadySafeWithExpected = (currentGot + expected) >= neededInternalsTotal;
+  const isAlreadySafe = currentGot >= (neededInternalsTotal - 0.05);
 
   let stateStyles = "bg-theme-surface border-theme-border opacity-60";
   if (!isPossible) {
@@ -266,13 +267,13 @@ const GradeNeedCard = ({ grade, min, sub, expected, isCurrentOnTrack }: any) => 
     <div className={`flex items-center justify-between p-4 rounded-2xl transition-all border-2 ${stateStyles}`}>
       <span className="text-base font-black" style={{ fontFamily: 'var(--font-montserrat)' }}>{grade}</span>
       <span className={`text-[11px] font-black uppercase text-right ${isCurrentOnTrack ? 'opacity-80' : 'opacity-60'}`} style={{ fontFamily: 'var(--font-montserrat)' }}>
-        {!isPossible ? 'rip' : isAlreadySafeWithExpected ? 'Safe' : `Need ${neededFromRemaining.toFixed(1)}`}
+        {!isPossible ? 'rip' : isAlreadySafe ? 'Safe' : `Need ${neededFromRemaining.toFixed(1)}`}
       </span>
     </div>
   );
 };
 
-const DetailedWorkspace = ({ sub, targetGrade, updateTarget, expectedMarks, setExpectedMarks, allSubjects, targetGradesMap }: any) => {
+const DetailedWorkspace = ({ sub, targetGrade, updateTarget, expectedMarks, setExpectedMarks, targetGradesMap, isTargetEnabled, toggleTarget }: any) => {
   if (!sub) return null;
 
   const grades = useMemo(() => [
@@ -288,62 +289,44 @@ const DetailedWorkspace = ({ sub, targetGrade, updateTarget, expectedMarks, setE
 
   const bestAchievable = useMemo(() => calculateBestAchievableGrade(sub.totalGot || 0, sub.totalMax || 60), [sub]);
   
-  const currentPredictedGrade = useMemo(() => {
+  const bestAchievableWith65 = useMemo(() => {
     const contribution = sub.isPractical ? 40 : 34.7;
-    const total = (sub.totalGot || 0) + expectedMarks + contribution;
-    return grades.find(g => total >= g.min)?.min || 0;
-  }, [sub, expectedMarks, grades]);
+    const internalsRemaining = Math.max(0, 60 - (sub.totalMax || 0));
+    const maxPossibleTotal = (sub.totalGot || 0) + internalsRemaining + contribution;
+    return grades.find(g => maxPossibleTotal >= g.min)?.min || 0;
+  }, [sub, grades]);
 
   const advice = useMemo(() => {
     const totalMax = sub.totalMax || 0;
     const totalGot = sub.totalGot || 0;
     const lostMarks = totalMax - totalGot;
-    const internalsRemaining = 60 - totalMax;
     
     if (sub.assessments?.length === 0 || totalMax === 0) {
       return { text: "academia forgot to enter your details blud. waiting for them to wake up.", sentiment: "neutral", lostMarks: 0, category: "neutral" };
     }
     
-    const neededInternalsTotal = Math.max(0, targetGrade - 40);
-    const neededFromRemaining = Math.max(0, neededInternalsTotal - totalGot);
-    const isAlreadySafe = totalGot >= neededInternalsTotal;
     const bestLabel = bestAchievable.best.label;
-    
     let sentiment = "neutral";
     let category = "neutral";
 
     if (bestLabel === "F") {
-      sentiment = "danger";
-      category = "cooked";
-    } else if (bestAchievable.maxPossibleTotal < targetGrade) {
-      sentiment = "danger";
-      category = "lostO";
+      sentiment = "danger"; category = "cooked";
+    } else if (bestLabel === "O") {
+      sentiment = "safe"; category = "safe";
     } else if (bestLabel === "A+") {
-      sentiment = "warning";
-      category = "lostO";
+      sentiment = "warning"; category = "lostO";
     } else if (bestLabel === "A") {
-      sentiment = "warning";
-      category = "lostAPlus";
-    } else if (neededFromRemaining > internalsRemaining) {
-      sentiment = "warning";
-      category = "capped";
-    } else if (neededFromRemaining > (internalsRemaining * 0.95) && !isAlreadySafe) {
-      sentiment = "razor";
-      category = "razor";
-    } else if (neededFromRemaining <= 0) {
-      sentiment = "safe";
-      category = "safe";
+      sentiment = "warning"; category = "lostAPlus";
     } else {
-      sentiment = "achievable";
-      category = "achievable";
+      sentiment = "achievable"; category = "achievable";
     }
 
     const texts = (flavorText.marks as any)[category] || flavorText.marks.neutral;
     const hash = sub.id.split('').reduce((acc: any, char: any) => ((acc << 5) - acc) + char.charCodeAt(0) | 0, 0);
-    const seed = Math.abs(hash + targetGradeLabel.charCodeAt(0) + Math.floor(expectedMarks));
+    const seed = Math.abs(hash); 
     const rawTxt = texts[seed % texts.length];
     return { text: rawTxt.replace(/{grade}/g, targetGradeLabel), sentiment, lostMarks, category };
-  }, [sub, targetGrade, targetGradeLabel, bestAchievable, expectedMarks]);
+  }, [sub, targetGradeLabel, bestAchievable]);
 
   const sentimentStyles: Record<string, string> = {
     danger: "bg-theme-secondary text-theme-bg border-theme-secondary",
@@ -433,12 +416,12 @@ const DetailedWorkspace = ({ sub, targetGrade, updateTarget, expectedMarks, setE
             <div className="flex flex-col gap-2">
               <div className="grid grid-cols-3 gap-2">
                 {grades.slice(0, 3).map((g, i) => (
-                  <GradeNeedCard key={i} grade={g.label} min={g.min} sub={sub} expected={expectedMarks} isCurrentOnTrack={currentPredictedGrade === g.min} />
+                  <GradeNeedCard key={i} grade={g.label} min={g.min} sub={sub} isCurrentOnTrack={bestAchievableWith65 === g.min} />
                 ))}
               </div>
               <div className="grid grid-cols-3 gap-2">
                 {grades.slice(3).map((g, i) => (
-                  <GradeNeedCard key={i} grade={g.label} min={g.min} sub={sub} expected={expectedMarks} isCurrentOnTrack={currentPredictedGrade === g.min} />
+                  <GradeNeedCard key={i} grade={g.label} min={g.min} sub={sub} isCurrentOnTrack={bestAchievableWith65 === g.min} />
                 ))}
               </div>
             </div>
@@ -449,66 +432,82 @@ const DetailedWorkspace = ({ sub, targetGrade, updateTarget, expectedMarks, setE
         </div>
 
         <div className="col-span-12 xl:col-span-7">
-          <div className="bg-theme-surface border-2 border-theme-border rounded-[32px] p-6 flex flex-col gap-4 relative overflow-hidden shadow-xl h-full justify-center">
+          <div className={`bg-theme-surface border-2 rounded-[32px] p-6 flex flex-col gap-4 relative overflow-hidden shadow-xl h-full justify-center transition-all duration-500 ${isTargetEnabled ? 'border-theme-border' : 'border-theme-border opacity-60 grayscale'}`}>
             <div className="absolute -bottom-10 -right-10 opacity-[0.03] rotate-12 text-theme-text"><TargetIcon size={200} /></div>
             
             <div className="relative z-10 flex flex-col gap-2">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 rounded-xl bg-theme-text/5 text-theme-text"><TargetIcon size={16} /></div>
-                <h2 className="text-lg font-black lowercase tracking-tighter" style={{ fontFamily: 'var(--font-montserrat)' }}>Target</h2>
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-xl transition-all ${isTargetEnabled ? 'bg-theme-text/5 text-theme-text' : 'bg-theme-muted/10 text-theme-muted'}`}><TargetIcon size={16} /></div>
+                  <h2 className="text-lg font-black lowercase tracking-tighter" style={{ fontFamily: 'var(--font-montserrat)' }}>Target</h2>
+                </div>
+                <button 
+                  onClick={() => toggleTarget(sub.id)}
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-full border-2 transition-all ${isTargetEnabled ? 'bg-theme-highlight/10 border-theme-highlight text-theme-highlight' : 'bg-theme-muted/5 border-theme-border text-theme-muted'}`}
+                >
+                  <Power size={12} />
+                  <span className="text-[9px] font-black uppercase tracking-widest" style={{ fontFamily: 'var(--font-montserrat)' }}>{isTargetEnabled ? 'Active' : 'Disabled'}</span>
+                </button>
               </div>
 
-              <div className="flex flex-row items-center gap-8">
-                <div className="space-y-1 shrink-0">
-                  <span className="text-[9px] font-black uppercase tracking-[0.4em] text-theme-muted" style={{ fontFamily: 'var(--font-montserrat)' }}>Required in Endsem</span>
-                  <div className="flex items-baseline gap-1.5">
-                    <span className={`text-5xl font-black ${isCooked ? 'text-theme-secondary' : 'text-theme-text'} tracking-tighter`} style={{ fontFamily: 'var(--font-montserrat)' }}>{isCooked ? 'cooked' : semRequiredOutOfMax}</span>
-                    {!isCooked && <span className="text-xl font-black text-theme-muted opacity-30" style={{ fontFamily: 'var(--font-montserrat)' }}>/{sub.isPractical ? 40 : 75}</span>}
-                  </div>
-                </div>
-
-                <div className="w-[2px] h-24 bg-theme-text/20 shrink-0" />
-
-                <div className="flex-1 flex flex-col gap-4">
-                  <div className="space-y-2">
-                    <span className="text-[8px] font-black uppercase tracking-[0.4em] text-theme-muted" style={{ fontFamily: 'var(--font-montserrat)' }}>Set Target Grade</span>
-                    <div className="grid grid-cols-3 gap-1.5">
-                      {grades.map(g => (
-                        <button 
-                          key={g.label}
-                          onClick={() => updateTarget(sub.id, g.min)}
-                          className={`px-2.5 py-1.5 rounded-full text-[9px] font-black uppercase transition-all border-2 ${targetGrade === g.min ? 'bg-theme-highlight text-theme-bg border-theme-highlight shadow-sm' : 'bg-transparent text-theme-text border-theme-border hover:border-theme-text/40'}`}
-                          style={{ fontFamily: 'var(--font-montserrat)' }}
-                        >
-                          {g.label}
-                        </button>
-                      ))}
+              {isTargetEnabled ? (
+                <div className="flex flex-row items-center gap-8">
+                  <div className="space-y-1 shrink-0">
+                    <span className="text-[9px] font-black uppercase tracking-[0.4em] text-theme-muted" style={{ fontFamily: 'var(--font-montserrat)' }}>Required in Endsem</span>
+                    <div className="flex items-baseline gap-1.5">
+                      <span className={`text-5xl font-black ${isCooked ? 'text-theme-secondary' : 'text-theme-text'} tracking-tighter`} style={{ fontFamily: 'var(--font-montserrat)' }}>{isCooked ? 'cooked' : semRequiredOutOfMax}</span>
+                      {!isCooked && <span className="text-xl font-black text-theme-muted opacity-30" style={{ fontFamily: 'var(--font-montserrat)' }}>/{sub.isPractical ? 40 : 75}</span>}
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <span className="text-[8px] font-black uppercase tracking-[0.4em] text-theme-muted whitespace-nowrap" style={{ fontFamily: 'var(--font-montserrat)' }}>Expected Internals</span>
-                    <div className="flex items-center gap-1.5 max-w-[160px]">
-                      <button onClick={() => setExpectedMarks(sub.id, Math.max(0, expectedMarks - 1))} className="w-8 h-8 rounded-full text-theme-text hover:bg-theme-text/5 flex items-center justify-center transition-all border border-theme-border shrink-0"><Minus size={12} /></button>
-                      <div className="relative flex-1">
-                        <input 
-                          type="number"
-                          value={expectedMarks === 0 ? "" : expectedMarks}
-                          onChange={(e) => {
-                            const val = parseFloat(e.target.value) || 0;
-                            setExpectedMarks(sub.id, Math.min(internalsRemaining, Math.max(0, val)));
-                          }}
-                          placeholder="0.0"
-                          className="bg-theme-surface border-2 border-theme-border rounded-full text-center text-sm font-black text-theme-text w-full py-1.5 pl-2 pr-8 outline-none focus:border-theme-highlight/50 focus:bg-theme-highlight/[0.03] transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                          style={{ fontFamily: 'var(--font-montserrat)' }}
-                        />
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] font-black text-theme-muted opacity-40" style={{ fontFamily: 'var(--font-montserrat)' }}>/{internalsRemaining.toFixed(0)}</span>
+                  <div className="w-[2px] h-24 bg-theme-text/20 shrink-0" />
+
+                  <div className="flex-1 flex flex-col gap-4">
+                    <div className="space-y-2">
+                      <span className="text-[8px] font-black uppercase tracking-[0.4em] text-theme-muted" style={{ fontFamily: 'var(--font-montserrat)' }}>Set Target Grade</span>
+                      <div className="grid grid-cols-3 gap-1.5">
+                        {grades.map(g => (
+                          <button 
+                            key={g.label}
+                            onClick={() => updateTarget(sub.id, g.min)}
+                            className={`px-2.5 py-1.5 rounded-full text-[9px] font-black uppercase transition-all border-2 ${targetGrade === g.min ? 'bg-theme-highlight text-theme-bg border-theme-highlight shadow-sm' : 'bg-transparent text-theme-text border-theme-border hover:border-theme-text/40'}`}
+                            style={{ fontFamily: 'var(--font-montserrat)' }}
+                          >
+                            {g.label}
+                          </button>
+                        ))}
                       </div>
-                      <button onClick={() => setExpectedMarks(sub.id, Math.min(internalsRemaining, expectedMarks + 1))} className="w-8 h-8 rounded-full text-theme-text hover:bg-theme-text/5 flex items-center justify-center transition-all border border-theme-border shrink-0"><Plus size={12} /></button>
+                    </div>
+
+                    <div className="space-y-2">
+                      <span className="text-[8px] font-black uppercase tracking-[0.4em] text-theme-muted whitespace-nowrap" style={{ fontFamily: 'var(--font-montserrat)' }}>Expected Internals</span>
+                      <div className="flex items-center gap-1.5 max-w-[160px]">
+                        <button onClick={() => setExpectedMarks(sub.id, Math.max(0, expectedMarks - 1))} className="w-8 h-8 rounded-full text-theme-text hover:bg-theme-text/5 flex items-center justify-center transition-all border border-theme-border shrink-0"><Minus size={12} /></button>
+                        <div className="relative flex-1">
+                          <input 
+                            type="number"
+                            value={expectedMarks === 0 ? "" : expectedMarks}
+                            onChange={(e) => {
+                              const val = parseFloat(e.target.value) || 0;
+                              setExpectedMarks(sub.id, Math.min(internalsRemaining, Math.max(0, val)));
+                            }}
+                            placeholder="0.0"
+                            className="bg-theme-surface border-2 border-theme-border rounded-full text-center text-sm font-black text-theme-text w-full py-1.5 pl-2 pr-8 outline-none focus:border-theme-highlight/50 focus:bg-theme-highlight/[0.03] transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                            style={{ fontFamily: 'var(--font-montserrat)' }}
+                          />
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] font-black text-theme-muted opacity-40" style={{ fontFamily: 'var(--font-montserrat)' }}>/{internalsRemaining.toFixed(0)}</span>
+                        </div>
+                        <button onClick={() => setExpectedMarks(sub.id, Math.min(internalsRemaining, expectedMarks + 1))} className="w-8 h-8 rounded-full text-theme-text hover:bg-theme-text/5 flex items-center justify-center transition-all border border-theme-border shrink-0"><Plus size={12} /></button>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              ) : (
+                <div className="py-8 flex flex-col items-center justify-center text-center">
+                  <Power size={32} className="text-theme-muted mb-3 opacity-20" />
+                  <p className="text-sm font-bold text-theme-muted lowercase max-w-[200px]" style={{ fontFamily: 'var(--font-montserrat)' }}>Target tracking is disabled for this subject.</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -517,7 +516,7 @@ const DetailedWorkspace = ({ sub, targetGrade, updateTarget, expectedMarks, setE
   );
 };
 
-const MarksDashboard = ({ stats, roast, isAnimating, subjects, targetGrades, onSelect }: any) => {
+const MarksDashboard = ({ stats, roast, isAnimating, subjects, targetGrades, targetEnabledState, onSelect }: any) => {
   const totalCredits = useMemo(() => subjects.reduce((acc: number, s: any) => acc + (s.credits || 3), 0), [subjects]);
   const safeCount = subjects.filter((s: any) => s.status === 'safe').length;
   
@@ -581,13 +580,15 @@ const MarksDashboard = ({ stats, roast, isAnimating, subjects, targetGrades, onS
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {subjects.map((s: any) => {
+            const isEnabled = targetEnabledState[s.id] !== false;
             const targetMin = targetGrades[s.id] || 91;
             const targetLabel = grades.find(g => g.min === targetMin)?.label || "O";
             return (
               <div 
                 key={s.id} 
                 onClick={() => onSelect(s.id)}
-                className="flex items-center justify-between p-5 rounded-[24px] bg-theme-surface/40 border border-theme-text/10 hover:border-theme-text/30 hover:bg-theme-surface/60 transition-all group cursor-pointer"
+                className={`flex items-center justify-between p-5 rounded-[24px] bg-theme-surface/40 border transition-all duration-300 group cursor-pointer hover:scale-[1.02] hover:bg-theme-surface/60 hover:shadow-xl hover:border-theme-text/30 ${!isEnabled ? 'opacity-50 grayscale' : ''}`}
+                style={{ borderColor: 'color-mix(in srgb, var(--theme-text) 15%, transparent)' }}
               >
                 <div className="flex flex-col">
                   <span className="text-[9px] font-black uppercase tracking-widest text-theme-muted mb-1" style={{ fontFamily: 'var(--font-montserrat)' }}>{s.code}</span>
@@ -596,7 +597,7 @@ const MarksDashboard = ({ stats, roast, isAnimating, subjects, targetGrades, onS
                 <div className="flex items-center gap-4">
                   <div className="flex flex-col items-end">
                     <span className="text-[8px] font-black uppercase tracking-widest text-theme-muted opacity-60">Target</span>
-                    <span className="text-xl font-black text-theme-highlight leading-none" style={{ fontFamily: 'var(--font-montserrat)' }}>{targetLabel}</span>
+                    <span className="text-xl font-black text-theme-highlight leading-none" style={{ fontFamily: 'var(--font-montserrat)' }}>{isEnabled ? targetLabel : 'OFF'}</span>
                   </div>
                 </div>
               </div>
@@ -616,7 +617,8 @@ export default function DesktopMarks() {
   const [targetData, setTargetData] = useState<{
     grades: Record<string, number>;
     expected: Record<string, number>;
-  }>({ grades: {}, expected: {} });
+    enabled: Record<string, boolean>;
+  }>({ grades: {}, expected: {}, enabled: {} });
 
   const [isStatsExpanded, setIsStatsExpanded] = useState(true);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -632,15 +634,6 @@ export default function DesktopMarks() {
     }
     const timer = setTimeout(() => setIsStatsExpanded(false), 1500);
     return () => clearTimeout(timer);
-  }, []);
-
-  useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      try {
-        setTargetData(JSON.parse(saved));
-      } catch (e) {}
-    }
   }, []);
 
   const subjects = useMemo(() => {
@@ -665,6 +658,15 @@ export default function DesktopMarks() {
     });
   };
 
+  const toggleTarget = (subId: string) => {
+    setTargetData(prev => {
+      const current = prev.enabled[subId] !== false;
+      const newData = { ...prev, enabled: { ...prev.enabled, [subId]: !current } };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(newData));
+      return newData;
+    });
+  };
+
   const activeSub = useMemo(() => subjects.find(s => s.id === activeTab), [subjects, activeTab]);
 
   useEffect(() => {
@@ -681,7 +683,7 @@ export default function DesktopMarks() {
           }
         });
         if (changed || Object.keys(prev.grades).length === 0) {
-          const newData = { ...prev, grades: newGrades };
+          const newData = { ...prev, grades: newGrades, enabled: prev.enabled || {}, expected: prev.expected || {} };
           localStorage.setItem(STORAGE_KEY, JSON.stringify(newData));
           return newData;
         }
@@ -696,12 +698,13 @@ export default function DesktopMarks() {
   }, [activeSub, targetData.grades]);
 
   const stats = useMemo(() => {
-    const gpa = calculatePredictedGpa(subjects, targetData.grades, []);
+    const activeTargets = subjects.filter(s => targetData.enabled[s.id] !== false);
+    const gpa = calculatePredictedGpa(activeTargets, targetData.grades, []);
     const totalInternalGot = subjects.reduce((acc: number, s: any) => acc + (s.totalGot || 0), 0);
     const totalInternalMax = subjects.reduce((acc: number, s: any) => acc + (s.totalMax || 0), 0);
     const badge = parseFloat(gpa) > 9 ? "safe" : parseFloat(gpa) > 8 ? "danger" : "cooked";
     return { gpa, totalInternalGot, totalInternalMax, badge };
-  }, [subjects, targetData.grades]);
+  }, [subjects, targetData]);
 
   const roast = useMemo(() => {
     const roasts = flavorText.marks[stats.badge as keyof typeof flavorText.marks] || flavorText.marks.neutral;
@@ -837,7 +840,7 @@ export default function DesktopMarks() {
                 <motion.div key="list" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full flex flex-row overflow-hidden">
                   <div className="w-[340px] h-full border-r border-theme-border relative shrink-0">
                     <ReactLenis options={{ orientation: 'vertical', smoothWheel: true }} className="absolute inset-0 overflow-y-auto no-scrollbar p-6 flex flex-col gap-3">
-                      <div onClick={() => setActiveTab("dashboard")} className={`p-4 rounded-2xl cursor-pointer transition-all ${activeTab === 'dashboard' ? 'bg-theme-text/10 text-theme-text shadow-md scale-[1.02]' : 'hover:bg-theme-text/5'} group flex items-center gap-4`}>
+                      <div onClick={() => setActiveTab('dashboard')} className={`p-4 rounded-2xl cursor-pointer transition-all ${activeTab === 'dashboard' ? 'bg-theme-text/10 text-theme-text shadow-md scale-[1.02]' : 'hover:bg-theme-text/5'} group flex items-center gap-4`}>
                         <div className={`p-2 rounded-xl ${activeTab === 'dashboard' ? 'bg-theme-text/20' : 'bg-theme-surface'}`}><LayoutDashboard size={18} /></div>
                         <span className="text-sm font-bold lowercase tracking-tight" style={{ fontFamily: 'var(--font-montserrat)' }}>dashboard</span>
                       </div>
@@ -858,6 +861,7 @@ export default function DesktopMarks() {
                           isAnimating={isAnimating} 
                           subjects={subjects} 
                           targetGrades={targetData.grades}
+                          targetEnabledState={targetData.enabled}
                           onSelect={handleSelectSub}
                         />
                       ) : activeSub && (
@@ -867,8 +871,9 @@ export default function DesktopMarks() {
                           updateTarget={updateTargetGrade}
                           expectedMarks={targetData.expected[activeSub.id] || 0}
                           setExpectedMarks={setExpectedMarks}
-                          allSubjects={subjects}
                           targetGradesMap={targetData.grades}
+                          isTargetEnabled={targetData.enabled[activeSub.id] !== false}
+                          toggleTarget={toggleTarget}
                         />
                       )}
                     </ReactLenis>
