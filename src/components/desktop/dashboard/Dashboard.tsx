@@ -459,31 +459,37 @@ export default function DesktopDashboard() {
             <div className="grid grid-cols-2 gap-4">
               <div
                 onClick={() => router.push("/marks")}
-                className="bg-theme-card border border-theme-border rounded-[24px] p-5 flex flex-col justify-between shadow-sm hover:scale-[1.01] active:scale-98 transition-all cursor-pointer"
+                className="bg-theme-card border border-theme-border rounded-[24px] p-5 flex flex-col justify-between shadow-sm hover:scale-[1.01] active:scale-98 transition-all cursor-pointer min-w-0 overflow-hidden"
               >
                 <div className="w-12 h-12 rounded-xl bg-theme-surface flex items-center justify-center mb-4">
                   <GraduationCap size={20} strokeWidth={2.5} className="text-theme-text" />
                 </div>
-                <div>
-                  <p className="text-theme-muted text-[9px] font-bold uppercase tracking-[0.3em] mb-1" style={{ fontFamily: 'var(--font-afacad)' }}>marks</p>
+                <div className="flex-1 min-w-0">
+                  <p className="text-theme-muted text-[9px] font-bold uppercase tracking-[0.3em] mb-0.5" style={{ fontFamily: 'var(--font-afacad)' }}>latest mark</p>
                   <h3 className="text-theme-text text-lg font-black lowercase tracking-tight truncate" style={{ fontFamily: 'var(--font-montserrat)' }}>
-                    {latestMark ? getAcronym(latestMark.title || latestMark.code || "").toUpperCase() : "no marks"}
+                    {latestMark ? (latestMark.courseTitle || latestMark.title || "").toLowerCase() : "no marks"}
                   </h3>
+                  <p className="text-[11px] font-medium text-theme-muted lowercase" style={{ fontFamily: 'var(--font-afacad)' }}>
+                    {latestMark ? `${latestMark.totalGot}/${latestMark.totalMax} • ${Math.round(latestMark.percentage)}% total internals` : "checking for new records"}
+                  </p>
                 </div>
               </div>
 
               <div
                 onClick={() => router.push("/calendar")}
-                className="bg-theme-emphasis text-theme-bg rounded-[24px] p-5 flex flex-col justify-between shadow-sm hover:scale-[1.01] active:scale-98 transition-all cursor-pointer"
+                className="bg-theme-emphasis text-theme-bg rounded-[24px] p-5 flex flex-col justify-between shadow-sm hover:scale-[1.01] active:scale-98 transition-all cursor-pointer min-w-0 overflow-hidden"
               >
                 <div className="w-12 h-12 rounded-xl bg-theme-bg/10 flex items-center justify-center mb-4">
                   <Bell size={20} strokeWidth={2.5} className="text-theme-bg" />
                 </div>
-                <div>
-                  <p className="text-theme-bg/60 text-[9px] font-bold uppercase tracking-[0.3em] mb-1" style={{ fontFamily: 'var(--font-afacad)' }}>alerts</p>
+                <div className="flex-1 min-w-0">
+                  <p className="text-theme-bg/60 text-[9px] font-bold uppercase tracking-[0.3em] mb-0.5" style={{ fontFamily: 'var(--font-afacad)' }}>active alerts</p>
                   <h3 className="text-theme-bg text-lg font-black lowercase tracking-tight truncate" style={{ fontFamily: 'var(--font-montserrat)' }}>
-                    {allAlerts[currentAlertIndex]?.title.toLowerCase() || "none"}
+                    {allAlerts[currentAlertIndex]?.desc.toLowerCase() || "no active alerts"}
                   </h3>
+                  <p className="text-[11px] font-medium text-theme-bg/80 lowercase truncate" style={{ fontFamily: 'var(--font-afacad)' }}>
+                    {allAlerts[currentAlertIndex]?.date || "all clear for now"} • {allAlerts[currentAlertIndex]?.title.toLowerCase()}
+                  </p>
                 </div>
               </div>
             </div>
