@@ -253,7 +253,7 @@ const GradeNeedCard = ({ grade, min, sub, isCurrentOnTrack }: any) => {
   const neededInternalsTotal = Math.max(0, min - assumedEndSemContribution);
   const neededFromRemaining = Math.max(0, neededInternalsTotal - currentGot);
   
-  const isPossible = (currentGot + internalsRemaining + assumedEndSemContribution) >= min;
+  const isPossible = (currentGot + internalsRemaining + assumedEndSemContribution) >= (min - 0.05);
   const isAlreadySafe = currentGot >= (neededInternalsTotal - 0.05);
 
   let stateStyles = "bg-theme-surface border-theme-border opacity-60";
@@ -293,7 +293,7 @@ const DetailedWorkspace = ({ sub, targetGrade, updateTarget, expectedMarks, setE
     const contribution = sub.isPractical ? 40 : 34.7;
     const internalsRemaining = Math.max(0, 60 - (sub.totalMax || 0));
     const maxPossibleTotal = (sub.totalGot || 0) + internalsRemaining + contribution;
-    return grades.find(g => maxPossibleTotal >= g.min)?.min || 0;
+    return grades.find(g => maxPossibleTotal >= (g.min - 0.05))?.min || 0;
   }, [sub, grades]);
 
   const advice = useMemo(() => {
@@ -316,9 +316,9 @@ const DetailedWorkspace = ({ sub, targetGrade, updateTarget, expectedMarks, setE
     } else if (bestLabel === "A+") {
       sentiment = "warning"; category = "lostO";
     } else if (bestLabel === "A") {
-      sentiment = "warning"; category = "lostAPlus";
+      sentiment = "danger"; category = "lostAPlus";
     } else {
-      sentiment = "achievable"; category = "achievable";
+      sentiment = "danger"; category = "lostAPlus";
     }
 
     const texts = (flavorText.marks as any)[category] || flavorText.marks.neutral;
@@ -330,7 +330,7 @@ const DetailedWorkspace = ({ sub, targetGrade, updateTarget, expectedMarks, setE
 
   const sentimentStyles: Record<string, string> = {
     danger: "bg-theme-secondary text-theme-bg border-theme-secondary",
-    warning: "bg-theme-secondary/10 text-theme-secondary border-theme-secondary/20",
+    warning: "bg-theme-secondary/10 border-theme-secondary text-theme-secondary", 
     razor: "bg-theme-secondary/5 text-theme-secondary border-theme-secondary border-dotted shadow-[0_0_15px_rgba(255,77,77,0.2)]",
     safe: "bg-theme-highlight text-theme-bg border-theme-highlight",
     achievable: "bg-theme-highlight text-theme-bg border-theme-highlight shadow-sm",
@@ -338,7 +338,7 @@ const DetailedWorkspace = ({ sub, targetGrade, updateTarget, expectedMarks, setE
   };
 
   const adviceEmoji = useMemo(() => {
-    if (advice.category === 'lostO' || advice.category === 'cooked') return <Frown size={24} strokeWidth={2.5} />;
+    if (advice.category === 'lostO' || advice.category === 'cooked' || advice.category === 'lostAPlus') return <Frown size={24} strokeWidth={2.5} />;
     if (advice.category === 'razor' || advice.sentiment === 'warning') return <Meh size={24} strokeWidth={2.5} />;
     return <Smile size={24} strokeWidth={2.5} />;
   }, [advice]);
@@ -348,9 +348,25 @@ const DetailedWorkspace = ({ sub, targetGrade, updateTarget, expectedMarks, setE
   const placeholders = Array.from({ length: placeholdersCount });
 
   const adviceBoxStyles = useMemo(() => {
-    if (advice.category === 'lostO' || advice.category === 'cooked') return "bg-theme-secondary text-theme-bg border-theme-secondary";
+    // Capped at A+ (lostO) -> Red borders, subtle fill
+    if (advice.category === 'lostO') return "bg-theme-secondary/10 border-theme-secondary text-theme-secondary";
+    // Capped at A or lower (lostAPlus/cooked) -> Full solid red fill
+    if (advice.category === 'lostAPlus' || advice.category === 'cooked') return "bg-theme-secondary text-theme-bg border-theme-secondary";
     return sentimentStyles[advice.sentiment] || sentimentStyles.neutral;
   }, [advice, sentimentStyles]);
+
+  const adviceIconStyles = useMemo(() => {
+    if (advice.category === 'lostAPlus' || advice.category === 'cooked' || advice.sentiment === 'safe' || advice.sentiment === 'achievable') {
+      return "bg-white/20 text-white";
+    }
+    if (advice.category === 'lostO') {
+      return "bg-theme-secondary/20 text-theme-secondary";
+    }
+    if (advice.sentiment === 'danger' || advice.sentiment === 'razor') {
+      return "bg-theme-secondary/10 text-theme-secondary";
+    }
+    return "bg-theme-bg text-theme-text";
+  }, [advice]);
 
   return (
     <div className="flex flex-col gap-10 px-10">
@@ -385,7 +401,7 @@ const DetailedWorkspace = ({ sub, targetGrade, updateTarget, expectedMarks, setE
 
       <div className={`p-6 rounded-[32px] border-2 flex flex-row items-center justify-between gap-8 w-full relative overflow-hidden transition-all duration-500 ${adviceBoxStyles}`}>
         <div className="flex items-center gap-6 flex-1 min-w-0">
-          <div className={`p-3 rounded-2xl ${(advice.category === 'lostO' || advice.category === 'cooked' || advice.sentiment === 'safe' || advice.sentiment === 'achievable') ? 'bg-white/20 text-white' : advice.sentiment === 'danger' || advice.sentiment === 'razor' ? 'bg-theme-secondary/10 text-theme-secondary' : 'bg-theme-bg text-theme-text'} shrink-0`}>
+          <div className={`p-3 rounded-2xl shrink-0 ${adviceIconStyles}`}>
             {adviceEmoji}
           </div>
           <p className="text-xl font-black lowercase leading-tight tracking-tight max-w-2xl line-clamp-2" style={{ fontFamily: 'var(--font-afacad)' }}>
@@ -746,8 +762,9 @@ export default function DesktopMarks() {
               onAnimationStart={() => setIsAnimating(true)}
               onAnimationComplete={() => setIsAnimating(false)}
               onClick={() => !isStatsExpanded && setIsStatsExpanded(true)}
-              className={`shrink-0 h-full relative z-10 bg-theme-surface/10 flex flex-col items-center justify-center overflow-visible ${!isStatsExpanded ? 'cursor-pointer' : ''}`}
+              className={`shrink-0 h-full relative z-10 flex flex-col items-center justify-center overflow-visible ${!isStatsExpanded ? 'cursor-pointer' : ''}`}
             >
+              <div className={`absolute inset-0 transition-colors duration-500 ${stats.badge === 'cooked' ? 'bg-[#FF4D4D]/5' : 'bg-theme-surface/10'}`} />
               <div className="absolute inset-y-0 right-0 w-4 bg-gradient-to-r from-theme-surface/10 to-transparent translate-x-full pointer-events-none z-20" />
               
               <AnimatePresence mode="wait">
