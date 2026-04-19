@@ -296,7 +296,7 @@ export default function DesktopAttendance() {
         .rdp-table { border-collapse: separate !important; border-spacing: 4px !important; }
       `}</style>
         
-      <div className="flex-1 flex flex-row items-center">
+      <div className="flex-1 flex flex-row items-center h-full">
           <motion.div 
             initial={false}
             animate={{ width: isStatsExpanded ? (isPredicting ? 480 : 320) : 80 }}
@@ -383,7 +383,7 @@ export default function DesktopAttendance() {
             </AnimatePresence>
           </motion.div>
 
-          <ReactLenis options={{ orientation: 'horizontal', smoothWheel: true }} className="flex-1 h-full overflow-x-auto no-scrollbar flex items-center translate-y-[-40px]">
+          <ReactLenis options={{ orientation: 'horizontal', smoothWheel: true }} className="flex-1 h-full overflow-x-auto no-scrollbar flex items-center">
             <motion.div layout className="flex flex-row gap-20 px-24 pt-20 pb-20">
               {criticalSubjects.length > 0 && (
                 <div className="flex flex-col gap-4">
