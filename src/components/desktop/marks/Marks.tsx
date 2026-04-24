@@ -139,10 +139,7 @@ const MarkSubjectCard = ({ sub, onSelect }: { sub: any, onSelect: (id: string) =
           <span className={`text-[12px] font-black uppercase tracking-[0.2em] ${subTextStyles}`} style={{ fontFamily: 'var(--font-montserrat)' }}>
             {sub.code}
           </span>
-          <div 
-            className={`h-4 px-1.5 rounded-full flex items-center justify-center ${badgeText}`}
-            style={{ backgroundColor: badgeBg }}
-          >
+          <div className={`h-4 px-1.5 rounded-full flex items-center justify-center ${badgeText}`} style={{ backgroundColor: badgeBg }}>
             <span className="text-[7px] font-bold uppercase tracking-widest leading-none" style={{ fontFamily: 'var(--font-afacad)' }}>
               {sub.type || 'Theory'}
             </span>
@@ -348,9 +345,7 @@ const DetailedWorkspace = ({ sub, targetGrade, updateTarget, expectedMarks, setE
   const placeholders = Array.from({ length: placeholdersCount });
 
   const adviceBoxStyles = useMemo(() => {
-    // Capped at A+ (lostO) -> Red borders, subtle fill
     if (advice.category === 'lostO') return "bg-theme-secondary/10 border-theme-secondary text-theme-secondary";
-    // Capped at A or lower (lostAPlus/cooked) -> Full solid red fill
     if (advice.category === 'lostAPlus' || advice.category === 'cooked') return "bg-theme-secondary text-theme-bg border-theme-secondary";
     return sentimentStyles[advice.sentiment] || sentimentStyles.neutral;
   }, [advice, sentimentStyles]);
@@ -376,7 +371,11 @@ const DetailedWorkspace = ({ sub, targetGrade, updateTarget, expectedMarks, setE
           <div className="flex items-center gap-2">
             <span className="text-[10px] font-black uppercase tracking-[0.4em] text-theme-muted" style={{ fontFamily: 'var(--font-montserrat)' }}>{sub.code}</span>
             <div className="w-1 h-1 rounded-full bg-theme-border" />
-            <span className={`text-[10px] font-black uppercase tracking-widest ${sub.type?.toLowerCase().includes('practical') ? 'text-[#0EA5E9]' : 'text-theme-text'}`} style={{ fontFamily: 'var(--font-montserrat)' }}>{sub.type}</span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] font-black uppercase tracking-widest text-theme-highlight" style={{ fontFamily: 'var(--font-montserrat)' }}>{sub.credits || 0} credits</span>
+              <div className="w-1 h-1 rounded-full bg-theme-border" />
+              <span className={`text-[10px] font-black uppercase tracking-widest ${sub.type?.toLowerCase().includes('practical') ? 'text-[#0EA5E9]' : 'text-theme-text'}`} style={{ fontFamily: 'var(--font-montserrat)' }}>{sub.type}</span>
+            </div>
           </div>
         </div>
         <div className="flex flex-col items-end shrink-0">
@@ -533,12 +532,22 @@ const DetailedWorkspace = ({ sub, targetGrade, updateTarget, expectedMarks, setE
 };
 
 const MarksDashboard = ({ stats, roast, isAnimating, subjects, targetGrades, targetEnabledState, onSelect }: any) => {
-  const totalCredits = useMemo(() => subjects.reduce((acc: number, s: any) => acc + (s.credits || 3), 0), [subjects]);
+  const totalCredits = useMemo(() => subjects.reduce((acc: number, s: any) => acc + (s.credits || 0), 0), [subjects]);
   const safeCount = subjects.filter((s: any) => s.status === 'safe').length;
   
   const grades = [
     { label: "O", min: 91 }, { label: "A+", min: 81 }, { label: "A", min: 71 }, { label: "B+", min: 61 }, { label: "B", min: 56 }, { label: "C", min: 50 },
   ];
+
+  const groupedByCredits = useMemo(() => {
+    const groups: Record<number, any[]> = {};
+    subjects.forEach((s: any) => {
+      const cr = s.credits || 0;
+      if (!groups[cr]) groups[cr] = [];
+      groups[cr].push(s);
+    });
+    return Object.entries(groups).sort((a, b) => Number(b[0]) - Number(a[0]));
+  }, [subjects]);
 
   return (
     <div className="flex flex-col gap-16 px-10 py-4">
@@ -559,28 +568,28 @@ const MarksDashboard = ({ stats, roast, isAnimating, subjects, targetGrades, tar
           <div className="grid grid-cols-2 gap-8">
             <div className="space-y-1">
               <span className="text-theme-muted text-[9px] font-bold uppercase tracking-[0.3em] block" style={{ fontFamily: 'var(--font-afacad)' }}>Total Internals</span>
-              <div className="flex items-baseline gap-1.5">
+              <div className="flex items-baseline gap-1.5 whitespace-nowrap overflow-hidden">
                 <span className="text-theme-text text-3xl font-black tracking-tighter" style={{ fontFamily: 'var(--font-montserrat)' }}>{stats.totalInternalGot.toFixed(1)}</span>
                 <span className="text-theme-muted text-sm font-bold opacity-40" style={{ fontFamily: 'var(--font-montserrat)' }}>/ {stats.totalInternalMax.toFixed(0)}</span>
               </div>
             </div>
             <div className="space-y-1">
               <span className="text-theme-muted text-[9px] font-bold uppercase tracking-[0.3em] block" style={{ fontFamily: 'var(--font-afacad)' }}>Subjects</span>
-              <div className="flex items-baseline gap-1.5">
+              <div className="flex items-baseline gap-1.5 whitespace-nowrap overflow-hidden">
                 <span className="text-theme-text text-3xl font-black tracking-tighter" style={{ fontFamily: 'var(--font-montserrat)' }}>{subjects.length}</span>
                 <span className="text-theme-muted text-sm font-bold opacity-40 lowercase" style={{ fontFamily: 'var(--font-montserrat)' }}>tracked</span>
               </div>
             </div>
             <div className="space-y-1">
               <span className="text-theme-muted text-[9px] font-bold uppercase tracking-[0.3em] block" style={{ fontFamily: 'var(--font-afacad)' }}>Credits</span>
-              <div className="flex items-baseline gap-1.5">
+              <div className="flex items-baseline gap-1.5 whitespace-nowrap overflow-hidden">
                 <span className="text-theme-text text-3xl font-black tracking-tighter" style={{ fontFamily: 'var(--font-montserrat)' }}>{totalCredits}</span>
                 <span className="text-theme-muted text-sm font-bold opacity-40 lowercase" style={{ fontFamily: 'var(--font-montserrat)' }}>units</span>
               </div>
             </div>
             <div className="space-y-1">
               <span className="text-theme-muted text-[9px] font-bold uppercase tracking-[0.3em] block" style={{ fontFamily: 'var(--font-afacad)' }}>Status</span>
-              <div className="flex items-baseline gap-1.5">
+              <div className="flex items-baseline gap-1.5 whitespace-nowrap overflow-hidden">
                 <span className="text-theme-text text-3xl font-black tracking-tighter" style={{ fontFamily: 'var(--font-montserrat)' }}>{safeCount}</span>
                 <span className="text-theme-muted text-sm font-bold opacity-40 lowercase" style={{ fontFamily: 'var(--font-montserrat)' }}>safe</span>
               </div>
@@ -589,37 +598,41 @@ const MarksDashboard = ({ stats, roast, isAnimating, subjects, targetGrades, tar
         </div>
       </div>
 
-      <div className="space-y-6">
-        <div className="flex items-center gap-4">
-          <span className="text-[11px] font-black uppercase tracking-[0.2em] text-theme-muted whitespace-nowrap" style={{ fontFamily: 'var(--font-montserrat)' }}>Targets Overview</span>
-          <div className="h-[1px] flex-1 bg-theme-border opacity-30" />
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {subjects.map((s: any) => {
-            const isEnabled = targetEnabledState[s.id] !== false;
-            const targetMin = targetGrades[s.id] || 91;
-            const targetLabel = grades.find(g => g.min === targetMin)?.label || "O";
-            return (
-              <div 
-                key={s.id} 
-                onClick={() => onSelect(s.id)}
-                className={`flex items-center justify-between p-5 rounded-[24px] bg-theme-surface/40 border transition-all duration-300 group cursor-pointer hover:scale-[1.02] hover:bg-theme-surface/60 hover:shadow-xl hover:border-theme-text/30 ${!isEnabled ? 'opacity-50 grayscale' : ''}`}
-                style={{ borderColor: 'color-mix(in srgb, var(--theme-text) 15%, transparent)' }}
-              >
-                <div className="flex flex-col">
-                  <span className="text-[9px] font-black uppercase tracking-widest text-theme-muted mb-1" style={{ fontFamily: 'var(--font-montserrat)' }}>{s.code}</span>
-                  <h3 className="text-sm font-bold lowercase tracking-tight text-theme-text truncate max-w-[180px]" style={{ fontFamily: 'var(--font-montserrat)' }}>{s.title}</h3>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="flex flex-col items-end">
-                    <span className="text-[8px] font-black uppercase tracking-widest text-theme-muted opacity-60">Target</span>
-                    <span className="text-xl font-black text-theme-highlight leading-none" style={{ fontFamily: 'var(--font-montserrat)' }}>{isEnabled ? targetLabel : 'OFF'}</span>
+      <div className="space-y-12 pb-12">
+        {groupedByCredits.map(([credits, subs]) => (
+          <div key={credits} className="space-y-6">
+            <div className="flex items-center gap-4">
+              <span className="text-[11px] font-black uppercase tracking-[0.2em] text-theme-muted whitespace-nowrap" style={{ fontFamily: 'var(--font-montserrat)' }}>{credits} Credit Subjects</span>
+              <div className="h-[1px] flex-1 bg-theme-border opacity-30" />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {subs.map((s: any) => {
+                const isEnabled = targetEnabledState[s.id] !== false;
+                const targetMin = targetGrades[s.id] || 91;
+                const targetLabel = grades.find(g => g.min === targetMin)?.label || "O";
+                return (
+                  <div 
+                    key={s.id} 
+                    onClick={() => onSelect(s.id)}
+                    className={`flex items-center justify-between p-5 rounded-[24px] bg-theme-surface/40 border transition-all duration-300 group cursor-pointer hover:scale-[1.02] hover:bg-theme-surface/60 hover:shadow-xl hover:border-theme-text/30 ${!isEnabled ? 'opacity-50 grayscale' : ''}`}
+                    style={{ borderColor: 'color-mix(in srgb, var(--theme-text) 15%, transparent)' }}
+                  >
+                    <div className="flex flex-col">
+                      <span className="text-[9px] font-black uppercase tracking-widest text-theme-muted mb-1" style={{ fontFamily: 'var(--font-montserrat)' }}>{s.code}</span>
+                      <h3 className="text-sm font-bold lowercase tracking-tight text-theme-text truncate max-w-[180px]" style={{ fontFamily: 'var(--font-montserrat)' }}>{s.title}</h3>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="flex flex-col items-end">
+                        <span className="text-[8px] font-black uppercase tracking-widest text-theme-muted opacity-60">Target</span>
+                        <span className="text-xl font-black text-theme-highlight leading-none" style={{ fontFamily: 'var(--font-montserrat)' }}>{isEnabled ? targetLabel : 'OFF'}</span>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -655,7 +668,32 @@ export default function DesktopMarks() {
   const subjects = useMemo(() => {
     if (!userData?.marks) return [];
     const courseMap = buildCourseMap(userData);
-    return processAndSortMarks(userData.marks, courseMap);
+    const sorted = processAndSortMarks(userData.marks, courseMap);
+    
+    return sorted.map((sub: any) => {
+      let credits = sub.credits;
+      if (!credits || credits === 0) {
+        const sStr = sub.slot || "";
+        const firstSlot = sStr.split(/[,\s+-]/)[0].trim().toUpperCase();
+        let courseDetails = (userData.courses as any)?.[firstSlot];
+
+        if (!courseDetails) {
+          const normCode = (sub.code || "").toLowerCase().replace(/[^a-z0-9]/g, "").trim();
+          courseDetails = Object.values(userData.courses || {}).find((c: any) => {
+            const cCode = (c.code || c.courseCode || "").toLowerCase().replace(/[^a-z0-9]/g, "").trim();
+            return cCode === normCode &&
+              ((c.type || "").toLowerCase().includes("lab") === sub.isPractical || 
+               (c.type || "").toLowerCase().includes("practical") === sub.isPractical);
+          });
+        }
+        credits = courseDetails?.credits;
+      }
+
+      return {
+        ...sub,
+        credits: parseInt(credits || "0")
+      };
+    });
   }, [userData]);
 
   const updateTargetGrade = (subId: string, val: number) => {
@@ -901,7 +939,10 @@ export default function DesktopMarks() {
           </div>
         </div>
       </div>
-      <div className="absolute bottom-8 right-8 pointer-events-none z-0 text-right">
+      <div className="absolute bottom-10 right-10 pointer-events-none z-30">
+        <h1 className="text-2xl font-black tracking-tighter lowercase text-theme-text opacity-20" style={{ fontFamily: 'var(--font-urbanosta)' }}>ratio'd</h1>
+      </div>
+      <div className="absolute bottom-20 right-8 pointer-events-none z-0 text-right">
         <h1 className="text-theme-text font-regular lowercase leading-none select-none opacity-80" style={{ fontFamily: 'var(--font-afacad)', fontSize: '55px', letterSpacing: '-4px' }}>marks</h1>
       </div>
     </>

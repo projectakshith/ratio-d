@@ -152,7 +152,7 @@ export const calculatePredictedGpa = (
 
   subjects.forEach((sub: any) => {
     if (ignoredSubjectIds.includes(sub.id)) return;
-    const credits = sub.credits || 3;
+    const credits = sub.credits || 0;
     
     let grade = "O";
     const subTargetGrade = targetGrades[sub.id];
@@ -317,7 +317,15 @@ export const processAndSortMarks = (
         assessments.length > 0 ? assessments[assessments.length - 1] : null;
       const type = subject.type || "Theory";
       const isPractical = isPracticalLogic(subject);
-      const credits = subject.credits || 3;
+      const credits = parseInt(
+        subject.credits || 
+        subject.credit || 
+        subject.course_credit || 
+        subject.cr || 
+        subject.courseCredit ||
+        subject.credit_points ||
+        "0"
+      );
 
       return {
         id: `${cleanCode}-${type}-${index}`,
