@@ -465,9 +465,6 @@ export default function DesktopTimetable() {
           )}
         </AnimatePresence>
 
-        <div className="absolute bottom-[-20px] right-20 pointer-events-none z-0 text-right">
-          <h1 className="text-theme-text font-regular lowercase leading-none select-none opacity-80" style={{ fontFamily: 'var(--font-afacad)', fontSize: '55px', letterSpacing: '-4px' }}>timetable</h1>
-        </div>
       </div>
 
       <div className="px-8 pb-10 flex items-center justify-between z-20 shrink-0 h-24 translate-y-[-10px]">
@@ -511,6 +508,9 @@ export default function DesktopTimetable() {
             </button>
           )}
         </div>
+      </div>
+      <div className="absolute bottom-28 right-8 pointer-events-none z-0 text-right">
+        <h1 className="text-theme-text font-regular lowercase leading-none select-none opacity-80" style={{ fontFamily: 'var(--font-afacad)', fontSize: '55px', letterSpacing: '-4px' }}>timetable</h1>
       </div>
     </div>
   );

@@ -283,7 +283,7 @@ export default function DesktopAttendance() {
   const normalSubjects = processedList.filter(s => s.safe);
 
   return (
-    <>
+    <div className="relative h-full w-full">
       <style>{`
         .rdp-root { --rdp-accent-color: var(--theme-highlight); margin: 0; font-family: var(--font-afacad) !important; }
         .rdp-day { font-size: 11px !important; font-weight: 600 !important; width: 32px !important; height: 32px !important; border-radius: 10px !important; transition: all 0.2s; color: var(--theme-text) !important; }
@@ -296,7 +296,7 @@ export default function DesktopAttendance() {
         .rdp-table { border-collapse: separate !important; border-spacing: 4px !important; }
       `}</style>
         
-      <div className="flex-1 flex flex-row items-center h-full">
+      <div className="flex flex-row h-full">
           <motion.div 
             initial={false}
             animate={{ width: isStatsExpanded ? (isPredicting ? 480 : 320) : 80 }}
@@ -334,7 +334,9 @@ export default function DesktopAttendance() {
                           <span className="text-theme-muted text-[10px] font-bold uppercase tracking-widest" style={{ fontFamily: 'var(--font-afacad)' }}>estimated percentage</span>
                           <span className="text-theme-text text-3xl font-black tracking-tighter" style={{ fontFamily: 'var(--font-montserrat)' }}>{stats.pct.toFixed(1)}%</span>
                         </div>
-                        <p className={`text-theme-muted text-xs font-medium lowercase tracking-tight leading-relaxed ${isAnimating ? 'whitespace-nowrap' : 'whitespace-normal'}`} style={{ fontFamily: 'var(--font-afacad)' }}>{roast}</p>
+                        <div className="overflow-hidden">
+                          <motion.p animate={{ opacity: isAnimating ? 0 : 1 }} transition={{ duration: 0.1 }} className="text-theme-muted text-xs font-medium lowercase tracking-tight leading-relaxed whitespace-nowrap" style={{ fontFamily: 'var(--font-afacad)' }}>{roast}</motion.p>
+                        </div>
                       </div>
                     </div>
                   ) : (
@@ -347,7 +349,9 @@ export default function DesktopAttendance() {
                         </div>
                       </div>
                       <div className="space-y-8">
-                        <p className={`text-theme-muted/80 text-2xl font-semibold lowercase tracking-tight leading-snug ${isAnimating ? 'whitespace-nowrap' : 'whitespace-normal'}`} style={{ fontFamily: 'var(--font-afacad)' }}>{roast}</p>
+                        <div className="overflow-hidden">
+                          <motion.p animate={{ opacity: isAnimating ? 0 : 1 }} transition={{ duration: 0.1 }} className="text-theme-muted/80 text-2xl font-semibold lowercase tracking-tight leading-snug whitespace-nowrap" style={{ fontFamily: 'var(--font-afacad)' }}>{roast}</motion.p>
+                        </div>
                         <button onClick={togglePrediction} className="flex items-center gap-3 px-6 py-3 bg-theme-surface border border-theme-border rounded-2xl text-theme-muted hover:text-theme-text hover:bg-theme-surface transition-all w-fit group">
                           <Calculator size={18} className="group-hover:scale-110 transition-transform" />
                           <span className="text-[10px] font-black uppercase tracking-widest" style={{ fontFamily: 'var(--font-montserrat)' }}>predict</span>
@@ -357,14 +361,14 @@ export default function DesktopAttendance() {
                   )}
                 </motion.div>
               ) : (
-                <motion.div key="collapsed" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex-1 flex flex-col items-center justify-center w-full h-full relative">
-                  <div className="rotate-[-90deg] flex flex-col items-center justify-center whitespace-nowrap min-w-[400px] translate-y-[-20px]">
-                    <span className="text-theme-muted text-[10px] font-bold uppercase tracking-[0.3em] mb-2" style={{ fontFamily: 'var(--font-afacad)' }}>overall percentage</span>
-                    <span className="text-theme-text text-5xl font-black tracking-tighter leading-none" style={{ fontFamily: 'var(--font-montserrat)' }}>{stats.pct.toFixed(1)}%</span>
-                  </div>
-                  <div className="absolute bottom-32 left-0 right-0 flex justify-center">
-                    <button onClick={togglePrediction} className={`w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-xl ${isPredicting ? 'bg-theme-highlight text-theme-bg' : 'bg-theme-surface border border-theme-border text-theme-muted hover:text-theme-text'}`}><Calculator size={18} /></button>
-                  </div>
+                <motion.div key="collapsed" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex-1 flex flex-col items-center justify-center w-full h-full relative gap-6">
+                  <span
+                    className="text-theme-text text-[14px] font-black tabular-nums select-none"
+                    style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', fontFamily: 'var(--font-montserrat)', letterSpacing: '-0.04em' }}
+                  >
+                    {stats.pct.toFixed(1)}%
+                  </span>
+                  <button onClick={togglePrediction} className={`w-9 h-9 rounded-full flex items-center justify-center transition-all shadow-xl ${isPredicting ? 'bg-theme-highlight text-theme-bg' : 'bg-theme-surface border border-theme-border text-theme-muted hover:text-theme-text'}`}><Calculator size={16} /></button>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -383,8 +387,8 @@ export default function DesktopAttendance() {
             </AnimatePresence>
           </motion.div>
 
-          <ReactLenis options={{ orientation: 'horizontal', smoothWheel: true }} className="flex-1 h-full overflow-x-auto no-scrollbar flex items-center">
-            <motion.div layout className="flex flex-row gap-20 px-24 pt-20 pb-20">
+          <ReactLenis options={{ orientation: 'horizontal', smoothWheel: true }} className="flex-1 h-full overflow-x-auto no-scrollbar flex items-start">
+            <motion.div layout className="flex flex-row gap-20 px-24 pt-24 pb-20">
               {criticalSubjects.length > 0 && (
                 <div className="flex flex-col gap-4">
                   <div className="flex items-center gap-4 px-4 mb-2">
@@ -410,12 +414,9 @@ export default function DesktopAttendance() {
             </motion.div>
           </ReactLenis>
         </div>
-        <div className="absolute bottom-10 left-10 pointer-events-none z-30">
-          <h1 className="text-2xl font-black tracking-tighter lowercase text-theme-text opacity-20" style={{ fontFamily: 'var(--font-urbanosta)' }}>ratio'd</h1>
-        </div>
         <div className="absolute bottom-8 right-8 pointer-events-none z-0 text-right">
           <h1 className="text-theme-text font-regular lowercase leading-none select-none opacity-80" style={{ fontFamily: 'var(--font-afacad)', fontSize: '55px', letterSpacing: '-4px' }}>attendance</h1>
         </div>
-        </>
-        );
-        }
+      </div>
+  );
+}

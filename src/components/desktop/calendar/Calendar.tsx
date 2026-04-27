@@ -97,7 +97,7 @@ export default function DesktopCalendar() {
 
   return (
     <>
-      <div className="flex-1 flex flex-row overflow-hidden relative">
+      <div className="h-full w-full flex flex-row overflow-hidden relative">
         <div className="flex-[1.4] flex flex-col border-r border-theme-border">
           <header className="px-10 pt-10 pb-6 flex justify-between items-end">
             <div>

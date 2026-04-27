@@ -560,7 +560,7 @@ const MarksDashboard = ({ stats, roast, isAnimating, subjects, targetGrades, tar
             </div>
           </div>
           <div className="space-y-8">
-            <p className={`text-theme-muted/80 text-2xl font-semibold lowercase tracking-tight leading-snug ${isAnimating ? 'whitespace-nowrap' : 'whitespace-normal'}`} style={{ fontFamily: 'var(--font-afacad)' }}>{roast}</p>
+            <p className="text-theme-muted/80 text-2xl font-semibold lowercase tracking-tight leading-snug" style={{ fontFamily: 'var(--font-afacad)' }}>{roast}</p>
           </div>
         </div>
         
@@ -785,8 +785,8 @@ export default function DesktopMarks() {
   const normalSubs = subjects.filter(s => s.status !== 'cooked');
 
   return (
-    <>
-      <div className="flex-1 flex flex-row items-center h-full">
+    <div className="relative h-full w-full">
+      <div className="flex flex-row h-full">
         <AnimatePresence>
           {viewMode === "feed" && (
             <motion.div 
@@ -816,7 +816,9 @@ export default function DesktopMarks() {
                         </div>
                       </div>
                       <div className="space-y-6">
-                        <p className={`text-theme-muted/80 text-2xl font-semibold lowercase tracking-tight leading-snug ${isAnimating ? 'whitespace-nowrap' : 'whitespace-normal'}`} style={{ fontFamily: 'var(--font-afacad)' }}>{roast}</p>
+                        <div className="overflow-hidden">
+                          <motion.p animate={{ opacity: isAnimating ? 0 : 1 }} transition={{ duration: 0.1 }} className="text-theme-muted/80 text-2xl font-semibold lowercase tracking-tight leading-snug whitespace-nowrap" style={{ fontFamily: 'var(--font-afacad)' }}>{roast}</motion.p>
+                        </div>
                         <div className="flex items-baseline gap-2 whitespace-nowrap overflow-hidden">
                           <span className="text-theme-text text-3xl font-black tracking-tighter" style={{ fontFamily: 'var(--font-montserrat)' }}>{stats.totalInternalGot.toFixed(1)}</span>
                           <span className="text-theme-muted text-sm font-bold uppercase tracking-widest" style={{ fontFamily: 'var(--font-afacad)' }}>/ {stats.totalInternalMax.toFixed(0)} internals</span>
@@ -826,10 +828,12 @@ export default function DesktopMarks() {
                   </motion.div>
                 ) : (
                   <motion.div key="collapsed" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex-1 flex flex-col items-center justify-center w-full h-full relative">
-                    <div className="rotate-[-90deg] flex flex-col items-center justify-center whitespace-nowrap min-w-[400px] translate-y-[-20px]">
-                      <span className="text-theme-muted text-[10px] font-bold uppercase tracking-[0.3em] mb-2" style={{ fontFamily: 'var(--font-afacad)' }}>Predicted SGPA</span>
-                      <span className="text-theme-text text-5xl font-black tracking-tighter leading-none" style={{ fontFamily: 'var(--font-montserrat)' }}>{stats.gpa}</span>
-                    </div>
+                    <span
+                      className="text-theme-text text-[14px] font-black tabular-nums select-none"
+                      style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', fontFamily: 'var(--font-montserrat)', letterSpacing: '-0.04em' }}
+                    >
+                      {stats.gpa}
+                    </span>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -851,21 +855,12 @@ export default function DesktopMarks() {
         </AnimatePresence>
 
         <div className="flex-1 relative h-full flex flex-col overflow-hidden">
-          <div className="absolute top-8 left-10 z-20 flex bg-theme-surface p-1 rounded-xl border border-theme-border shadow-inner gap-1">
-            <button onClick={() => setViewMode("feed")} className={`px-4 py-1.5 rounded-lg transition-all flex items-center gap-2 ${viewMode === "feed" ? 'bg-theme-text/10 text-theme-text' : 'text-theme-muted hover:bg-theme-text/5'}`}>
-              <LayoutGrid size={14} /><span className="text-[10px] font-black uppercase tracking-widest" style={{ fontFamily: 'var(--font-montserrat)' }}>overview</span>
-            </button>
-            <button onClick={() => { setViewMode("list"); setActiveTab("dashboard"); }} className={`px-4 py-1.5 rounded-lg transition-all flex items-center gap-2 ${viewMode === "list" ? 'bg-theme-text/10 text-theme-text' : 'text-theme-muted hover:bg-theme-text/5'}`}>
-              <Columns size={14} /><span className="text-[10px] font-black uppercase tracking-widest" style={{ fontFamily: 'var(--font-montserrat)' }}>detailed</span>
-            </button>
-          </div>
-
-          <div className="flex-1 h-full pt-14">
+          <div className="flex-1 overflow-hidden">
             <AnimatePresence mode="wait">
               {viewMode === "feed" ? (
                 <div key="feed-container" className="flex-1 h-full w-full overflow-hidden flex items-center">
                   <ReactLenis options={{ orientation: 'horizontal', smoothWheel: true }} className="h-full w-full overflow-x-auto no-scrollbar">
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-row gap-20 px-24 pb-20 pt-10 h-full items-center w-max">
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-row gap-20 px-24 pb-20 pt-24 h-full items-start w-max">
                       {criticalSubs.length > 0 && (
                         <div className="flex flex-col gap-4 h-fit">
                           <div className="flex items-center gap-4 px-4 mb-2">
@@ -937,14 +932,21 @@ export default function DesktopMarks() {
               )}
             </AnimatePresence>
           </div>
+          <div className="px-8 pb-10 flex items-center z-20 shrink-0 h-20">
+            <div className="flex bg-theme-surface p-1 rounded-2xl border border-theme-border shadow-inner gap-1">
+              <button onClick={() => setViewMode("feed")} className={`px-6 py-2 rounded-xl transition-all flex items-center gap-2 text-[10px] font-black uppercase tracking-widest ${viewMode === "feed" ? 'bg-theme-emphasis text-theme-bg shadow-md' : 'text-theme-muted hover:text-theme-text'}`} style={{ fontFamily: 'var(--font-montserrat)' }}>
+                <LayoutGrid size={14} />overview
+              </button>
+              <button onClick={() => { setViewMode("list"); setActiveTab("dashboard"); }} className={`px-6 py-2 rounded-xl transition-all flex items-center gap-2 text-[10px] font-black uppercase tracking-widest ${viewMode === "list" ? 'bg-theme-emphasis text-theme-bg shadow-md' : 'text-theme-muted hover:text-theme-text'}`} style={{ fontFamily: 'var(--font-montserrat)' }}>
+                <Columns size={14} />detailed
+              </button>
+            </div>
+          </div>
         </div>
       </div>
-      <div className="absolute bottom-10 right-10 pointer-events-none z-30">
-        <h1 className="text-2xl font-black tracking-tighter lowercase text-theme-text opacity-20" style={{ fontFamily: 'var(--font-urbanosta)' }}>ratio'd</h1>
-      </div>
-      <div className="absolute bottom-20 right-8 pointer-events-none z-0 text-right">
+      <div className="absolute bottom-8 right-8 pointer-events-none z-0 text-right">
         <h1 className="text-theme-text font-regular lowercase leading-none select-none opacity-80" style={{ fontFamily: 'var(--font-afacad)', fontSize: '55px', letterSpacing: '-4px' }}>marks</h1>
       </div>
-    </>
+    </div>
   );
 }
