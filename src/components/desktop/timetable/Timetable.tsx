@@ -3,7 +3,7 @@ import React, { useMemo, useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useApp } from "@/context/AppContext";
 import { buildCourseMap, processSchedule, parseTimetableTime } from "@/utils/dashboard/timetableLogic";
-import { Clock, Plus, ChevronRight, LayoutGrid, List, MapPin, Coffee, Zap, Download } from "lucide-react";
+import { Clock, Plus, ChevronRight, LayoutGrid, List, MapPin, Coffee, Zap, Download, RotateCcw } from "lucide-react";
 import { toPng } from 'html-to-image';
 
 const CompactSlot = ({ slot }: { slot: any }) => {
@@ -322,7 +322,17 @@ export default function DesktopTimetable() {
     return null;
   }, [activeHeroSlot, displayTimings, gridData, selectedDay, currentDayOrder, isHoliday, isTodayFinished]);
 
-  const isUpcoming = (selectedDay !== currentDayOrder) || isHoliday || isTodayFinished;
+  const isActuallyToday = selectedDay === currentDayOrder && !isHoliday && !isTodayFinished;
+  const isActuallyUpcoming = (isHoliday || isTodayFinished) && selectedDay === nextWorkingDayOrder;
+
+  const handleResetDay = () => {
+    if (isHoliday || isTodayFinished) {
+      setSelectedDay(nextWorkingDayOrder);
+    } else {
+      setSelectedDay(currentDayOrder);
+    }
+    setPreviewTime(null);
+  };
 
   return (
     <div className="h-full w-full flex flex-col bg-theme-bg overflow-hidden relative">
@@ -383,9 +393,9 @@ export default function DesktopTimetable() {
                 <div className="max-w-5xl">
                   <div className="flex items-center gap-3 mb-2 translate-y-[-4px]">
                     <span className="text-theme-muted text-[10px] font-bold uppercase tracking-[0.5em]" style={{ fontFamily: 'var(--font-montserrat)' }}>
-                      day order {selectedDay} {selectedDay === currentDayOrder && !isHoliday && !isTodayFinished ? (
+                      day order {selectedDay} {isActuallyToday ? (
                         <span className="text-theme-emphasis opacity-100">- today</span>
-                      ) : isUpcoming ? (
+                      ) : isActuallyUpcoming ? (
                         <span className="text-theme-highlight opacity-100">- upcoming</span>
                       ) : (
                         <span className="opacity-40">- selected</span>
@@ -399,7 +409,7 @@ export default function DesktopTimetable() {
                     {activeHeroSlot ? activeHeroSlot.name : nextUpSlot ? nextUpSlot.name : "chill out."}
                   </h1>
                   
-                  <div className={`flex items-center gap-12 w-fit ${!activeHeroSlot && nextUpSlot ? 'px-8 py-5 rounded-[32px] border-2 border-dashed border-theme-text/10' : ''}`}>
+                  <div className="flex items-center gap-12 w-fit">
                     {(activeHeroTime || (nextUpSlot && nextUpSlot.time)) && (
                       <>
                         <div className="flex flex-col">
@@ -429,7 +439,14 @@ export default function DesktopTimetable() {
               </div>
 
               <div className="flex-1 flex flex-col mt-auto pb-12 shrink-0">
-                <div className="px-12 mb-4 flex justify-end">
+                <div className="px-12 mb-4 flex items-center justify-end gap-3">
+                  <button
+                    onClick={handleResetDay}
+                    className="w-10 h-10 rounded-full bg-theme-surface border border-theme-border flex items-center justify-center text-theme-muted hover:text-theme-text hover:border-theme-text transition-all shadow-sm active:scale-90"
+                    title="reset to now"
+                  >
+                    <RotateCcw size={18} />
+                  </button>
                   <div className="flex gap-1 bg-theme-surface/30 p-1 rounded-[18px]">
                     {days.map(d => (
                       <button
@@ -464,7 +481,6 @@ export default function DesktopTimetable() {
             </motion.div>
           )}
         </AnimatePresence>
-
       </div>
 
       <div className="px-8 pb-10 flex items-center justify-between z-20 shrink-0 h-24 translate-y-[-10px]">

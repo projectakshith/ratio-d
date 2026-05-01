@@ -1,8 +1,8 @@
 "use client";
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { ReactLenis } from "lenis/react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, Calculator, RotateCcw } from "lucide-react";
+import { Calculator, RotateCcw } from "lucide-react";
 import { 
   getBaseAttendance, 
   getImpactMap, 
@@ -180,20 +180,9 @@ const SubjectCard = ({ code, title, percent, present, conducted, val, safe, type
 
 export default function DesktopAttendance() {
   const { userData } = useApp();
-  const [isStatsExpanded, setIsStatsExpanded] = useState(true);
-  const [isAnimating, setIsAnimating] = useState(false);
-  const [mounted, setMounted] = useState(false);
-  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
   const [isPredicting, setIsPredicting] = useState(false);
   const [predictAction, setPredictAction] = useState<"leave" | "attend" | "od">("leave");
   const [selectedDates, setSelectedDates] = useState<Record<string, "leave" | "attend" | "od">>({});
-
-  useEffect(() => {
-    setMounted(true);
-    const timer = setTimeout(() => setIsStatsExpanded(false), 1500);
-    return () => clearTimeout(timer);
-  }, []);
 
   const baseAttendance = useMemo(() => getBaseAttendance(userData?.attendance || []), [userData]);
 
@@ -246,26 +235,13 @@ export default function DesktopAttendance() {
     return roasts[Math.floor(Math.random() * roasts.length)];
   }, [stats.badge]);
 
-  const handleMouseEnter = () => {
-    if (!isStatsExpanded) {
-      hoverTimeoutRef.current = setTimeout(() => setIsStatsExpanded(true), 2000);
-    }
-  };
-
-  const handleMouseLeave = () => {
-    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
-    if (isStatsExpanded && !isPredicting) setIsStatsExpanded(false);
-  };
-
   const togglePrediction = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (isPredicting) {
       setIsPredicting(false);
       setSelectedDates({});
-      setIsStatsExpanded(false);
     } else {
       setIsPredicting(true);
-      setIsStatsExpanded(true);
     }
   };
 
@@ -283,7 +259,7 @@ export default function DesktopAttendance() {
   const normalSubjects = processedList.filter(s => s.safe);
 
   return (
-    <div className="relative h-full w-full">
+    <div className="relative h-full w-full flex flex-col overflow-hidden">
       <style>{`
         .rdp-root { --rdp-accent-color: var(--theme-highlight); margin: 0; font-family: var(--font-afacad) !important; }
         .rdp-day { font-size: 11px !important; font-weight: 600 !important; width: 32px !important; height: 32px !important; border-radius: 10px !important; transition: all 0.2s; color: var(--theme-text) !important; }
@@ -295,134 +271,105 @@ export default function DesktopAttendance() {
         .rdp-nav_button:hover { color: var(--theme-text) !important; background-color: var(--theme-surface) !important; }
         .rdp-table { border-collapse: separate !important; border-spacing: 4px !important; }
       `}</style>
-        
-      <div className="flex flex-row h-full">
-          <motion.div 
-            initial={false}
-            animate={{ width: isStatsExpanded ? (isPredicting ? 480 : 320) : 80 }}
-            transition={{ type: "spring", damping: 25, stiffness: 120 }}
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
-            onAnimationStart={() => setIsAnimating(true)}
-            onAnimationComplete={() => setIsAnimating(false)}
-            onClick={() => !isStatsExpanded && setIsStatsExpanded(true)}
-            className={`shrink-0 h-full relative z-10 bg-theme-surface/10 flex flex-col items-center justify-center overflow-visible ${!isStatsExpanded ? 'cursor-pointer' : ''}`}
-          >
-            <div className="absolute inset-y-0 right-0 w-4 bg-gradient-to-r from-theme-surface/10 to-transparent translate-x-full pointer-events-none z-20" />
-            
-            <AnimatePresence mode="wait">
-              {isStatsExpanded ? (
-                <motion.div key={isPredicting ? "predicting" : "expanded"} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="w-full h-full flex flex-col justify-center px-10 relative overflow-hidden">
-                  {isPredicting ? (
-                    <div className="flex flex-col h-full py-12">
-                      <div className="flex items-center justify-between mb-8">
-                        <span className="text-theme-highlight text-[10px] font-black uppercase tracking-[0.5em]" style={{ fontFamily: 'var(--font-montserrat)' }}>prediction mode</span>
-                        <button onClick={togglePrediction} className="text-theme-muted hover:text-theme-text transition-colors"><RotateCcw size={16} /></button>
-                      </div>
-                      <div className="flex flex-col gap-6 mb-8">
-                        <div className="flex bg-theme-surface p-1 rounded-2xl border border-theme-border">
-                          {(["leave", "attend", "od"] as const).map((a) => (
-                            <button key={a} onClick={() => setPredictAction(a)} className={`flex-1 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${predictAction === a ? 'bg-theme-text text-theme-bg' : 'text-theme-muted hover:text-theme-text'}`} style={{ fontFamily: 'var(--font-montserrat)' }}>{a}</button>
-                          ))}
-                        </div>
-                        <div className="bg-theme-card/50 border border-theme-border rounded-[32px] p-6 flex justify-center shadow-inner">
-                          <DayPicker mode="multiple" selected={Object.keys(selectedDates).map(d => new Date(d))} onDayClick={handleDayClick} />
-                        </div>
-                      </div>
-                      <div className="mt-auto pb-12 pt-6 border-t border-theme-border">
-                        <div className="flex items-baseline justify-between mb-2">
-                          <span className="text-theme-muted text-[10px] font-bold uppercase tracking-widest" style={{ fontFamily: 'var(--font-afacad)' }}>estimated percentage</span>
-                          <span className="text-theme-text text-3xl font-black tracking-tighter" style={{ fontFamily: 'var(--font-montserrat)' }}>{stats.pct.toFixed(1)}%</span>
-                        </div>
-                        <div className="overflow-hidden">
-                          <motion.p animate={{ opacity: isAnimating ? 0 : 1 }} transition={{ duration: 0.1 }} className="text-theme-muted text-xs font-medium lowercase tracking-tight leading-relaxed whitespace-nowrap" style={{ fontFamily: 'var(--font-afacad)' }}>{roast}</motion.p>
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col justify-center">
-                      <div className="mb-12">
-                        <span className="text-theme-muted text-[11px] font-bold uppercase tracking-[0.5em] block mb-3" style={{ fontFamily: 'var(--font-afacad)' }}>overall presence</span>
-                        <div className="flex items-baseline">
-                          <h2 className="text-[80px] font-black text-theme-text leading-[0.8] tracking-[-0.08em]" style={{ fontFamily: 'var(--font-montserrat)' }}>{stats.pct.toFixed(1)}</h2>
-                          <span className="text-2xl font-black text-theme-muted ml-2" style={{ fontFamily: 'var(--font-montserrat)' }}>%</span>
-                        </div>
-                      </div>
-                      <div className="space-y-8">
-                        <div className="overflow-hidden">
-                          <motion.p animate={{ opacity: isAnimating ? 0 : 1 }} transition={{ duration: 0.1 }} className="text-theme-muted/80 text-2xl font-semibold lowercase tracking-tight leading-snug whitespace-nowrap" style={{ fontFamily: 'var(--font-afacad)' }}>{roast}</motion.p>
-                        </div>
-                        <button onClick={togglePrediction} className="flex items-center gap-3 px-6 py-3 bg-theme-surface border border-theme-border rounded-2xl text-theme-muted hover:text-theme-text hover:bg-theme-surface transition-all w-fit group">
-                          <Calculator size={18} className="group-hover:scale-110 transition-transform" />
-                          <span className="text-[10px] font-black uppercase tracking-widest" style={{ fontFamily: 'var(--font-montserrat)' }}>predict</span>
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </motion.div>
-              ) : (
-                <motion.div key="collapsed" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex-1 flex flex-col items-center justify-center w-full h-full relative gap-3">
-                  <span
-                    className="text-theme-text text-[32px] font-black tabular-nums select-none opacity-60"
-                    style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', fontFamily: 'var(--font-montserrat)', letterSpacing: '-0.06em' }}
-                  >
-                    {stats.pct.toFixed(1)}%
-                  </span>
-                  <span
-                    className="text-theme-muted text-[8px] font-black uppercase tracking-[0.4em] select-none opacity-40"
-                    style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', fontFamily: 'var(--font-montserrat)' }}
-                  >
-                    present
-                  </span>
-                  <button onClick={togglePrediction} className={`w-9 h-9 rounded-full flex items-center justify-center transition-all shadow-xl ${isPredicting ? 'bg-theme-highlight text-theme-bg' : 'bg-theme-surface border border-theme-border text-theme-muted hover:text-theme-text'}`}><Calculator size={16} /></button>
-                </motion.div>
-              )}
-            </AnimatePresence>
-            <AnimatePresence>
-              {isStatsExpanded && (
-                <motion.button 
-                  initial={{ opacity: 0, scale: 0.5 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.5 }}
-                  onClick={(e) => { e.stopPropagation(); isPredicting ? togglePrediction(e) : setIsStatsExpanded(false); }}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-theme-bg border border-theme-border flex items-center justify-center text-theme-muted hover:text-theme-text transition-all shadow-2xl z-30"
-                >
-                  <ChevronLeft size={20} />
-                </motion.button>
-              )}
-            </AnimatePresence>
-          </motion.div>
 
-          <ReactLenis options={{ orientation: 'horizontal', smoothWheel: true }} className="flex-1 h-full overflow-x-auto no-scrollbar flex items-start">
-            <motion.div layout className="flex flex-row gap-20 px-24 pt-24 pb-20">
-              {criticalSubjects.length > 0 && (
-                <div className="flex flex-col gap-4">
-                  <div className="flex items-center gap-4 px-4 mb-2">
-                    <span className="text-[#FF4D4D] text-[10px] font-bold uppercase tracking-[0.5em] shrink-0" style={{ fontFamily: 'var(--font-afacad)' }}>action required</span>
-                    <div className="w-12 h-px bg-[#FF4D4D]/20" />
+      <motion.div
+        className="shrink-0 border-b border-theme-border bg-theme-surface/10 relative overflow-hidden"
+        animate={{ height: isPredicting ? 380 : 120 }}
+        transition={{ type: "spring", damping: 30, stiffness: 200 }}
+      >
+        <AnimatePresence mode="wait">
+          {isPredicting ? (
+            <motion.div
+              key="predict"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.18 }}
+              className="absolute inset-0 flex px-12 py-6 gap-12"
+            >
+              <div className="flex flex-col justify-between w-[220px] shrink-0">
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-theme-highlight text-[10px] font-black uppercase tracking-[0.5em]" style={{ fontFamily: 'var(--font-montserrat)' }}>prediction mode</span>
+                    <button onClick={togglePrediction} className="text-theme-muted hover:text-theme-text transition-colors"><RotateCcw size={16} /></button>
                   </div>
-                  <div className="flex flex-row gap-6">
-                    {criticalSubjects.map(s => <SubjectCard key={s.id} {...s} />)}
+                  <div className="flex bg-theme-surface p-1 rounded-2xl border border-theme-border">
+                    {(["leave", "attend", "od"] as const).map((a) => (
+                      <button key={a} onClick={() => setPredictAction(a)} className={`flex-1 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${predictAction === a ? 'bg-theme-text text-theme-bg' : 'text-theme-muted hover:text-theme-text'}`} style={{ fontFamily: 'var(--font-montserrat)' }}>{a}</button>
+                    ))}
                   </div>
                 </div>
-              )}
-              {normalSubjects.length > 0 && (
-                <div className="flex flex-col gap-4">
-                  <div className="flex items-center gap-4 px-4 mb-2">
-                    <span className="text-theme-text/40 text-[10px] font-bold uppercase tracking-[0.5em] shrink-0" style={{ fontFamily: 'var(--font-afacad)' }}>subjects</span>
-                    <div className="w-12 h-px bg-theme-text/40" />
+                <div>
+                  <span className="text-theme-muted text-[10px] font-black uppercase tracking-[0.5em] block mb-1" style={{ fontFamily: 'var(--font-afacad)' }}>estimated presence</span>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-[42px] font-black text-theme-text leading-none tracking-[-0.08em]" style={{ fontFamily: 'var(--font-montserrat)' }}>{stats.pct.toFixed(1)}</span>
+                    <span className="text-xl font-black text-theme-muted" style={{ fontFamily: 'var(--font-montserrat)' }}>%</span>
                   </div>
-                  <div className="flex flex-row gap-6">
-                    {normalSubjects.map(s => <SubjectCard key={s.id} {...s} />)}
-                  </div>
+                  <p className="text-xs font-medium text-theme-muted lowercase leading-relaxed mt-1 line-clamp-2" style={{ fontFamily: 'var(--font-afacad)' }}>{roast}</p>
                 </div>
-              )}
+              </div>
+              <div className="flex-1 flex items-center">
+                <div className="bg-theme-card/50 border border-theme-border rounded-[32px] p-4 flex justify-center shadow-inner scale-[0.9] origin-left">
+                  <DayPicker mode="multiple" selected={Object.keys(selectedDates).map(d => new Date(d))} onDayClick={handleDayClick} />
+                </div>
+              </div>
             </motion.div>
-          </ReactLenis>
-        </div>
-        <div className="absolute bottom-8 right-8 pointer-events-none z-0 text-right">
-          <h1 className="text-theme-text font-regular lowercase leading-none select-none opacity-80" style={{ fontFamily: 'var(--font-afacad)', fontSize: '55px', letterSpacing: '-4px' }}>attendance</h1>
-        </div>
-      </div>
+          ) : (
+            <motion.div
+              key="stats"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.18 }}
+              className="absolute inset-0 flex items-center px-12 gap-12"
+            >
+              <div className="shrink-0">
+                <span className="text-theme-muted text-[10px] font-black uppercase tracking-[0.5em] block mb-1" style={{ fontFamily: 'var(--font-afacad)' }}>overall presence</span>
+                <div className="flex items-baseline gap-2">
+                  <h2 className="text-[48px] font-black text-theme-text leading-none tracking-[-0.08em]" style={{ fontFamily: 'var(--font-montserrat)' }}>{stats.pct.toFixed(1)}</h2>
+                  <span className="text-2xl font-black text-theme-muted" style={{ fontFamily: 'var(--font-montserrat)' }}>%</span>
+                </div>
+              </div>
+              <div className="w-px h-12 bg-theme-border shrink-0" />
+              <p className="text-xl font-semibold text-theme-muted/80 lowercase tracking-tight leading-snug flex-1 line-clamp-2" style={{ fontFamily: 'var(--font-afacad)' }}>{roast}</p>
+              <button onClick={togglePrediction} className="flex items-center gap-3 px-5 py-2.5 bg-theme-surface border border-theme-border rounded-2xl text-theme-muted hover:text-theme-text transition-all shrink-0 group">
+                <Calculator size={16} className="group-hover:scale-110 transition-transform" />
+                <span className="text-[9px] font-black uppercase tracking-widest" style={{ fontFamily: 'var(--font-montserrat)' }}>predict</span>
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
+
+      <ReactLenis options={{ orientation: 'horizontal', smoothWheel: true }} className="flex-1 min-h-0 overflow-x-auto no-scrollbar flex items-start">
+        <motion.div layout className="flex flex-row gap-20 px-24 pt-8 pb-12">
+          {criticalSubjects.length > 0 && (
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center gap-4 px-4 mb-2">
+                <span className="text-[#FF4D4D] text-[10px] font-bold uppercase tracking-[0.5em] shrink-0" style={{ fontFamily: 'var(--font-afacad)' }}>action required</span>
+                <div className="w-12 h-px bg-[#FF4D4D]/20" />
+              </div>
+              <div className="flex flex-row gap-6">
+                {criticalSubjects.map(s => <SubjectCard key={s.id} {...s} />)}
+              </div>
+            </div>
+          )}
+          {normalSubjects.length > 0 && (
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center gap-4 px-4 mb-2">
+                <span className="text-theme-text/40 text-[10px] font-bold uppercase tracking-[0.5em] shrink-0" style={{ fontFamily: 'var(--font-afacad)' }}>subjects</span>
+                <div className="w-12 h-px bg-theme-text/40" />
+              </div>
+              <div className="flex flex-row gap-6">
+                {normalSubjects.map(s => <SubjectCard key={s.id} {...s} />)}
+              </div>
+            </div>
+          )}
+        </motion.div>
+      </ReactLenis>
+
+      <div className="absolute bottom-8 right-8 pointer-events-none z-0 text-right">
+        <h1 className="text-theme-text font-regular lowercase leading-none select-none opacity-80" style={{ fontFamily: 'var(--font-afacad)', fontSize: '55px', letterSpacing: '-4px' }}>attendance</h1>      </div>
+    </div>
   );
 }
