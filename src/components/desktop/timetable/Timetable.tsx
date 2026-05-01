@@ -509,7 +509,7 @@ export default function DesktopTimetable() {
           )}
         </div>
       </div>
-      <div className="absolute bottom-28 right-8 pointer-events-none z-0 text-right">
+      <div className="absolute bottom-8 right-8 pointer-events-none z-0 text-right">
         <h1 className="text-theme-text font-regular lowercase leading-none select-none opacity-80" style={{ fontFamily: 'var(--font-afacad)', fontSize: '55px', letterSpacing: '-4px' }}>timetable</h1>
       </div>
     </div>

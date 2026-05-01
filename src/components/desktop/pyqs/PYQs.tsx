@@ -171,7 +171,7 @@ export default function DesktopPYQs() {
   if (!mounted) return null;
 
   return (
-    <>
+    <div className="relative h-full w-full flex flex-col overflow-hidden">
       <AnimatePresence>
         {isFetchingFile && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -246,7 +246,7 @@ export default function DesktopPYQs() {
           </div>
         </div>
 
-        <div className="flex-1 flex flex-row overflow-hidden h-full">
+        <div className="flex-1 flex flex-row overflow-hidden min-h-0">
           <div className="w-[340px] h-full border-r border-theme-border relative shrink-0 bg-theme-surface/5">
             <ReactLenis options={{ orientation: 'vertical', smoothWheel: true }} className="absolute inset-0 overflow-y-auto no-scrollbar p-6 flex flex-col gap-3">
               <div className="flex items-center gap-4 mb-4 px-2">
@@ -394,9 +394,10 @@ export default function DesktopPYQs() {
             </ReactLenis>
           </div>
         </div>
+
         <div className="absolute bottom-8 right-8 pointer-events-none z-0 text-right">
           <h1 className="text-theme-text font-regular lowercase leading-none select-none opacity-80" style={{ fontFamily: 'var(--font-afacad)', fontSize: '55px', letterSpacing: '-4px' }}>pyqs</h1>
         </div>
-    </>
+    </div>
   );
 }

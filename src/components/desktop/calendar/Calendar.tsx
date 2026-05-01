@@ -99,16 +99,16 @@ export default function DesktopCalendar() {
     <>
       <div className="h-full w-full flex flex-row overflow-hidden relative">
         <div className="flex-[1.4] flex flex-col border-r border-theme-border">
-          <header className="px-10 pt-10 pb-6 flex justify-between items-end">
-            <div>
-              <p className="text-theme-muted text-[10px] font-black uppercase tracking-[0.4em] mb-1" style={{ fontFamily: 'var(--font-montserrat)' }}>academic calendar</p>
+          <header className="px-10 pt-10 pb-6">
+            <p className="text-theme-muted text-[10px] font-black uppercase tracking-[0.4em] mb-1" style={{ fontFamily: 'var(--font-montserrat)' }}>academic calendar</p>
+            <div className="flex items-baseline gap-4">
               <h1 className="text-theme-text text-5xl font-black tracking-tighter lowercase" style={{ fontFamily: 'var(--font-montserrat)' }}>
                 {currentDate.toLocaleString('en-US', { month: 'long' }).toLowerCase()} <span className="text-theme-muted font-light">{currentDate.getFullYear()}</span>
               </h1>
-            </div>
-            <div className="flex gap-2 mb-1">
-              <button onClick={prevMonth} className="p-3 rounded-2xl bg-theme-surface border border-theme-border text-theme-muted hover:text-theme-text transition-all"><ChevronLeft size={20} /></button>
-              <button onClick={nextMonth} className="p-3 rounded-2xl bg-theme-surface border border-theme-border text-theme-muted hover:text-theme-text transition-all"><ChevronRight size={20} /></button>
+              <div className="flex gap-1 mb-1">
+                <button onClick={prevMonth} className="p-1.5 rounded-lg text-theme-muted hover:text-theme-text transition-colors"><ChevronLeft size={16} /></button>
+                <button onClick={nextMonth} className="p-1.5 rounded-lg text-theme-muted hover:text-theme-text transition-colors"><ChevronRight size={16} /></button>
+              </div>
             </div>
           </header>
 

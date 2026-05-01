@@ -312,7 +312,7 @@ export default function DesktopAttendance() {
             
             <AnimatePresence mode="wait">
               {isStatsExpanded ? (
-                <motion.div key={isPredicting ? "predicting" : "expanded"} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="w-full h-full flex flex-col justify-center px-10 relative">
+                <motion.div key={isPredicting ? "predicting" : "expanded"} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="w-full h-full flex flex-col justify-center px-10 relative overflow-hidden">
                   {isPredicting ? (
                     <div className="flex flex-col h-full py-12">
                       <div className="flex items-center justify-between mb-8">
@@ -361,12 +361,18 @@ export default function DesktopAttendance() {
                   )}
                 </motion.div>
               ) : (
-                <motion.div key="collapsed" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex-1 flex flex-col items-center justify-center w-full h-full relative gap-6">
+                <motion.div key="collapsed" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex-1 flex flex-col items-center justify-center w-full h-full relative gap-3">
                   <span
-                    className="text-theme-text text-[14px] font-black tabular-nums select-none"
-                    style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', fontFamily: 'var(--font-montserrat)', letterSpacing: '-0.04em' }}
+                    className="text-theme-text text-[32px] font-black tabular-nums select-none opacity-60"
+                    style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', fontFamily: 'var(--font-montserrat)', letterSpacing: '-0.06em' }}
                   >
                     {stats.pct.toFixed(1)}%
+                  </span>
+                  <span
+                    className="text-theme-muted text-[8px] font-black uppercase tracking-[0.4em] select-none opacity-40"
+                    style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', fontFamily: 'var(--font-montserrat)' }}
+                  >
+                    present
                   </span>
                   <button onClick={togglePrediction} className={`w-9 h-9 rounded-full flex items-center justify-center transition-all shadow-xl ${isPredicting ? 'bg-theme-highlight text-theme-bg' : 'bg-theme-surface border border-theme-border text-theme-muted hover:text-theme-text'}`}><Calculator size={16} /></button>
                 </motion.div>

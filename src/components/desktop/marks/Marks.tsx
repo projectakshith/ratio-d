@@ -807,7 +807,7 @@ export default function DesktopMarks() {
               
               <AnimatePresence mode="wait">
                 {isStatsExpanded ? (
-                  <motion.div key="expanded" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="w-full h-full flex flex-col justify-center px-10 relative">
+                  <motion.div key="expanded" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="w-full h-full flex flex-col justify-center px-10 relative overflow-hidden">
                     <div className="flex flex-col justify-center">
                       <div className="mb-6">
                         <span className="text-theme-muted text-[11px] font-bold uppercase tracking-[0.5em] block mb-3" style={{ fontFamily: 'var(--font-afacad)' }}>Predicted SGPA</span>
@@ -827,12 +827,18 @@ export default function DesktopMarks() {
                     </div>
                   </motion.div>
                 ) : (
-                  <motion.div key="collapsed" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex-1 flex flex-col items-center justify-center w-full h-full relative">
+                  <motion.div key="collapsed" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex-1 flex flex-col items-center justify-center w-full h-full relative gap-3">
                     <span
-                      className="text-theme-text text-[14px] font-black tabular-nums select-none"
-                      style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', fontFamily: 'var(--font-montserrat)', letterSpacing: '-0.04em' }}
+                      className="text-theme-text text-[32px] font-black tabular-nums select-none opacity-60"
+                      style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', fontFamily: 'var(--font-montserrat)', letterSpacing: '-0.06em' }}
                     >
                       {stats.gpa}
+                    </span>
+                    <span
+                      className="text-theme-muted text-[8px] font-black uppercase tracking-[0.4em] select-none opacity-40"
+                      style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', fontFamily: 'var(--font-montserrat)' }}
+                    >
+                      sgpa
                     </span>
                   </motion.div>
                 )}
