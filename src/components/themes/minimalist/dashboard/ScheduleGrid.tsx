@@ -8,6 +8,7 @@ interface ScheduleGridProps {
   currentDayOrder: number;
   isHoliday: boolean;
   cols?: number;
+  isExpanded?: boolean;
 }
 
 const BEZIER = [0.34, 0.15, 0.16, 0.96] as const;
@@ -42,6 +43,7 @@ export default function ScheduleGrid({
   currentDayOrder,
   isHoliday,
   cols = 5,
+  isExpanded = false,
 }: ScheduleGridProps) {
   const renderSlot = (slot: any, index: number) => {
     if (!slot.active) {
@@ -49,7 +51,7 @@ export default function ScheduleGrid({
         <motion.div
           key={slot.id || index}
           variants={slotVariants}
-          className="aspect-square rounded-[18px] flex items-center justify-center relative border-[1.5px] border-dashed"
+          className="aspect-square rounded-[15px] flex items-center justify-center relative border-[1.5px] border-dashed"
           style={{
             borderColor: "color-mix(in srgb, var(--theme-text) 30%, transparent)",
             borderDasharray: "6 10"
@@ -89,22 +91,22 @@ export default function ScheduleGrid({
       <motion.div
         key={`${slot.id}-${index}`}
         variants={slotVariants}
-        className={`aspect-square rounded-[18px] border-[1.5px] flex flex-col items-center justify-center gap-[1px] min-[380px]:gap-[2px] p-0.5 min-[380px]:p-1 transition-all ${boxClass}`}
+        className={`aspect-square rounded-[15px] border-[1.5px] flex flex-col items-center justify-center gap-[1px] min-[380px]:gap-[2px] p-0.5 min-[380px]:p-1 transition-all ${boxClass}`}
       >
         <span
-          className={`text-[7px] min-[380px]:text-[8px] md:text-[9px] font-bold uppercase tracking-tight leading-none text-center truncate w-full px-1 mb-0.5 ${topText}`}
+          className={`text-[7px] min-[380px]:text-[8px] md:text-[8px] font-bold uppercase tracking-tight leading-none text-center truncate w-full px-1 mb-0.5 ${topText}`}
           style={{ fontFamily: "var(--font-afacad), sans-serif" }}
         >
           {slot.room}
         </span>
         <span
-          className={`text-[11px] min-[380px]:text-[13px] min-[420px]:text-[14px] md:text-[17px] font-black uppercase tracking-tight leading-none overflow-hidden text-center w-full px-0.5 ${midText}`}
+          className={`text-[11px] min-[380px]:text-[13px] min-[420px]:text-[14px] md:text-[15px] font-black uppercase tracking-tight leading-none overflow-hidden text-center w-full px-0.5 ${midText}`}
           style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
         >
           {slot.sub}
         </span>
         <span
-          className={`text-[8px] min-[380px]:text-[9px] md:text-[10px] font-bold tracking-tighter leading-none text-center mt-0.5 ${botText}`}
+          className={`text-[8px] min-[380px]:text-[9px] md:text-[9px] font-bold tracking-tighter leading-none text-center mt-0.5 ${botText}`}
           style={{ fontFamily: "var(--font-afacad), sans-serif" }}
         >
           {slot.time}
@@ -118,7 +120,7 @@ export default function ScheduleGrid({
       variants={gridVariants}
       initial="hidden"
       animate="show"
-      className="grid gap-x-[10px] md:gap-x-[14px] gap-y-[6px] md:gap-y-[6px] shrink-0 transition-all"
+      className="grid gap-x-[10px] md:gap-x-[12px] gap-y-[6px] md:gap-y-[5px] shrink-0 transition-all"
       style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
     >
       {displayGrid.map((slot, i) => renderSlot(slot, i))}

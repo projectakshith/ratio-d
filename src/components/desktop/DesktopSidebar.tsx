@@ -15,7 +15,7 @@ import { useAppLayout } from "@/context/AppLayoutContext";
 import { useApp } from "@/context/AppContext";
 import { UserAvatar } from "../shared/UserAvatar";
 
-const BEZIER = [0.16, 1, 0.3, 1];
+const BEZIER = [0.16, 1, 0.3, 1] as const;
 
 const NavIcon = ({ 
   icon: Icon, 
@@ -42,9 +42,9 @@ const NavIcon = ({
           e.stopPropagation();
           onClick();
         }}
-        className="group flex items-center justify-end w-full relative cursor-pointer h-14"
+        className="group flex items-center justify-end w-full relative cursor-pointer h-12"
       >
-        <div className="flex-1 h-full flex items-center justify-end overflow-hidden pr-4">
+        <div className="flex-1 h-full flex items-center justify-end overflow-hidden pr-3">
           <AnimatePresence>
             {isExpanded && (
               <motion.span
@@ -52,7 +52,7 @@ const NavIcon = ({
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 10 }}
                 transition={{ duration: 0.3, ease: BEZIER }}
-                className="text-[13px] font-bold uppercase tracking-widest whitespace-nowrap select-none text-theme-text"
+                className="text-[11px] font-bold uppercase tracking-widest whitespace-nowrap select-none text-theme-text"
                 style={{ fontFamily: 'var(--font-afacad)' }}
               >
                 {label}
@@ -60,8 +60,8 @@ const NavIcon = ({
             )}
           </AnimatePresence>
         </div>
-        <div className="w-[68px] h-full shrink-0 flex items-center justify-center relative">
-          <div className="w-12 h-12 rounded-full overflow-hidden bg-theme-surface border-none shadow-lg hover:scale-105 transition-transform">
+        <div className="w-[56px] h-full shrink-0 flex items-center justify-center relative">
+          <div className="w-10 h-10 rounded-full overflow-hidden bg-theme-surface border-none shadow-lg hover:scale-105 transition-transform">
             <UserAvatar seed={avatarSeed || ""} className="w-full h-full" />
           </div>
         </div>
@@ -76,9 +76,9 @@ const NavIcon = ({
         e.stopPropagation();
         onClick();
       }}
-      className="group flex items-center justify-end w-full relative cursor-pointer h-12"
+      className="group flex items-center justify-end w-full relative cursor-pointer h-11"
     >
-      <div className="flex-1 h-full flex items-center justify-end overflow-hidden pr-4">
+      <div className="flex-1 h-full flex items-center justify-end overflow-hidden pr-3">
         <AnimatePresence>
           {isExpanded && (
             <motion.span
@@ -86,7 +86,7 @@ const NavIcon = ({
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 10 }}
               transition={{ duration: 0.3, ease: BEZIER }}
-              className="text-[13px] font-bold uppercase tracking-widest whitespace-nowrap select-none text-theme-text"
+              className="text-[11px] font-bold uppercase tracking-widest whitespace-nowrap select-none text-theme-text"
               style={{ fontFamily: 'var(--font-afacad)' }}
             >
               {label}
@@ -95,7 +95,7 @@ const NavIcon = ({
         </AnimatePresence>
       </div>
       
-      <div className="w-[68px] h-full shrink-0 flex items-center justify-center relative">
+      <div className="w-[56px] h-full shrink-0 flex items-center justify-center relative">
         <AnimatePresence>
           {active && (
             <motion.div 
@@ -103,14 +103,14 @@ const NavIcon = ({
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.8 }}
-              className="absolute w-12 h-12 bg-theme-emphasis rounded-2xl shadow-lg z-0"
+              className="absolute w-10 h-10 bg-theme-emphasis rounded-2xl shadow-lg z-0"
             />
           )}
         </AnimatePresence>
         
         <div className={`relative z-10 flex items-center justify-center ${active ? 'text-theme-bg' : 'text-theme-muted group-hover:text-theme-text'}`}>
           <div className="transition-transform duration-500 group-hover:scale-110">
-            {Icon && <Icon size={22} strokeWidth={active ? 2.5 : 2} />}
+            {Icon && <Icon size={18} strokeWidth={active ? 2.5 : 2} />}
           </div>
         </div>
       </div>
@@ -149,15 +149,15 @@ export default function DesktopSidebar() {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       animate={{ 
-        width: isHovered ? 240 : 68,
+        width: isHovered ? 200 : 56,
       }}
       transition={{ duration: 0.5, ease: BEZIER }}
-      className="h-full relative shrink-0 z-[60] flex flex-col items-center py-8 justify-between overflow-visible rounded-[24px] border border-theme-border backdrop-blur-xl"
+      className="h-full relative shrink-0 z-[60] flex flex-col items-center py-6 justify-between overflow-visible rounded-[24px] border border-theme-border backdrop-blur-xl"
       style={{ 
         backgroundColor: 'color-mix(in srgb, var(--theme-bg), transparent 40%)'
       }}
     >
-      <div className="w-full flex flex-col items-center gap-4">
+      <div className="w-full flex flex-col items-center gap-3">
         {navItems.map((item) => (
           <NavIcon 
             key={item.path}

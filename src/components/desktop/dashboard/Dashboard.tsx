@@ -263,31 +263,31 @@ export default function DesktopDashboard() {
     <>
       <div className="flex-1 flex flex-row overflow-hidden relative h-full">
         <motion.div
-          initial={{ width: 600 }}
-          animate={{ width: showExtraSlots ? 850 : 600 }}
+          initial={{ width: 520 }}
+          animate={{ width: showExtraSlots ? 750 : 520 }}
           transition={{ type: "spring", damping: 25, stiffness: 120 }}
-          className="shrink-0 flex flex-col p-8 overflow-y-auto no-scrollbar border-r border-theme-border h-full"
+          className="shrink-0 flex flex-col p-6 overflow-y-auto no-scrollbar border-r border-theme-border h-full"
         >
-          <header className="flex justify-between items-center mb-6">
-            <div className="flex items-center gap-4">
+          <header className="flex justify-between items-center mb-5">
+            <div className="flex items-center gap-3">
               <button
                 onClick={() => {
                   Haptics.selection();
                   onOpenSettings();
                 }}
-                className="w-14 h-14 rounded-2xl overflow-hidden bg-theme-surface border-none shadow-lg hover:scale-105 transition-transform"
+                className="w-12 h-12 rounded-2xl overflow-hidden bg-theme-surface border-none shadow-lg hover:scale-105 transition-transform"
               >
                 <UserAvatar seed={profileSeed} className="w-full h-full" />
               </button>
               <div>
                 <p
-                  className="text-theme-muted text-[10px] font-bold uppercase tracking-[0.3em] mb-0.5"
+                  className="text-theme-muted text-[9px] font-bold uppercase tracking-[0.3em] mb-0.5"
                   style={{ fontFamily: "var(--font-afacad)" }}
                 >
                   welcome back
                 </p>
                 <h1
-                  className="text-theme-text text-4xl font-black tracking-tighter lowercase"
+                  className="text-theme-text text-3xl font-black tracking-tighter lowercase"
                   style={{ fontFamily: "var(--font-montserrat)" }}
                 >
                   {userName}
@@ -297,10 +297,10 @@ export default function DesktopDashboard() {
             <button
               onClick={handleRefresh}
               disabled={isUpdating}
-              className="p-3 rounded-2xl bg-theme-surface border border-theme-border text-theme-muted hover:text-theme-text transition-all disabled:opacity-50"
+              className="p-2.5 rounded-2xl bg-theme-surface border border-theme-border text-theme-muted hover:text-theme-text transition-all disabled:opacity-50"
             >
               <RefreshCw
-                size={18}
+                size={16}
                 className={isUpdating ? "animate-spin" : ""}
               />
             </button>
@@ -310,7 +310,7 @@ export default function DesktopDashboard() {
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className={`w-full border-[1.5px] rounded-[24px] p-4 mt-6 mb-10 flex items-center justify-between gap-3 shrink-0 ${
+              className={`w-full border-[1.5px] rounded-[20px] p-3.5 mt-4 mb-8 flex items-center justify-between gap-3 shrink-0 ${
                 isHoliday
                   ? "status-bg-safe status-border-safe"
                   : "bg-theme-surface/30 border border-theme-border"
@@ -318,12 +318,12 @@ export default function DesktopDashboard() {
             >
               <div className="flex items-center gap-3">
                 {isHoliday && (
-                  <span className="shrink-0" style={{ fontSize: "16px" }}>
+                  <span className="shrink-0" style={{ fontSize: "14px" }}>
                     😎
                   </span>
                 )}
                 <span
-                  className={`text-xs font-bold lowercase tracking-wide ${isHoliday ? "status-text-safe" : "text-theme-muted"}`}
+                  className={`text-[11px] font-bold lowercase tracking-wide ${isHoliday ? "status-text-safe" : "text-theme-muted"}`}
                   style={{ fontFamily: "var(--font-afacad), sans-serif" }}
                 >
                   {isHoliday
@@ -332,16 +332,16 @@ export default function DesktopDashboard() {
                 </span>
               </div>
               <span
-                className={`shrink-0 ${isHoliday ? "text-[12px] font-black status-text-safe font-mono tracking-tighter opacity-80" : "text-[12px] font-black opacity-60 font-mono tracking-tighter"}`}
+                className={`shrink-0 ${isHoliday ? "text-[10px] font-black status-text-safe font-mono tracking-tighter opacity-80" : "text-[10px] font-black opacity-60 font-mono tracking-tighter"}`}
               >
                 {asciiArt}
               </span>
             </motion.div>
 
-            <div className="flex items-center justify-between mb-4 shrink-0 px-1">
+            <div className="flex items-center justify-between mb-3 shrink-0 px-1">
               <div className="flex items-center gap-3">
                 <span
-                  className="text-theme-muted text-[10px] font-bold uppercase tracking-[0.25em] flex items-center gap-1.5"
+                  className="text-theme-muted text-[9px] font-bold uppercase tracking-[0.25em] flex items-center gap-1.5"
                   style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
                 >
                   {`Day Order ${selectedDay}`}
@@ -368,7 +368,7 @@ export default function DesktopDashboard() {
                       Haptics.selection();
                       setShowExtraSlots(!showExtraSlots);
                     }}
-                    className="bg-theme-surface text-theme-muted px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest transition-all border border-theme-border"
+                    className="bg-theme-surface text-theme-muted px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-widest transition-all border border-theme-border"
                     style={{ fontFamily: "var(--font-afacad), sans-serif" }}
                   >
                     {showExtraSlots
@@ -380,21 +380,21 @@ export default function DesktopDashboard() {
               <div className="flex gap-1">
                 <button
                   onClick={() => handleDaySwitch("prev")}
-                  className="p-1.5 text-theme-muted hover:text-theme-text transition-all"
+                  className="p-1 text-theme-muted hover:text-theme-text transition-all"
                 >
-                  <ChevronLeft size={20} />
+                  <ChevronLeft size={18} />
                 </button>
                 <button
                   onClick={() => handleDaySwitch("next")}
-                  className="p-1.5 text-theme-muted hover:text-theme-text transition-all"
+                  className="p-1 text-theme-muted hover:text-theme-text transition-all"
                 >
-                  <ChevronRight size={20} />
+                  <ChevronRight size={18} />
                 </button>
               </div>
             </div>
 
             <div
-              className="flex flex-col gap-1.5 mb-8 cursor-pointer shrink-0"
+              className="flex flex-col gap-1 mb-6 cursor-pointer shrink-0"
               onClick={() => router.push("/timetable")}
             >
               <motion.div
@@ -430,47 +430,47 @@ export default function DesktopDashboard() {
             </div>
 
             <div className="grid grid-cols-3 gap-3 mb-0 max-w-full shrink-0 mt-auto">
-              <div className="bg-theme-surface/30 border border-theme-border rounded-[20px] p-4 flex flex-col justify-between">
+              <div className="bg-theme-surface/30 border border-theme-border rounded-[20px] p-3.5 flex flex-col justify-between">
                 <span
-                  className="text-theme-muted text-[8px] font-bold uppercase tracking-[0.2em] mb-2"
+                  className="text-theme-muted text-[7px] font-bold uppercase tracking-[0.2em] mb-2"
                   style={{ fontFamily: "var(--font-afacad)" }}
                 >
                   starts
                 </span>
                 <h4
-                  className="text-theme-text text-base font-black tracking-tight"
+                  className="text-theme-text text-[14px] font-black tracking-tight"
                   style={{ fontFamily: "var(--font-montserrat)" }}
                 >
-                  {standardGrid.find((s) => s.active)?.time?.split("-")[0] ||
+                  {(standardGrid.find((s) => s.active) as any)?.time?.split("-")[0] ||
                     "--:--"}
                 </h4>
               </div>
-              <div className="bg-theme-surface/30 border border-theme-border rounded-[20px] p-4 flex flex-col justify-between">
+              <div className="bg-theme-surface/30 border border-theme-border rounded-[20px] p-3.5 flex flex-col justify-between">
                 <span
-                  className="text-theme-muted text-[8px] font-bold uppercase tracking-[0.2em] mb-2"
+                  className="text-theme-muted text-[7px] font-bold uppercase tracking-[0.2em] mb-2"
                   style={{ fontFamily: "var(--font-afacad)" }}
                 >
                   ends
                 </span>
                 <h4
-                  className="text-theme-text text-base font-black tracking-tight"
+                  className="text-theme-text text-[14px] font-black tracking-tight"
                   style={{ fontFamily: "var(--font-montserrat)" }}
                 >
-                  {[...standardGrid]
+                  {([...standardGrid]
                     .reverse()
-                    .find((s) => s.active)
+                    .find((s) => s.active) as any)
                     ?.time?.split("-")[1] || "--:--"}
                 </h4>
               </div>
-              <div className="bg-theme-surface/30 border border-theme-border rounded-[20px] p-4 flex flex-col justify-between">
+              <div className="bg-theme-surface/30 border border-theme-border rounded-[20px] p-3.5 flex flex-col justify-between">
                 <span
-                  className="text-theme-muted text-[8px] font-bold uppercase tracking-[0.2em] mb-2"
+                  className="text-theme-muted text-[7px] font-bold uppercase tracking-[0.2em] mb-2"
                   style={{ fontFamily: "var(--font-afacad)" }}
                 >
                   total
                 </span>
                 <h4
-                  className="text-theme-text text-base font-black tracking-tight"
+                  className="text-theme-text text-[14px] font-black tracking-tight"
                   style={{ fontFamily: "var(--font-montserrat)" }}
                 >
                   {standardGrid.filter((s) => s.active).length +
@@ -481,11 +481,11 @@ export default function DesktopDashboard() {
           </div>
         </motion.div>
 
-        <div className="flex-1 flex flex-col p-8 bg-theme-surface/20 relative gap-6 min-w-0 h-full">
-          <section className="mb-0 flex flex-col gap-8">
+        <div className="flex-1 flex flex-col p-6 bg-theme-surface/20 relative gap-5 min-w-0 h-full">
+          <section className="mb-0 flex flex-col gap-6">
             <div className="flex items-center gap-3 px-1">
               <span
-                className="text-theme-muted text-[11px] font-bold lowercase tracking-[0.25em] whitespace-nowrap"
+                className="text-theme-muted text-[10px] font-bold lowercase tracking-[0.25em] whitespace-nowrap"
                 style={{ fontFamily: "var(--font-montserrat)" }}
               >
                 {focusLabel}
@@ -495,7 +495,7 @@ export default function DesktopDashboard() {
                 style={{ backgroundColor: "var(--theme-text)", opacity: 0.1 }}
               />
               <span
-                className="text-theme-text text-[12px] font-black uppercase tracking-[0.2em] whitespace-nowrap"
+                className="text-theme-text text-[11px] font-black uppercase tracking-[0.2em] whitespace-nowrap"
                 style={{ fontFamily: "var(--font-afacad)" }}
               >
                 {focusClass?.room || "FREE"}
@@ -503,10 +503,10 @@ export default function DesktopDashboard() {
             </div>
 
             <div className="flex flex-col justify-center min-w-0">
-              <div className="flex items-end justify-between gap-6 mb-4 min-w-0">
+              <div className="flex items-end justify-between gap-6 mb-3 min-w-0">
                 <div className="flex-1 min-w-0">
                   <h1
-                    className="text-theme-text text-[3.5rem] font-black tracking-tighter leading-[0.92] lowercase line-clamp-2 overflow-hidden text-ellipsis"
+                    className="text-theme-text text-[2.8rem] font-black tracking-tighter leading-[0.92] lowercase line-clamp-2 overflow-hidden text-ellipsis"
                     style={{
                       fontFamily: "var(--font-montserrat)",
                       paddingBottom: "0.05em",
@@ -516,21 +516,21 @@ export default function DesktopDashboard() {
                   </h1>
                 </div>
                 <span
-                  className="text-[1.25rem] font-bold uppercase tracking-widest text-theme-muted whitespace-nowrap shrink-0 pb-1"
+                  className="text-[1.1rem] font-bold uppercase tracking-widest text-theme-muted whitespace-nowrap shrink-0 pb-1"
                   style={{ fontFamily: "var(--font-afacad)" }}
                 >
                   {focusClass?.time || "--:--"}
                 </span>
               </div>
 
-              <div className="flex items-center justify-between w-full bg-theme-card border-theme-subtle px-4 py-3 rounded-full border-[1.5px] shadow-sm min-w-0 mt-4">
+              <div className="flex items-center justify-between w-full bg-theme-card border-theme-subtle px-3.5 py-2.5 rounded-full border-[1.5px] shadow-sm min-w-0 mt-4">
                 <div className="flex items-center gap-3 min-w-0 flex-1">
                   <span
-                    className={`h-2.5 rounded-full shrink-0 ${currentClass && !isHoliday ? "bg-theme-text animate-pulse" : "bg-theme-text-20"}`}
-                    style={{ width: "10px", height: "10px" }}
+                    className={`h-2 rounded-full shrink-0 ${currentClass && !isHoliday ? "bg-theme-text animate-pulse" : "bg-theme-text-20"}`}
+                    style={{ width: "8px", height: "8px" }}
                   />
                   <span
-                    className="block text-[14px] font-bold lowercase text-theme-text-70 truncate"
+                    className="block text-[13px] font-bold lowercase text-theme-text-70 truncate"
                     style={{ fontFamily: "var(--font-afacad), sans-serif" }}
                   >
                     {isHoliday
@@ -552,7 +552,7 @@ export default function DesktopDashboard() {
                   </span>
                 </div>
                 <span
-                  className="text-[12px] font-bold lowercase text-theme-muted shrink-0 ml-2"
+                  className="text-[11px] font-bold lowercase text-theme-muted shrink-0 ml-2"
                   style={{ fontFamily: "var(--font-afacad), sans-serif" }}
                 >
                   {isHoliday
@@ -567,64 +567,64 @@ export default function DesktopDashboard() {
             </div>
           </section>
 
-          <div className="grid grid-cols-1 gap-4 mt-auto">
+          <div className="grid grid-cols-1 gap-3 mt-auto">
             <div
               onClick={() => router.push("/attendance")}
-              className={`group w-full border-[1.5px] rounded-[24px] py-5 px-4 flex items-center gap-4 shadow-sm transition-all cursor-pointer hover:scale-[1.01] active:scale-98 ${attStyles.bg} ${attStyles.border}`}
+              className={`group w-full border-[1.5px] rounded-[24px] py-4 px-3.5 flex items-center gap-4 shadow-sm transition-all cursor-pointer hover:scale-[1.01] active:scale-98 ${attStyles.bg} ${attStyles.border}`}
             >
               <div
-                className={`w-14 h-14 rounded-xl flex items-center justify-center shrink-0 ${attStyles.iconBg}`}
+                className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${attStyles.iconBg}`}
               >
                 <CheckCircle
-                  size={22}
+                  size={20}
                   strokeWidth={2.5}
                   className={attStyles.text}
                 />
               </div>
               <div className="flex-1 min-w-0">
                 <p
-                  className={`text-[9px] font-bold uppercase tracking-[0.3em] mb-0.5 opacity-60 ${attStyles.text}`}
+                  className={`text-[8px] font-bold uppercase tracking-[0.3em] mb-0.5 opacity-60 ${attStyles.text}`}
                   style={{ fontFamily: "var(--font-afacad)" }}
                 >
                   attendance
                 </p>
                 <h3
-                  className={`text-xl font-black lowercase tracking-tight truncate ${attStyles.text}`}
+                  className={`text-lg font-black lowercase tracking-tight truncate ${attStyles.text}`}
                   style={{ fontFamily: "var(--font-montserrat)" }}
                 >
                   {alertName}
                 </h3>
                 <p
-                  className={`text-[13px] font-medium lowercase ${attStyles.text} opacity-80`}
+                  className={`text-[12px] font-medium lowercase ${attStyles.text} opacity-80`}
                   style={{ fontFamily: "var(--font-afacad)" }}
                 >
                   {alertPct}% • {alertMargin} {alertLabel}
                 </p>
               </div>
-              <ChevronRight size={24} className={attStyles.text} />
+              <ChevronRight size={20} className={attStyles.text} />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3">
               <div
                 onClick={() => router.push("/marks")}
-                className="bg-theme-card border border-theme-border rounded-[24px] p-5 flex flex-col justify-between shadow-sm hover:scale-[1.01] active:scale-98 transition-all cursor-pointer min-w-0 overflow-hidden"
+                className="bg-theme-card border border-theme-border rounded-[24px] p-5 min-h-[155px] flex flex-col justify-between shadow-sm hover:scale-[1.01] active:scale-98 transition-all cursor-pointer min-w-0 overflow-hidden"
               >
-                <div className="w-12 h-12 rounded-xl bg-theme-surface flex items-center justify-center mb-4">
+                <div className="w-10 h-10 rounded-xl bg-theme-surface flex items-center justify-center">
                   <GraduationCap
-                    size={20}
+                    size={18}
                     strokeWidth={2.5}
                     className="text-theme-text"
                   />
                 </div>
-                <div className="flex-1 min-w-0">
+                <div className="min-w-0">
                   <p
-                    className="text-theme-muted text-[9px] font-bold uppercase tracking-[0.3em] mb-0.5"
+                    className="text-theme-muted text-[8px] font-bold uppercase tracking-[0.3em] mb-0.5"
                     style={{ fontFamily: "var(--font-afacad)" }}
                   >
                     Marks
                   </p>
                   <h3
-                    className="text-theme-text text-lg font-black lowercase tracking-tight truncate"
+                    className="text-theme-text text-[16px] font-black lowercase tracking-tight truncate"
                     style={{ fontFamily: "var(--font-montserrat)" }}
                   >
                     {latestMark
@@ -636,11 +636,11 @@ export default function DesktopDashboard() {
                       : "no marks"}
                   </h3>
                   <p
-                    className="text-[11px] font-medium text-theme-muted lowercase"
+                    className="text-[10px] font-medium text-theme-muted lowercase"
                     style={{ fontFamily: "var(--font-afacad)" }}
                   >
                     {latestMark
-                      ? `${latestMark.totalGot}/${latestMark.totalMax} • ${Math.round(latestMark.percentage)}% total internals`
+                      ? `${latestMark.totalGot}/${latestMark.totalMax} • ${Math.round(latestMark.percentage || 0)}% total internals`
                       : "checking for new records"}
                   </p>
                 </div>
@@ -648,27 +648,27 @@ export default function DesktopDashboard() {
 
               <div
                 onClick={() => router.push("/calendar")}
-                className="bg-theme-emphasis text-theme-bg rounded-[24px] p-5 flex flex-col justify-between shadow-sm hover:scale-[1.01] active:scale-98 transition-all cursor-pointer min-w-0 overflow-hidden"
+                className="bg-theme-emphasis text-theme-bg rounded-[24px] p-5 min-h-[155px] flex flex-col justify-between shadow-sm hover:scale-[1.01] active:scale-98 transition-all cursor-pointer min-w-0 overflow-hidden"
               >
-                <div className="w-12 h-12 rounded-xl bg-theme-bg/10 flex items-center justify-center mb-4">
-                  <Bell size={20} strokeWidth={2.5} className="text-theme-bg" />
+                <div className="w-10 h-10 rounded-xl bg-theme-bg/10 flex items-center justify-center">
+                  <Bell size={18} strokeWidth={2.5} className="text-theme-bg" />
                 </div>
-                <div className="flex-1 min-w-0">
+                <div className="min-w-0">
                   <p
-                    className="text-theme-bg/60 text-[9px] font-bold uppercase tracking-[0.3em] mb-0.5"
+                    className="text-theme-bg/60 text-[8px] font-bold uppercase tracking-[0.3em] mb-0.5"
                     style={{ fontFamily: "var(--font-afacad)" }}
                   >
                     active alerts
                   </p>
                   <h3
-                    className="text-theme-bg text-lg font-black lowercase tracking-tight truncate"
+                    className="text-theme-bg text-[16px] font-black lowercase tracking-tight truncate"
                     style={{ fontFamily: "var(--font-montserrat)" }}
                   >
                     {allAlerts[currentAlertIndex]?.desc.toLowerCase() ||
                       "no active alerts"}
                   </h3>
                   <p
-                    className="text-[11px] font-medium text-theme-bg/80 lowercase truncate"
+                    className="text-[10px] font-medium text-theme-bg/80 lowercase truncate"
                     style={{ fontFamily: "var(--font-afacad)" }}
                   >
                     {allAlerts[currentAlertIndex]?.date || "all clear for now"}{" "}

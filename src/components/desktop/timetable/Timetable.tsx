@@ -334,6 +334,8 @@ export default function DesktopTimetable() {
     setPreviewTime(null);
   };
 
+  const isUpcomingLabel = (selectedDay !== currentDayOrder) || isHoliday || isTodayFinished;
+
   return (
     <div className="h-full w-full flex flex-col bg-theme-bg overflow-hidden relative">
       <div ref={timetableRef} className="flex-1 relative min-h-0 bg-theme-bg overflow-hidden pb-12">
@@ -351,12 +353,12 @@ export default function DesktopTimetable() {
                   <Clock size={16} className="text-theme-text" />
                 </div>
                 {displayTimings.map(time => (
-                  <div key={time} className="flex flex-col items-center justify-center py-3 rounded-xl bg-theme-surface border border-theme-border shadow-sm">
-                    <span className="text-theme-text text-[10px] font-black tabular-nums tracking-tighter leading-none" style={{ fontFamily: 'var(--font-montserrat)' }}>
+                  <div key={time} className="flex flex-col items-center justify-center py-2.5 rounded-xl bg-theme-surface border border-theme-border shadow-sm">
+                    <span className="text-theme-text text-[9px] font-black tabular-nums tracking-tighter leading-none" style={{ fontFamily: 'var(--font-montserrat)' }}>
                       {time.split('-')[0].trim()}
                     </span>
-                    <div className="h-[1.5px] w-2 bg-theme-border my-1 rounded-full" />
-                    <span className="text-theme-muted text-[9px] font-black tabular-nums tracking-tighter leading-none" style={{ fontFamily: 'var(--font-montserrat)' }}>
+                    <div className="h-[1px] w-2 bg-theme-border my-1 rounded-full" />
+                    <span className="text-theme-muted text-[8px] font-black tabular-nums tracking-tighter leading-none" style={{ fontFamily: 'var(--font-montserrat)' }}>
                       {time.split('-')[1].trim()}
                     </span>
                   </div>
@@ -367,9 +369,9 @@ export default function DesktopTimetable() {
                 {days.map((day) => (
                   <div key={day} className="grid gap-2 flex-1" style={{ gridTemplateColumns: `60px repeat(${displayTimings.length}, minmax(0, 1fr))` }}>
                     <div className={`flex flex-col items-center justify-center rounded-xl shadow-sm transition-colors relative ${currentDayOrder === day ? 'bg-theme-emphasis' : 'bg-theme-surface border border-theme-border'}`}>
-                      <span className={`text-2xl font-black leading-none ${currentDayOrder === day ? 'text-theme-bg translate-y-0.5' : 'text-theme-text'}`} style={{ fontFamily: 'var(--font-montserrat)' }}>{day}</span>
+                      <span className={`text-xl font-black leading-none ${currentDayOrder === day ? 'text-theme-bg translate-y-0.5' : 'text-theme-text'}`} style={{ fontFamily: 'var(--font-montserrat)' }}>{day}</span>
                       {currentDayOrder === day && (
-                        <span className="absolute bottom-1.5 text-[7px] font-black uppercase tracking-widest text-theme-bg/60" style={{ fontFamily: 'var(--font-montserrat)' }}>today</span>
+                        <span className="absolute bottom-1.5 text-[6px] font-black uppercase tracking-widest text-theme-bg/60" style={{ fontFamily: 'var(--font-montserrat)' }}>today</span>
                       )}
                     </div>
                     {displayTimings.map(time => (
@@ -389,10 +391,10 @@ export default function DesktopTimetable() {
               exit={{ opacity: 0 }}
               className="absolute inset-0 flex flex-col min-h-0 overflow-hidden"
             >
-              <div className="flex-[1.8] flex flex-col justify-center px-12 pt-44 shrink-0">
+              <div className="flex-[1.8] flex flex-col justify-center px-12 pt-36 shrink-0">
                 <div className="max-w-5xl">
                   <div className="flex items-center gap-3 mb-2 translate-y-[-4px]">
-                    <span className="text-theme-muted text-[10px] font-bold uppercase tracking-[0.5em]" style={{ fontFamily: 'var(--font-montserrat)' }}>
+                    <span className="text-theme-muted text-[9px] font-bold uppercase tracking-[0.5em]" style={{ fontFamily: 'var(--font-montserrat)' }}>
                       day order {selectedDay} {isActuallyToday ? (
                         <span className="text-theme-emphasis opacity-100">- today</span>
                       ) : isActuallyUpcoming ? (
@@ -403,34 +405,34 @@ export default function DesktopTimetable() {
                     </span>
                   </div>
                   <h1 
-                    className="text-6xl font-black lowercase tracking-[-0.06em] leading-[0.85] text-theme-text mb-10" 
+                    className="text-4xl font-black lowercase tracking-[-0.06em] leading-[0.85] text-theme-text mb-8" 
                     style={{ fontFamily: 'var(--font-montserrat)' }}
                   >
                     {activeHeroSlot ? activeHeroSlot.name : nextUpSlot ? nextUpSlot.name : "chill out."}
                   </h1>
                   
-                  <div className="flex items-center gap-12 w-fit">
+                  <div className="flex items-center gap-10 w-fit">
                     {(activeHeroTime || (nextUpSlot && nextUpSlot.time)) && (
                       <>
                         <div className="flex flex-col">
-                          <span className="text-theme-muted text-[10px] font-bold uppercase tracking-[0.4em] mb-2" style={{ fontFamily: 'var(--font-afacad)' }}>timing</span>
-                          <span className="text-2xl font-black uppercase text-theme-highlight whitespace-nowrap" style={{ fontFamily: 'var(--font-montserrat)' }}>
+                          <span className="text-theme-muted text-[9px] font-bold uppercase tracking-[0.4em] mb-2" style={{ fontFamily: 'var(--font-afacad)' }}>timing</span>
+                          <span className="text-xl font-black uppercase text-theme-highlight whitespace-nowrap" style={{ fontFamily: 'var(--font-montserrat)' }}>
                             {activeHeroTime || (nextUpSlot && nextUpSlot.time)}
                           </span>
                         </div>
-                        <div className="w-[1px] h-12 bg-theme-border" />
+                        <div className="w-[1px] h-10 bg-theme-border" />
                       </>
                     )}
                     <div className="flex flex-col">
-                      <span className="text-theme-muted text-[10px] font-bold uppercase tracking-[0.4em] mb-2" style={{ fontFamily: 'var(--font-afacad)' }}>location</span>
-                      <span className="text-2xl font-black lowercase text-theme-text opacity-70" style={{ fontFamily: 'var(--font-montserrat)' }}>
+                      <span className="text-theme-muted text-[9px] font-bold uppercase tracking-[0.4em] mb-2" style={{ fontFamily: 'var(--font-afacad)' }}>location</span>
+                      <span className="text-xl font-black lowercase text-theme-text opacity-70" style={{ fontFamily: 'var(--font-montserrat)' }}>
                         {(activeHeroSlot?.room || nextUpSlot?.room || "anywhere").toLowerCase()}
                       </span>
                     </div>
-                    <div className="w-[1px] h-12 bg-theme-border" />
+                    <div className="w-[1px] h-10 bg-theme-border" />
                     <div className="flex flex-col">
-                      <span className="text-theme-muted text-[10px] font-bold uppercase tracking-[0.4em] mb-2" style={{ fontFamily: 'var(--font-afacad)' }}>faculty</span>
-                      <span className="text-2xl font-black lowercase text-theme-text opacity-70" style={{ fontFamily: 'var(--font-montserrat)' }}>
+                      <span className="text-theme-muted text-[9px] font-bold uppercase tracking-[0.4em] mb-2" style={{ fontFamily: 'var(--font-afacad)' }}>faculty</span>
+                      <span className="text-xl font-black lowercase text-theme-text opacity-70" style={{ fontFamily: 'var(--font-montserrat)' }}>
                         {(activeHeroSlot?.faculty || nextUpSlot?.faculty || "Nobody").split('(')[0].trim()}
                       </span>
                     </div>
@@ -438,21 +440,21 @@ export default function DesktopTimetable() {
                 </div>
               </div>
 
-              <div className="flex-1 flex flex-col mt-auto pb-12 shrink-0">
+              <div className="flex-1 flex flex-col mt-auto pb-10 shrink-0">
                 <div className="px-12 mb-4 flex items-center justify-end gap-3">
                   <button
                     onClick={handleResetDay}
-                    className="w-10 h-10 rounded-full bg-theme-surface border border-theme-border flex items-center justify-center text-theme-muted hover:text-theme-text hover:border-theme-text transition-all shadow-sm active:scale-90"
+                    className="w-9 h-9 rounded-full bg-theme-surface border border-theme-border flex items-center justify-center text-theme-muted hover:text-theme-text hover:border-theme-text transition-all shadow-sm active:scale-90"
                     title="reset to now"
                   >
-                    <RotateCcw size={18} />
+                    <RotateCcw size={16} />
                   </button>
-                  <div className="flex gap-1 bg-theme-surface/30 p-1 rounded-[18px]">
+                  <div className="flex gap-1 bg-theme-surface/30 p-1 rounded-[16px]">
                     {days.map(d => (
                       <button
                         key={d}
                         onClick={() => { setSelectedDay(d); setPreviewTime(null); }}
-                        className={`w-9 h-9 flex flex-col items-center justify-center rounded-[14px] text-xs font-black transition-all relative ${selectedDay === d ? 'bg-theme-emphasis text-theme-bg' : 'text-theme-muted hover:text-theme-text'}`}
+                        className={`w-8 h-8 flex flex-col items-center justify-center rounded-[12px] text-[11px] font-black transition-all relative ${selectedDay === d ? 'bg-theme-emphasis text-theme-bg' : 'text-theme-muted hover:text-theme-text'}`}
                         style={{ fontFamily: 'var(--font-montserrat)' }}
                       >
                         <span className="translate-y-[1px]">{d}</span>
@@ -465,7 +467,7 @@ export default function DesktopTimetable() {
                 </div>
 
                 <div className="px-10">
-                  <div className="h-[110px] bg-theme-emphasis/5 rounded-[32px] flex items-center px-4 gap-2.5">
+                  <div className="h-[100px] bg-theme-emphasis/5 rounded-[28px] flex items-center px-4 gap-2">
                     {displayTimings.map(time => (
                       <TimelineCard 
                         key={time} 
@@ -483,32 +485,32 @@ export default function DesktopTimetable() {
         </AnimatePresence>
       </div>
 
-      <div className="px-8 pb-10 flex items-center justify-between z-20 shrink-0 h-24 translate-y-[-10px]">
+      <div className="px-8 pb-8 flex items-center justify-between z-20 shrink-0 h-20">
         <div className="flex items-center gap-6">
           <div className="flex bg-theme-surface p-1 rounded-2xl border border-theme-border shadow-sm">
             <button 
               onClick={() => setView("default")}
-              className={`flex items-center gap-2 px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${view === "default" ? 'bg-theme-emphasis text-theme-bg shadow-md' : 'text-theme-muted hover:text-theme-text'}`}
+              className={`flex items-center gap-2 px-5 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${view === "default" ? 'bg-theme-emphasis text-theme-bg shadow-md' : 'text-theme-muted hover:text-theme-text'}`}
               style={{ fontFamily: 'var(--font-montserrat)' }}
             >
-              <List size={14} />
+              <List size={12} />
               list
             </button>
             <button 
               onClick={() => setView("full")}
-              className={`flex items-center gap-2 px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${view === "full" ? 'bg-theme-emphasis text-theme-bg shadow-md' : 'text-theme-muted hover:text-theme-text'}`}
+              className={`flex items-center gap-2 px-5 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${view === "full" ? 'bg-theme-emphasis text-theme-bg shadow-md' : 'text-theme-muted hover:text-theme-text'}`}
               style={{ fontFamily: 'var(--font-montserrat)' }}
             >
-              <LayoutGrid size={14} />
+              <LayoutGrid size={12} />
               grid
             </button>
             {extraTimeSlots.length > 0 && view === "full" && (
               <button 
                 onClick={() => setShowExtra(!showExtra)}
-                className={`flex items-center gap-2 px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ml-1 ${showExtra ? 'bg-theme-highlight text-theme-bg shadow-md' : 'text-theme-muted hover:text-theme-text'}`}
+                className={`flex items-center gap-2 px-5 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ml-1 ${showExtra ? 'bg-theme-highlight text-theme-bg shadow-md' : 'text-theme-muted hover:text-theme-text'}`}
                 style={{ fontFamily: 'var(--font-montserrat)' }}
               >
-                {showExtra ? <ChevronRight size={14} /> : <Plus size={14} />}
+                {showExtra ? <ChevronRight size={12} /> : <Plus size={12} />}
                 {showExtra ? "standard" : `${extraTimeSlots.length} more`}
               </button>
             )}
@@ -517,16 +519,16 @@ export default function DesktopTimetable() {
           {view === "full" && (
             <button 
               onClick={downloadTimetable}
-              className="p-3 rounded-2xl bg-theme-surface border border-theme-border text-theme-muted hover:text-theme-text transition-all shadow-sm group active:scale-95"
+              className="p-2.5 rounded-2xl bg-theme-surface border border-theme-border text-theme-muted hover:text-theme-text transition-all shadow-sm group active:scale-95"
               title="download as image"
             >
-              <Download size={18} className="group-hover:scale-110 transition-transform" />
+              <Download size={16} className="group-hover:scale-110 transition-transform" />
             </button>
           )}
         </div>
       </div>
       <div className="absolute bottom-8 right-8 pointer-events-none z-0 text-right">
-        <h1 className="text-theme-text font-regular lowercase leading-none select-none opacity-80" style={{ fontFamily: 'var(--font-afacad)', fontSize: '55px', letterSpacing: '-4px' }}>timetable</h1>
+        <h1 className="text-theme-text font-regular lowercase leading-none select-none opacity-80" style={{ fontFamily: 'var(--font-afacad)', fontSize: '48px', letterSpacing: '-4px' }}>timetable</h1>
       </div>
     </div>
   );
