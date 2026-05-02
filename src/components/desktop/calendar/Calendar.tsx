@@ -35,18 +35,19 @@ const DayCell = ({ slot, onClick }: { slot: CalendarSlot & { event?: CalendarEve
           : "bg-theme-surface/40 border-theme-border hover:bg-theme-surface/60"
       }`}
     >
+      <span className={`absolute bottom-1 right-1 text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-md ${
+        isSelected ? "bg-theme-bg/20 text-theme-bg" : "bg-theme-text/5 text-theme-muted"
+      } ${!slot.dayOrder && "opacity-20"}`} style={{ fontFamily: 'var(--font-montserrat)' }}>
+        DO {slot.dayOrder || "-"}
+      </span>
+
       <div className="flex justify-between items-start">
-        <span className={`text-base font-black tracking-tighter ${isSelected ? "text-theme-bg" : "text-theme-text"}`} style={{ fontFamily: 'var(--font-montserrat)' }}>
+        <span className={`text-xl font-black tracking-tighter ${isSelected ? "text-theme-bg" : "text-theme-text"}`} style={{ fontFamily: 'var(--font-montserrat)' }}>
           {slot.day}
         </span>
-        {slot.dayOrder && (
-          <span className={`absolute top-2 right-2 text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-md ${isSelected ? "bg-theme-bg/20 text-theme-bg" : "bg-theme-text/10 text-theme-muted"}`} style={{ fontFamily: 'var(--font-montserrat)' }}>
-            DO {slot.dayOrder}
-          </span>
-        )}
       </div>
 
-      <div className="flex gap-1">
+      <div className="flex gap-1 mt-auto">
         {isHoliday && <div className={`w-1.5 h-1.5 rounded-full ${isSelected ? "bg-theme-bg" : "bg-[#FF4D4D]"}`} />}
         {isExam && <div className={`w-1.5 h-1.5 rounded-full ${isSelected ? "bg-theme-bg" : "bg-theme-emphasis"}`} />}
         {slot.event?.description && !isHoliday && !isExam && <div className={`w-1.5 h-1.5 rounded-full ${isSelected ? "bg-theme-bg" : "bg-theme-muted"}`} />}
