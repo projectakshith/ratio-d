@@ -148,6 +148,7 @@ export default function DesktopSidebar() {
     <motion.div 
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      initial={{ width: 56 }}
       animate={{ 
         width: isHovered ? 200 : 56,
       }}
