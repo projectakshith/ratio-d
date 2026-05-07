@@ -39,7 +39,7 @@ useEffect(() => {
   const seenVersion = localStorage.getItem("ratio_seen_version");
   const isOnboarded = localStorage.getItem("ratiod_onboarded") === "true";
 
-  if (isOnboarded && seenVersion !== CURRENT_VERSION) {
+  if (isOnboarded && seenVersion !== CURRENT_VERSION && window.innerWidth < 768) {
     const timer = setTimeout(() => {
       setShowAutoWhatsNew(true);
     }, 3000);
