@@ -35,9 +35,17 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     const isOnboarded = localStorage.getItem("ratiod_onboarded") === "true";
     const hasSession = document.cookie.includes("ratio_session=");
     
-    if (!isOnboarded || !hasSession) {
-      router.replace("/onboarding");
-      return;
+    const isMobile = window.innerWidth < 768;
+    if (isMobile) {
+      if (!isOnboarded || !hasSession) {
+        router.replace("/onboarding");
+        return;
+      }
+    } else {
+      if (!hasSession) {
+        router.replace("/login");
+        return;
+      }
     }
   }, [router]);
 

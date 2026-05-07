@@ -1,10 +1,4 @@
-export interface Env {
-  BACKEND_URLS: string;
-  HMAC_SECRET: string;
-  ALLOWED_ORIGIN: string;
-}
-
-async function hmacSign(secret: string, timestamp: number, body: string, method: string, path: string): Promise<string> {
+async function hmacSign(secret, timestamp, body, method, path) {
   const key = await crypto.subtle.importKey(
     "raw",
     new TextEncoder().encode(secret),
@@ -21,84 +15,88 @@ async function hmacSign(secret: string, timestamp: number, body: string, method:
   return btoa(String.fromCharCode(...new Uint8Array(signature)));
 }
 
-export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
-    const cors = {
-      "Access-Control-Allow-Origin": env.ALLOWED_ORIGIN || "*",
-      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type, X-Ratio-Sig, X-Ratio-TS",
-    };
+addEventListener("fetch", (event) => {
+  event.respondWith(handleRequest(event.request));
+});
 
-    if (request.method === "OPTIONS") {
-      return new Response(null, { headers: cors });
-    }
+async function handleRequest(request) {
+  const env = globalThis;
+  const cors = {
+    "Access-Control-Allow-Origin": env.ALLOWED_ORIGIN || "*",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, X-Ratio-Sig, X-Ratio-TS",
+  };
 
-    const url = new URL(request.url);
-    const path = url.pathname;
+  if (request.method === "OPTIONS") {
+    return new Response(null, { headers: cors });
+  }
 
-    if (path === "/pyq-proxy") {
-      const targetPath = url.searchParams.get("path");
-      if (!targetPath) return new Response("Missing path", { status: 400, headers: cors });
-      
-      const srmUrl = new URL(`https://srm-pyq-api.onrender.com/${targetPath}`);
-      url.searchParams.forEach((v, k) => {
-        if (k !== "path") srmUrl.searchParams.set(k, v);
-      });
+  const url = new URL(request.url);
+  const path = url.pathname;
 
-      const res = await fetch(srmUrl.toString(), {
-        cf: { cacheEverything: true, cacheTtl: 600 }
-      });
-      const newRes = new Response(res.body, res);
-      Object.entries(cors).forEach(([k, v]) => newRes.headers.set(k, v));
-      return newRes;
-    }
+  if (path === "/pyq-proxy") {
+    const targetPath = url.searchParams.get("path");
+    if (!targetPath) return new Response("Missing path", { status: 400, headers: cors });
+    
+    const srmUrl = new URL(`https://srm-pyq-api.onrender.com/${targetPath}`);
+    url.searchParams.forEach((v, k) => {
+      if (k !== "path") srmUrl.searchParams.set(k, v);
+    });
 
-    const allowed = ["/login", "/refresh", "/version"];
-    if (!allowed.includes(path)) {
-      return new Response(JSON.stringify({ error: "not found" }), {
-        status: 404,
-        headers: { ...cors, "Content-Type": "application/json" },
-      });
-    }
+    const res = await fetch(srmUrl.toString());
+    const newRes = new Response(res.body, res);
+    Object.entries(cors).forEach(([k, v]) => newRes.headers.set(k, v));
+    return newRes;
+  }
 
-    const backends = env.BACKEND_URLS.split(",").map(u => u.trim()).filter(Boolean);
-    const timestamp = Date.now();
-    let bodyText = "";
-    if (request.method === "POST") {
-      bodyText = await request.text();
-    }
-
-    const signature = await hmacSign(env.HMAC_SECRET, timestamp, bodyText, request.method, path);
-
-    for (const base of backends) {
-      try {
-        const targetUrl = new URL(base);
-        targetUrl.pathname = path;
-        targetUrl.search = url.search;
-
-        const res = await fetch(targetUrl.toString(), {
-          method: request.method,
-          headers: {
-            "Content-Type": "application/json",
-            "X-Ratio-Sig": signature,
-            "X-Ratio-TS": timestamp.toString(),
-          },
-          body: request.method === "POST" ? bodyText : null,
-        });
-
-        if (res.ok || res.status < 500) {
-          const newRes = new Response(res.body, res);
-          Object.entries(cors).forEach(([k, v]) => newRes.headers.set(k, v));
-          return newRes;
-        }
-      } catch {
-        continue;
-      }
-    }
-
-    return new Response(JSON.stringify({ error: "all backends unavailable" }), {
-      status: 503,
+  const allowed = ["/login", "/refresh", "/version"];
+  if (!allowed.includes(path)) {
+    return new Response(JSON.stringify({ 
+      error: "nice try hackerman", 
+      message: "better luck next time ;)" 
+    }), {
+      status: 403,
       headers: { ...cors, "Content-Type": "application/json" },
     });
-  },
-};
+  }
+
+  const backends = (env.BACKEND_URLS || "").split(",").map((u) => u.trim()).filter(Boolean);
+  const timestamp = Date.now();
+  let bodyText = "";
+  if (request.method === "POST") {
+    bodyText = await request.text();
+  }
+
+  const signature = await hmacSign(env.HMAC_SECRET || "", timestamp, bodyText, request.method, path);
+
+  for (const base of backends) {
+    try {
+      const targetUrl = new URL(base);
+      targetUrl.pathname = path;
+      targetUrl.search = url.search;
+
+      const res = await fetch(targetUrl.toString(), {
+        method: request.method,
+        headers: {
+          "Content-Type": "application/json",
+          "X-Ratio-Sig": signature,
+          "X-Ratio-TS": timestamp.toString(),
+        },
+        body: request.method === "POST" ? bodyText : null,
+      });
+
+      if (res.ok || res.status < 500) {
+        const newRes = new Response(res.body, res);
+        Object.entries(cors).forEach(([k, v]) => newRes.headers.set(k, v));
+        return newRes;
+      }
+    } catch (e) {
+      continue;
+    }
+  }
+
+  return new Response(JSON.stringify({ error: "all backends unavailable" }), {
+    status: 503,
+    headers: { ...cors, "Content-Type": "application/json" },
+  });
+}

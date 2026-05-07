@@ -7,12 +7,23 @@ import { useRouter } from "next/navigation";
 export default function Page() {
   const [mounted, setMounted] = useState(false);
   const isMobile = useIsMobile();
-  
+  const router = useRouter();
+
   useEffect(() => {
     setMounted(true);
   }, []);
 
+  useEffect(() => {
+    if (mounted && isMobile === false) {
+      router.replace("/login");
+    }
+  }, [mounted, isMobile, router]);
+
   if (!mounted || isMobile === undefined) {
+    return <div className="h-screen w-full bg-[#0c30ff]" />;
+  }
+
+  if (!isMobile) {
     return <div className="h-screen w-full bg-[#0c30ff]" />;
   }
 
