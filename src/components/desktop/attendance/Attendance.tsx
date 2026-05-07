@@ -334,8 +334,8 @@ export default function DesktopAttendance() {
                           <span className="text-theme-muted text-[9px] font-bold uppercase tracking-widest" style={{ fontFamily: 'var(--font-afacad)' }}>estimated percentage</span>
                           <span className="text-theme-text text-2xl font-black tracking-tighter" style={{ fontFamily: 'var(--font-montserrat)' }}>{stats.pct.toFixed(1)}%</span>
                         </div>
-                        <div className="overflow-hidden">
-                          <motion.p animate={{ opacity: isAnimating ? 0 : 1 }} transition={{ duration: 0.1 }} className="text-theme-muted text-[11px] font-medium lowercase tracking-tight leading-relaxed line-clamp-2" style={{ fontFamily: 'var(--font-afacad)' }}>{roast}</motion.p>
+                        <div className="h-[32px] overflow-hidden">
+                          <motion.p animate={{ opacity: isAnimating ? 0 : 1 }} transition={{ duration: 0.1 }} className="text-theme-muted text-[11px] font-medium lowercase tracking-tight leading-relaxed line-clamp-2 max-w-[150px]" style={{ fontFamily: 'var(--font-afacad)' }}>{roast}</motion.p>
                         </div>
                       </div>
                     </div>
@@ -349,8 +349,15 @@ export default function DesktopAttendance() {
                         </div>
                       </div>
                       <div className="space-y-8">
-                        <div className="overflow-hidden">
-                          <motion.p animate={{ opacity: isAnimating ? 0 : 1 }} transition={{ duration: 0.1 }} className="text-theme-muted/80 text-xl font-semibold lowercase tracking-tight leading-snug line-clamp-3" style={{ fontFamily: 'var(--font-afacad)' }}>{roast}</motion.p>
+                        <div className="h-[80px] min-h-[80px] overflow-hidden flex items-center">
+                          <motion.p 
+                            animate={{ opacity: isAnimating ? 0 : 1 }} 
+                            transition={{ duration: 0.1 }} 
+                            className="text-theme-muted/80 text-xl font-semibold lowercase tracking-tight leading-tight w-[150px] whitespace-normal" 
+                            style={{ fontFamily: 'var(--font-afacad)' }}
+                          >
+                            {roast}
+                          </motion.p>
                         </div>
                         <button onClick={togglePrediction} className="flex items-center gap-3 px-5 py-2.5 bg-theme-surface border border-theme-border rounded-2xl text-theme-muted hover:text-theme-text hover:bg-theme-surface transition-all w-fit group">
                           <Calculator size={16} className="group-hover:scale-110 transition-transform" />
@@ -404,7 +411,7 @@ export default function DesktopAttendance() {
                     </span>
                   </div>
                   <div className="text-center space-y-2">
-                    <h2 className="text-xl font-black lowercase tracking-tighter" style={{ fontFamily: 'var(--font-montserrat)' }}>
+                    <h2 className="text-xl font-black lowercase tracking-tighter max-w-[400px] mx-auto whitespace-normal leading-tight" style={{ fontFamily: 'var(--font-montserrat)' }}>
                       {noDataText}
                     </h2>
                     <p className="text-[9px] font-black uppercase tracking-[0.4em] mt-2" style={{ fontFamily: 'var(--font-montserrat)' }}>

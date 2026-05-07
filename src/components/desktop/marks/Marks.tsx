@@ -560,7 +560,9 @@ const MarksDashboard = ({ stats, roast, isAnimating, subjects, targetGrades, tar
             </div>
           </div>
           <div className="space-y-6">
-            <p className="text-theme-muted/80 text-xl font-semibold lowercase tracking-tight leading-snug" style={{ fontFamily: 'var(--font-afacad)' }}>{roast}</p>
+            <div className="h-[80px] min-h-[80px] overflow-hidden flex items-center">
+              <p className="text-theme-muted/80 text-xl font-semibold lowercase tracking-tight leading-tight w-[150px] whitespace-normal" style={{ fontFamily: 'var(--font-afacad)' }}>{roast}</p>
+            </div>
           </div>
         </div>
         
@@ -818,8 +820,15 @@ export default function DesktopMarks() {
                         </div>
                       </div>
                       <div className="space-y-6">
-                        <div className="overflow-hidden">
-                          <motion.p animate={{ opacity: isAnimating ? 0 : 1 }} transition={{ duration: 0.1 }} className="text-theme-muted/80 text-xl font-semibold lowercase tracking-tight leading-snug whitespace-nowrap" style={{ fontFamily: 'var(--font-afacad)' }}>{roast}</motion.p>
+                        <div className="h-[80px] min-h-[80px] overflow-hidden flex items-center">
+                          <motion.p 
+                            animate={{ opacity: isAnimating ? 0 : 1 }} 
+                            transition={{ duration: 0.1 }} 
+                            className="text-theme-muted/80 text-xl font-semibold lowercase tracking-tight leading-tight w-[150px] whitespace-normal" 
+                            style={{ fontFamily: 'var(--font-afacad)' }}
+                          >
+                            {roast}
+                          </motion.p>
                         </div>
                         <div className="flex items-baseline gap-1.5 whitespace-nowrap overflow-hidden">
                           <span className="text-theme-text text-2xl font-black tracking-tighter" style={{ fontFamily: 'var(--font-montserrat)' }}>{stats.totalInternalGot.toFixed(1)}</span>
@@ -878,7 +887,7 @@ export default function DesktopMarks() {
                             </span>
                           </div>
                           <div className="text-center space-y-2">
-                            <h2 className="text-xl font-black lowercase tracking-tighter" style={{ fontFamily: 'var(--font-montserrat)' }}>
+                            <h2 className="text-xl font-black lowercase tracking-tighter max-w-[400px] mx-auto whitespace-normal leading-tight" style={{ fontFamily: 'var(--font-montserrat)' }}>
                               {noDataText}
                             </h2>
                             <p className="text-[9px] font-black uppercase tracking-[0.4em] mt-2" style={{ fontFamily: 'var(--font-montserrat)' }}>
