@@ -8,8 +8,10 @@ import MinecraftAmbience from "./MinecraftAmbience";
 import SyncStatusNotification from "./SyncStatusNotification";
 import UpdateHistory from "./UpdateHistory";
 import WhatsNew from "./WhatsNew";
+import { useTabFocus } from "@/hooks/useTabFocus";
 
 export default function AppWrapper({ children }: { children: React.ReactNode }) {
+  useTabFocus();
   const { isOffline, isBackendError, setIsBackendError, backendErrorMsg, setBackendErrorMsg, showWelcome, setShowWelcome, userData, isUpdateHistoryOpen, setIsUpdateHistoryOpen } = useApp();
   const [showSplash, setShowSplash] = useState(false);
   const [isFirstSplash, setIsFirstSplash] = useState(false);
