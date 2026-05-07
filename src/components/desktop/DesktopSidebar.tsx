@@ -11,7 +11,6 @@ import {
   FileText
 } from "lucide-react";
 import { Haptics } from "@/utils/shared/haptics";
-import { useAppLayout } from "@/context/AppLayoutContext";
 import { useApp } from "@/context/AppContext";
 import { UserAvatar } from "../shared/UserAvatar";
 
@@ -121,7 +120,6 @@ const NavIcon = ({
 export default function DesktopSidebar() {
   const router = useRouter();
   const pathname = usePathname();
-  const { onOpenSettings } = useAppLayout();
   const { profileSeed } = useApp();
   const [isHovered, setIsHovered] = useState(false);
 
@@ -172,15 +170,16 @@ export default function DesktopSidebar() {
       </div>
       
       <div className="w-full">
-        <NavIcon 
+        <NavIcon
           label="profile"
           isExpanded={isHovered}
-          active={false}
+          active={pathname === "/settings"}
           avatarSeed={profileSeed}
           isProfile={true}
           onClick={() => {
-            Haptics.selection(); 
-            onOpenSettings();
+            if (pathname === "/settings") return;
+            Haptics.selection();
+            router.push("/settings");
           }}
         />
       </div>

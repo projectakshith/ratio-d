@@ -50,16 +50,14 @@ export default function DesktopPYQs() {
   const [isFetchingFile, setIsFetchingFile] = useState(false);
   
   const PROXY_BASE = useMemo(() => {
-    if (typeof window === "undefined") return "http://localhost:8000";
-    if (window.location.hostname === "localhost") return "http://localhost:8000";
-    const backendUrls = (process.env.NEXT_PUBLIC_BACKEND_URLS || "").split(",").map(u => u.trim()).filter(Boolean);
-    const prodBackend = backendUrls.find(u => u.startsWith("https"));
-    return prodBackend || backendUrls[0] || "http://localhost:8000";
+    if (typeof window === "undefined") return "";
+    return process.env.NEXT_PUBLIC_WORKER_URL || "";
   }, []);
 
   const fetchProxied = async (path: string, params: Record<string, any> = {}) => {
     const query = new URLSearchParams({ path, ...params }).toString();
-    return fetch(`${PROXY_BASE}/pyq-proxy?${query}`);
+    const baseUrl = PROXY_BASE || (window.location.hostname === "localhost" ? "http://localhost:8000" : "");
+    return fetch(`${baseUrl}/pyq-proxy?${query}`);
   };
 
   const [activeTab, setActiveTab] = useState<string | "search">("my-courses");

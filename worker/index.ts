@@ -4,7 +4,7 @@ export interface Env {
   ALLOWED_ORIGIN: string;
 }
 
-async function hmacSign(secret: string, timestamp: number, bodyHash: string): Promise<string> {
+async function hmacSign(secret: string, timestamp: number, body: string, method: string, path: string): Promise<string> {
   const key = await crypto.subtle.importKey(
     "raw",
     new TextEncoder().encode(secret),
@@ -12,104 +12,93 @@ async function hmacSign(secret: string, timestamp: number, bodyHash: string): Pr
     false,
     ["sign"]
   );
-  const message = `${timestamp}.${bodyHash}`;
-  const sig = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(message));
-  return Array.from(new Uint8Array(sig)).map((b) => b.toString(16).padStart(2, "0")).join("");
-}
-
-async function sha256Hex(data: string): Promise<string> {
-  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(data));
-  return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join("");
-}
-
-function getBackends(env: Env): string[] {
-  return env.BACKEND_URLS.split(",").map((u) => u.trim()).filter(Boolean);
-}
-
-async function forward(
-  backends: string[],
-  path: string,
-  body: string,
-  env: Env
-): Promise<Response> {
-  const timestamp = Math.floor(Date.now() / 1000);
-  const bodyHash = await sha256Hex(body);
-  const sig = await hmacSign(env.HMAC_SECRET, timestamp, bodyHash);
-
-  const shuffled = [...backends].sort(() => Math.random() - 0.5);
-  let lastErr: unknown;
-
-  for (const base of shuffled) {
-    try {
-      const res = await fetch(`${base}${path}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Ratio-Sig": `t=${timestamp},v1=${sig}`,
-        },
-        body,
-        signal: AbortSignal.timeout(20000),
-      });
-
-      if (res.ok || (res.status >= 400 && res.status < 500)) return res;
-      lastErr = new Error(`${base} returned ${res.status}`);
-    } catch (e) {
-      lastErr = e;
-    }
-  }
-
-  throw lastErr;
-}
-
-function corsHeaders(origin: string, allowed: string): HeadersInit {
-  const isAllowed =
-    origin === allowed ||
-    origin === `www.${allowed.replace("https://", "")}` ||
-    origin === "http://localhost:3000";
-
-  return {
-    "Access-Control-Allow-Origin": isAllowed ? origin : allowed,
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
-    "Access-Control-Max-Age": "86400",
-  };
+  const data = `${method}:${path}:${timestamp}:${body}`;
+  const signature = await crypto.subtle.sign(
+    "HMAC",
+    key,
+    new TextEncoder().encode(data)
+  );
+  return btoa(String.fromCharCode(...new Uint8Array(signature)));
 }
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
-    const origin = request.headers.get("Origin") ?? "";
-    const cors = corsHeaders(origin, env.ALLOWED_ORIGIN);
+    const cors = {
+      "Access-Control-Allow-Origin": env.ALLOWED_ORIGIN || "*",
+      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, X-Ratio-Sig, X-Ratio-TS",
+    };
 
     if (request.method === "OPTIONS") {
-      return new Response(null, { status: 204, headers: cors });
+      return new Response(null, { headers: cors });
     }
 
     const url = new URL(request.url);
     const path = url.pathname;
 
-    if (!["/login", "/refresh", "/version"].includes(path)) {
-      return new Response("not found", { status: 404, headers: cors });
+    if (path === "/pyq-proxy") {
+      const targetPath = url.searchParams.get("path");
+      if (!targetPath) return new Response("Missing path", { status: 400, headers: cors });
+      
+      const srmUrl = new URL(`https://srm-pyq-api.onrender.com/${targetPath}`);
+      url.searchParams.forEach((v, k) => {
+        if (k !== "path") srmUrl.searchParams.set(k, v);
+      });
+
+      const res = await fetch(srmUrl.toString(), {
+        cf: { cacheEverything: true, cacheTtl: 600 }
+      });
+      const newRes = new Response(res.body, res);
+      Object.entries(cors).forEach(([k, v]) => newRes.headers.set(k, v));
+      return newRes;
     }
 
-    if (request.method !== "POST") {
-      return new Response("method not allowed", { status: 405, headers: cors });
-    }
-
-    const body = await request.text();
-    const backends = getBackends(env);
-
-    try {
-      const res = await forward(backends, path, body, env);
-      const text = await res.text();
-      return new Response(text, {
-        status: res.status,
+    const allowed = ["/login", "/refresh", "/version"];
+    if (!allowed.includes(path)) {
+      return new Response(JSON.stringify({ error: "not found" }), {
+        status: 404,
         headers: { ...cors, "Content-Type": "application/json" },
       });
-    } catch {
-      return new Response(JSON.stringify({ error: "all backends unavailable" }), {
-        status: 503,
-        headers: { ...cors, "Content-Type": "application/json" },
-      });
     }
+
+    const backends = env.BACKEND_URLS.split(",").map(u => u.trim()).filter(Boolean);
+    const timestamp = Date.now();
+    let bodyText = "";
+    if (request.method === "POST") {
+      bodyText = await request.text();
+    }
+
+    const signature = await hmacSign(env.HMAC_SECRET, timestamp, bodyText, request.method, path);
+
+    for (const base of backends) {
+      try {
+        const targetUrl = new URL(base);
+        targetUrl.pathname = path;
+        targetUrl.search = url.search;
+
+        const res = await fetch(targetUrl.toString(), {
+          method: request.method,
+          headers: {
+            "Content-Type": "application/json",
+            "X-Ratio-Sig": signature,
+            "X-Ratio-TS": timestamp.toString(),
+          },
+          body: request.method === "POST" ? bodyText : null,
+        });
+
+        if (res.ok || res.status < 500) {
+          const newRes = new Response(res.body, res);
+          Object.entries(cors).forEach(([k, v]) => newRes.headers.set(k, v));
+          return newRes;
+        }
+      } catch {
+        continue;
+      }
+    }
+
+    return new Response(JSON.stringify({ error: "all backends unavailable" }), {
+      status: 503,
+      headers: { ...cors, "Content-Type": "application/json" },
+    });
   },
 };

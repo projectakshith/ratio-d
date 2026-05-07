@@ -144,13 +144,17 @@ async def refresh_data(creds: Credentials, request: Request):
         if not att_html or att_html == "CONCURRENT_ERROR":
             if not creds.password:
                 raise HTTPException(status_code=401, detail={"type": "SESSION_EXPIRED"})
-            print(f"{get_now()}\n  -> [AUTH] Session invalid. Re-authenticating...", flush=True)
-            await client.authenticate(creds.captcha, creds.cdigest)
-            att_html = await client.get_attendance_html()
+            
+            print(f"{get_now()}\n  -> [AUTH] Session invalid or site glitch. Attempting re-auth...", flush=True)
+            try:
+                await client.authenticate(creds.captcha, creds.cdigest)
+                att_html = await client.get_attendance_html()
+            except Exception:
+                raise HTTPException(status_code=503, detail="Academia is temporarily unavailable. Try again.")
 
         if not att_html:
-            print(f"{get_now()}\n  -> [AUTH] FAILED: Could not retrieve data after re-auth.", flush=True)
-            raise HTTPException(status_code=401, detail="Invalid Credentials")
+            print(f"{get_now()}\n  -> [AUTH] FAILED: Site returned no data after re-auth.", flush=True)
+            raise HTTPException(status_code=503, detail="Academia returned no data. Site might be down.")
 
         attendance = AttendanceService.parse_attendance(att_html)
         marks = MarksService.parse_test_performance(att_html)
@@ -178,7 +182,7 @@ async def refresh_data(creds: Credentials, request: Request):
                 raise HTTPException(status_code=401, detail=err_data)
         except Exception:
             pass
-        raise HTTPException(status_code=401, detail="Invalid Credentials")
+        raise HTTPException(status_code=500, detail="Something went wrong while fetching data.")
 
 @app.post("/login")
 @limiter.limit("5/minute")

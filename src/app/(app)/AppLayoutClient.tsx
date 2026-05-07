@@ -93,21 +93,23 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
         <AnimatePresence>
           {isSettingsOpen && (
-            <SettingsPage
-              onBack={() => setIsSettingsOpen(false)}
-              onLogout={logout}
-              profile={{
-                name: customDisplayName || userData?.profile?.name || "Student",
-                regNo: userData?.profile?.regNo || "",
-              }}
-              onUpdateName={handleUpdateName}
-              onSelectTheme={(newTheme) => {
-                setTheme(newTheme);
-                setIsSettingsOpen(false);
-              }}
-              onOpenHistory={() => setIsUpdateHistoryOpen(true)}
-              currentTheme={theme}
-            />
+            <div className="md:hidden">
+              <SettingsPage
+                onBack={() => setIsSettingsOpen(false)}
+                onLogout={logout}
+                profile={{
+                  name: customDisplayName || userData?.profile?.name || "Student",
+                  regNo: userData?.profile?.regNo || "",
+                }}
+                onUpdateName={handleUpdateName}
+                onSelectTheme={(newTheme) => {
+                  setTheme(newTheme);
+                  setIsSettingsOpen(false);
+                }}
+                onOpenHistory={() => setIsUpdateHistoryOpen(true)}
+                currentTheme={theme}
+              />
+            </div>
           )}
         </AnimatePresence>
       </div>

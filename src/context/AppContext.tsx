@@ -252,20 +252,25 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
       if (response.status === 401) {
         const errData = await response.json().catch(() => ({}));
-        if (errData?.detail?.type === "SESSION_EXPIRED" && creds.password) {
+        const isAuthError = errData?.detail?.type === "INVALID_CREDENTIALS" || errData?.detail === "Invalid Credentials";
+        const isSessionExpired = errData?.detail?.type === "SESSION_EXPIRED";
+
+        if (isSessionExpired && creds.password) {
           response = await makeRefreshRequest(true);
           if (!response.ok) {
-            await logout();
+            if (response.status === 401) await logout();
             return existingData;
           }
-        } else {
+        } else if (isAuthError) {
           await logout();
+          return existingData;
+        } else {
           return existingData;
         }
       }
 
       const result = await response.json();
-      if (!result.success) {
+      if (!result.success || (!result.attendance && !result.marks && !result.timetable)) {
         return existingData;
       }
 
