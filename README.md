@@ -3,7 +3,11 @@
 
 <div align="center">
 
-**your academia portal, but it doesn't suck.**
+# ratio'd
+
+### built for speed.
+
+> ratio'd is a dashboard built by students, for students. it's lowkey private, failproof, and designed to replace the stress of traditional academic portals.
 
 [![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)](https://nextjs.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
