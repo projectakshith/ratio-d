@@ -75,14 +75,52 @@ export default function DesktopPYQs() {
   }, []);
 
   const myCourses = useMemo(() => {
-    if (!userData?.attendance) return [];
-    const base = getBaseAttendance(userData.attendance);
-    const seen = new Set();
-    return base.filter(c => {
-      if (seen.has(c.code)) return false;
-      seen.add(c.code);
-      return true;
+    if (!userData?.courses) return [];
+    
+    // Build a fallback name map from timetable and marks
+    const nameMap: Record<string, string> = {};
+    
+    // 1. From Timetable
+    const schedule = userData.timetable || userData.schedule || {};
+    Object.values(schedule).forEach((day: any) => {
+      if (!day) return;
+      Object.values(day).forEach((slot: any) => {
+        if (slot && (slot.courseCode || slot.code)) {
+          const code = (slot.courseCode || slot.code).split("-")[0].trim();
+          const name = slot.courseTitle || slot.name || slot.course;
+          if (name && !nameMap[code]) nameMap[code] = name;
+        }
+      });
     });
+
+    // 2. From Marks
+    if (userData.marks) {
+      userData.marks.forEach((m: any) => {
+        const code = (m.courseCode || m.code || "").trim();
+        const name = m.courseTitle || m.title;
+        if (code && name && !nameMap[code]) nameMap[code] = name;
+      });
+    }
+    
+    // Convert courses object to array and filter out non-course entries
+    const courseList = Object.values(userData.courses).filter((c: any) => c && (c.courseCode || c.code));
+    
+    const seen = new Set();
+    return courseList.reduce((acc: any[], c: any) => {
+      const fullCode = (c.courseCode || c.code || "").trim();
+      const code = fullCode.split("-")[0].trim();
+      if (!code || seen.has(code)) return acc;
+      
+      seen.add(code);
+      acc.push({
+        id: code,
+        code: code,
+        title: c.courseTitle || c.title || nameMap[code] || code,
+        type: c.type || "Theory",
+        credits: c.credits || c.credit || 0
+      });
+      return acc;
+    }, []);
   }, [userData]);
 
   const fetchPapers = async (courseCode: string) => {

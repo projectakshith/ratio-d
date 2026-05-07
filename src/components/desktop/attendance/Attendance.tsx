@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useMemo, useRef } from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
 import { ReactLenis } from "lenis/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Calculator, RotateCcw, ChevronLeft } from "lucide-react";
@@ -180,7 +180,7 @@ const SubjectCard = ({ code, title, percent, present, conducted, val, safe, type
 export default function DesktopAttendance() {
   const { userData } = useApp();
   const [isPredicting, setIsPredicting] = useState(false);
-  const [isStatsExpanded, setIsStatsExpanded] = useState(false);
+  const [isStatsExpanded, setIsStatsExpanded] = useState(true);
   const [isAnimating, setIsAnimating] = useState(false);
   const [predictAction, setPredictAction] = useState<"leave" | "attend" | "od">("leave");
   const [selectedDates, setSelectedDates] = useState<Record<string, "leave" | "attend" | "od">>({});
@@ -239,7 +239,7 @@ export default function DesktopAttendance() {
 
   const handleMouseEnter = () => {
     if (!isStatsExpanded) {
-      hoverTimeoutRef.current = setTimeout(() => setIsStatsExpanded(true), 2000);
+      hoverTimeoutRef.current = setTimeout(() => setIsStatsExpanded(true), 1500);
     }
   };
 
@@ -273,6 +273,16 @@ export default function DesktopAttendance() {
   const criticalSubjects = processedList.filter(s => !s.safe);
   const normalSubjects = processedList.filter(s => s.safe);
 
+  const noDataText = useMemo(() => {
+    const list = flavorText.noDataAttendance || ["no data found."];
+    return list[Math.floor(Math.random() * list.length)];
+  }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsStatsExpanded(false), 1500);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <div className="relative h-full w-full flex flex-col overflow-hidden">
       <style>{`
@@ -291,7 +301,6 @@ export default function DesktopAttendance() {
           <motion.div 
             initial={false}
             animate={{ width: isStatsExpanded ? (isPredicting ? 420 : 280) : 70 }}
-            transition={{ type: "spring", damping: 25, stiffness: 120 }}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
             onAnimationStart={() => setIsAnimating(true)}
@@ -385,28 +394,49 @@ export default function DesktopAttendance() {
           </motion.div>
 
           <ReactLenis options={{ orientation: 'horizontal', smoothWheel: true }} className="flex-1 h-full overflow-x-auto no-scrollbar flex items-start">
-            <motion.div layout className="flex flex-row gap-16 px-20 pt-16 pb-16">
-              {criticalSubjects.length > 0 && (
-                <div className="flex flex-col gap-4">
-                  <div className="flex items-center gap-4 px-4 mb-2">
-                    <span className="text-[#FF4D4D] text-[10px] font-bold uppercase tracking-[0.5em] shrink-0" style={{ fontFamily: 'var(--font-afacad)' }}>action required</span>
-                    <div className="w-12 h-px bg-[#FF4D4D]/20" />
+            <motion.div layout className="flex flex-row gap-16 px-20 pt-16 pb-16 min-w-full h-full">
+              {processedList.length === 0 ? (
+                <div className="flex-1 flex flex-col items-center justify-center gap-8 opacity-40 select-none pl-48 pt-20 h-full">
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-theme-text/5 blur-3xl rounded-full scale-150" />
+                    <span className="text-7xl font-mono tracking-tighter opacity-80 animate-pulse">
+                      ( •_•)
+                    </span>
                   </div>
-                  <div className="flex flex-row gap-6">
-                    {criticalSubjects.map(s => <SubjectCard key={s.id} {...s} />)}
-                  </div>
-                </div>
-              )}
-              {normalSubjects.length > 0 && (
-                <div className="flex flex-col gap-4">
-                  <div className="flex items-center gap-4 px-4 mb-2">
-                    <span className="text-theme-text/40 text-[10px] font-bold uppercase tracking-[0.5em] shrink-0" style={{ fontFamily: 'var(--font-afacad)' }}>subjects</span>
-                    <div className="w-12 h-px bg-theme-text/40" />
-                  </div>
-                  <div className="flex flex-row gap-6">
-                    {normalSubjects.map(s => <SubjectCard key={s.id} {...s} />)}
+                  <div className="text-center space-y-2">
+                    <h2 className="text-xl font-black lowercase tracking-tighter" style={{ fontFamily: 'var(--font-montserrat)' }}>
+                      {noDataText}
+                    </h2>
+                    <p className="text-[9px] font-black uppercase tracking-[0.4em] mt-2" style={{ fontFamily: 'var(--font-montserrat)' }}>
+                      waiting for the hamsters to wake up
+                    </p>
                   </div>
                 </div>
+              ) : (
+                <>
+                  {criticalSubjects.length > 0 && (
+                    <div className="flex flex-col gap-4">
+                      <div className="flex items-center gap-4 px-4 mb-2">
+                        <span className="text-[#FF4D4D] text-[10px] font-bold uppercase tracking-[0.5em] shrink-0" style={{ fontFamily: 'var(--font-afacad)' }}>action required</span>
+                        <div className="w-12 h-px bg-[#FF4D4D]/20" />
+                      </div>
+                      <div className="flex flex-row gap-6">
+                        {criticalSubjects.map(s => <SubjectCard key={s.id} {...s} />)}
+                      </div>
+                    </div>
+                  )}
+                  {normalSubjects.length > 0 && (
+                    <div className="flex flex-col gap-4">
+                      <div className="flex items-center gap-4 px-4 mb-2">
+                        <span className="text-theme-text/40 text-[10px] font-bold uppercase tracking-[0.5em] shrink-0" style={{ fontFamily: 'var(--font-afacad)' }}>subjects</span>
+                        <div className="w-12 h-px bg-theme-text/40" />
+                      </div>
+                      <div className="flex flex-row gap-6">
+                        {normalSubjects.map(s => <SubjectCard key={s.id} {...s} />)}
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </motion.div>
           </ReactLenis>

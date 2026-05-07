@@ -89,7 +89,7 @@ export default function Error({
               className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-theme-muted hover:text-theme-secondary transition-colors group py-2 mb-4"
             >
               <Terminal size={12} className={showLogs ? "text-theme-secondary" : ""} />
-              {showLogs ? "HIDE SYSTEM LOGS" : "VIEW SYSTEM LOGS"}
+              {showLogs ? "HIDE FULL LOG" : "VIEW FULL LOG"}
               {showLogs ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
             </button>
 
@@ -137,18 +137,23 @@ export default function Error({
                 </div>
               </button>
 
-              <div className="max-w-xs space-y-3 pb-12">
-                <p className="text-theme-muted text-[10px] font-bold uppercase tracking-[0.2em] opacity-60 leading-relaxed" style={{ fontFamily: 'var(--font-afacad)' }}>
-                  a critical exception has occurred. the devs are currently being bullied for this.
+              <div className="max-w-xs space-y-2 pb-12">
+                <p className="text-theme-muted text-[10px] font-bold uppercase tracking-[0.2em] opacity-80 leading-relaxed" style={{ fontFamily: 'var(--font-afacad)' }}>
+                  a critical exception has occurred
                 </p>
-                <Link 
-                  href="https://chat.whatsapp.com/D7wymoQ1zrQKqf4Qs4gw91" 
-                  target="_blank"
-                  className="inline-block px-6 py-2 bg-theme-secondary text-theme-bg text-[10px] font-black uppercase tracking-widest rounded-full hover:scale-105 transition-transform"
-                  style={{ fontFamily: 'var(--font-montserrat)' }}
-                >
-                  SHOUT AT THE DEVS HERE
-                </Link>
+                <p className="text-theme-muted text-[10px] font-bold uppercase tracking-[0.2em] opacity-60 leading-relaxed" style={{ fontFamily: 'var(--font-afacad)' }}>
+                  the devs are retarded asf
+                </p>
+                <div className="pt-2">
+                  <Link 
+                    href="https://chat.whatsapp.com/D7wymoQ1zrQKqf4Qs4gw91" 
+                    target="_blank"
+                    className="inline-block px-6 py-2 bg-theme-secondary text-theme-bg text-[10px] font-black uppercase tracking-widest rounded-full hover:scale-105 transition-transform"
+                    style={{ fontFamily: 'var(--font-montserrat)' }}
+                  >
+                    SHOUT AT THE DEVS HERE
+                  </Link>
+                </div>
               </div>
             </div>
           </div>

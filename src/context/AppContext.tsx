@@ -176,7 +176,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           body: JSON.stringify(creds),
         });
 
-        if (response.status === 503 || response.status === 429) {
+        if (response.status === 503 || response.status === 429 || response.status === 502 || response.status === 504) {
           setIsBackendError(true);
           try {
             const data = await response.json();
@@ -208,8 +208,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         localStorage.setItem("ratio_data", JSON.stringify(data));
 
         return data;
-      } catch (err) {
-        if (navigator.onLine) {
+      } catch (err: any) {
+        if (navigator.onLine && (err.name === 'AbortError' || err.message === 'Failed to fetch' || err.message === 'Backend error')) {
           setIsBackendError(true);
         }
         throw err;
@@ -241,7 +241,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
       let response = await makeRefreshRequest(false);
 
-      if (response.status === 503 || response.status === 429) {
+      if (response.status === 503 || response.status === 429 || response.status === 502 || response.status === 504) {
         setIsBackendError(true);
         try {
           const data = await response.json();
@@ -322,8 +322,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setUserData(mergedData);
       localStorage.setItem("ratio_data", JSON.stringify(mergedData));
       return mergedData;
-    } catch (err) {
-      if (navigator.onLine) {
+    } catch (err: any) {
+      if (navigator.onLine && (err.name === 'AbortError' || err.message === 'Failed to fetch')) {
         setIsBackendError(true);
       }
       return existingData;

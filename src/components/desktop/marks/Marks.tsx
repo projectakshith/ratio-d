@@ -653,6 +653,11 @@ export default function DesktopMarks() {
   const [isAnimating, setIsAnimating] = useState(false);
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  const noDataText = useMemo(() => {
+    const list = flavorText.noDataMarks || ["no data found."];
+    return list[Math.floor(Math.random() * list.length)];
+  }, []);
+
   useEffect(() => {
     setMounted(true);
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -791,18 +796,15 @@ export default function DesktopMarks() {
           {viewMode === "feed" && (
             <motion.div 
               key="stats-sidebar"
-              initial={{ width: 0, opacity: 0 }}
+              initial={false}
               animate={{ width: isStatsExpanded ? 280 : 70, opacity: 1 }}
-              exit={{ width: 0, opacity: 0 }}
-              transition={{ type: "spring", damping: 25, stiffness: 120 }}
               onMouseEnter={handleMouseEnter}
               onMouseLeave={handleMouseLeave}
               onAnimationStart={() => setIsAnimating(true)}
               onAnimationComplete={() => setIsAnimating(false)}
               onClick={() => !isStatsExpanded && setIsStatsExpanded(true)}
-              className={`shrink-0 h-full relative z-10 flex flex-col items-center justify-center overflow-visible ${!isStatsExpanded ? 'cursor-pointer' : ''}`}
+              className={`shrink-0 h-full relative z-10 bg-theme-surface/10 flex flex-col items-center justify-center overflow-visible ${!isStatsExpanded ? 'cursor-pointer' : ''}`}
             >
-              <div className={`absolute inset-0 transition-colors duration-500 ${stats.badge === 'cooked' ? 'bg-[#FF4D4D]/5' : 'bg-theme-surface/10'}`} />
               <div className="absolute inset-y-0 right-0 w-4 bg-gradient-to-r from-theme-surface/10 to-transparent translate-x-full pointer-events-none z-20" />
               
               <AnimatePresence mode="wait">
@@ -827,12 +829,18 @@ export default function DesktopMarks() {
                     </div>
                   </motion.div>
                 ) : (
-                  <motion.div key="collapsed" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex-1 flex flex-col items-center justify-center w-full h-full relative">
+                  <motion.div key="collapsed" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex-1 flex flex-col items-center justify-center w-full h-full relative gap-3">
                     <span
-                      className="text-theme-text text-[13px] font-black tabular-nums select-none"
-                      style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', fontFamily: 'var(--font-montserrat)', letterSpacing: '-0.04em' }}
+                      className="text-theme-text text-[28px] font-black tabular-nums select-none opacity-60"
+                      style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', fontFamily: 'var(--font-montserrat)', letterSpacing: '-0.06em' }}
                     >
                       {stats.gpa}
+                    </span>
+                    <span
+                      className="text-theme-muted text-[7px] font-black uppercase tracking-[0.4em] select-none opacity-40"
+                      style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', fontFamily: 'var(--font-montserrat)' }}
+                    >
+                      predicted
                     </span>
                   </motion.div>
                 )}
@@ -860,28 +868,49 @@ export default function DesktopMarks() {
               {viewMode === "feed" ? (
                 <div key="feed-container" className="flex-1 h-full w-full overflow-hidden flex items-center">
                   <ReactLenis options={{ orientation: 'horizontal', smoothWheel: true }} className="h-full w-full overflow-x-auto no-scrollbar flex items-start">
-                    <motion.div layout className="flex flex-row gap-16 px-20 pt-16 pb-16 h-full items-start w-max">
-                      {criticalSubs.length > 0 && (
-                        <div className="flex flex-col gap-4 h-fit">
-                          <div className="flex items-center gap-3 px-4 mb-1">
-                            <span className="text-[#FF4D4D] text-[9px] font-bold uppercase tracking-[0.5em] shrink-0" style={{ fontFamily: 'var(--font-afacad)' }}>low internals</span>
-                            <div className="w-10 h-px bg-[#FF4D4D]/20" />
+                    <motion.div layout className="flex flex-row gap-16 px-20 pt-16 pb-16 h-full items-start min-w-full">
+                      {subjects.length === 0 ? (
+                        <div className="flex-1 flex flex-col items-center justify-center gap-8 opacity-40 select-none pl-48 pt-20 self-center h-full">
+                          <div className="relative">
+                            <div className="absolute inset-0 bg-theme-text/5 blur-3xl rounded-full scale-150" />
+                            <span className="text-7xl font-mono tracking-tighter opacity-80 animate-pulse">
+                              ( -_•) ┳━┳
+                            </span>
                           </div>
-                          <div className="flex flex-row gap-5">
-                            {criticalSubs.map(s => <MarkSubjectCard key={s.id} sub={s} onSelect={handleSelectSub} />)}
-                          </div>
-                        </div>
-                      )}
-                      {normalSubs.length > 0 && (
-                        <div className="flex flex-col gap-4 h-fit">
-                          <div className="flex items-center gap-3 px-4 mb-1">
-                            <span className="text-theme-text/40 text-[9px] font-bold uppercase tracking-[0.5em] shrink-0" style={{ fontFamily: 'var(--font-afacad)' }}>subjects</span>
-                            <div className="w-10 h-px bg-theme-text/40" />
-                          </div>
-                          <div className="flex flex-row gap-5">
-                            {normalSubs.map(s => <MarkSubjectCard key={s.id} sub={s} onSelect={handleSelectSub} />)}
+                          <div className="text-center space-y-2">
+                            <h2 className="text-xl font-black lowercase tracking-tighter" style={{ fontFamily: 'var(--font-montserrat)' }}>
+                              {noDataText}
+                            </h2>
+                            <p className="text-[9px] font-black uppercase tracking-[0.4em] mt-2" style={{ fontFamily: 'var(--font-montserrat)' }}>
+                              the academic comeback is on hold
+                            </p>
                           </div>
                         </div>
+                      ) : (
+                        <>
+                          {criticalSubs.length > 0 && (
+                            <div className="flex flex-col gap-4 h-fit">
+                              <div className="flex items-center gap-3 px-4 mb-1">
+                                <span className="text-[#FF4D4D] text-[9px] font-bold uppercase tracking-[0.5em] shrink-0" style={{ fontFamily: 'var(--font-afacad)' }}>low internals</span>
+                                <div className="w-10 h-px bg-[#FF4D4D]/20" />
+                              </div>
+                              <div className="flex flex-row gap-5">
+                                {criticalSubs.map(s => <MarkSubjectCard key={s.id} sub={s} onSelect={handleSelectSub} />)}
+                              </div>
+                            </div>
+                          )}
+                          {normalSubs.length > 0 && (
+                            <div className="flex flex-col gap-4 h-fit">
+                              <div className="flex items-center gap-3 px-4 mb-1">
+                                <span className="text-theme-text/40 text-[9px] font-bold uppercase tracking-[0.5em] shrink-0" style={{ fontFamily: 'var(--font-afacad)' }}>subjects</span>
+                                <div className="w-10 h-px bg-theme-text/40" />
+                              </div>
+                              <div className="flex flex-row gap-5">
+                                {normalSubs.map(s => <MarkSubjectCard key={s.id} sub={s} onSelect={handleSelectSub} />)}
+                              </div>
+                            </div>
+                          )}
+                        </>
                       )}
                     </motion.div>
                   </ReactLenis>

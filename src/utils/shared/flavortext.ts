@@ -139,6 +139,20 @@ export const flavorText = {
     "kicking your other session out...",
     "decrypting your academic downfall...",
   ],
+  noDataAttendance: [
+    "academia forgot to update your attendance blud.",
+    "attendance is ghosting you harder than your crush.",
+    "zero attendance records. either you're a freshie or it's over.",
+    "looks like you're officially off the grid (attendance wise).",
+    "no attendance found. maybe you finally dropped out?",
+  ],
+  noDataMarks: [
+    "marks are missing. academia is literally hibernating.",
+    "your internal marks are a literal myth right now.",
+    "no marks found. either you didn't write the exam or srm fumbled.",
+    "marks page is looking as empty as your future.",
+    "searching for your marks... found absolutely nothing.",
+  ],
 };
 
 export const getRandomRoast = (

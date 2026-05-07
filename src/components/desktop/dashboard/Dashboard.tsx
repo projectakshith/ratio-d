@@ -87,14 +87,15 @@ export default function DesktopDashboard() {
     "student"
   ).toLowerCase();
 
-  const welcomeText = useMemo(() => {
-    const list = flavorText.welcomes || ["welcome back."];
-    return list[Math.floor(Math.random() * list.length)];
-  }, []);
-
-  const asciiArt = useMemo(() => {
-    const list = (flavorText as any).ascii || ["(¬‿¬)"];
-    return list[Math.floor(Math.random() * list.length)];
+  const { welcomeText, asciiArt, freeTimeText } = useMemo(() => {
+    const welcomes = flavorText.welcomes || ["welcome back."];
+    const asciis = (flavorText as any).ascii || ["(¬‿¬)"];
+    const freeTimes = flavorText.freeTime || ["go touch some grass"];
+    return {
+      welcomeText: welcomes[Math.floor(Math.random() * welcomes.length)],
+      asciiArt: asciis[Math.floor(Math.random() * asciis.length)],
+      freeTimeText: freeTimes[Math.floor(Math.random() * freeTimes.length)]
+    };
   }, []);
 
   const profile = (userData?.profile || {}) as StudentProfile;
@@ -164,24 +165,42 @@ export default function DesktopDashboard() {
   const isShowingTomorrow =
     focusClass &&
     realDayToTrack !== (isHoliday ? nextWorkingDayOrder || 1 : currentDayOrder);
+  
+  const isDayOver = !currentClass && !nextClass && !isHoliday;
+  const isSemesterEnd = isDayOver && !nextWorkingDayOrder;
+
   const focusLabel = focusClass
     ? isShowingTomorrow
       ? isTomorrowHoliday
         ? "next session"
         : "tomorrow's first"
       : "next up"
-    : "free time";
+    : isSemesterEnd
+      ? "semester mode"
+      : isHoliday
+        ? "chill mode"
+        : isDayOver
+          ? "day complete"
+          : "free time";
 
-  const displayCourse = (
-    focusClass?.name ||
-    focusClass?.courseTitle ||
-    focusClass?.course ||
-    "free time"
-  ).toLowerCase();
+  const displayCourse = focusClass
+    ? (
+        focusClass.name ||
+        focusClass.courseTitle ||
+        focusClass.course ||
+        "free time"
+      ).toLowerCase()
+    : isSemesterEnd
+      ? "enjoy the break."
+      : freeTimeText;
 
   const statusClass = (currentClass ||
     nextClass ||
     null) as ScheduleSlot | null;
+
+  const overallAttendance = useMemo(() => {
+    return calculateOverallAttendance(userData?.attendance || []);
+  }, [userData]);
 
   const { alertName, alertPct, alertMargin, alertLabel, alertPctNum } =
     useMemo(() => {
@@ -498,7 +517,7 @@ export default function DesktopDashboard() {
                 className="text-theme-text text-[11px] font-black uppercase tracking-[0.2em] whitespace-nowrap"
                 style={{ fontFamily: "var(--font-afacad)" }}
               >
-                {focusClass?.room || "FREE"}
+                {focusClass?.room || (isDayOver || isHoliday ? "CHILL" : "FREE")}
               </span>
             </div>
 
@@ -539,7 +558,9 @@ export default function DesktopDashboard() {
                         ? "current class • "
                         : isShowingTomorrow
                           ? "first class • "
-                          : "status • "}
+                          : isDayOver
+                            ? "overall • "
+                            : "status • "}
                     <strong className="text-theme-text font-black uppercase tracking-widest">
                       {isHoliday
                         ? "CHILL"
@@ -547,7 +568,9 @@ export default function DesktopDashboard() {
                           ? getAcronym(
                               statusClass.name || statusClass.code || "",
                             ).toUpperCase()
-                          : "FREE"}
+                          : isDayOver
+                            ? `${overallAttendance}%`
+                            : "FREE"}
                     </strong>
                   </span>
                 </div>
@@ -561,7 +584,11 @@ export default function DesktopDashboard() {
                       ? currentClass
                         ? `ends at ${statusClass.time.split("-")[1]?.trim()}`
                         : `starts at ${statusClass.time.split("-")[0]?.trim()}`
-                      : "check back later"}
+                      : isDayOver
+                        ? nextWorkingDayOrder 
+                          ? `next up: day ${nextWorkingDayOrder}`
+                          : "all done for today"
+                        : "check back later"}
                 </span>
               </div>
             </div>
