@@ -1,4 +1,4 @@
-async function hmacSign(secret, timestamp, body, method, path) {
+async function hmacSign(secret: string, timestamp: number, body: string, method: string, path: string): Promise<string> {
   const key = await crypto.subtle.importKey(
     "raw",
     new TextEncoder().encode(secret),
@@ -15,12 +15,12 @@ async function hmacSign(secret, timestamp, body, method, path) {
   return btoa(String.fromCharCode(...new Uint8Array(signature)));
 }
 
-addEventListener("fetch", (event) => {
+addEventListener("fetch", (event: any) => {
   event.respondWith(handleRequest(event.request));
 });
 
-async function handleRequest(request) {
-  const env = globalThis;
+async function handleRequest(request: Request): Promise<Response> {
+  const env = (globalThis as any);
   const cors = {
     "Access-Control-Allow-Origin": env.ALLOWED_ORIGIN || "*",
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
@@ -60,7 +60,7 @@ async function handleRequest(request) {
     });
   }
 
-  const backends = (env.BACKEND_URLS || "").split(",").map((u) => u.trim()).filter(Boolean);
+  const backends = (env.BACKEND_URLS || "").split(",").map((u: string) => u.trim()).filter(Boolean);
   const timestamp = Date.now();
   let bodyText = "";
   if (request.method === "POST") {
