@@ -51,6 +51,7 @@ export default function DesktopPYQs() {
   
   const PROXY_BASE = useMemo(() => {
     if (typeof window === "undefined") return "";
+    if (window.location.hostname === "localhost") return "http://localhost:8000";
     return process.env.NEXT_PUBLIC_WORKER_URL || "";
   }, []);
 
@@ -63,6 +64,7 @@ export default function DesktopPYQs() {
   const [activeTab, setActiveTab] = useState<string | "search">("my-courses");
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Course[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [papers, setPapers] = useState<Paper[]>([]);
   const [loading, setLoading] = useState(false);
@@ -139,18 +141,20 @@ export default function DesktopPYQs() {
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) return;
-    setLoading(true);
+    setActiveTab("search");
+    setIsSearching(true);
     setError(null);
+    setSelectedCourse(null);
+    setPapers([]);
     try {
       const res = await fetchProxied(`/v1/courses`, { q: searchQuery, limit: 20 });
       if (!res.ok) throw new Error();
       const json = await res.json();
       setSearchResults(json.data || []);
-      setActiveTab("search");
     } catch (err: any) {
       setError("search failed. check your internet?");
     } finally {
-      setLoading(false);
+      setIsSearching(false);
     }
   };
 
@@ -269,7 +273,12 @@ export default function DesktopPYQs() {
           <div className="flex items-center gap-3">
             <div className="relative">
               <input type="text" placeholder="search course code..." value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  if (e.target.value.trim() && activeTab !== "search") {
+                    setActiveTab("search");
+                  }
+                }}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                 className="bg-theme-bg border border-theme-border rounded-full py-1 pl-4 pr-8 text-[10px] font-bold text-theme-text focus:outline-none focus:border-theme-highlight/50 w-44 transition-all"
                 style={{ fontFamily: 'var(--font-montserrat)' }}
@@ -291,24 +300,36 @@ export default function DesktopPYQs() {
               </div>
               
               <AnimatePresence mode="popLayout">
-                {(activeTab === "my-courses" ? myCourses : searchResults).map((course, idx) => (
-                  <motion.div key={`${course.id}-${idx}`} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
-                    onClick={() => {
-                      setSelectedCourse(activeTab === "my-courses" ? {
-                        id: (course as any).id,
-                        course_code: (course as any).code,
-                        course_name: (course as any).title,
-                        department: null,
-                        semester: null
-                      } : course as Course);
-                      fetchPapers(activeTab === "my-courses" ? (course as any).code : (course as Course).course_code);
-                    }}
-                    className={`p-3.5 rounded-2xl cursor-pointer transition-all duration-300 ${selectedCourse?.course_code === (activeTab === "my-courses" ? (course as any).code : (course as Course).course_code) ? 'bg-theme-text/10 text-theme-text shadow-md scale-[1.02] border-theme-highlight/30' : 'bg-transparent hover:bg-theme-text/5'} border border-transparent`}
-                  >
-                    <span className="text-[7px] font-black uppercase tracking-widest mb-0.5 block opacity-40" style={{ fontFamily: 'var(--font-montserrat)' }}>{(course as any).code || (course as Course).course_code}</span>
-                    <h3 className="text-xs font-bold lowercase truncate tracking-tight" style={{ fontFamily: 'var(--font-montserrat)' }}>{(course as any).title || (course as Course).course_name}</h3>
-                  </motion.div>
-                ))}
+                {isSearching ? (
+                  <div className="flex flex-col items-center justify-center py-12 gap-3 opacity-30">
+                    <Loader2 size={20} className="text-theme-text animate-spin" />
+                    <span className="text-[8px] font-black uppercase tracking-[0.3em]" style={{ fontFamily: 'var(--font-montserrat)' }}>searching...</span>
+                  </div>
+                ) : (activeTab === "my-courses" ? myCourses : searchResults).length > 0 ? (
+                  (activeTab === "my-courses" ? myCourses : searchResults).map((course, idx) => (
+                    <motion.div key={`${course.id}-${idx}`} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
+                      onClick={() => {
+                        setSelectedCourse(activeTab === "my-courses" ? {
+                          id: (course as any).id,
+                          course_code: (course as any).code,
+                          course_name: (course as any).title,
+                          department: null,
+                          semester: null
+                        } : course as Course);
+                        fetchPapers(activeTab === "my-courses" ? (course as any).code : (course as Course).course_code);
+                      }}
+                      className={`p-3.5 rounded-2xl cursor-pointer transition-all duration-300 ${selectedCourse?.course_code === (activeTab === "my-courses" ? (course as any).code : (course as Course).course_code) ? 'bg-theme-text/10 text-theme-text shadow-md scale-[1.02] border-theme-highlight/30' : 'bg-transparent hover:bg-theme-text/5'} border border-transparent`}
+                    >
+                      <span className="text-[7px] font-black uppercase tracking-widest mb-0.5 block opacity-40" style={{ fontFamily: 'var(--font-montserrat)' }}>{(course as any).code || (course as Course).course_code}</span>
+                      <h3 className="text-xs font-bold lowercase truncate tracking-tight" style={{ fontFamily: 'var(--font-montserrat)' }}>{(course as any).title || (course as Course).course_name}</h3>
+                    </motion.div>
+                  ))
+                ) : activeTab === "search" ? (
+                  <div className="flex flex-col items-center justify-center py-12 gap-2 opacity-30 text-center">
+                    <Search size={24} strokeWidth={1.5} />
+                    <span className="text-[8px] font-black uppercase tracking-widest" style={{ fontFamily: 'var(--font-montserrat)' }}>no results found</span>
+                  </div>
+                ) : null}
               </AnimatePresence>
             </ReactLenis>
           </div>
