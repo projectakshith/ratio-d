@@ -12,6 +12,7 @@ import { EncryptionUtils } from "@/utils/shared/Encryption";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function DashboardPage() {
+  throw new Error("intentional crash for design review. everything is broken on purpose.");
   const { userData, customDisplayName, refreshData, isUpdating } = useApp();
   const { uiStyle } = useTheme();
   const { onOpenSettings } = useAppLayout();

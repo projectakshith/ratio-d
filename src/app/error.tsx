@@ -78,21 +78,21 @@ export default function Error({
             <div className="absolute -top-3 left-8 px-3 py-1 bg-theme-secondary text-theme-bg text-[10px] font-black uppercase tracking-widest rounded-full">
               error details
             </div>
-            <p className="text-theme-text text-lg md:text-xl font-black lowercase tracking-tight leading-relaxed text-center italic" style={{ fontFamily: 'var(--font-montserrat)' }}>
+            <p className="text-theme-text text-lg md:text-xl font-black lowercase tracking-tight leading-relaxed text-center italic mb-4" style={{ fontFamily: 'var(--font-montserrat)' }}>
               "{error.message || "unknown failure in the matrix"}"
             </p>
+
+            <button 
+              onClick={() => setShowLogs(!showLogs)}
+              className="absolute bottom-4 right-8 flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.2em] text-theme-muted hover:text-theme-secondary transition-colors group/btn"
+            >
+              <Terminal size={10} className={showLogs ? "text-theme-secondary" : ""} />
+              {showLogs ? "HIDE LOG" : "VIEW LOG"}
+              {showLogs ? <ChevronUp size={10} /> : <ChevronDown size={10} />}
+            </button>
           </motion.div>
 
           <div className="w-full flex flex-col items-center">
-            <button 
-              onClick={() => setShowLogs(!showLogs)}
-              className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-theme-muted hover:text-theme-secondary transition-colors group py-2 mb-4"
-            >
-              <Terminal size={12} className={showLogs ? "text-theme-secondary" : ""} />
-              {showLogs ? "HIDE FULL LOG" : "VIEW FULL LOG"}
-              {showLogs ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-            </button>
-
             <AnimatePresence initial={false}>
               {showLogs && error.stack && (
                 <motion.div 
@@ -138,9 +138,6 @@ export default function Error({
               </button>
 
               <div className="max-w-xs space-y-2 pb-12">
-                <p className="text-theme-muted text-[10px] font-bold uppercase tracking-[0.2em] opacity-80 leading-relaxed" style={{ fontFamily: 'var(--font-afacad)' }}>
-                  a critical exception has occurred
-                </p>
                 <p className="text-theme-muted text-[10px] font-bold uppercase tracking-[0.2em] opacity-60 leading-relaxed" style={{ fontFamily: 'var(--font-afacad)' }}>
                   the devs are retarded asf
                 </p>
