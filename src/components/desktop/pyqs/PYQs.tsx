@@ -444,6 +444,17 @@ export default function DesktopPYQs() {
                   <div>
                     <h2 className="text-xl font-black lowercase tracking-tighter" style={{ fontFamily: 'var(--font-montserrat)' }}>pick a course and let's lock in.</h2>
                     <p className="text-[9px] font-black uppercase tracking-[0.4em] mt-2" style={{ fontFamily: 'var(--font-montserrat)' }}>search or pick from your semester list</p>
+                    <p className="text-[8px] font-black uppercase tracking-[0.3em] mt-4 pointer-events-auto" style={{ fontFamily: 'var(--font-montserrat)' }}>
+                      api by{" "}
+                      <a
+                        href="https://www.linkedin.com/in/kinshukagarwal/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-theme-highlight hover:opacity-70 transition-opacity"
+                      >
+                        kinshu agarwal
+                      </a>
+                    </p>
                   </div>
                 </div>
               )}
@@ -454,6 +465,7 @@ export default function DesktopPYQs() {
         <div className="absolute bottom-8 right-8 pointer-events-none z-0 text-right">
           <h1 className="text-theme-text font-regular lowercase leading-none select-none opacity-80" style={{ fontFamily: 'var(--font-afacad)', fontSize: '48px', letterSpacing: '-4px' }}>pyqs</h1>
         </div>
+
     </div>
   );
 }
