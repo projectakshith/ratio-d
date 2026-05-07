@@ -59,13 +59,13 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "Ratio'd",
+  title: "ratio'd",
   description: "cool looking and simple academia dashboard",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Ratio'd",
+    title: "ratio'd",
   },
   formatDetection: {
     telephone: false,

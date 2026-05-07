@@ -257,7 +257,7 @@ const SettingsPage = ({
   };
 
   const handleSync = async () => {
-    const creds = EncryptionUtils.loadDecrypted("ratio_credentials");
+    const creds = await EncryptionUtils.loadDecrypted("ratio_credentials");
     if (creds && userData) {
       await refreshData(creds, userData);
       window.location.reload();

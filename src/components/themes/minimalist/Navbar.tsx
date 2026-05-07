@@ -9,7 +9,7 @@ export default function Navbar() {
   const tabs = [
     { id: "marks", label: "marks", path: "/marks" },
     { id: "attendance", label: "attnd", path: "/attendance" },
-    { id: "home", label: "home", path: "/" },
+    { id: "home", label: "home", path: "/dashboard" },
     { id: "timetable", label: "time", path: "/timetable" },
     { id: "calendar", label: "cal", path: "/calendar" },
   ];

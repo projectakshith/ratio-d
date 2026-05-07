@@ -1,6 +1,6 @@
 "use client";
 import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from "react";
-import { EncryptionUtils } from "@/utils/shared/Encryption";
+import { EncryptionUtils, runMigration } from "@/utils/shared/Encryption";
 import { useRouter } from "next/navigation";
 import { AcademiaData } from "@/types";
 import { compareData, DataDiff } from "@/utils/shared/diffUtils";
@@ -143,7 +143,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (typeof window !== "undefined" && "caches" in window && !hasPrecached.current) {
       hasPrecached.current = true;
-      const coreRoutes = ["/", "/attendance", "/marks", "/timetable", "/calendar"];
+      const coreRoutes = ["/dashboard", "/attendance", "/marks", "/timetable", "/calendar"];
       coreRoutes.forEach(route => {
         router.prefetch(route);
       });
@@ -172,15 +172,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       try {
         const response = await fetchWithLoadBalancer("/login", {
           method: "POST",
-          headers: { 
-            "Content-Type": "application/json",
-            "X-Student-Key": creds.username,
-            "X-Ratio-App": "true"
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(creds),
         });
 
-        if (response.status === 503 || response.status === 429) {
+        if (response.status === 503 || response.status === 429 || response.status === 502 || response.status === 504) {
           setIsBackendError(true);
           try {
             const data = await response.json();
@@ -198,11 +194,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         }
 
         if (data.cookies) {
-          EncryptionUtils.saveEncrypted("academia_cookies", data.cookies);
+          await EncryptionUtils.saveEncrypted("academia_cookies", data.cookies);
           delete data.cookies;
         }
 
-        EncryptionUtils.saveEncrypted("ratio_credentials", {
+        await EncryptionUtils.saveEncrypted("ratio_credentials", {
           username: creds.username,
           password: creds.password,
         });
@@ -212,8 +208,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         localStorage.setItem("ratio_data", JSON.stringify(data));
 
         return data;
-      } catch (err) {
-        if (navigator.onLine) {
+      } catch (err: any) {
+        if (navigator.onLine && (err.name === 'AbortError' || err.message === 'Failed to fetch' || err.message === 'Backend error')) {
           setIsBackendError(true);
         }
         throw err;
@@ -231,18 +227,21 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setIsBackendError(false);
     setBackendErrorMsg(null);
     try {
-      const savedCookies = EncryptionUtils.loadDecrypted("academia_cookies");
-      const response = await fetchWithLoadBalancer("/refresh", {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          "X-Student-Key": creds.username,
-          "X-Ratio-App": "true"
-        },
-        body: JSON.stringify({ ...creds, cookies: savedCookies }),
-      });
+      const savedCookies = await EncryptionUtils.loadDecrypted("academia_cookies");
 
-      if (response.status === 503 || response.status === 429) {
+      const makeRefreshRequest = async (includePassword: boolean) => {
+        const body: Record<string, unknown> = { username: creds.username, cookies: savedCookies };
+        if (includePassword) body.password = creds.password;
+        return fetchWithLoadBalancer("/refresh", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+      };
+
+      let response = await makeRefreshRequest(false);
+
+      if (response.status === 503 || response.status === 429 || response.status === 502 || response.status === 504) {
         setIsBackendError(true);
         try {
           const data = await response.json();
@@ -251,19 +250,35 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         return existingData;
       }
 
-      const result = await response.json();
-      if (!result.success) {
-        if (response.status === 401) {
+      if (response.status === 401) {
+        const errData = await response.json().catch(() => ({}));
+        const isAuthError = errData?.detail?.type === "INVALID_CREDENTIALS" || errData?.detail === "Invalid Credentials";
+        const isSessionExpired = errData?.detail?.type === "SESSION_EXPIRED";
+
+        if (isSessionExpired && creds.password) {
+          response = await makeRefreshRequest(true);
+          if (!response.ok) {
+            if (response.status === 401) await logout();
+            return existingData;
+          }
+        } else if (isAuthError) {
           await logout();
+          return existingData;
+        } else {
+          return existingData;
         }
+      }
+
+      const result = await response.json();
+      if (!result.success || (!result.attendance && !result.marks && !result.timetable)) {
         return existingData;
       }
 
       EncryptionUtils.setSessionCookie();
-      
+
       let updatedCookies = savedCookies;
       if (result.cookies) {
-        EncryptionUtils.saveEncrypted("academia_cookies", result.cookies);
+        await EncryptionUtils.saveEncrypted("academia_cookies", result.cookies);
         updatedCookies = result.cookies;
         delete result.cookies;
       }
@@ -312,8 +327,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setUserData(mergedData);
       localStorage.setItem("ratio_data", JSON.stringify(mergedData));
       return mergedData;
-    } catch (err) {
-      if (navigator.onLine) {
+    } catch (err: any) {
+      if (navigator.onLine && (err.name === 'AbortError' || err.message === 'Failed to fetch')) {
         setIsBackendError(true);
       }
       return existingData;
@@ -340,14 +355,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       try {
         parsed = JSON.parse(cachedData);
         setUserData(parsed);
-        
-        const creds = EncryptionUtils.loadDecrypted("ratio_credentials");
-        if (creds && !hasRefreshed.current) {
-          hasRefreshed.current = true;
-          setTimeout(() => {
-            refreshData(creds, parsed);
-          }, 2000);
-        }
+
+        runMigration().then(async () => {
+          const creds = await EncryptionUtils.loadDecrypted("ratio_credentials");
+          if (creds && !hasRefreshed.current) {
+            hasRefreshed.current = true;
+            setTimeout(() => {
+              refreshData(creds as any, parsed);
+            }, 2000);
+          }
+        });
       } catch {
       }
     }

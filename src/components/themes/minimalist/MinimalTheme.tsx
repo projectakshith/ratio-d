@@ -17,10 +17,10 @@ export default function MinimalTheme({ children, isSwipeDisabled }: MinimalTheme
   const router = useRouter();
   const [isAlertsOpen] = useState(false);
 
-  const paths = ["/marks", "/attendance", "/", "/timetable", "/calendar"];
+  const paths = ["/marks", "/attendance", "/dashboard", "/timetable", "/calendar"];
 
   const getActiveTab = () => {
-    if (pathname === "/") return "home";
+    if (pathname === "/dashboard" || pathname === "/") return "home";
     return pathname.replace("/", "");
   };
 

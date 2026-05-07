@@ -66,6 +66,33 @@ export const isPracticalLogic = (sub: any) => {
   );
 };
 
+export const calculateBestAchievableGrade = (
+  currentInternals: number,
+  totalInternalMax: number = 60,
+  semMax: number = 40
+) => {
+  const lostInternals = Math.max(0, totalInternalMax - currentInternals);
+  const maxPossibleTotal = 100 - lostInternals;
+
+  const grades = [
+    { label: "O", min: 91 },
+    { label: "A+", min: 81 },
+    { label: "A", min: 71 },
+    { label: "B+", min: 61 },
+    { label: "B", min: 56 },
+    { label: "C", min: 50 },
+  ];
+
+  const bestGrade = grades.find((g) => maxPossibleTotal >= g.min);
+
+  return {
+    best: bestGrade || { label: "F", min: 0 },
+    maxPossibleTotal,
+    isOImpossible: maxPossibleTotal < 91,
+    lostMarks: lostInternals,
+  };
+};
+
 export const getInitialTargetGrades = (subjects: any[]) => {
   const initialGrades: Record<string, number> = {};
   const grades = [
@@ -126,8 +153,7 @@ export const calculatePredictedGpa = (
   subjects.forEach((sub: any) => {
     if (ignoredSubjectIds.includes(sub.id)) return;
     const credits = sub.credits || 0;
-    if (credits === 0) return;
-
+    
     let grade = "O";
     const subTargetGrade = targetGrades[sub.id];
     if (subTargetGrade !== undefined) {
@@ -291,6 +317,16 @@ export const processAndSortMarks = (
         assessments.length > 0 ? assessments[assessments.length - 1] : null;
       const type = subject.type || "Theory";
       const isPractical = isPracticalLogic(subject);
+      const credits = parseInt(
+        subject.credits || 
+        subject.credit || 
+        subject.course_credit || 
+        subject.cr || 
+        subject.courseCredit ||
+        subject.credit_points ||
+        "0"
+      );
+
       return {
         id: `${cleanCode}-${type}-${index}`,
         title,
@@ -311,6 +347,7 @@ export const processAndSortMarks = (
         status,
         badge,
         isPractical,
+        credits,
       } as any;
     })
     .sort((a: any, b: any) => {

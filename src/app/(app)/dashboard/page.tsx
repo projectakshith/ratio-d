@@ -2,14 +2,14 @@
 import React, { useState, useCallback } from "react";
 import { useApp } from "@/context/AppContext";
 
-export const runtime = "edge";
-
 import { useTheme } from "@/context/ThemeContext";
 import DashboardMinimalist from "@/components/themes/minimalist/dashboard/Dashboard";
 import DashboardBrutalist from "@/components/themes/brutalist/dashboard/Dashboard";
+import DesktopDashboard from "@/components/desktop/dashboard/Dashboard";
 import { useAcademiaData } from "@/hooks/useAcademiaData";
 import { useAppLayout } from "@/context/AppLayoutContext";
 import { EncryptionUtils } from "@/utils/shared/Encryption";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function DashboardPage() {
   const { userData, customDisplayName, refreshData, isUpdating } = useApp();
@@ -17,13 +17,22 @@ export default function DashboardPage() {
   const { onOpenSettings } = useAppLayout();
   const [isAlertsOpen, setIsAlertsOpen] = useState(false);
   const academia = useAcademiaData(userData as any);
+  const isMobile = useIsMobile();
 
   const handleRefresh = useCallback(async () => {
-    const creds = EncryptionUtils.loadDecrypted("ratio_credentials");
+    const creds = await EncryptionUtils.loadDecrypted("ratio_credentials");
     if (creds && userData) {
-      await refreshData(creds, userData);
+      await refreshData(creds as any, userData);
     }
   }, [userData, refreshData]);
+
+  if (isMobile === undefined) {
+    return <div className="h-full w-full bg-theme-bg" />;
+  }
+
+  if (!isMobile) {
+    return <DesktopDashboard />;
+  }
 
   if (uiStyle === "brutalist") {
     return (

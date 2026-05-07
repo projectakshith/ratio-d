@@ -40,7 +40,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
 
     try {
       EncryptionUtils.cleanOldKeys();
-      const savedCookies = EncryptionUtils.loadDecrypted("academia_cookies");
+      const savedCookies = await EncryptionUtils.loadDecrypted("academia_cookies");
       const creds = {
         username: fullUsername,
         password: password,
@@ -49,7 +49,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
         cdigest: cdigest || undefined,
       };
 
-      if (!isOnboarded) {
+      const isMobile = window.innerWidth < 768;
+      if (!isOnboarded && isMobile) {
         setIsExiting(true);
         performLogin(creds).catch(() => {});
         setTimeout(() => {
@@ -130,24 +131,24 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
         {loading && <LoadingPage />}
       </AnimatePresence>
 
-      <motion.div 
+      <motion.div
         initial="hidden"
         animate={isExiting ? "exit" : "visible"}
         exit="exit"
         variants={containerVariants}
-        className="h-screen w-full flex flex-col justify-between p-8 md:p-16 relative bg-[#0c30ff]"
+        className="h-screen w-full flex flex-col justify-between md:justify-center p-8 md:p-24 md:gap-12 relative bg-[#0c30ff]"
       >
         <motion.header variants={itemVariants} className="relative z-10">
           <h1
-            className="text-5xl md:text-8xl lowercase leading-none tracking-tighter"
+            className="text-5xl md:text-6xl lowercase leading-none tracking-tighter"
             style={{ fontFamily: "Urbanosta", color: "#ceff1c" }}
           >
             ratio'd
           </h1>
         </motion.header>
 
-        <motion.main variants={itemVariants} className="relative z-10 w-full max-w-2xl mt-auto pb-12">
-          <form onSubmit={handleSubmit} className="flex flex-col gap-10">
+        <motion.main variants={itemVariants} className="relative z-10 w-full max-w-2xl mt-auto md:mt-0 pb-12 md:pb-0">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-10 md:gap-6">
             <div className="group relative">
               <label className="text-[10px] font-mono uppercase tracking-[0.3em] text-white/60">
                 Identification (NetID)
@@ -157,7 +158,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="w-full bg-transparent py-4 text-4xl md:text-6xl text-white outline-none placeholder:text-white/10"
+                  className="w-full bg-transparent py-4 text-4xl md:text-5xl text-white outline-none placeholder:text-white/10"
                   placeholder="username"
                   style={{ fontFamily: "Aonic", color: 'white' }}
                 />
@@ -181,7 +182,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-transparent py-4 text-4xl md:text-6xl text-white outline-none placeholder:text-white/10"
+                  className="w-full bg-transparent py-4 text-4xl md:text-5xl text-white outline-none placeholder:text-white/10"
                   placeholder="••••••••"
                   style={{ fontFamily: "Aonic", color: 'white' }}
                 />
@@ -212,7 +213,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
                         type="text"
                         value={captchaInput}
                         onChange={(e) => setCaptchaInput(e.target.value.toUpperCase())}
-                        className="w-full bg-transparent py-4 text-4xl md:text-6xl text-white outline-none placeholder:text-white/10"
+                        className="w-full bg-transparent py-4 text-4xl md:text-5xl text-white outline-none placeholder:text-white/10"
                         placeholder="captcha"
                         style={{ fontFamily: "Aonic", color: 'white' }}
                       />
@@ -241,10 +242,10 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-between border-t border-white pt-6 group disabled:opacity-30"
+              className="w-full flex items-center justify-between border-t border-white pt-6 mt-4 md:mt-8 group disabled:opacity-30"
             >
               <span
-                className="text-4xl md:text-6xl lowercase text-white group-hover:text-[#ceff1c]"
+                className="text-4xl md:text-4xl lowercase text-white group-hover:text-[#ceff1c]"
                 style={{ fontFamily: "aonic" }}
               >
                 {loading ? "WAIT_" : "signin"}

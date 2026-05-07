@@ -15,7 +15,7 @@ export const BottomNav = memo(() => {
   const router = useRouter();
 
   const getActiveTab = () => {
-    if (pathname === "/") return "home";
+    if (pathname === "/dashboard" || pathname === "/") return "home";
     return pathname.split("/")[1];
   };
 
@@ -24,7 +24,7 @@ export const BottomNav = memo(() => {
   const tabs = [
     { id: "marks", icon: GraduationCap, path: "/marks" },
     { id: "attendance", icon: CheckCircle, path: "/attendance" },
-    { id: "home", icon: Home, path: "/" },
+    { id: "home", icon: Home, path: "/dashboard" },
     { id: "timetable", icon: LayoutGrid, path: "/timetable" },
     { id: "calendar", icon: Calendar, path: "/calendar" },
   ];

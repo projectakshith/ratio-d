@@ -1,42 +1,32 @@
 export async function fetchWithLoadBalancer(endpoint: string, options: RequestInit = {}) {
-  const urlsString = process.env.NEXT_PUBLIC_BACKEND_URLS || "";
-  const urls = urlsString
-    .split(",")
-    .map(url => url.trim())
-    .filter(Boolean);
+  const isLocal = typeof window !== 'undefined' && 
+    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+    
+  const isDev = isLocal || 
+    process.env.NODE_ENV === "development" || 
+    process.env.NEXT_PUBLIC_ENV === "development";
 
-  if (urls.length === 0) {
-    throw new Error("No backend URLs configured.");
+  const urls = (process.env.NEXT_PUBLIC_BACKEND_URLS || "").split(",").filter(Boolean);
+  const workerUrl = process.env.NEXT_PUBLIC_WORKER_URL;
+  
+  const localBackend = urls.find(u => u.includes("localhost")) || "http://localhost:8000";
+  let targetUrl = isDev ? localBackend : (workerUrl || urls[0] || localBackend);
+
+  if (targetUrl.endsWith('/')) {
+    targetUrl = targetUrl.slice(0, -1);
   }
 
-  const shuffledUrls = [...urls].sort(() => Math.random() - 0.5);
+  const fullUrl = `${targetUrl}${endpoint}`;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 25000);
 
-  let lastError: any = null;
-
-  for (const baseUrl of shuffledUrls) {
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 20000); 
-
-      const res = await fetch(`${baseUrl}${endpoint}`, {
-        ...options,
-        headers: {
-          ...options.headers,
-        },
-        signal: controller.signal,
-      });
-      
-      clearTimeout(timeoutId);
-
-      if (res.ok || (res.status >= 400 && res.status < 500)) {
-        return res;
-      }
-      
-      lastError = new Error(`Server ${baseUrl} responded with status ${res.status}`);
-    } catch (err: any) {
-      lastError = err;
-    }
+  try {
+    const res = await fetch(fullUrl, {
+      ...options,
+      signal: controller.signal,
+    });
+    return res;
+  } finally {
+    clearTimeout(timeoutId);
   }
-
-  throw lastError;
 }

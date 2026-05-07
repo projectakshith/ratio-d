@@ -12,7 +12,8 @@ export default function LoginRoute() {
   useEffect(() => {
     const hasSession = document.cookie.includes("ratio_session=");
     if (hasSession) {
-      router.replace("/");
+      const isMobile = window.innerWidth < 768;
+      router.replace(isMobile ? "/onboarding" : "/dashboard");
     }
   }, [router]);
 
@@ -20,7 +21,14 @@ export default function LoginRoute() {
     setUserData(data);
     localStorage.setItem("ratio_data", JSON.stringify(data));
     EncryptionUtils.setSessionCookie();
-    router.replace("/");
+
+    const isMobile = window.innerWidth < 768;
+    if (isMobile) {
+      router.replace("/onboarding");
+    } else {
+      localStorage.setItem("ratiod_onboarded", "true");
+      router.replace("/dashboard");
+    }
   };
 
   return (

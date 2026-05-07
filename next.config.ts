@@ -105,8 +105,48 @@ const withPWA = withPWAInit({
   },
 });
 
+const workerUrl = process.env.NEXT_PUBLIC_WORKER_URL ?? "";
+const backendUrls = (process.env.NEXT_PUBLIC_BACKEND_URLS ?? "").split(",").map(u => u.trim()).filter(Boolean);
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  async headers() {
+    const connectSrc = [
+      "'self'",
+      "https://getratiod.lol",
+      "https://academia.srmist.edu.in",
+      "https://srm-pyq-api.onrender.com",
+      "https://va.vercel-scripts.com",
+      workerUrl,
+      ...backendUrls,
+      "http://localhost:8000",
+      "ws://localhost:*"
+    ].filter(Boolean).join(" ");
+
+    return [
+      {
+        source: "/(.*)",
+        headers: [
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          {
+            key: "Content-Security-Policy",
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com",
+              "style-src 'self' 'unsafe-inline'",
+              "img-src 'self' data: https://academia.srmist.edu.in",
+              `connect-src ${connectSrc}`,
+              "font-src 'self'",
+              "frame-src 'self' https: blob: data:",
+              "frame-ancestors 'none'",
+            ].join("; "),
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default withPWA(nextConfig);

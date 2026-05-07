@@ -1,17 +1,25 @@
 "use client";
-export const runtime = "edge";
 
 import React from "react";
 import { useApp } from "@/context/AppContext";
 import { useTheme } from "@/context/ThemeContext";
 import TimetableMinimalist from "@/components/themes/minimalist/timetable/Timetable";
 import TimetableBrutalist from "@/components/themes/brutalist/timetable/Timetable";
+import DesktopTimetable from "@/components/desktop/timetable/Timetable";
 import { useAcademiaData } from "@/hooks/useAcademiaData";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function TimetablePage() {
   const { userData } = useApp();
   const { uiStyle } = useTheme();
   const academia = useAcademiaData(userData as any);
+  const isMobile = useIsMobile();
+
+  if (isMobile === undefined) return <div className="h-full w-full bg-theme-bg" />;
+
+  if (!isMobile) {
+    return <DesktopTimetable />;
+  }
 
   if (uiStyle === "brutalist") {
     return (

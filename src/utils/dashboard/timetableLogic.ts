@@ -1,8 +1,8 @@
 export const parseTimetableTime = (str: string) => {
   if (!str) return 0;
-  let [h, m] = str.split(":").map(Number);
-  if (h < 8) h += 12;
-  return h * 60 + m;
+  const [h, m] = str.split(":").map(Number);
+  if (isNaN(h) || isNaN(m)) return 0;
+  return (h < 7 ? h + 12 : h) * 60 + m;
 };
 
 export const getAcronym = (name: string) => {

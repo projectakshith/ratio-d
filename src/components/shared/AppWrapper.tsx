@@ -8,8 +8,10 @@ import MinecraftAmbience from "./MinecraftAmbience";
 import SyncStatusNotification from "./SyncStatusNotification";
 import UpdateHistory from "./UpdateHistory";
 import WhatsNew from "./WhatsNew";
+import { useTabFocus } from "@/hooks/useTabFocus";
 
 export default function AppWrapper({ children }: { children: React.ReactNode }) {
+  useTabFocus();
   const { isOffline, isBackendError, setIsBackendError, backendErrorMsg, setBackendErrorMsg, showWelcome, setShowWelcome, userData, isUpdateHistoryOpen, setIsUpdateHistoryOpen } = useApp();
   const [showSplash, setShowSplash] = useState(false);
   const [isFirstSplash, setIsFirstSplash] = useState(false);
@@ -37,7 +39,7 @@ useEffect(() => {
   const seenVersion = localStorage.getItem("ratio_seen_version");
   const isOnboarded = localStorage.getItem("ratiod_onboarded") === "true";
 
-  if (isOnboarded && seenVersion !== CURRENT_VERSION) {
+  if (isOnboarded && seenVersion !== CURRENT_VERSION && window.innerWidth < 768) {
     const timer = setTimeout(() => {
       setShowAutoWhatsNew(true);
     }, 3000);
@@ -96,7 +98,7 @@ useEffect(() => {
 }, [showWelcome, setShowWelcome]);
 
   return (
-    <main className="bg-theme-bg fixed inset-0 w-full overflow-hidden flex flex-col">
+    <main className="bg-theme-bg min-h-full w-full flex flex-col relative">
       <AnimatePresence>
         {isOffline && (
           <motion.div

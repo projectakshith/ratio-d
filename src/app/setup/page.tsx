@@ -9,7 +9,7 @@ export default function SetupPage() {
   const handleFinish = () => {
     localStorage.setItem("ratiod_setup_bypassed", "true");
     const hasData = localStorage.getItem("ratio_data");
-    router.replace(hasData ? "/" : "/login");
+    router.replace(hasData ? "/dashboard" : "/login");
   };
 
   return <OnboardingPage onFinish={handleFinish} />;
