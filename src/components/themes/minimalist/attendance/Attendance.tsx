@@ -139,14 +139,14 @@ export default function Attendance({
   }, [baseAttendance, impactMap, isPredicting, academia, data, selectedDates, predictAction]);
 
   const actionRequired = useMemo(
-    () => processedList.filter((s) => !s.safe).sort((a, b) => b.val - a.val),
+    () => processedList.filter((s) => !s.safe).sort((a, b) => (b.val ?? 0) - (a.val ?? 0)),
     [processedList],
   );
   const safeSubjectsList = useMemo(
     () =>
       processedList
         .filter((s) => s.safe)
-        .sort((a, b) => (a.sessionsAffected ? -1 : 1) || a.val - b.val),
+        .sort((a, b) => (a.sessionsAffected ? -1 : 1) || (a.val ?? 0) - (b.val ?? 0)),
     [processedList],
   );
 
@@ -158,7 +158,9 @@ export default function Attendance({
       totalC += s.conducted + imp.conducted;
       totalP += s.present + imp.present;
     });
-    const pct = totalC === 0 ? 0 : (totalP / totalC) * 100;
+    const pct = totalC === 0
+      ? baseAttendance.reduce((sum, s) => sum + parseFloat(s.percentage), 0) / (baseAttendance.length || 1)
+      : (totalP / totalC) * 100;
     
     const overallStats = getOverallStats(baseAttendance);
     const roast = getRandomRoast(overallStats.badge as any, "header");
@@ -462,7 +464,7 @@ export default function Attendance({
                           color: "#FF4D4D",
                         }}
                       >
-                        {sub.val}
+                        {sub.val != null ? sub.val : <span className="text-xl font-bold opacity-40 tracking-normal -translate-y-2 inline-block">n/a</span>}
                       </span>
                       {sub.currentLabel === "recover" && sub.recoveryDate ? (
                         <div className="mt-1.5 flex items-center gap-1 bg-[#FF4D4D]/10 px-2 py-0.5 rounded-full border border-[#FF4D4D]/10 whitespace-nowrap">
@@ -519,7 +521,7 @@ export default function Attendance({
                           className="text-[12px] font-bold opacity-70"
                           style={{ color: "#FF4D4D" }}
                         >
-                          {sub.present}/{sub.conducted}
+                          {sub.conducted > 0 ? `${sub.present}/${sub.conducted}` : "—"}
                         </span>
                         <div
                           className="w-[3px] h-[3px] rounded-full opacity-40"
@@ -587,16 +589,16 @@ export default function Attendance({
                         color: baseColor,
                       }}
                     >
-                      {sub.val}
+                      {sub.val != null ? sub.val : <span className="text-xl font-bold opacity-40 tracking-normal -translate-y-2 inline-block">n/a</span>}
                     </span>
                     {isPredicting && sub.hasChanged ? (
                       <div className="flex items-center gap-1 mt-1.5 px-2 py-0.5 rounded-full border bg-theme-surface border-theme-subtle">
                         <span className="text-[10px] font-bold opacity-40" style={{ color: baseColor }}>
-                          {sub.originalVal}
+                          {sub.originalVal ?? "—"}
                         </span>
                         <ChevronRightIcon size={8} className="opacity-40" style={{ color: baseColor }} />
                         <span className="text-[10px] font-black" style={{ color: baseColor }}>
-                          {sub.val}
+                          {sub.val != null ? sub.val : <span className="text-xl font-bold opacity-40 tracking-normal -translate-y-2 inline-block">n/a</span>}
                         </span>
                       </div>
                     ) : (
@@ -650,7 +652,7 @@ export default function Attendance({
                         className="text-[12px] font-bold opacity-70"
                         style={{ color: baseColor }}
                       >
-                        {sub.present}/{sub.conducted}
+                        {sub.conducted > 0 ? `${sub.present}/${sub.conducted}` : "—"}
                       </span>
                       <div
                         className="w-[3px] h-[3px] rounded-full opacity-40"

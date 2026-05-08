@@ -130,7 +130,9 @@ const MobileAttendance = ({
       totalC += s.conducted + imp.conducted;
       totalP += s.present + imp.present;
     });
-    const pct = totalC === 0 ? 0 : (totalP / totalC) * 100;
+    const pct = totalC === 0
+      ? baseAttendance.reduce((sum, s) => sum + parseFloat(s.percentage), 0) / baseAttendance.length
+      : (totalP / totalC) * 100;
     
     let category = pct < 75 ? "cooked" : pct >= 85 ? "safe" : "danger";
     const list = flavorText.header?.[category] || ["..."];
@@ -353,11 +355,13 @@ const MobileAttendance = ({
               <div className="my-auto flex flex-col justify-center">
                 <div className="flex items-baseline gap-3">
                   <span className={`text-[22vw] md:text-[9rem] leading-[0.8] font-black tracking-tighter transition-colors duration-300 ease-out ${themeColorClass}`} style={{ fontFamily: "Urbanosta" }}>
-                    <MarginCounter value={currentActiveStat.val} />h
+                    {currentActiveStat.val != null ? <><MarginCounter value={currentActiveStat.val} />h</> : "—"}
                   </span>
-                  <span className={`text-xl md:text-2xl font-bold lowercase opacity-70 transition-colors duration-300 ${themeColorClass}`} style={{ fontFamily: "Aonic" }}>
-                    {currentActiveStat.label}
-                  </span>
+                  {currentActiveStat.val != null && (
+                    <span className={`text-xl md:text-2xl font-bold lowercase opacity-70 transition-colors duration-300 ${themeColorClass}`} style={{ fontFamily: "Aonic" }}>
+                      {currentActiveStat.label}
+                    </span>
+                  )}
                 </div>
                 {currentActiveStat.label === "recover" && activeSubject.recoveryDate && (
                   <div className="mt-4 flex items-center gap-2 bg-[#ff003c]/10 px-3 py-1.5 rounded-xl border border-[#ff003c]/10 w-fit">
@@ -418,11 +422,13 @@ const MobileAttendance = ({
               <div className="my-auto flex flex-col justify-center">
                 <div className="flex items-baseline gap-3">
                   <span className={`text-[22vw] md:text-[9rem] leading-[0.8] font-black tracking-tighter transition-colors duration-300 ease-out ${themeColorClass}`} style={{ fontFamily: "Urbanosta" }}>
-                    <MarginCounter value={currentActiveStat.val} />h
+                    {currentActiveStat.val != null ? <><MarginCounter value={currentActiveStat.val} />h</> : "—"}
                   </span>
-                  <span className={`text-xl md:text-2xl font-bold lowercase opacity-70 transition-colors duration-300 ${themeColorClass}`} style={{ fontFamily: "Aonic" }}>
-                    {currentActiveStat.label}
-                  </span>
+                  {currentActiveStat.val != null && (
+                    <span className={`text-xl md:text-2xl font-bold lowercase opacity-70 transition-colors duration-300 ${themeColorClass}`} style={{ fontFamily: "Aonic" }}>
+                      {currentActiveStat.label}
+                    </span>
+                  )}
                 </div>
                 {currentActiveStat.label === "recover" && activeSubject.recoveryDate && (
                   <div className="mt-4 flex items-center gap-2 bg-[#ff003c]/10 px-3 py-1.5 rounded-xl border border-[#ff003c]/10 w-fit">

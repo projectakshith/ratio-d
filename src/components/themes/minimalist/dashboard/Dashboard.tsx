@@ -504,7 +504,7 @@ export default function Dashboard({
 
             <motion.div
               variants={delayedItemVariants}
-              className="flex flex-col mb-8 shrink-0 w-full"
+              className="flex flex-col mb-8 mt-6 shrink-0 w-full"
             >
               <div className="flex items-center gap-3 mb-2 w-full">
                 <span
