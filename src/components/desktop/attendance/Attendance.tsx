@@ -227,7 +227,9 @@ export default function DesktopAttendance() {
       totalConducted += s.conducted + imp.conducted;
       totalPresent += Math.min(s.present + imp.present, s.conducted + imp.conducted);
     });
-    const pct = totalConducted === 0 ? 0 : (totalPresent / totalConducted) * 100;
+    const pct = totalConducted === 0
+      ? baseAttendance.reduce((sum, s) => sum + parseFloat(s.percentage), 0) / (baseAttendance.length || 1)
+      : (totalPresent / totalConducted) * 100;
     const badge = pct < 75 ? "cooked" : pct >= 85 ? "safe" : "danger";
     return { pct, badge };
   }, [processedList, impactMap]);

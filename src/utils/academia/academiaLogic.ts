@@ -57,7 +57,7 @@ export const calculateOverallAttendance = (attendance: any[]) => {
   const totalAbsent = attendance.reduce((acc, curr) => acc + curr.absent, 0);
   const totalPresent = totalConducted - totalAbsent;
   return totalConducted === 0
-    ? 0
+    ? Math.round(attendance.reduce((acc, curr) => acc + parseFloat(curr.percent || 0), 0) / attendance.length)
     : Math.round((totalPresent / totalConducted) * 100);
 };
 
