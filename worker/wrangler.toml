@@ -1,5 +1,5 @@
 name = "ratiod-proxy"
-main = "index.ts"
+main = "index.js"
 compatibility_date = "2026-10-04"
 
 [vars]
