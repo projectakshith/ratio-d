@@ -61,9 +61,9 @@ async function handleRequest(request) {
     });
 
     const res = await fetch(srmUrl.toString());
-    const newRes = new Response(res.body, res);
-    Object.entries(cors).forEach(([k, v]) => newRes.headers.set(k, v));
-    return newRes;
+    const newHeaders = new Headers(res.headers);
+    Object.entries(cors).forEach(([k, v]) => newHeaders.set(k, v));
+    return new Response(res.body, { status: res.status, statusText: res.statusText, headers: newHeaders });
   }
 
   const allowed = ["/login", "/refresh", "/version"];
@@ -114,9 +114,9 @@ async function handleRequest(request) {
       clearTimeout(timeout);
 
       if (res.ok || res.status < 500) {
-        const newRes = new Response(res.body, res);
-        Object.entries(cors).forEach(([k, v]) => newRes.headers.set(k, v));
-        return newRes;
+        const newHeaders = new Headers(res.headers);
+        Object.entries(cors).forEach(([k, v]) => newHeaders.set(k, v));
+        return new Response(res.body, { status: res.status, statusText: res.statusText, headers: newHeaders });
       }
     } catch (e) {
       continue;
