@@ -143,17 +143,24 @@ const MarksPage = ({ data }: { data: AcademiaData }) => {
   const currentTargetGrade = targetGrades[selectedId || ""] || 91;
   const currentExpectedMarks = expectedMarksMap[selectedId || ""] || 0;
 
-  const { semRequiredOutOfMax, maxExternal, isCooked } = useMemo(() => {
+  const activeTm = activeSubject.totalMax || 0;
+  const activeIsInternalOnly = activeTm > 60;
+  const activeRemainingMax = activeIsInternalOnly
+    ? Math.max(0, 100 - activeTm)
+    : Math.max(0, 60 - activeTm);
+
+  const { semRequiredOutOfMax, maxExternal, isCooked, isInternalOnly } = useMemo(() => {
     return calculateSemMarksNeeded(
       currentTargetGrade,
       activeSubject.totalGot || 0,
       currentExpectedMarks,
-      activeSubject.isPractical
+      activeSubject.isPractical,
+      activeTm
     );
-  }, [currentTargetGrade, activeSubject, currentExpectedMarks]);
+  }, [currentTargetGrade, activeSubject, currentExpectedMarks, activeTm]);
 
   const currentInternals = activeSubject.totalGot || 0;
-  const maxPossibleExpected = Math.max(0, 60 - (activeSubject.totalMax || 0));
+  const maxPossibleExpected = activeRemainingMax;
 
   const handleExpectedChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!selectedId) return;
@@ -346,6 +353,7 @@ const MarksPage = ({ data }: { data: AcademiaData }) => {
         semRequiredOutOfMax={semRequiredOutOfMax}
         maxExternal={maxExternal}
         isCooked={isCooked}
+        isInternalOnly={isInternalOnly ?? false}
         currentInternals={currentInternals}
         expectedMarks={currentExpectedMarks}
         maxPossibleExpected={maxPossibleExpected}

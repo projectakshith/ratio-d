@@ -244,12 +244,14 @@ const TBAMarkCard = () => (
 );
 
 const GradeNeedCard = ({ grade, min, sub, isCurrentOnTrack }: any) => {
-  const internalsRemaining = Math.max(0, 60 - (sub?.totalMax || 0));
+  const tm = sub?.totalMax || 0;
+  const isInternalOnly = tm > 60;
+  const internalsRemaining = isInternalOnly ? Math.max(0, 100 - tm) : Math.max(0, 60 - tm);
   const currentGot = sub?.totalGot || 0;
-  const assumedEndSemContribution = sub.isPractical ? 40 : 34.7;
+  const assumedEndSemContribution = isInternalOnly ? 0 : (sub.isPractical ? 40 : 34.7);
   const neededInternalsTotal = Math.max(0, min - assumedEndSemContribution);
   const neededFromRemaining = Math.max(0, neededInternalsTotal - currentGot);
-  
+
   const isPossible = (currentGot + internalsRemaining + assumedEndSemContribution) >= (min - 0.05);
   const isAlreadySafe = currentGot >= (neededInternalsTotal - 0.05);
 
@@ -279,16 +281,18 @@ const DetailedWorkspace = ({ sub, targetGrade, updateTarget, expectedMarks, setE
 
   const targetGradeLabel = useMemo(() => grades.find(g => g.min === targetGrade)?.label || "??", [targetGrade, grades]);
 
-  const { semRequiredOutOfMax, isCooked } = useMemo(() => 
-    calculateSemMarksNeeded(targetGrade, sub.totalGot || 0, expectedMarks, sub.isPractical),
-    [targetGrade, sub.totalGot, expectedMarks, sub.isPractical]
+  const { semRequiredOutOfMax, isCooked, isInternalOnly } = useMemo(() =>
+    calculateSemMarksNeeded(targetGrade, sub.totalGot || 0, expectedMarks, sub.isPractical, sub.totalMax || 0),
+    [targetGrade, sub.totalGot, expectedMarks, sub.isPractical, sub.totalMax]
   );
 
   const bestAchievable = useMemo(() => calculateBestAchievableGrade(sub.totalGot || 0, sub.totalMax || 60), [sub]);
   
   const bestAchievableWith65 = useMemo(() => {
-    const contribution = sub.isPractical ? 40 : 34.7;
-    const internalsRemaining = Math.max(0, 60 - (sub.totalMax || 0));
+    const subTm = sub.totalMax || 0;
+    const subIsIntOnly = subTm > 60;
+    const contribution = subIsIntOnly ? 0 : (sub.isPractical ? 40 : 34.7);
+    const internalsRemaining = subIsIntOnly ? Math.max(0, 100 - subTm) : Math.max(0, 60 - subTm);
     const maxPossibleTotal = (sub.totalGot || 0) + internalsRemaining + contribution;
     return grades.find(g => maxPossibleTotal >= (g.min - 0.05))?.min || 0;
   }, [sub, grades]);
@@ -340,7 +344,9 @@ const DetailedWorkspace = ({ sub, targetGrade, updateTarget, expectedMarks, setE
     return <Smile size={20} strokeWidth={2.5} />;
   }, [advice]);
 
-  const internalsRemaining = Math.max(0, 60 - (sub.totalMax || 0));
+  const internalsRemaining = (sub.totalMax || 0) > 60
+    ? Math.max(0, 100 - (sub.totalMax || 0))
+    : Math.max(0, 60 - (sub.totalMax || 0));
   const placeholdersCount = Math.max(0, 5 - (sub.assessments?.length || 0));
   const placeholders = Array.from({ length: placeholdersCount });
 
@@ -468,10 +474,12 @@ const DetailedWorkspace = ({ sub, targetGrade, updateTarget, expectedMarks, setE
               {isTargetEnabled ? (
                 <div className="flex flex-row items-center gap-6">
                   <div className="space-y-0.5 shrink-0">
-                    <span className="text-[8px] font-black uppercase tracking-[0.4em] text-theme-muted" style={{ fontFamily: 'var(--font-montserrat)' }}>Required in Endsem</span>
+                    <span className="text-[8px] font-black uppercase tracking-[0.4em] text-theme-muted" style={{ fontFamily: 'var(--font-montserrat)' }}>{isInternalOnly ? 'No Sem Exam' : 'Required in Endsem'}</span>
                     <div className="flex items-baseline gap-1">
-                      <span className={`text-4xl font-black ${isCooked ? 'text-theme-secondary' : 'text-theme-text'} tracking-tighter`} style={{ fontFamily: 'var(--font-montserrat)' }}>{isCooked ? 'cooked' : semRequiredOutOfMax}</span>
-                      {!isCooked && <span className="text-lg font-black text-theme-muted opacity-30" style={{ fontFamily: 'var(--font-montserrat)' }}>/{sub.isPractical ? 40 : 75}</span>}
+                      <span className={`text-4xl font-black ${isCooked ? 'text-theme-secondary' : isInternalOnly ? 'text-theme-muted' : 'text-theme-text'} tracking-tighter`} style={{ fontFamily: 'var(--font-montserrat)' }}>
+                        {isInternalOnly ? (isCooked ? 'cooked' : 'internal') : isCooked ? 'cooked' : semRequiredOutOfMax <= 0 ? '0' : semRequiredOutOfMax.toFixed(2)}
+                      </span>
+                      {!isInternalOnly && !isCooked && <span className="text-lg font-black text-theme-muted opacity-30" style={{ fontFamily: 'var(--font-montserrat)' }}>/{sub.isPractical ? 40 : 75}</span>}
                     </div>
                   </div>
 

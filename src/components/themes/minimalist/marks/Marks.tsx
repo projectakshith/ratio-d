@@ -148,12 +148,17 @@ export default function Marks({
   const currentTargetGrade = targetGrades[predSubjectId || -1] || 91;
   const currentExpectedMarks = expectedMarksMap[predSubjectId || -1] || 0;
 
+  const activeTotalMax = activePredSub.totalMax || 0;
+  const activeIsInternalOnly = activeTotalMax > 60;
+  const activeRemainingMax = activeIsInternalOnly
+    ? Math.max(0, 100 - activeTotalMax)
+    : Math.max(0, 60 - activeTotalMax);
+
   const handleExpectedChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (predSubjectId === null) return;
     let val = parseInt(e.target.value);
     if (isNaN(val)) val = 0;
-    const max = Math.max(0, 60 - (activePredSub.totalMax || 0));
-    setExpectedMarksMap(prev => ({ ...prev, [predSubjectId]: Math.min(max, Math.max(0, val)) }));
+    setExpectedMarksMap(prev => ({ ...prev, [predSubjectId]: Math.min(activeRemainingMax, Math.max(0, val)) }));
   };
 
   const setExpectedMarks = (val: number | ((prev: number) => number)) => {
@@ -161,8 +166,7 @@ export default function Marks({
     setExpectedMarksMap(prev => {
       const currentVal = prev[predSubjectId] || 0;
       const newVal = typeof val === "function" ? val(currentVal) : val;
-      const max = Math.max(0, 60 - (activePredSub.totalMax || 0));
-      return { ...prev, [predSubjectId]: Math.min(max, Math.max(0, newVal)) };
+      return { ...prev, [predSubjectId]: Math.min(activeRemainingMax, Math.max(0, newVal)) };
     });
   };
 
@@ -207,17 +211,18 @@ export default function Marks({
       ),
     [subjects],
   );
-  const { semRequiredOutOfMax, maxExternal, isCooked } = useMemo(() => {
+  const { semRequiredOutOfMax, maxExternal, isCooked, isInternalOnly } = useMemo(() => {
     return calculateSemMarksNeeded(
       currentTargetGrade,
       activePredSub.totalGot || 0,
       currentExpectedMarks,
-      activePredSub.isPractical
+      activePredSub.isPractical,
+      activeTotalMax
     );
-  }, [currentTargetGrade, activePredSub, currentExpectedMarks]);
+  }, [currentTargetGrade, activePredSub, currentExpectedMarks, activeTotalMax]);
 
   const currentInternals = activePredSub.totalGot || 0;
-  const maxPossibleExpected = Math.max(0, 60 - (activePredSub.totalMax || 0));
+  const maxPossibleExpected = activeRemainingMax;
 
   const predictedGpa = useMemo(() => {
     return calculatePredictedGpa(subjects, targetGrades, ignoredSubjectIds);
@@ -652,6 +657,7 @@ export default function Marks({
         semRequiredOutOfMax={semRequiredOutOfMax}
         maxExternal={maxExternal}
         isCooked={isCooked}
+        isInternalOnly={isInternalOnly ?? false}
         currentInternals={currentInternals}
         expectedMarks={currentExpectedMarks}
         maxPossibleExpected={maxPossibleExpected}

@@ -13,6 +13,7 @@ interface TargetProps {
   semRequiredOutOfMax: number;
   maxExternal: number;
   isCooked: boolean;
+  isInternalOnly: boolean;
   currentInternals: number;
   expectedMarks: number;
   maxPossibleExpected: number;
@@ -38,6 +39,7 @@ export default function Target({
   semRequiredOutOfMax,
   maxExternal,
   isCooked,
+  isInternalOnly,
   currentInternals,
   expectedMarks,
   maxPossibleExpected,
@@ -139,20 +141,22 @@ export default function Target({
                 className="text-[11px] font-bold lowercase tracking-widest text-theme-muted mb-1"
                 style={{ fontFamily: "'Afacad', sans-serif" }}
               >
-                sem marks needed
+                {isInternalOnly ? "no sem exam" : "sem marks needed"}
               </span>
               <div className="flex items-baseline gap-1">
                 <span
-                  className={`leading-[0.85] font-black tracking-tighter text-center ${isCooked ? "text-[4rem] text-[#FF4D4D]" : "text-[5rem] text-theme-highlight"}`}
+                  className={`leading-[0.85] font-black tracking-tighter text-center ${isCooked ? "text-[4rem] text-[#FF4D4D]" : isInternalOnly ? "text-[3rem] text-theme-muted" : "text-[5rem] text-theme-highlight"}`}
                   style={{ fontFamily: "'Montserrat', sans-serif" }}
                 >
-                  {isCooked
-                    ? "cooked."
-                    : semRequiredOutOfMax <= 0
-                      ? "0"
-                      : semRequiredOutOfMax}
+                  {isInternalOnly
+                    ? (isCooked ? "cooked." : "internal")
+                    : isCooked
+                      ? "cooked."
+                      : semRequiredOutOfMax <= 0
+                        ? "0"
+                        : semRequiredOutOfMax.toFixed(2)}
                 </span>
-                {!isCooked && semRequiredOutOfMax > 0 && (
+                {!isInternalOnly && !isCooked && semRequiredOutOfMax > 0 && (
                   <span
                     className="text-[20px] font-bold text-theme-subtle"
                     style={{ fontFamily: "'Montserrat', sans-serif" }}

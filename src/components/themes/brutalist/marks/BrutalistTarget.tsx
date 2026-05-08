@@ -13,6 +13,7 @@ interface TargetProps {
   semRequiredOutOfMax: number;
   maxExternal: number;
   isCooked: boolean;
+  isInternalOnly: boolean;
   currentInternals: number;
   expectedMarks: number;
   maxPossibleExpected: number;
@@ -37,6 +38,7 @@ export default function BrutalistTarget({
   semRequiredOutOfMax,
   maxExternal,
   isCooked,
+  isInternalOnly,
   currentInternals,
   expectedMarks,
   maxPossibleExpected,
@@ -108,13 +110,15 @@ export default function BrutalistTarget({
 
             <div className="flex flex-col items-center justify-center shrink-0">
               <span className="text-[11px] font-bold lowercase tracking-widest text-white/40 mb-1" style={{ fontFamily: "Aonic" }}>
-                sem marks needed
+                {isInternalOnly ? "no sem exam" : "sem marks needed"}
               </span>
               <div className="flex items-baseline gap-1">
-                <span className={`leading-[0.85] font-black tracking-tighter text-center ${isCooked ? "text-[4rem] text-[#ff003c]" : "text-[5rem] text-[#ceff1c]"}`} style={{ fontFamily: "Montserrat" }}>
-                  {isCooked ? "cooked." : semRequiredOutOfMax <= 0 ? "0" : semRequiredOutOfMax}
+                <span className={`leading-[0.85] font-black tracking-tighter text-center ${isCooked ? "text-[4rem] text-[#ff003c]" : isInternalOnly ? "text-[3rem] text-white/40" : "text-[5rem] text-[#ceff1c]"}`} style={{ fontFamily: "Montserrat" }}>
+                  {isInternalOnly
+                    ? (isCooked ? "cooked." : "internal")
+                    : isCooked ? "cooked." : semRequiredOutOfMax <= 0 ? "0" : semRequiredOutOfMax.toFixed(2)}
                 </span>
-                {!isCooked && semRequiredOutOfMax > 0 && semRequiredOutOfMax <= maxExternal && (
+                {!isInternalOnly && !isCooked && semRequiredOutOfMax > 0 && semRequiredOutOfMax <= maxExternal && (
                   <span className="text-[20px] font-bold text-white/20" style={{ fontFamily: "Montserrat" }}>/{maxExternal}</span>
                 )}
               </div>

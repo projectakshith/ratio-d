@@ -106,8 +106,12 @@ export const getInitialTargetGrades = (subjects: any[]) => {
 
   subjects.forEach((sub: any) => {
     const currentGot = sub.totalGot || 0;
-    const maxRemainingInternals = Math.max(0, 60 - (sub.totalMax || 0));
-    const maxTotalPossible = currentGot + maxRemainingInternals + 40;
+    const tm = sub.totalMax || 0;
+    const isInternalOnly = tm > 60;
+    const maxRemaining = isInternalOnly
+      ? Math.max(0, 100 - tm)
+      : Math.max(0, 60 - tm);
+    const maxTotalPossible = currentGot + maxRemaining + (isInternalOnly ? 0 : 40);
     const bestGrade = grades.find(g => maxTotalPossible >= g.min)?.min || 50;
     initialGrades[sub.id] = bestGrade;
   });
@@ -118,17 +122,31 @@ export const calculateSemMarksNeeded = (
   currentTargetGrade: number,
   currentInternals: number,
   currentExpectedMarks: number,
-  isPractical: boolean
+  isPractical: boolean,
+  totalMax: number = 0
 ) => {
+  const isInternalOnly = totalMax > 60;
   const projectedInternals = currentInternals + currentExpectedMarks;
   const neededWeight = Math.max(0, currentTargetGrade - projectedInternals);
+
+  if (isInternalOnly) {
+    const remainingInternal = Math.max(0, 100 - totalMax);
+    return {
+      semRequiredOutOfMax: 0,
+      maxExternal: 0,
+      isCooked: neededWeight > remainingInternal,
+      isInternalOnly: true,
+    };
+  }
+
   const maxExternal = isPractical ? 40 : 75;
-  const semRequiredOutOfMax = Math.ceil((neededWeight / 40) * maxExternal);
-  
-  return { 
-    semRequiredOutOfMax, 
+  const semRequiredOutOfMax = (neededWeight / 40) * maxExternal;
+
+  return {
+    semRequiredOutOfMax,
     maxExternal,
-    isCooked: neededWeight > 40
+    isCooked: neededWeight > 40,
+    isInternalOnly: false,
   };
 };
 
