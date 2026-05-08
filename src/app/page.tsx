@@ -14,8 +14,17 @@ export default function Page() {
   }, []);
 
   useEffect(() => {
-    if (mounted && isMobile === false) {
+    if (!mounted || isMobile === undefined) return;
+
+    if (!isMobile) {
       router.replace("/login");
+      return;
+    }
+
+    const hasSession = document.cookie.includes("ratio_session=");
+    const isOnboarded = localStorage.getItem("ratiod_onboarded") === "true";
+    if (hasSession && isOnboarded) {
+      router.replace("/dashboard");
     }
   }, [mounted, isMobile, router]);
 

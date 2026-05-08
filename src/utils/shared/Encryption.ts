@@ -17,26 +17,30 @@ function openDB(): Promise<IDBDatabase> {
 
 async function getOrCreateKey(): Promise<CryptoKey> {
   const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE, "readwrite");
-    const store = tx.objectStore(STORE);
-    const get = store.get(KEY_ID);
 
-    get.onsuccess = async () => {
-      if (get.result) {
-        resolve(get.result as CryptoKey);
-        return;
-      }
-      const key = await crypto.subtle.generateKey(
-        { name: "AES-GCM", length: 256 },
-        false,
-        ["encrypt", "decrypt"]
-      );
-      store.put(key, KEY_ID);
-      resolve(key);
-    };
+  const existing = await new Promise<CryptoKey | undefined>((resolve, reject) => {
+    const tx = db.transaction(STORE, "readonly");
+    const get = tx.objectStore(STORE).get(KEY_ID);
+    get.onsuccess = () => resolve(get.result as CryptoKey | undefined);
     get.onerror = () => reject(get.error);
   });
+
+  if (existing) return existing;
+
+  const key = await crypto.subtle.generateKey(
+    { name: "AES-GCM", length: 256 },
+    false,
+    ["encrypt", "decrypt"]
+  );
+
+  await new Promise<void>((resolve, reject) => {
+    const tx = db.transaction(STORE, "readwrite");
+    tx.objectStore(STORE).put(key, KEY_ID);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+
+  return key;
 }
 
 async function encrypt(data: unknown): Promise<string> {

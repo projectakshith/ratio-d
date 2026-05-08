@@ -13,7 +13,12 @@ export default function LoginRoute() {
     const hasSession = document.cookie.includes("ratio_session=");
     if (hasSession) {
       const isMobile = window.innerWidth < 768;
-      router.replace(isMobile ? "/onboarding" : "/dashboard");
+      if (isMobile) {
+        const isOnboarded = localStorage.getItem("ratiod_onboarded") === "true";
+        router.replace(isOnboarded ? "/dashboard" : "/onboarding");
+      } else {
+        router.replace("/dashboard");
+      }
     }
   }, [router]);
 
