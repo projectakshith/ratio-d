@@ -105,6 +105,7 @@ export const getInitialTargetGrades = (subjects: any[]) => {
   ];
 
   subjects.forEach((sub: any) => {
+    if (sub.isNA) return;
     const currentGot = sub.totalGot || 0;
     const tm = sub.totalMax || 0;
     const isInternalOnly = tm > 60;
@@ -170,6 +171,7 @@ export const calculatePredictedGpa = (
 
   subjects.forEach((sub: any) => {
     if (ignoredSubjectIds.includes(sub.id)) return;
+    if (sub.isNA) return;
     const credits = sub.credits || 0;
     
     let grade = "O";
