@@ -15,7 +15,7 @@ from models.schemas import Credentials, LoginCredentials
 from services.marks_service import MarksService
 from services.profile_service import ProfileService
 from services.course_service import CourseService
-from services.attendance_service import AttendanceService
+from services.attendance_service_v2 import AttendanceService
 from services.timetable_service import TimetableService
 from dotenv import load_dotenv
 from slowapi import Limiter, _rate_limit_exceeded_handler
