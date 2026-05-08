@@ -23,7 +23,7 @@ const SubjectCard = ({ code, title, percent, present, conducted, val, safe, type
   percent: string;
   present: number;
   conducted: number;
-  val: string;
+  val: string | number | null;
   safe: boolean;
   type?: string;
   recoveryDate?: string | null;
@@ -120,7 +120,7 @@ const SubjectCard = ({ code, title, percent, present, conducted, val, safe, type
           <div className="flex flex-col">
             <div className="flex items-baseline gap-2">
               <span className={`text-4xl font-black tracking-tighter leading-none ${statusColor}`} style={{ fontFamily: 'var(--font-montserrat)' }}>
-                {val}
+                {val ?? "—"}
               </span>
               <div className="flex items-center gap-1.5 translate-y-[-1px]">
                 {safe ? (
@@ -159,7 +159,7 @@ const SubjectCard = ({ code, title, percent, present, conducted, val, safe, type
               <span className={`text-base font-black ${textStyles} opacity-40`}>%</span>
             </div>
             <span className={`text-[11px] font-bold tabular-nums ${textStyles} opacity-60`} style={{ fontFamily: 'var(--font-afacad)' }}>
-              {present}/{conducted}
+              {conducted > 0 ? `${present}/${conducted}` : "—"}
             </span>
           </div>
           <div className={`w-full h-1 rounded-full overflow-hidden mt-2 ${progressBarBg}`}>
@@ -211,7 +211,7 @@ export default function DesktopAttendance() {
         ...s,
         percent: s.pred.pct.toFixed(1),
         safe: s.pred.status.safe,
-        val: s.pred.status.val,
+        val: s.pred.status.val ?? null,
         hasChanged: s.pred.status.val !== origStatus.val || s.pred.status.label !== origStatus.label,
         currentLabel: s.pred.status.label,
         recoveryDate: recDate,

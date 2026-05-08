@@ -82,7 +82,9 @@ export const getOverallStats = (baseAttendance: any[]) => {
     totalPresent += s.present;
   });
   const overallPct =
-    totalConducted === 0 ? 0 : (totalPresent / totalConducted) * 100;
+    totalConducted === 0
+      ? baseAttendance.reduce((sum, s) => sum + parseFloat(s.percentage), 0) / baseAttendance.length
+      : (totalPresent / totalConducted) * 100;
   const category =
     overallPct < 75 ? "cooked" : overallPct >= 85 ? "safe" : "danger";
   let tagline = "you're doing great";
@@ -104,11 +106,13 @@ const parseDateString = (str: string) => {
 };
 
 export const getStatus = (pct: number, conducted: number, present: number) => {
+  if (conducted === 0) {
+    return { val: null, label: "margin", safe: pct >= 75 };
+  }
   if (pct >= 75) {
     const margin = Math.floor((present - 0.75 * conducted) / 0.75);
     return { val: Math.max(0, margin), label: "margin", safe: true };
   }
-  
   let needed = 0;
   while (conducted + needed > 0 && ((present + needed) / (conducted + needed)) * 100 < 75) {
     needed++;
@@ -348,7 +352,7 @@ export const getProcessedList = (
     const newConducted = currentConducted + imp.conducted;
     const newPresent = Math.min(currentPresent + imp.present, newConducted);
 
-    const newPct = newConducted === 0 ? 0 : (newPresent / newConducted) * 100;
+    const newPct = newConducted === 0 ? parseFloat(subject.percentage) : (newPresent / newConducted) * 100;
     const newStatus = getStatus(newPct, newConducted, newPresent);
 
     return {
@@ -364,11 +368,11 @@ export const getProcessedList = (
   if (predictMode) {
     return list.sort((a, b) => {
       const scoreA = !a.pred.status.safe
-        ? a.pred.status.val + 1000
-        : -a.pred.status.val;
+        ? (a.pred.status.val ?? 0) + 1000
+        : -(a.pred.status.val ?? 0);
       const scoreB = !b.pred.status.safe
-        ? b.pred.status.val + 1000
-        : -b.pred.status.val;
+        ? (b.pred.status.val ?? 0) + 1000
+        : -(b.pred.status.val ?? 0);
       return scoreB - scoreA;
     });
   }
