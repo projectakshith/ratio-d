@@ -52,7 +52,8 @@ export default function DesktopPYQs() {
   const PROXY_BASE = useMemo(() => {
     if (typeof window === "undefined") return "";
     if (window.location.hostname === "localhost") return "http://localhost:8000";
-    return process.env.NEXT_PUBLIC_WORKER_URL || "";
+    const urls = (process.env.NEXT_PUBLIC_BACKEND_URLS || "").split(",").filter(Boolean);
+    return urls.find(u => !u.includes("localhost")) || urls[0] || "";
   }, []);
 
   const fetchProxied = async (path: string, params: Record<string, any> = {}) => {

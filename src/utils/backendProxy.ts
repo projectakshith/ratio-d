@@ -7,10 +7,9 @@ export async function fetchWithLoadBalancer(endpoint: string, options: RequestIn
     process.env.NEXT_PUBLIC_ENV === "development";
 
   const urls = (process.env.NEXT_PUBLIC_BACKEND_URLS || "").split(",").filter(Boolean);
-  const workerUrl = process.env.NEXT_PUBLIC_WORKER_URL;
-  
+
   const localBackend = urls.find(u => u.includes("localhost")) || "http://localhost:8000";
-  let targetUrl = isDev ? localBackend : (workerUrl || urls[0] || localBackend);
+  let targetUrl = isDev ? localBackend : (urls[0] || localBackend);
 
   if (targetUrl.endsWith('/')) {
     targetUrl = targetUrl.slice(0, -1);
