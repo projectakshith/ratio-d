@@ -55,7 +55,7 @@ async function handleRequest(request) {
     if (!targetPath)
       return new Response("Missing path", { status: 400, headers: cors });
 
-    const srmUrl = new URL(`https://srm-pyq-api.onrender.com/${targetPath}`);
+    const srmUrl = new URL(`https://srm-pyq-api.onrender.com${targetPath}`);
     url.searchParams.forEach((v, k) => {
       if (k !== "path") srmUrl.searchParams.set(k, v);
     });
