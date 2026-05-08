@@ -19,9 +19,10 @@ const withPWA = withPWAInit({
     runtimeCaching: [
       {
         urlPattern: ({ request }) => request.mode === 'navigate',
-        handler: "StaleWhileRevalidate",
+        handler: "NetworkFirst",
         options: {
-          cacheName: "pages",
+          cacheName: "pages-v2",
+          networkTimeoutSeconds: 5,
           expiration: {
             maxEntries: 64,
             maxAgeSeconds: 60 * 60 * 24 * 30,
