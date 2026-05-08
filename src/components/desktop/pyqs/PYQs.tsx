@@ -53,7 +53,8 @@ export default function DesktopPYQs() {
     if (typeof window === "undefined") return "";
     if (window.location.hostname === "localhost") return "http://localhost:8000";
     const urls = (process.env.NEXT_PUBLIC_BACKEND_URLS || "").split(",").filter(Boolean);
-    return urls.find(u => !u.includes("localhost")) || urls[0] || "";
+    const url = urls.find(u => !u.includes("localhost")) || urls[0] || "";
+    return url.replace(/\/$/, "");
   }, []);
 
   const fetchProxied = async (path: string, params: Record<string, any> = {}) => {
