@@ -30,6 +30,8 @@ interface TargetProps {
   textClass: string;
 }
 
+const fmt = (n: number) => parseFloat(n.toFixed(10));
+
 export default function Target({
   isOpen,
   onClose,
@@ -154,7 +156,7 @@ export default function Target({
                       ? "cooked."
                       : semRequiredOutOfMax <= 0
                         ? "0"
-                        : semRequiredOutOfMax.toFixed(2)}
+                        : fmt(semRequiredOutOfMax)}
                 </span>
                 {!isInternalOnly && !isCooked && semRequiredOutOfMax > 0 && (
                   <span
@@ -179,9 +181,7 @@ export default function Target({
                     className={`text-[2rem] leading-[1] font-black ${textClass}`}
                     style={{ fontFamily: "'Montserrat', sans-serif" }}
                   >
-                    {Number.isInteger(currentInternals)
-                      ? currentInternals
-                      : currentInternals.toFixed(1)}
+                    {fmt(currentInternals)}
                   </span>
                   <span
                     className="text-[12px] font-bold text-theme-subtle"

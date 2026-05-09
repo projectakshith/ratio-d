@@ -29,6 +29,8 @@ interface TargetProps {
   toggleSubjectIgnore: (id: string) => void;
 }
 
+const fmt = (n: number) => parseFloat(n.toFixed(10));
+
 export default function BrutalistTarget({
   isOpen,
   onClose,
@@ -116,7 +118,7 @@ export default function BrutalistTarget({
                 <span className={`leading-[0.85] font-black tracking-tighter text-center ${isCooked ? "text-[4rem] text-[#ff003c]" : isInternalOnly ? "text-[3rem] text-white/40" : "text-[5rem] text-[#ceff1c]"}`} style={{ fontFamily: "Montserrat" }}>
                   {isInternalOnly
                     ? (isCooked ? "cooked." : "internal")
-                    : isCooked ? "cooked." : semRequiredOutOfMax <= 0 ? "0" : semRequiredOutOfMax.toFixed(2)}
+                    : isCooked ? "cooked." : semRequiredOutOfMax <= 0 ? "0" : fmt(semRequiredOutOfMax)}
                 </span>
                 {!isInternalOnly && !isCooked && semRequiredOutOfMax > 0 && semRequiredOutOfMax <= maxExternal && (
                   <span className="text-[20px] font-bold text-white/20" style={{ fontFamily: "Montserrat" }}>/{maxExternal}</span>
@@ -131,7 +133,7 @@ export default function BrutalistTarget({
                 </span>
                 <div className="flex items-baseline gap-1 h-10">
                   <span className="text-[2rem] leading-[1] font-black text-white" style={{ fontFamily: "Montserrat" }}>
-                    {Number.isInteger(currentInternals) ? currentInternals : currentInternals.toFixed(1)}
+                    {fmt(currentInternals)}
                   </span>
                   <span className="text-[12px] font-bold text-white/20" style={{ fontFamily: "Montserrat" }}>/{activePredSub.totalMax}</span>
                 </div>

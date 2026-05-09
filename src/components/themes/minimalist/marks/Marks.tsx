@@ -25,6 +25,8 @@ import { UserAvatar } from "@/components/shared/UserAvatar";
 
 const BEZIER = [0.34, 0.15, 0.16, 0.96] as const;
 
+const fmt = (n: number) => parseFloat(n.toFixed(10));
+
 const containerVariants = {
   hidden: { opacity: 0 },
   show: {
@@ -300,9 +302,7 @@ export default function Marks({
                 className={`text-[7.5rem] leading-[0.8] font-black tracking-tighter text-theme-text`}
                 style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
               >
-                {Number.isInteger(totalObtained)
-                  ? totalObtained
-                  : totalObtained.toFixed(1)}
+                {fmt(totalObtained)}
               </span>
               <span
                 className="text-[2.5rem] font-bold text-theme-muted"
@@ -394,9 +394,7 @@ export default function Marks({
                         className={`text-[3.2rem] leading-[0.8] font-black tracking-tighter ${sub.percentage < 75 ? "text-theme-secondary" : "text-theme-text"}`}
                         style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
                       >
-                        {Number.isInteger(sub.totalGot)
-                          ? sub.totalGot
-                          : sub.totalGot.toFixed(1)}
+                        {fmt(sub.totalGot)}
                       </span>
                       <span
                         className="text-[10px] font-bold uppercase tracking-widest mt-1 text-center text-theme-secondary"
@@ -457,9 +455,7 @@ export default function Marks({
                               className={`text-[18px] font-black leading-none tracking-tighter ${boxTheme.text}`}
                               style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
                             >
-                              {Number.isInteger(box.got)
-                                ? box.got
-                                : box.got.toFixed(1)}
+                              {fmt(box.got)}
                             </span>
                             <span
                               className={`text-[10px] font-bold ${boxTheme.subText}`}
@@ -531,9 +527,7 @@ export default function Marks({
                       className="text-[3.2rem] leading-[0.8] font-black tracking-tighter text-theme-text"
                       style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
                     >
-                      {Number.isInteger(sub.totalGot)
-                        ? sub.totalGot
-                        : sub.totalGot.toFixed(1)}
+                      {fmt(sub.totalGot)}
                     </span>
                     <span
                       className="text-[10px] font-bold uppercase tracking-widest mt-1 text-center text-theme-muted"
@@ -594,9 +588,7 @@ export default function Marks({
                             className={`text-[18px] font-black leading-none tracking-tighter ${boxTheme.text}`}
                             style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
                           >
-                            {Number.isInteger(box.got)
-                              ? box.got
-                              : box.got.toFixed(1)}
+                            {fmt(box.got)}
                           </span>
                           <span
                             className={`text-[10px] font-bold ${boxTheme.subText}`}

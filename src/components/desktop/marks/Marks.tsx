@@ -37,14 +37,16 @@ import { flavorText } from "@/utils/shared/flavortext";
 
 const STORAGE_KEY = "ratio_marks_targets_v2";
 
+const fmt = (n: number) => parseFloat(n.toFixed(10));
+
 const DetailedMarkCard = ({ ass }: any) => {
   const box = getBoxTheme(ass.got, ass.max);
-  const lost = (ass.max - ass.got).toFixed(1);
+  const lost = fmt(ass.max - ass.got);
   return (
     <div className={`px-2 pt-1.5 pb-1 rounded-xl border ${box.boxBg} ${box.border} flex flex-col justify-start gap-1 shadow-sm h-[48px] relative overflow-hidden`}>
       <div className="flex justify-between items-start leading-none relative z-10">
         <span className={`text-[7px] font-black uppercase ${box.text} opacity-80 truncate block`} style={{ fontFamily: 'var(--font-montserrat)' }}>{ass.title}</span>
-        {parseFloat(lost) > 0 && (
+        {lost > 0 && (
           <span className="text-[7px] font-black text-theme-secondary uppercase tracking-tight" style={{ fontFamily: 'var(--font-montserrat)' }}>-{lost} lost</span>
         )}
       </div>
@@ -185,9 +187,9 @@ const MarkSubjectCard = ({ sub, onSelect }: { sub: any, onSelect: (id: string) =
             <div className="flex flex-col gap-1 relative">
               <div className="flex items-baseline gap-1.5">
                 <span className={`text-4xl font-black tracking-tighter leading-none ${statusColor}`} style={{ fontFamily: 'var(--font-montserrat)' }}>
-                  {sub.totalGot.toFixed(1)}
+                  {fmt(sub.totalGot)}
                 </span>
-                <span className={`text-lg font-black ${subTextStyles}`}>/{sub.totalMax.toFixed(0)}</span>
+                <span className={`text-lg font-black ${subTextStyles}`}>/{fmt(sub.totalMax)}</span>
               </div>
               <div className={`w-full h-1 rounded-full overflow-hidden mt-1.5 ${progressBarBg}`}>
                 <div 
@@ -208,7 +210,7 @@ const MarkSubjectCard = ({ sub, onSelect }: { sub: any, onSelect: (id: string) =
 
 const MarkCardList = ({ ass }: any) => {
   const box = getBoxTheme(ass.got, ass.max);
-  const lost = (ass.max - ass.got).toFixed(1);
+  const lost = fmt(ass.max - ass.got);
   return (
     <div className={`p-2.5 rounded-2xl border-2 ${box.boxBg} ${box.border} flex flex-col justify-between transition-all duration-300 group relative overflow-hidden flex-1 min-w-[100px]`}>
       <div className="relative z-10">
@@ -220,7 +222,7 @@ const MarkCardList = ({ ass }: any) => {
           <span className={`text-[10px] font-black opacity-60 ${box.text}`} style={{ fontFamily: 'var(--font-montserrat)' }}>/ {ass.max}</span>
         </div>
       </div>
-      {parseFloat(lost) > 0 && (
+      {lost > 0 && (
         <div className="absolute top-1.5 right-2 flex flex-col items-end">
           <span className="text-sm font-black text-theme-secondary uppercase leading-none" style={{ fontFamily: 'var(--font-montserrat)' }}>-{lost}</span>
         </div>
@@ -266,7 +268,7 @@ const GradeNeedCard = ({ grade, min, sub, isCurrentOnTrack }: any) => {
     <div className={`flex items-center justify-between p-3.5 rounded-2xl transition-all border-2 ${stateStyles}`}>
       <span className="text-sm font-black" style={{ fontFamily: 'var(--font-montserrat)' }}>{grade}</span>
       <span className={`text-[10px] font-black uppercase text-right ${isCurrentOnTrack ? 'opacity-80' : 'opacity-60'}`} style={{ fontFamily: 'var(--font-montserrat)' }}>
-        {!isPossible ? 'rip' : isAlreadySafe ? 'Safe' : `Need ${neededFromRemaining.toFixed(1)}`}
+        {!isPossible ? 'rip' : isAlreadySafe ? 'Safe' : `Need ${fmt(neededFromRemaining)}`}
       </span>
     </div>
   );
@@ -387,8 +389,8 @@ const DetailedWorkspace = ({ sub, targetGrade, updateTarget, expectedMarks, setE
         <div className="flex flex-col items-end shrink-0">
           <span className="text-[8px] font-black uppercase tracking-[0.3em] text-theme-muted" style={{ fontFamily: 'var(--font-montserrat)' }}>Total Marks</span>
           <div className="flex items-baseline gap-1">
-            <span className="text-2xl font-black text-theme-text leading-none" style={{ fontFamily: 'var(--font-montserrat)' }}>{(sub.totalGot || 0).toFixed(1)}</span>
-            <span className="text-xs font-black text-theme-muted opacity-30 leading-none" style={{ fontFamily: 'var(--font-montserrat)' }}>/ {(sub.totalMax || 0).toFixed(1)}</span>
+            <span className="text-2xl font-black text-theme-text leading-none" style={{ fontFamily: 'var(--font-montserrat)' }}>{fmt(sub.totalGot || 0)}</span>
+            <span className="text-xs font-black text-theme-muted opacity-30 leading-none" style={{ fontFamily: 'var(--font-montserrat)' }}>/ {fmt(sub.totalMax || 0)}</span>
           </div>
         </div>
       </div>
@@ -422,7 +424,7 @@ const DetailedWorkspace = ({ sub, targetGrade, updateTarget, expectedMarks, setE
             </div>
             <div className="flex flex-col items-end leading-none mt-0.5">
               <span className="text-[7px] font-black uppercase tracking-widest opacity-60">Total Marks Lost</span>
-              <span className="text-xs font-black tracking-tighter" style={{ fontFamily: 'var(--font-montserrat)' }}>-{advice.lostMarks.toFixed(1)}</span>
+              <span className="text-xs font-black tracking-tighter" style={{ fontFamily: 'var(--font-montserrat)' }}>-{fmt(advice.lostMarks)}</span>
             </div>
           </div>
         </div>
@@ -477,7 +479,7 @@ const DetailedWorkspace = ({ sub, targetGrade, updateTarget, expectedMarks, setE
                     <span className="text-[8px] font-black uppercase tracking-[0.4em] text-theme-muted" style={{ fontFamily: 'var(--font-montserrat)' }}>{isInternalOnly ? 'No Sem Exam' : 'Required in Endsem'}</span>
                     <div className="flex items-baseline gap-1">
                       <span className={`text-4xl font-black ${isCooked ? 'text-theme-secondary' : isInternalOnly ? 'text-theme-muted' : 'text-theme-text'} tracking-tighter`} style={{ fontFamily: 'var(--font-montserrat)' }}>
-                        {isInternalOnly ? (isCooked ? 'cooked' : 'internal') : isCooked ? 'cooked' : semRequiredOutOfMax <= 0 ? '0' : semRequiredOutOfMax.toFixed(2)}
+                        {isInternalOnly ? (isCooked ? 'cooked' : 'internal') : isCooked ? 'cooked' : semRequiredOutOfMax <= 0 ? '0' : fmt(semRequiredOutOfMax)}
                       </span>
                       {!isInternalOnly && !isCooked && <span className="text-lg font-black text-theme-muted opacity-30" style={{ fontFamily: 'var(--font-montserrat)' }}>/{sub.isPractical ? 40 : 75}</span>}
                     </div>
@@ -518,7 +520,7 @@ const DetailedWorkspace = ({ sub, targetGrade, updateTarget, expectedMarks, setE
                             className="bg-theme-surface border-2 border-theme-border rounded-full text-center text-xs font-black text-theme-text w-full py-1 pl-1 pr-6 outline-none focus:border-theme-highlight/50 transition-all [appearance:textfield]"
                             style={{ fontFamily: 'var(--font-montserrat)' }}
                           />
-                          <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[8px] font-black text-theme-muted opacity-40" style={{ fontFamily: 'var(--font-montserrat)' }}>/{internalsRemaining.toFixed(0)}</span>
+                          <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[8px] font-black text-theme-muted opacity-40" style={{ fontFamily: 'var(--font-montserrat)' }}>/{fmt(internalsRemaining)}</span>
                         </div>
                         <button onClick={() => setExpectedMarks(sub.id, Math.min(internalsRemaining, expectedMarks + 1))} className="w-8 h-8 rounded-full text-theme-text hover:bg-theme-text/5 flex items-center justify-center transition-all border border-theme-border shrink-0"><Plus size={10} /></button>
                       </div>
@@ -579,8 +581,8 @@ const MarksDashboard = ({ stats, roast, isAnimating, subjects, targetGrades, tar
             <div className="space-y-0.5">
               <span className="text-theme-muted text-[8px] font-bold uppercase tracking-[0.3em] block" style={{ fontFamily: 'var(--font-afacad)' }}>Total Internals</span>
               <div className="flex items-baseline gap-1 whitespace-nowrap overflow-hidden">
-                <span className="text-theme-text text-2xl font-black tracking-tighter" style={{ fontFamily: 'var(--font-montserrat)' }}>{stats.totalInternalGot.toFixed(1)}</span>
-                <span className="text-theme-muted text-xs font-bold opacity-40" style={{ fontFamily: 'var(--font-montserrat)' }}>/ {stats.totalInternalMax.toFixed(0)}</span>
+                <span className="text-theme-text text-2xl font-black tracking-tighter" style={{ fontFamily: 'var(--font-montserrat)' }}>{fmt(stats.totalInternalGot)}</span>
+                <span className="text-theme-muted text-xs font-bold opacity-40" style={{ fontFamily: 'var(--font-montserrat)' }}>/ {fmt(stats.totalInternalMax)}</span>
               </div>
             </div>
             <div className="space-y-0.5">
@@ -839,8 +841,8 @@ export default function DesktopMarks() {
                           </motion.p>
                         </div>
                         <div className="flex items-baseline gap-1.5 whitespace-nowrap overflow-hidden">
-                          <span className="text-theme-text text-2xl font-black tracking-tighter" style={{ fontFamily: 'var(--font-montserrat)' }}>{stats.totalInternalGot.toFixed(1)}</span>
-                          <span className="text-theme-muted text-xs font-bold uppercase tracking-widest" style={{ fontFamily: 'var(--font-afacad)' }}>/ {stats.totalInternalMax.toFixed(0)} internals</span>
+                          <span className="text-theme-text text-2xl font-black tracking-tighter" style={{ fontFamily: 'var(--font-montserrat)' }}>{fmt(stats.totalInternalGot)}</span>
+                          <span className="text-theme-muted text-xs font-bold uppercase tracking-widest" style={{ fontFamily: 'var(--font-afacad)' }}>/ {fmt(stats.totalInternalMax)} internals</span>
                         </div>
                       </div>
                     </div>

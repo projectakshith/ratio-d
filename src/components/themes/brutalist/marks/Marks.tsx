@@ -20,6 +20,8 @@ import { Haptics } from "@/utils/shared/haptics";
 import { useApp } from "@/context/AppContext";
 import { UserAvatar } from "@/components/shared/UserAvatar";
 
+const fmt = (n: number) => parseFloat(n.toFixed(10));
+
 const ScoreCounter = ({ value }: any) => {
   const nodeRef = useRef<any>(null);
   const prevValue = useRef(0);
@@ -36,7 +38,7 @@ const ScoreCounter = ({ value }: any) => {
       duration: 0.8,
       ease: "circOut",
       onUpdate: (v) => {
-        node.textContent = Number.isInteger(v) ? v.toString() : v.toFixed(1);
+        node.textContent = String(fmt(v));
       },
     });
     prevValue.current = numericValue;
@@ -268,7 +270,7 @@ const MarksPage = ({ data }: { data: AcademiaData }) => {
                   <div key={idx} className={`px-3 py-2 rounded-xl border border-white/5 flex flex-col items-center justify-center min-w-[70px] ${boxColor}`}>
                     <span className="text-[9px] font-black uppercase tracking-widest opacity-60 mb-1" style={{ fontFamily: "Aonic" }}>{box.title}</span>
                     <div className="flex items-baseline gap-0.5">
-                      <span className="text-lg font-black leading-none" style={{ fontFamily: "Urbanosta" }}>{Number.isInteger(box.got) ? box.got : box.got.toFixed(1)}</span>
+                      <span className="text-lg font-black leading-none" style={{ fontFamily: "Urbanosta" }}>{fmt(box.got)}</span>
                       <span className="text-[10px] font-bold opacity-40">/{box.max}</span>
                     </div>
                   </div>
