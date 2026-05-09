@@ -1,0 +1,24 @@
+#!/bin/sh
+# ratio'd CLI installer
+# https://cli.getratiod.lol
+
+cat << 'EOF'
+
+  ██████╗  █████╗ ████████╗██╗ ██████╗ ██╗██████╗
+  ██╔══██╗██╔══██╗╚══██╔══╝██║██╔═══██╗╚═╝██╔══██╗
+  ██████╔╝███████║   ██║   ██║██║   ██║   ██║  ██║
+  ██╔══██╗██╔══██║   ██║   ██║██║   ██║   ██║  ██║
+  ██║  ██║██║  ██║   ██║   ██║╚██████╔╝   ██████╔╝
+  ╚═╝  ╚═╝╚═╝  ╚═╝   ╚═╝   ╚═╝ ╚═════╝    ╚═════╝
+
+  CLI — academia, straight to the terminal.
+
+  -----------------------------------------------
+  hey. thanks for the interest — genuinely means
+  a lot. we are still building this thing.
+
+  check back soon at: https://cli.getratiod.lol
+  or watch the repo:  https://github.com/projectakshith/ratio-d
+  -----------------------------------------------
+
+EOF
