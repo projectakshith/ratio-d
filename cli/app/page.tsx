@@ -165,14 +165,33 @@ function CopyIcon({ copied }: { copied: boolean }) {
   );
 }
 
-const INSTALL_CMD = `npx ratio-d`;
+const CMDS = {
+  win: `irm https://cli.getratiod.lol/install.ps1 | iex`,
+  unix: `curl -fsSL https://cli.getratiod.lol/install.sh | sh`,
+};
 
 export default function Home() {
   const [copied, setCopied] = useState(false);
+  const [os, setOs] = useState<"win" | "unix">("unix");
+
+  useEffect(() => {
+    const ua = navigator.userAgent.toLowerCase();
+    const plat = (navigator.platform ?? "").toLowerCase();
+    if (
+      ua.includes("win") ||
+      plat.includes("win") ||
+      ua.includes("windows")
+    ) {
+      setOs("win");
+    }
+  }, []);
+
+  const cmd = CMDS[os];
+  const osLabel = os === "win" ? "Windows PowerShell" : "Linux / macOS";
 
   async function handleCopy() {
     try {
-      await navigator.clipboard.writeText(INSTALL_CMD);
+      await navigator.clipboard.writeText(cmd);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {}
@@ -225,45 +244,63 @@ export default function Home() {
         without opening a browser. Built for students who live in the terminal.
       </h1>
 
-      <button
-        id="install-cmd"
-        onClick={handleCopy}
-        aria-label="Copy install command"
+      <div
         style={{
-          background: "none",
-          border: "1px solid rgba(200,117,51,0.4)",
-          padding: "0.9rem 1.4rem",
-          display: "flex",
-          alignItems: "center",
-          gap: "0.75rem",
-          cursor: "pointer",
           width: "100%",
-          maxWidth: "480px",
+          maxWidth: "600px",
           marginBottom: "2.75rem",
-          textAlign: "left",
-          transition: "border-color 0.2s, background 0.2s",
-          outline: "none",
-          fontFamily: "'Courier New', Courier, monospace",
-        }}
-        onMouseEnter={(e) => {
-          const el = e.currentTarget as HTMLButtonElement;
-          el.style.borderColor = "#c87533";
-          el.style.background = "rgba(200,117,51,0.05)";
-        }}
-        onMouseLeave={(e) => {
-          const el = e.currentTarget as HTMLButtonElement;
-          el.style.borderColor = "rgba(200,117,51,0.4)";
-          el.style.background = "none";
         }}
       >
-        <span style={{ color: "rgba(200,117,51,0.55)", fontSize: "0.875rem", userSelect: "none", flexShrink: 0 }}>$</span>
-        <span style={{ color: "rgba(237,237,237,0.88)", fontSize: "0.875rem", letterSpacing: "0.03em", flex: 1 }}>
-          {INSTALL_CMD}
-        </span>
-        <span style={{ flexShrink: 0 }}>
-          <CopyIcon copied={copied} />
-        </span>
-      </button>
+        <p
+          style={{
+            color: "rgba(200,117,51,0.45)",
+            fontSize: "0.65rem",
+            letterSpacing: "0.12em",
+            textTransform: "uppercase",
+            marginBottom: "0.4rem",
+            textAlign: "left",
+          }}
+        >
+          {osLabel}
+        </p>
+        <button
+          id="install-cmd"
+          onClick={handleCopy}
+          aria-label="Copy install command"
+          style={{
+            background: "none",
+            border: "1px solid rgba(200,117,51,0.4)",
+            padding: "0.9rem 1.4rem",
+            display: "flex",
+            alignItems: "center",
+            gap: "0.75rem",
+            cursor: "pointer",
+            width: "100%",
+            textAlign: "left",
+            transition: "border-color 0.2s, background 0.2s",
+            outline: "none",
+            fontFamily: "'Courier New', Courier, monospace",
+          }}
+          onMouseEnter={(e) => {
+            const el = e.currentTarget as HTMLButtonElement;
+            el.style.borderColor = "#c87533";
+            el.style.background = "rgba(200,117,51,0.05)";
+          }}
+          onMouseLeave={(e) => {
+            const el = e.currentTarget as HTMLButtonElement;
+            el.style.borderColor = "rgba(200,117,51,0.4)";
+            el.style.background = "none";
+          }}
+        >
+          <span style={{ color: "rgba(200,117,51,0.55)", fontSize: "0.8rem", userSelect: "none", flexShrink: 0 }}>$</span>
+          <span style={{ color: "rgba(237,237,237,0.88)", fontSize: "0.8rem", letterSpacing: "0.02em", flex: 1 }}>
+            {cmd}
+          </span>
+          <span style={{ flexShrink: 0 }}>
+            <CopyIcon copied={copied} />
+          </span>
+        </button>
+      </div>
 
       <nav
         style={{
