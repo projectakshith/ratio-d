@@ -300,8 +300,8 @@ export default function Attendance({
             </span>
             <div className="flex items-baseline gap-1">
               <span
-                className="text-[7.5rem] leading-[0.8] font-black tracking-tighter text-theme-text"
-                style={{
+                className="leading-[0.8] font-black tracking-tighter text-theme-text"
+                style={{ fontSize: "clamp(3rem, 17vw, 7.5rem)",
                   fontFamily: "var(--font-montserrat), sans-serif",
                 }}
               >

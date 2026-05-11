@@ -20,7 +20,7 @@ import { Haptics } from "@/utils/shared/haptics";
 import { useApp } from "@/context/AppContext";
 import { UserAvatar } from "@/components/shared/UserAvatar";
 
-const fmt = (n: number) => parseFloat(n.toFixed(10));
+const fmt = (n: number) => parseFloat(n.toFixed(2));
 
 const ScoreCounter = ({ value }: any) => {
   const nodeRef = useRef<any>(null);
@@ -98,7 +98,7 @@ const MarksPage = ({ data }: { data: AcademiaData }) => {
 
   useEffect(() => {
     if (sortedMarks.length > 0 && selectedId === null) {
-      setSelectedId(sortedMarks[0].id);
+      setSelectedId((sortedMarks.find((s: any) => !s.isNA) || sortedMarks[0]).id);
     }
   }, [sortedMarks, selectedId]);
 

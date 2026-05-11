@@ -25,7 +25,7 @@ import { UserAvatar } from "@/components/shared/UserAvatar";
 
 const BEZIER = [0.34, 0.15, 0.16, 0.96] as const;
 
-const fmt = (n: number) => parseFloat(n.toFixed(10));
+const fmt = (n: number) => parseFloat(n.toFixed(2));
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -121,7 +121,7 @@ export default function Marks({
 
   useEffect(() => {
     if (subjects.length > 0 && predSubjectId === null)
-      setPredSubjectId(subjects[0].id);
+      setPredSubjectId((subjects.find((s: any) => !s.isNA) || subjects[0]).id);
   }, [subjects, predSubjectId]);
 
   const grades = useMemo(() => [
@@ -299,8 +299,8 @@ export default function Marks({
             </span>
             <div className="flex items-baseline gap-1">
               <span
-                className={`text-[7.5rem] leading-[0.8] font-black tracking-tighter text-theme-text`}
-                style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
+                className="leading-[0.8] font-black tracking-tighter text-theme-text"
+                style={{ fontFamily: "var(--font-montserrat), sans-serif", fontSize: "clamp(3rem, 17vw, 7.5rem)" }}
               >
                 {fmt(totalObtained)}
               </span>

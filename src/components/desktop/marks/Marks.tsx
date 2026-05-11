@@ -37,7 +37,7 @@ import { flavorText } from "@/utils/shared/flavortext";
 
 const STORAGE_KEY = "ratio_marks_targets_v2";
 
-const fmt = (n: number) => parseFloat(n.toFixed(10));
+const fmt = (n: number) => parseFloat(n.toFixed(2));
 
 const DetailedMarkCard = ({ ass }: any) => {
   const box = getBoxTheme(ass.got, ass.max);
@@ -943,7 +943,7 @@ export default function DesktopMarks() {
                         <span className="text-sm font-bold lowercase tracking-tight" style={{ fontFamily: 'var(--font-montserrat)' }}>dashboard</span>
                       </div>
                       {subjects.map(s => (
-                        <div key={s.id} onClick={() => setActiveTab(s.id)} className={`p-3.5 rounded-2xl cursor-pointer transition-all duration-300 ${activeTab === s.id ? 'bg-theme-text/10 text-theme-text shadow-md scale-[1.01] border-theme-highlight/30' : 'bg-transparent hover:bg-theme-text/5'} border border-transparent`}>
+                        <div key={s.id} onClick={() => !s.isNA && setActiveTab(s.id)} className={`p-3.5 rounded-2xl transition-all duration-300 ${s.isNA ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer'} ${activeTab === s.id ? 'bg-theme-text/10 text-theme-text shadow-md scale-[1.01] border-theme-highlight/30' : 'bg-transparent hover:bg-theme-text/5'} border border-transparent`}>
                           <span className={`text-[7px] font-black uppercase tracking-widest mb-0.5 block opacity-40`} style={{ fontFamily: 'var(--font-montserrat)' }}>{s.code}</span>
                           <h3 className={`text-xs font-bold lowercase truncate tracking-tight`} style={{ fontFamily: 'var(--font-montserrat)' }}>{s.title}</h3>
                         </div>
