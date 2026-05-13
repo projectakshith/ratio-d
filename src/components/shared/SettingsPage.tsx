@@ -18,6 +18,8 @@ import {
   PartyPopper,
   Store,
   Clock,
+  MessageSquare,
+  Star,
 } from "lucide-react";
 import { requestNotificationPermission } from "@/utils/shared/notifs";
 import { StudentProfile } from "@/types";
@@ -35,7 +37,8 @@ import CourseDetailsPage from "@/components/shared/CourseDetailsPage";
 import { UserAvatar } from "@/components/shared/UserAvatar";
 import PrivacyProtocol from "@/components/shared/PrivacyProtocol";
 
-import WhatsNew from "./WhatsNew"; 
+import WhatsNew from "./WhatsNew";
+import { fetchWithLoadBalancer } from "@/utils/backendProxy";
 
 const WhatsappIcon = ({ size = 20 }: { size?: number }) => (
   <svg 
@@ -213,6 +216,12 @@ const SettingsPage = ({
   const [showCourseDetails, setShowCourseDetails] = useState(false);
   const [showProfileCard, setShowProfileCard] = useState(false);
   const [showWhatsNew, setShowWhatsNew] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [feedbackRating, setFeedbackRating] = useState(0);
+  const [feedbackHover, setFeedbackHover] = useState(0);
+  const [feedbackMessage, setFeedbackMessage] = useState("");
+  const [feedbackStatus, setFeedbackStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [feedbackCount, setFeedbackCount] = useState(() => parseInt(localStorage.getItem("ratiod_feedback_count") || "0"));
   const [selectedTheme, setSelectedTheme] = useState(currentTheme);
 
   const { uiStyle: initialStyle, colorTheme: initialColor } = parseTheme(selectedTheme);
@@ -261,6 +270,40 @@ const SettingsPage = ({
     if (creds && userData) {
       await refreshData(creds, userData);
       window.location.reload();
+    }
+  };
+
+  const handleFeedbackSubmit = async () => {
+    if (!feedbackRating || feedbackStatus === "sending") return;
+    setFeedbackStatus("sending");
+    const name = userData?.profile?.name || "anon";
+    try {
+      const res = await fetchWithLoadBalancer("/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          embeds: [{
+            title: "feedback drop",
+            description: feedbackMessage.trim() || "no message",
+            color: 0x85a818,
+            fields: [
+              { name: "rating", value: `${"★".repeat(feedbackRating)}${"☆".repeat(5 - feedbackRating)} ${feedbackRating}/5`, inline: true },
+              { name: "from", value: name, inline: true },
+            ],
+            footer: { text: `ratio'd · ${new Date().toLocaleString("en-IN")}` },
+          }],
+        }),
+      });
+      if (res.ok) {
+        const next = feedbackCount + 1;
+        localStorage.setItem("ratiod_feedback_count", String(next));
+        setFeedbackCount(next);
+        setFeedbackStatus("sent");
+      } else {
+        setFeedbackStatus("error");
+      }
+    } catch {
+      setFeedbackStatus("error");
     }
   };
 
@@ -388,6 +431,7 @@ const SettingsPage = ({
                 </div>
                 <div className="space-y-1 px-1">
                   <SettingItem icon={<PartyPopper className="w-5 h-5 opacity-80 text-theme-text" />} label="What's New" onClick={() => setShowWhatsNew(true)} />
+                  <SettingItem icon={<MessageSquare className="w-5 h-5 opacity-80 text-theme-text" />} label="Feedback" onClick={() => { setFeedbackStatus("idle"); setFeedbackRating(0); setFeedbackMessage(""); setShowFeedback(true); }} />
                   <SettingItem icon={<Lock className="w-5 h-5 opacity-80 text-theme-text" />} label="Privacy" onClick={() => setShowPrivacy(true)} />
                   <SettingItem icon={<WhatsappIcon size={20} />} label="WhatsApp Community" onClick={() => window.open("https://chat.whatsapp.com/D7wymoQ1zrQKqf4Qs4gw91", "_blank")} />
                 </div>
@@ -418,6 +462,115 @@ const SettingsPage = ({
       </AnimatePresence>
 
       <PrivacyProtocol isOpen={showPrivacy} onClose={() => setShowPrivacy(false)} />
+
+      <AnimatePresence>
+        {showFeedback && (
+          <>
+            <motion.div variants={backdropVariants} initial="hidden" animate="visible" exit="exit" className="fixed inset-0 z-[60] bg-black/20" onClick={() => setShowFeedback(false)} />
+            <motion.div variants={themePanelVariants} initial="hidden" animate="visible" exit="exit" className="fixed inset-0 z-[70] bg-theme-bg flex flex-col overflow-hidden">
+              <div className="pt-12 pb-4 px-6 flex items-center gap-4">
+                <button onClick={() => setShowFeedback(false)} className="w-10 h-10 rounded-full bg-theme-surface flex items-center justify-center active:scale-90 transition-transform">
+                  <ChevronLeft className="w-6 h-6" strokeWidth={2.5} />
+                </button>
+                <h1 className="text-xl font-bold tracking-tight">Feedback</h1>
+              </div>
+
+              <div className="flex-1 overflow-y-auto no-scrollbar px-6 py-6">
+                {feedbackCount >= 5 ? (
+                  <div className="flex flex-col gap-3 pt-4">
+                    <span className="text-[3rem] font-black tracking-tighter lowercase leading-none" style={{ fontFamily: "var(--font-montserrat)" }}>
+                      chill.
+                    </span>
+                    <p className="text-[13px] text-theme-muted" style={{ fontFamily: "var(--font-afacad)" }}>
+                      stop spamming dawg.
+                    </p>
+                  </div>
+                ) : feedbackStatus === "sent" ? (
+                  <div className="flex flex-col gap-3 pt-4">
+                    <span className="text-[3rem] font-black tracking-tighter lowercase leading-none" style={{ fontFamily: "var(--font-montserrat)" }}>
+                      dropped.
+                    </span>
+                    <p className="text-[13px] text-theme-muted" style={{ fontFamily: "var(--font-afacad)" }}>
+                      we got it. thanks gng.
+                    </p>
+                    {feedbackCount < 5 && (
+                      <button
+                        onClick={() => { setFeedbackStatus("idle"); setFeedbackRating(0); setFeedbackMessage(""); }}
+                        className="w-fit mt-2 px-5 py-2.5 rounded-[18px] bg-theme-surface border border-theme-border text-[11px] font-black uppercase tracking-[0.2em]"
+                      >
+                        send another
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-8 max-w-sm">
+                    <div className="space-y-3">
+                      <p className="text-[10px] uppercase tracking-[0.25em] text-theme-muted font-black">rating</p>
+                      <div className="flex gap-1" onMouseLeave={() => setFeedbackHover(0)}>
+                        {[1, 2, 3, 4, 5].map((s) => (
+                          <button
+                            key={s}
+                            onMouseEnter={() => setFeedbackHover(s)}
+                            onClick={() => setFeedbackRating(s)}
+                            className="p-1 active:scale-95 transition-transform"
+                          >
+                            <Star
+                              size={32}
+                              strokeWidth={1.5}
+                              style={{
+                                color: s <= (feedbackHover || feedbackRating) ? "var(--theme-highlight)" : "var(--theme-border)",
+                                fill: s <= (feedbackHover || feedbackRating) ? "var(--theme-highlight)" : "transparent",
+                                transition: "color 0.12s, fill 0.12s",
+                              }}
+                            />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <p className="text-[10px] uppercase tracking-[0.25em] text-theme-muted font-black">message</p>
+                      <textarea
+                        rows={5}
+                        placeholder="show some love or roast us"
+                        className="w-full bg-theme-surface border border-theme-border rounded-[22px] px-5 py-4 text-[14px] focus:outline-none transition-colors resize-none"
+                        style={{ fontFamily: "var(--font-afacad)" }}
+                        value={feedbackMessage}
+                        onChange={(e) => setFeedbackMessage(e.target.value)}
+                      />
+                      <p className="text-[10px] text-theme-muted/60 px-1" style={{ fontFamily: "var(--font-afacad)" }}>
+                        we'll grab your name with this
+                      </p>
+                    </div>
+
+                    {feedbackStatus === "error" && (
+                      <p className="text-[12px] text-theme-secondary" style={{ fontFamily: "var(--font-afacad)" }}>
+                        something went cooked. try again.
+                      </p>
+                    )}
+
+                    <div className="flex gap-3">
+                      <button
+                        onClick={handleFeedbackSubmit}
+                        disabled={!feedbackRating || feedbackStatus === "sending"}
+                        className="flex-[2] py-4 rounded-[22px] bg-theme-emphasis text-theme-bg font-black text-xs uppercase tracking-widest flex items-center justify-center active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                      >
+                        {feedbackStatus === "sending" ? "dropping..." : "drop it"}
+                      </button>
+                      <button
+                        onClick={() => setShowFeedback(false)}
+                        className="flex-1 py-4 rounded-[22px] bg-theme-surface border border-theme-border text-theme-muted font-black text-xs uppercase tracking-widest active:scale-95 transition-all"
+                      >
+                        skip
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
       <WhatsNew isOpen={showWhatsNew} onClose={() => setShowWhatsNew(false)} />
 
       <CourseDetailsPage isOpen={showCourseDetails} onClose={() => setShowCourseDetails(false)} />

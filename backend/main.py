@@ -82,6 +82,9 @@ async def security_middleware(request: Request, call_next):
     if os.getenv("ENV") == "development":
         return await call_next(request)
 
+    if request.url.path == "/feedback":
+        return await call_next(request)
+
     body = await request.body()
 
     async def receive():
@@ -97,6 +100,19 @@ async def security_middleware(request: Request, call_next):
 
 def get_now():
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3] + " IST"
+
+@app.post("/feedback")
+@limiter.limit("3/minute")
+async def submit_feedback(request: Request):
+    webhook_url = os.getenv("DISCORD_WEBHOOK", "")
+    if not webhook_url:
+        raise HTTPException(status_code=500, detail="not configured")
+    body = await request.json()
+    async with httpx.AsyncClient() as client:
+        res = await client.post(webhook_url, json=body, timeout=8.0)
+    if not res.is_success:
+        raise HTTPException(status_code=502, detail="failed to deliver")
+    return {"ok": True}
 
 @app.get("/version")
 async def get_version():

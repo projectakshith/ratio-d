@@ -6,7 +6,7 @@ import {
   Pencil, Bell, Palette, Lock, Cloud, LogOut, Check, X,
   User, BookOpen, RefreshCw, PartyPopper, Clock, ChevronRight,
   UserCircle2, BarChart3, Calendar, CheckCircle2, ServerOff,
-  Database, MapPin, ArrowRight,
+  Database, MapPin, ArrowRight, MessageSquare, Star,
 } from "lucide-react";
 import { requestNotificationPermission } from "@/utils/shared/notifs";
 import { useApp } from "@/context/AppContext";
@@ -18,8 +18,9 @@ import {
 } from "@/utils/theme/themeUtils";
 import { UserAvatar } from "@/components/shared/UserAvatar";
 import { UpdateHistoryItem } from "@/types";
+import { fetchWithLoadBalancer } from "@/utils/backendProxy";
 
-type RightPanel = null | "themes" | "courses" | "history" | "privacy" | "whatsnew" | "edit";
+type RightPanel = null | "themes" | "courses" | "history" | "privacy" | "whatsnew" | "edit" | "feedback";
 
 const WhatsappIcon = ({ size = 15 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
@@ -223,6 +224,11 @@ export default function DesktopSettings() {
   const [notifEnabled, setNotifEnabled] = useState(false);
   const [showProfileCard, setShowProfileCard] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState(theme);
+  const [feedbackRating, setFeedbackRating] = useState(0);
+  const [feedbackHover, setFeedbackHover] = useState(0);
+  const [feedbackMessage, setFeedbackMessage] = useState("");
+  const [feedbackStatus, setFeedbackStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [feedbackCount, setFeedbackCount] = useState(() => parseInt(localStorage.getItem("ratiod_feedback_count") || "0"));
 
   const { colorTheme: initialColor } = parseTheme(selectedTheme);
   const [colorTheme, setColorTheme] = useState<ColorTheme>(initialColor);
@@ -266,7 +272,49 @@ export default function DesktopSettings() {
     }
   };
 
-  const open = (panel: RightPanel) => setRightPanel(prev => prev === panel ? null : panel);
+  const open = (panel: RightPanel) => {
+    if (panel !== "feedback") {
+      setFeedbackStatus("idle");
+      setFeedbackRating(0);
+      setFeedbackMessage("");
+      setFeedbackHover(0);
+    }
+    setRightPanel(prev => prev === panel ? null : panel);
+  };
+
+  const handleFeedbackSubmit = async () => {
+    if (!feedbackRating || feedbackStatus === "sending") return;
+    setFeedbackStatus("sending");
+    const name = customDisplayName || userData?.profile?.name || "anon";
+    try {
+      const res = await fetchWithLoadBalancer("/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          embeds: [{
+            title: "feedback drop",
+            description: feedbackMessage.trim() || "no message",
+            color: 0x85a818,
+            fields: [
+              { name: "rating", value: `${"★".repeat(feedbackRating)}${"☆".repeat(5 - feedbackRating)} ${feedbackRating}/5`, inline: true },
+              { name: "from", value: name, inline: true },
+            ],
+            footer: { text: `ratio'd · ${new Date().toLocaleString("en-IN")}` },
+          }],
+        }),
+      });
+      if (res.ok) {
+        const next = feedbackCount + 1;
+        localStorage.setItem("ratiod_feedback_count", String(next));
+        setFeedbackCount(next);
+        setFeedbackStatus("sent");
+      } else {
+        setFeedbackStatus("error");
+      }
+    } catch {
+      setFeedbackStatus("error");
+    }
+  };
 
   const courses = userData?.courses || {};
   const groupedCourses = Object.values(courses).reduce((acc: Record<string, any[]>, cur: any) => {
@@ -366,6 +414,7 @@ export default function DesktopSettings() {
               <div className="relative space-y-0.5">
                 <div className="absolute -left-3 top-3 bottom-3 w-px bg-theme-text/30 rounded-full" />
                 <NavRow icon={<PartyPopper size={15} />} label="What's New" active={rightPanel === "whatsnew"} onClick={() => open("whatsnew")} />
+                <NavRow icon={<MessageSquare size={15} />} label="Feedback" active={rightPanel === "feedback"} onClick={() => open("feedback")} />
                 <NavRow icon={<Lock size={15} />} label="Privacy" active={rightPanel === "privacy"} onClick={() => open("privacy")} />
                 <button
                   onClick={() => window.open("https://chat.whatsapp.com/D7wymoQ1zrQKqf4Qs4gw91", "_blank")}
@@ -956,6 +1005,119 @@ export default function DesktopSettings() {
                   </p>
                 </div>
               </ReactLenis>
+            </motion.div>
+          )}
+
+          {rightPanel === "feedback" && (
+            <motion.div key="feedback" {...panelVariants} className="absolute inset-0 flex flex-col">
+              <RightHeader label="give sum feedback gng" sub="feedback" />
+              <div className="flex-1 flex items-start p-8">
+                <div className="w-full max-w-sm space-y-7">
+                  {feedbackCount >= 5 ? (
+                    <div className="flex flex-col gap-3 pt-2">
+                      <span
+                        className="text-[3rem] font-black tracking-tighter lowercase leading-none"
+                        style={{ fontFamily: "var(--font-montserrat)" }}
+                      >
+                        chill.
+                      </span>
+                      <p className="text-[12px] text-theme-muted" style={{ fontFamily: "var(--font-afacad)" }}>
+                        stop spamming dawg.
+                      </p>
+                    </div>
+                  ) : feedbackStatus === "sent" ? (
+                    <div className="flex flex-col gap-4 pt-2">
+                      <span
+                        className="text-[3rem] font-black tracking-tighter lowercase leading-none"
+                        style={{ fontFamily: "var(--font-montserrat)" }}
+                      >
+                        dropped.
+                      </span>
+                      <p className="text-[12px] text-theme-muted" style={{ fontFamily: "var(--font-afacad)" }}>
+                        we got it. thanks gng.
+                      </p>
+                      {feedbackCount < 5 && (
+                        <button
+                          onClick={() => { setFeedbackStatus("idle"); setFeedbackRating(0); setFeedbackMessage(""); }}
+                          className="w-fit flex items-center gap-2 px-4 py-2 rounded-xl bg-theme-surface/60 border border-theme-border text-[10px] font-black uppercase tracking-[0.2em] hover:bg-theme-surface transition-all"
+                        >
+                          send another
+                        </button>
+                      )}
+                    </div>
+                  ) : (
+                    <>
+                      <div className="space-y-2">
+                        <p
+                          className="text-[9px] font-black uppercase tracking-[0.3em] text-theme-muted"
+                          style={{ fontFamily: "var(--font-montserrat)" }}
+                        >
+                          rating
+                        </p>
+                        <div className="flex gap-0.5" onMouseLeave={() => setFeedbackHover(0)}>
+                          {[1, 2, 3, 4, 5].map((s) => (
+                            <button
+                              key={s}
+                              onMouseEnter={() => setFeedbackHover(s)}
+                              onClick={() => setFeedbackRating(s)}
+                              className="p-1 transition-transform hover:scale-110 active:scale-95"
+                            >
+                              <Star
+                                size={26}
+                                strokeWidth={1.5}
+                                style={{
+                                  color: s <= (feedbackHover || feedbackRating) ? "var(--theme-highlight)" : "var(--theme-border)",
+                                  fill: s <= (feedbackHover || feedbackRating) ? "var(--theme-highlight)" : "transparent",
+                                  transition: "color 0.12s, fill 0.12s",
+                                }}
+                              />
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <textarea
+                          rows={4}
+                          placeholder="show some love or roast us"
+                          className="w-full bg-theme-surface/60 border border-theme-border rounded-xl px-4 py-3 text-[13px] focus:outline-none focus:border-theme-text/40 transition-colors resize-none"
+                          style={{ fontFamily: "var(--font-afacad)" }}
+                          value={feedbackMessage}
+                          onChange={(e) => setFeedbackMessage(e.target.value)}
+                        />
+                        <p
+                          className="text-[10px] text-theme-muted/60"
+                          style={{ fontFamily: "var(--font-afacad)" }}
+                        >
+                          we'll grab your name with this
+                        </p>
+                      </div>
+
+                      {feedbackStatus === "error" && (
+                        <p className="text-[11px] text-theme-secondary" style={{ fontFamily: "var(--font-afacad)" }}>
+                          something went cooked. try again.
+                        </p>
+                      )}
+
+                      <div className="flex gap-2.5">
+                        <button
+                          onClick={handleFeedbackSubmit}
+                          disabled={!feedbackRating || feedbackStatus === "sending"}
+                          className="flex-[2] flex items-center justify-center gap-2 py-3 rounded-xl bg-theme-emphasis text-theme-bg font-black text-[11px] uppercase tracking-widest hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                        >
+                          {feedbackStatus === "sending" ? "dropping..." : "drop it"}
+                        </button>
+                        <button
+                          onClick={() => setRightPanel(null)}
+                          className="flex-1 py-3 rounded-xl bg-theme-surface/60 border border-theme-border text-theme-muted font-black text-[11px] uppercase tracking-widest hover:bg-theme-surface transition-all"
+                        >
+                          cancel
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
             </motion.div>
           )}
 

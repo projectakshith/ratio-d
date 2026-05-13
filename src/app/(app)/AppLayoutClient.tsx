@@ -10,6 +10,7 @@ import { useAcademiaData } from "@/hooks/useAcademiaData";
 import CommandPalette from "@/components/desktop/CommandPalette";
 import SmoothScroll from "@/components/desktop/SmoothScroll";
 import DesktopSidebar from "@/components/desktop/DesktopSidebar";
+import FeedbackPopup from "@/components/shared/FeedbackPopup";
 
 const BrutalistThemeLayout = dynamic(
   () => import("@/components/themes/brutalist/BrutalistTheme"),
@@ -98,6 +99,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <CommandPalette />
           <DesktopSidebar />
         </div>
+
+        <FeedbackPopup />
 
         <AnimatePresence>
           {isSettingsOpen && (
