@@ -514,7 +514,8 @@ export default function Dashboard({
                   {focusLabel}
                 </span>
                 <div
-                  className="flex-1 h-[1.5px] bg-theme-border-line rounded-full"
+                  className="flex-1 h-[1.5px] rounded-full"
+                  style={{ backgroundColor: "color-mix(in srgb, var(--theme-text) 10%, transparent)" }}
                 />
                 <span
                   className={`text-[13px] font-black uppercase tracking-[0.2em] ${textClass} whitespace-nowrap`}
@@ -525,9 +526,9 @@ export default function Dashboard({
               </div>
 
               <div className="flex flex-col max-w-full">
-                <div className="flex items-end justify-between gap-3 w-full pt-3">
+                <div className="flex items-end justify-between gap-3 w-full pt-2">
                   <span
-                    className={`text-[4.5rem] font-black tracking-tighter lowercase ${textClass} truncate min-w-0`}
+                    className={`text-[3.5rem] font-black tracking-tighter lowercase ${textClass} truncate min-w-0 py-[2px]`}
                     style={{ fontFamily: "var(--font-montserrat), sans-serif", lineHeight: 0.85 }}
                   >
                     {displayCourseWords[0]}
@@ -542,9 +543,9 @@ export default function Dashboard({
                   )}
                 </div>
                 {displayCourseWords.length > 1 && (
-                  <div className="flex items-baseline justify-between gap-3 w-full pb-3">
+                  <div className="flex items-baseline justify-between gap-3 w-full pb-2">
                     <span
-                      className={`text-[4.5rem] font-black tracking-tighter lowercase ${textClass} truncate flex-1 min-w-0`}
+                      className={`text-[3.5rem] font-black tracking-tighter lowercase ${textClass} truncate flex-1 min-w-0 py-[2px]`}
                       style={{ fontFamily: "var(--font-montserrat), sans-serif", lineHeight: 0.85 }}
                     >
                       {displayCourseWords.slice(1).join(" ")}

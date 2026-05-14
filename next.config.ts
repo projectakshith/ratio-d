@@ -1,8 +1,6 @@
 import type { NextConfig } from "next";
 import withPWAInit from "@ducanh2912/next-pwa";
 
-const revision = Date.now().toString();
-
 const withPWA = withPWAInit({
   dest: "public",
   disable: process.env.NODE_ENV === "development",
@@ -19,7 +17,14 @@ const withPWA = withPWAInit({
     runtimeCaching: [
       {
         urlPattern: ({ request }) => request.mode === 'navigate',
-        handler: "NetworkOnly",
+        handler: "StaleWhileRevalidate",
+        options: {
+          cacheName: "pages",
+          expiration: {
+            maxEntries: 32,
+            maxAgeSeconds: 60 * 60 * 24,
+          },
+        },
       },
       {
         urlPattern: ({ request, url }) => {
@@ -35,7 +40,7 @@ const withPWA = withPWAInit({
           cacheName: "next-data",
           expiration: {
             maxEntries: 256,
-            maxAgeSeconds: 60 * 60 * 24 * 30,
+            maxAgeSeconds: 60 * 60 * 24,
           },
         },
       },
@@ -47,6 +52,17 @@ const withPWA = withPWAInit({
           expiration: {
             maxEntries: 128,
             maxAgeSeconds: 60 * 60 * 24 * 30,
+          },
+        },
+      },
+      {
+        urlPattern: /\/fonts\/.+\.(?:otf|ttf|woff2?)$/i,
+        handler: "CacheFirst",
+        options: {
+          cacheName: "local-fonts",
+          expiration: {
+            maxEntries: 20,
+            maxAgeSeconds: 60 * 60 * 24 * 365,
           },
         },
       },
@@ -73,24 +89,13 @@ const withPWA = withPWAInit({
         },
       },
       {
-        urlPattern: /\/api\/.*$/i,
-        handler: "StaleWhileRevalidate",
-        options: {
-          cacheName: "apis",
-          expiration: {
-            maxEntries: 64,
-            maxAgeSeconds: 60 * 60 * 24 * 30,
-          },
-        },
-      },
-      {
         urlPattern: /.*/i,
         handler: "StaleWhileRevalidate",
         options: {
           cacheName: "others",
           expiration: {
             maxEntries: 200,
-            maxAgeSeconds: 60 * 60 * 24 * 30,
+            maxAgeSeconds: 60 * 60 * 24,
           },
         },
       },
