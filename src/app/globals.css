@@ -347,3 +347,9 @@ html.lenis, html.lenis body {
 .lenis.lenis-scrolling iframe {
   pointer-events: none;
 }
+
+@media (display-mode: standalone) {
+  html, body {
+    background-color: #0c30ff;
+  }
+}
