@@ -56,7 +56,7 @@ const handleCloseWhatsNew = () => {
 useEffect(() => {
   const splashPlayed = sessionStorage.getItem("ratio_splash_played") === "true";
   if (splashPlayed) return;
-  
+
   const isStandalone =
     window.matchMedia("(display-mode: standalone)").matches ||
     (window.navigator as any).standalone;
@@ -64,14 +64,24 @@ useEffect(() => {
   if (isStandalone) {
     sessionStorage.setItem("ratio_splash_played", "true");
     const isOnboarded = localStorage.getItem("ratiod_onboarded") === "true";
-    
+
     if (!isOnboarded) {
       setIsFirstSplash(true);
     }
-    
+
+    let meta = document.querySelector('meta[name="theme-color"]');
+    if (!meta) {
+      meta = document.createElement("meta");
+      meta.setAttribute("name", "theme-color");
+      document.head.appendChild(meta);
+    }
+    const prevColor = meta.getAttribute("content") || "#111111";
+    meta.setAttribute("content", "#0c30ff");
+
     setShowSplash(true);
     const safetyTimer = setTimeout(() => {
       setShowSplash(false);
+      meta!.setAttribute("content", prevColor);
     }, !isOnboarded ? 3500 : 800);
     return () => clearTimeout(safetyTimer);
   }
