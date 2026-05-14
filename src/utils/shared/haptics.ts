@@ -16,8 +16,8 @@ export const Haptics = {
   vibe: (pattern: number | number[] = 8) => {
     if (typeof window === "undefined" || typeof navigator === "undefined" || !navigator.vibrate) return;
     
-    const isActuallyActive = (navigator as any).userActivation 
-      ? (navigator as any).userActivation.isActive 
+    const isActuallyActive = (navigator as any).userActivation
+      ? (navigator as any).userActivation.hasBeenActive
       : hasInteracted;
 
     if (!isActuallyActive) return;
