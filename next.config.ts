@@ -68,7 +68,7 @@ const withPWA = withPWAInit({
       },
       {
         urlPattern: /\/_next\/static.+\.js$/i,
-        handler: "StaleWhileRevalidate",
+        handler: "CacheFirst",
         options: {
           cacheName: "next-static-js-assets",
           expiration: {
@@ -79,7 +79,7 @@ const withPWA = withPWAInit({
       },
       {
         urlPattern: /\/_next\/static.+\.css$/i,
-        handler: "StaleWhileRevalidate",
+        handler: "CacheFirst",
         options: {
           cacheName: "next-static-style-assets",
           expiration: {
