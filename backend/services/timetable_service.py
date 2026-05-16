@@ -6,7 +6,7 @@ class TimetableService:
     @staticmethod
     def parse_unified_grid(html_content, course_map):
         if not html_content: return {}
-        soup = BeautifulSoup(html_content, 'html.parser')
+        soup = BeautifulSoup(html_content, 'lxml')
         grid_table = None
         for table in soup.find_all('table'):
             txt = table.get_text().lower()
@@ -56,7 +56,7 @@ class TimetableService:
     def parse_attendance(html_content):
         courses = []
         if not html_content: return courses
-        soup = BeautifulSoup(html_content, 'html.parser')
+        soup = BeautifulSoup(html_content, 'lxml')
         tables = soup.find_all('table')
         attn_table = None
         for table in tables:

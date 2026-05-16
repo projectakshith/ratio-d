@@ -20,7 +20,7 @@ class HTMLDecoder:
             except:
                 pass
 
-        soup = BeautifulSoup(raw_html, "html.parser")
+        soup = BeautifulSoup(raw_html, 'lxml')
         hidden = soup.find("div", class_="zc-pb-embed-placeholder-content")
         if hidden and hidden.has_attr("zmlvalue"):
             unescaped = html.unescape(hidden["zmlvalue"])

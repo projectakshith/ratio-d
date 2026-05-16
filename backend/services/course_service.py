@@ -6,7 +6,7 @@ class CourseService:
     @staticmethod
     def get_course_map(html_content):
         if not html_content: return {}
-        soup = BeautifulSoup(html_content, 'html.parser')
+        soup = BeautifulSoup(html_content, 'lxml')
         course_map = {}
         table = None
         for t in soup.find_all('table'):

@@ -9,7 +9,7 @@ class CalendarService:
         if not html_content: 
             return cal, day_order
         
-        soup = BeautifulSoup(html_content, 'html.parser')
+        soup = BeautifulSoup(html_content, 'lxml')
         
  
         now = datetime.now()

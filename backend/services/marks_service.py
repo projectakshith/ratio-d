@@ -8,7 +8,7 @@ class MarksService:
         performance_data = []
         if not html_content:
             return performance_data
-        soup = BeautifulSoup(html_content, "html.parser")
+        soup = BeautifulSoup(html_content, 'lxml')
         rows = soup.find_all("tr")
         for row in rows:
             cols = row.find_all("td")

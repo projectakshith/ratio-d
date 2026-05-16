@@ -7,7 +7,7 @@ class AttendanceService:
     def parse_attendance(html_content):
         courses = []
         if not html_content: return courses
-        soup = BeautifulSoup(html_content, 'html.parser')
+        soup = BeautifulSoup(html_content, 'lxml')
         rows = soup.find_all('tr')
         for row in rows:
             cols = row.find_all('td')

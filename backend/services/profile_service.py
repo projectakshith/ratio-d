@@ -6,7 +6,7 @@ class ProfileService:
     @staticmethod
     def parse_student_profile(html_content):
         if not html_content: return {}
-        soup = BeautifulSoup(html_content, 'html.parser')
+        soup = BeautifulSoup(html_content, 'lxml')
         
         profile = {
             "name": "", "regNo": "Unknown", "batch": "N/A",

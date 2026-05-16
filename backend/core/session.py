@@ -13,7 +13,7 @@ class SessionHandler:
 
     async def force_logout_sessions(self, html_content):
         print("  -> [SESSION] Parsing Concurrent Sessions Page...", flush=True)
-        soup = BeautifulSoup(html_content, 'html.parser')
+        soup = BeautifulSoup(html_content, 'lxml')
         forms = soup.find_all('form')
         terminate_form = None
         
