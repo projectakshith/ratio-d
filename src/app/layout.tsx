@@ -1,6 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import { SpeedInsights } from "@vercel/speed-insights/next";
-import { Analytics } from "@vercel/analytics/react";
 import { Geist, Geist_Mono, Afacad, Montserrat } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
@@ -113,8 +111,6 @@ export default function RootLayout({
             </AppWrapper>
           </ThemeProvider>
         </AppProvider>
-        <Analytics />
-        <SpeedInsights />
       </body>
     </html>
   );
