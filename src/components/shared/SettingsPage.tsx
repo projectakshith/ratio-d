@@ -21,7 +21,7 @@ import {
   MessageSquare,
   Star,
 } from "lucide-react";
-import { requestNotificationPermission } from "@/utils/shared/notifs";
+import { requestNotificationPermission, getNotifPreference, setNotifPreference } from "@/utils/shared/notifs";
 import { StudentProfile } from "@/types";
 import { useApp } from "@/context/AppContext";
 import { EncryptionUtils } from "@/utils/shared/Encryption";
@@ -229,9 +229,7 @@ const SettingsPage = ({
   const [colorTheme, setColorTheme] = useState<ColorTheme>(initialColor);
 
   useEffect(() => {
-    if ("Notification" in window) {
-      setNotifEnabled(Notification.permission === "granted");
-    }
+    setNotifEnabled(getNotifPreference());
   }, []);
 
   const handleApply = () => {
@@ -244,6 +242,11 @@ const SettingsPage = ({
   };
 
   const handleNotificationClick = async () => {
+    if (notifEnabled) {
+      setNotifPreference(false);
+      setNotifEnabled(false);
+      return;
+    }
     if (!window.isSecureContext) {
       alert("Notifications require HTTPS.");
       return;
@@ -253,6 +256,7 @@ const SettingsPage = ({
       return;
     }
     const granted = await requestNotificationPermission();
+    if (granted) setNotifPreference(true);
     setNotifEnabled(granted);
   };
 

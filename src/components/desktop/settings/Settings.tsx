@@ -8,7 +8,7 @@ import {
   UserCircle2, BarChart3, Calendar, CheckCircle2, ServerOff,
   Database, MapPin, ArrowRight, MessageSquare, Star,
 } from "lucide-react";
-import { requestNotificationPermission } from "@/utils/shared/notifs";
+import { requestNotificationPermission, getNotifPreference, setNotifPreference } from "@/utils/shared/notifs";
 import { useApp } from "@/context/AppContext";
 import { useTheme } from "@/context/ThemeContext";
 import { EncryptionUtils } from "@/utils/shared/Encryption";
@@ -237,7 +237,7 @@ export default function DesktopSettings() {
   const profileRegNo = userData?.profile?.regNo || "";
 
   useEffect(() => {
-    if ("Notification" in window) setNotifEnabled(Notification.permission === "granted");
+    setNotifEnabled(getNotifPreference());
   }, []);
 
   const handleApply = () => {
@@ -251,9 +251,15 @@ export default function DesktopSettings() {
   };
 
   const handleNotifToggle = async () => {
+    if (notifEnabled) {
+      setNotifPreference(false);
+      setNotifEnabled(false);
+      return;
+    }
     if (!window.isSecureContext) { alert("Notifications require HTTPS."); return; }
     if (Notification.permission === "denied") { alert("Permission blocked. Please reset site permissions."); return; }
     const granted = await requestNotificationPermission();
+    if (granted) setNotifPreference(true);
     setNotifEnabled(granted);
   };
 

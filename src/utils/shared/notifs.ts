@@ -1,11 +1,19 @@
-export const requestNotificationPermission = async (): Promise<boolean> => {
-  if (typeof window === "undefined" || !("Notification" in window)) {
-    return false;
-  }
+const NOTIF_PREF_KEY = "ratio_notifs_enabled";
 
+export const getNotifPreference = (): boolean => {
+  if (typeof window === "undefined" || !("Notification" in window)) return false;
+  if (localStorage.getItem(NOTIF_PREF_KEY) === "false") return false;
+  return Notification.permission === "granted";
+};
+
+export const setNotifPreference = (enabled: boolean): void => {
+  localStorage.setItem(NOTIF_PREF_KEY, enabled ? "true" : "false");
+};
+
+export const requestNotificationPermission = async (): Promise<boolean> => {
+  if (typeof window === "undefined" || !("Notification" in window)) return false;
   if (Notification.permission === "granted") return true;
   if (Notification.permission === "denied") return false;
-
   const permission = await Notification.requestPermission();
   return permission === "granted";
 };
@@ -15,15 +23,12 @@ export const sendNotification = async (
   body: string,
   tag?: string,
 ): Promise<void> => {
-  if (typeof window === "undefined" || Notification.permission !== "granted") {
-    return;
-  }
+  if (!getNotifPreference()) return;
 
   try {
     const registration = await navigator.serviceWorker.getRegistration();
-
     const options = {
-      body: body,
+      body,
       icon: "/icons/icon-192.png",
       vibrate: [200, 100, 200],
       tag: tag || "class-alert",
@@ -36,7 +41,6 @@ export const sendNotification = async (
     } else {
       new Notification(title, options);
     }
-  } catch (e) {
-    console.error(e);
+  } catch {
   }
 };

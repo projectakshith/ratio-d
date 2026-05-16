@@ -102,15 +102,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       });
       const calendar = calendarDataJson as any[];
       const todayEntry = calendar.find((item) => item.date === todayDate);
-      
-      if (todayEntry && (todayEntry.order === "-" || todayEntry.order === "Holiday" || todayEntry.order === "Sunday")) {
+      const effectiveDayOrder = (todayEntry?.order ?? userData?.dayOrder) as string | undefined;
+
+      if (!effectiveDayOrder || !["1", "2", "3", "4", "5"].includes(effectiveDayOrder)) {
         return;
       }
-
-      const effectiveDayOrder =
-        todayEntry && todayEntry.order !== "-"
-          ? todayEntry.order
-          : userData?.dayOrder || "1";
 
       const status = getScheduleStatus(userData.schedule, effectiveDayOrder);
       if (!status.nextClass) return;
