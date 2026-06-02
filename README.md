@@ -231,6 +231,6 @@ ratio'd is not affiliated with SRM in any way. we don't own the portal, we don't
 
 <div align="center">
 
-⭐ star if you loved this hehe uwu
+star if you loved this hehe uwu
 
 </div>
