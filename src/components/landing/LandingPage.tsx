@@ -40,8 +40,8 @@ const LOOK_UP_BASE = {
 const LOOK_UP_STATES = [
   { ...LOOK_UP_BASE, pupilX: -30, pupilY: -62 }, // about
   { ...LOOK_UP_BASE, pupilX: -20, pupilY: -62 }, // security
-  { ...LOOK_UP_BASE, pupilX: -8, pupilY: -62 },  // lore
-  { ...LOOK_UP_BASE, pupilX: 2, pupilY: -62 },   // devs
+  { ...LOOK_UP_BASE, pupilX: -8, pupilY: -62 }, // lore
+  { ...LOOK_UP_BASE, pupilX: 2, pupilY: -62 }, // devs
 ];
 
 export default function LandingPage() {
@@ -72,7 +72,10 @@ export default function LandingPage() {
     }, 600);
   };
 
-  const currentEyeState = hoveredNavIdx !== null ? LOOK_UP_STATES[hoveredNavIdx] : (EYE_STATES[eyeStateIdx] || EYE_STATES[0]);
+  const currentEyeState =
+    hoveredNavIdx !== null
+      ? LOOK_UP_STATES[hoveredNavIdx]
+      : EYE_STATES[eyeStateIdx] || EYE_STATES[0];
 
   return (
     <div className="h-screen w-full bg-[#0c30ff] relative overflow-hidden flex flex-col justify-center items-center selection:bg-[#ceff1c] selection:text-[#0c30ff]">
@@ -104,12 +107,8 @@ export default function LandingPage() {
             className="w-16 h-24 md:w-20 md:h-28 bg-white relative shadow-sm overflow-hidden"
             style={{ borderRadius: "50%" }}
             animate={{
-              clipPath: isExiting
-                ? EYE_STATES[0].left
-                : currentEyeState.left,
-              y: isExiting
-                ? 0
-                : currentEyeState.eyeY,
+              clipPath: isExiting ? EYE_STATES[0].left : currentEyeState.left,
+              y: isExiting ? 0 : currentEyeState.eyeY,
             }}
             transition={{ duration: 0.5, ease: BEZIER }}
           >
@@ -135,12 +134,8 @@ export default function LandingPage() {
             className="w-16 h-24 md:w-20 md:h-28 bg-white relative shadow-sm overflow-hidden"
             style={{ borderRadius: "50%" }}
             animate={{
-              clipPath: isExiting
-                ? EYE_STATES[0].right
-                : currentEyeState.right,
-              y: isExiting
-                ? 0
-                : currentEyeState.eyeY,
+              clipPath: isExiting ? EYE_STATES[0].right : currentEyeState.right,
+              y: isExiting ? 0 : currentEyeState.eyeY,
             }}
             transition={{ duration: 0.5, ease: BEZIER }}
           >
@@ -211,16 +206,32 @@ export default function LandingPage() {
         className="absolute top-4 md:top-6 left-1/2 z-20 flex flex-row justify-center w-full max-w-3xl gap-8 md:gap-16 text-xs md:text-sm tracking-wider lowercase text-[#0c30ff]"
         style={{ fontFamily: "aonic" }}
       >
-        <Link href="/about" onMouseEnter={() => setHoveredNavIdx(0)} className="hover:text-black transition-colors relative after:absolute after:bottom-[-4px] after:left-0 after:h-[1px] after:w-0 after:bg-black hover:after:w-full after:transition-all after:duration-300">
+        <Link
+          href="/about"
+          onMouseEnter={() => setHoveredNavIdx(0)}
+          className="hover:text-black transition-colors relative after:absolute after:bottom-[-4px] after:left-0 after:h-[1px] after:w-0 after:bg-black hover:after:w-full after:transition-all after:duration-300"
+        >
           about
         </Link>
-        <Link href="/security" onMouseEnter={() => setHoveredNavIdx(1)} className="hover:text-black transition-colors relative after:absolute after:bottom-[-4px] after:left-0 after:h-[1px] after:w-0 after:bg-black hover:after:w-full after:transition-all after:duration-300">
-          security
+        <Link
+          href="/cli"
+          onMouseEnter={() => setHoveredNavIdx(1)}
+          className="hover:text-black transition-colors relative after:absolute after:bottom-[-4px] after:left-0 after:h-[1px] after:w-0 after:bg-black hover:after:w-full after:transition-all after:duration-300"
+        >
+          cli
         </Link>
-        <Link href="/lore" onMouseEnter={() => setHoveredNavIdx(2)} className="hover:text-black transition-colors relative after:absolute after:bottom-[-4px] after:left-0 after:h-[1px] after:w-0 after:bg-black hover:after:w-full after:transition-all after:duration-300">
+        <Link
+          href="/lore"
+          onMouseEnter={() => setHoveredNavIdx(2)}
+          className="hover:text-black transition-colors relative after:absolute after:bottom-[-4px] after:left-0 after:h-[1px] after:w-0 after:bg-black hover:after:w-full after:transition-all after:duration-300"
+        >
           lore
         </Link>
-        <Link href="/devs" onMouseEnter={() => setHoveredNavIdx(3)} className="hover:text-black transition-colors relative after:absolute after:bottom-[-4px] after:left-0 after:h-[1px] after:w-0 after:bg-black hover:after:w-full after:transition-all after:duration-300">
+        <Link
+          href="/devs"
+          onMouseEnter={() => setHoveredNavIdx(3)}
+          className="hover:text-black transition-colors relative after:absolute after:bottom-[-4px] after:left-0 after:h-[1px] after:w-0 after:bg-black hover:after:w-full after:transition-all after:duration-300"
+        >
           devs
         </Link>
       </motion.div>
