@@ -48,9 +48,48 @@ const LOGIN_HOVER_STATE = {
   left: "polygon(0 0%, 100% 0%, 100% 75%, 0 75%)",
   right: "polygon(0 0%, 100% 0%, 100% 75%, 0 75%)",
   pupilX: 16,
-  pupilY: -2,
-  eyeY: -5,
+  pupilY: -10,
+  eyeY: -6,
 };
+
+const GRID_BOXES = [
+  [0, 20],
+  [0, 40],
+  [0, 70],
+  [0, 90],
+  [10, 10],
+  [10, 40],
+  [10, 50],
+  [10, 80],
+  [20, 0],
+  [20, 30],
+  [20, 60],
+  [20, 90],
+  [30, 20],
+  [30, 40],
+  [30, 70],
+  [40, 0],
+  [40, 10],
+  [40, 50],
+  [40, 80],
+  [50, 30],
+  [50, 60],
+  [50, 90],
+  [60, 20],
+  [60, 50],
+  [60, 70],
+  [70, 0],
+  [70, 40],
+  [70, 80],
+  [80, 10],
+  [80, 30],
+  [80, 60],
+  [80, 90],
+  [90, 0],
+  [90, 20],
+  [90, 50],
+  [90, 70],
+];
 
 export default function LandingPage() {
   const router = useRouter();
@@ -92,7 +131,22 @@ export default function LandingPage() {
       : EYE_STATES[eyeStateIdx] || EYE_STATES[0];
 
   return (
-    <div className="h-[100dvh] w-full bg-[#0c30ff] relative overflow-hidden flex flex-col justify-center items-center selection:bg-[#ceff1c] selection:text-[#0c30ff]">
+    <div className="h-[100dvh] w-full bg-[#0c30ff] bg-checkit-grid relative overflow-hidden flex flex-col justify-center items-center selection:bg-[#ceff1c] selection:text-[#0c30ff]">
+      <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
+        {GRID_BOXES.map(([y, x], i) => {
+          const isLighter = (x * 7 + y * 13) % 2 === 0;
+          return (
+            <div
+              key={i}
+              className={`absolute w-[10vw] h-[10vw] transition-colors ${
+                isLighter ? "bg-white/[0.02]" : "bg-black/[0.16]"
+              }`}
+              style={{ top: `${y}vw`, left: `${x}vw` }}
+            />
+          );
+        })}
+      </div>
+
       <motion.div
         initial={{ y: "-100%", x: "-50%", borderRadius: "50%" }}
         animate={{
@@ -198,7 +252,11 @@ export default function LandingPage() {
           scale: stage === "splash" ? 1 : 1.1,
           pointerEvents: stage === "splash" ? "auto" : "none",
         }}
-        transition={{ duration: 0.5, delay: stage === "splash" ? 0 : 0.3, ease: BEZIER }}
+        transition={{
+          duration: 0.5,
+          delay: stage === "splash" ? 0 : 0.3,
+          ease: BEZIER,
+        }}
         className="absolute z-[80] whitespace-nowrap pointer-events-none"
       >
         <span
@@ -225,8 +283,7 @@ export default function LandingPage() {
         }}
         style={{ originX: 0.5, originY: 0.5 }}
         className="absolute z-[25] whitespace-nowrap pointer-events-none bottom-[101vw] left-[15vw] md:bottom-[30vw] md:left-[4vw] -translate-x-1/2 -translate-y-1/2"
-      >
-      </motion.div>
+      ></motion.div>
 
       <motion.div
         initial={{ opacity: 0, y: 100, rotate: -45 }}
@@ -241,7 +298,7 @@ export default function LandingPage() {
         <img
           src="/mockup.png"
           alt="ratio'd mockup"
-          className="w-full h-auto object-contain"
+          className="w-full h-auto object-contain drop-shadow-2xl"
         />
       </motion.div>
 

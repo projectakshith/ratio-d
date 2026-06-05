@@ -362,3 +362,10 @@ html.lenis, html.lenis body {
     background-color: #0c30ff;
   }
 }
+
+.bg-checkit-grid {
+  background-size: 10vw 10vw;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.09) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.09) 1px, transparent 1px);
+}
