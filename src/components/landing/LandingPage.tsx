@@ -255,7 +255,11 @@ export default function LandingPage() {
           className="text-xl md:text-xl lg:text-2xl font-bold lowercase tracking-tight whitespace-nowrap bg-gradient-to-r from-white to-[#ceff1c] text-transparent bg-clip-text"
           style={{ fontFamily: "var(--font-afacad)" }}
         >
-          a <span className="relative" style={{ WebkitTextFillColor: "white", color: "white" }}>
+          a{" "}
+          <span
+            className="relative"
+            style={{ WebkitTextFillColor: "white", color: "white" }}
+          >
             cool
             <motion.div
               initial={{ width: 0 }}
@@ -263,7 +267,8 @@ export default function LandingPage() {
               transition={{ duration: 0.5, delay: 1.0, ease: BEZIER }}
               className="absolute bottom-0 left-0 h-[2px] bg-[#ceff1c] rounded-full"
             />
-          </span> looking academia wrapper.
+          </span>{" "}
+          looking academia wrapper.
         </h2>
       </motion.div>
 

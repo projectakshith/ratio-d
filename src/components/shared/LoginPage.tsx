@@ -226,24 +226,25 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
               )}
             </AnimatePresence>
 
-            <AnimatePresence>
-              {error && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0 }}
-                  className="text-red-400 font-mono text-xs uppercase flex items-center gap-2"
-                >
-                  <AlertCircle size={14} /> {error}
-                </motion.div>
-              )}
-            </AnimatePresence>
+            <div className="relative w-full mt-3 md:mt-6">
+              <AnimatePresence>
+                {error && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    className="absolute -top-8 left-0 text-red-400 font-mono text-xs uppercase flex items-center gap-2 whitespace-nowrap"
+                  >
+                    <AlertCircle size={14} /> {error}
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full flex items-center justify-between border-t border-white pt-4 mt-3 md:mt-6 group disabled:opacity-30"
-            >
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full flex items-center justify-between border-t border-white pt-4 group disabled:opacity-30"
+              >
               <span
                 className="text-3xl md:text-3xl lowercase text-white group-hover:text-[#ceff1c]"
                 style={{ fontFamily: "aonic" }}
@@ -259,7 +260,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
                 />
               )}
             </button>
-          </form>
+          </div>
+        </form>
         </motion.main>
       </motion.div>
     </>
