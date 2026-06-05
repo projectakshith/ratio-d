@@ -45,10 +45,10 @@ const LOOK_UP_STATES = [
 ];
 
 const LOGIN_HOVER_STATE = {
-  left: "polygon(0 0%, 100% 0%, 100% 65%, 0 65%)",
-  right: "polygon(0 0%, 100% 0%, 100% 65%, 0 65%)",
-  pupilX: 18,
-  pupilY: 15,
+  left: "polygon(0 0%, 100% 0%, 100% 75%, 0 75%)",
+  right: "polygon(0 0%, 100% 0%, 100% 75%, 0 75%)",
+  pupilX: 16,
+  pupilY: -2,
   eyeY: -5,
 };
 
@@ -92,7 +92,7 @@ export default function LandingPage() {
       : EYE_STATES[eyeStateIdx] || EYE_STATES[0];
 
   return (
-    <div className="h-screen w-full bg-[#0c30ff] relative overflow-hidden flex flex-col justify-center items-center selection:bg-[#ceff1c] selection:text-[#0c30ff]">
+    <div className="h-[100dvh] w-full bg-[#0c30ff] relative overflow-hidden flex flex-col justify-center items-center selection:bg-[#ceff1c] selection:text-[#0c30ff]">
       <motion.div
         initial={{ y: "-100%", x: "-50%", borderRadius: "50%" }}
         animate={{
@@ -189,28 +189,20 @@ export default function LandingPage() {
           top: "50%",
           left: "50%",
           x: "-50%",
-          y: "-20%",
+          y: "-50%",
           scale: 0.8,
           opacity: 0,
         }}
         animate={{
-          top: stage === "splash" ? "50%" : "54%",
-          left: stage === "splash" ? "50%" : "6%",
-          x: stage === "splash" ? "-50%" : "-50%",
-          y: stage === "splash" ? "-50%" : "-50%",
-          rotate: stage === "splash" ? 0 : -20,
-          scale: stage === "splash" ? 1 : 0.4,
-          opacity: 1,
+          opacity: stage === "splash" ? 1 : 0,
+          scale: stage === "splash" ? 1 : 1.1,
+          pointerEvents: stage === "splash" ? "auto" : "none",
         }}
-        transition={{
-          duration: stage === "splash" ? 0.6 : 1.2,
-          ease: BEZIER,
-        }}
-        style={{ originX: 0.5, originY: 0.5 }}
-        className="absolute z-[25] whitespace-nowrap pointer-events-none"
+        transition={{ duration: 0.5, delay: stage === "splash" ? 0 : 0.3, ease: BEZIER }}
+        className="absolute z-[80] whitespace-nowrap pointer-events-none"
       >
         <span
-          className="font-black text-[#ceff1c] lowercase tracking-tight leading-none text-[10vw] md:text-[6vw]"
+          className="font-black text-[#ceff1c] lowercase tracking-tight leading-none text-[12vw] md:text-[8vw]"
           style={{ fontFamily: "var(--font-urbanosta)" }}
         >
           ratio'd
@@ -218,14 +210,33 @@ export default function LandingPage() {
       </motion.div>
 
       <motion.div
-        initial={{ opacity: 0, y: 100, rotate: 0 }}
+        initial={{
+          rotate: -20,
+          scale: 0.4,
+          opacity: 0,
+        }}
+        animate={{
+          opacity: stage === "hero" ? 1 : 0,
+        }}
+        transition={{
+          duration: 1,
+          delay: 1.6,
+          ease: BEZIER,
+        }}
+        style={{ originX: 0.5, originY: 0.5 }}
+        className="absolute z-[25] whitespace-nowrap pointer-events-none bottom-[101vw] left-[15vw] md:bottom-[30vw] md:left-[4vw] -translate-x-1/2 -translate-y-1/2"
+      >
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 100, rotate: -45 }}
         animate={{
           opacity: stage === "hero" ? 1 : 0,
           y: stage === "hero" ? 0 : 100,
-          rotate: stage === "hero" ? -45 : 0,
+          rotate: -45,
         }}
-        transition={{ duration: 1, ease: BEZIER, delay: 0.2 }}
-        className="absolute bottom-[-18%] md:bottom-[-28%] left-[-8%] md:left-[-5%] w-[90vw] md:w-[55vw] max-w-[900px] z-[5] pointer-events-none"
+        transition={{ duration: 1, ease: BEZIER, delay: 1.6 }}
+        className="absolute bottom-[-20vw] md:bottom-[-12vw] left-[-8%] md:left-[-9%] w-[90vw] md:w-[55vw] max-w-[900px] z-[5] pointer-events-none"
       >
         <img
           src="/mockup.png"
@@ -282,8 +293,8 @@ export default function LandingPage() {
           opacity: stage === "hero" ? 1 : 0,
           x: stage === "hero" ? 0 : 50,
         }}
-        transition={{ duration: 1, ease: BEZIER, delay: 0.2 }}
-        className="absolute bottom-[38%] md:bottom-[35%] right-[8%] z-10 pointer-events-auto"
+        transition={{ duration: 1, ease: BEZIER, delay: 1.2 }}
+        className="absolute bottom-[75vw] md:bottom-[20vw] right-[8%] z-10 pointer-events-auto"
       >
         <motion.div
           initial={{ opacity: 0, scale: 0.5 }}
