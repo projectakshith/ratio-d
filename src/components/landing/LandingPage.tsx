@@ -38,16 +38,17 @@ const LOOK_UP_BASE = {
 };
 
 const LOOK_UP_STATES = [
-  { ...LOOK_UP_BASE, pupilX: -30, pupilY: -62 }, // about
-  { ...LOOK_UP_BASE, pupilX: -20, pupilY: -62 }, // security
-  { ...LOOK_UP_BASE, pupilX: -8, pupilY: -62 }, // lore
-  { ...LOOK_UP_BASE, pupilX: 2, pupilY: -62 }, // devs
+  { ...LOOK_UP_BASE, pupilX: -30, pupilY: -62 },
+  { ...LOOK_UP_BASE, pupilX: -20, pupilY: -62 },
+  { ...LOOK_UP_BASE, pupilX: -8, pupilY: -62 },
+  { ...LOOK_UP_BASE, pupilX: 2, pupilY: -62 },
 ];
 
 export default function LandingPage() {
   const router = useRouter();
   const [stage, setStage] = useState<"splash" | "hero">("splash");
-  const [isExiting, setIsExiting] = useState(false);
+  const [exitPath, setExitPath] = useState<string | null>(null);
+  const isExiting = exitPath !== null;
   const [eyeStateIdx, setEyeStateIdx] = useState(0);
   const [hoveredNavIdx, setHoveredNavIdx] = useState<number | null>(null);
 
@@ -65,11 +66,11 @@ export default function LandingPage() {
     }
   }, [stage]);
 
-  const handleLoginClick = () => {
-    setIsExiting(true);
+  const handleNavClick = (path: string) => {
+    setExitPath(path);
     setTimeout(() => {
-      router.push("/login");
-    }, 600);
+      router.push(path);
+    }, path === "/about" ? 800 : 600);
   };
 
   const currentEyeState =
@@ -80,13 +81,14 @@ export default function LandingPage() {
   return (
     <div className="h-screen w-full bg-[#0c30ff] relative overflow-hidden flex flex-col justify-center items-center selection:bg-[#ceff1c] selection:text-[#0c30ff]">
       <motion.div
-        initial={{ y: "-100%", x: "-50%" }}
+        initial={{ y: "-100%", x: "-50%", borderRadius: "50%" }}
         animate={{
-          y: stage === "hero" ? "calc(-100% + 40vh)" : "-100%",
+          y: exitPath === "/about" ? "calc(-100% + 150vh)" : stage === "hero" ? "calc(-100% + 40vh)" : "-100%",
           x: "-50%",
+          borderRadius: "50%",
         }}
-        transition={{ type: "spring", damping: 14, stiffness: 60, delay: 0.1 }}
-        className="absolute top-0 left-1/2 w-[200vw] md:w-[150vw] h-[200vw] md:h-[150vw] bg-[#ceff1c] rounded-full z-0 flex justify-center items-end"
+        transition={exitPath === "/about" ? { duration: 0.8, ease: BEZIER } : { type: "spring", damping: 14, stiffness: 60, delay: 0.1 }}
+        className="absolute top-0 left-1/2 w-[200vw] md:w-[150vw] h-[200vw] md:h-[150vw] bg-[#ceff1c] z-[15] flex justify-center items-end"
       >
         <motion.div
           initial={{ opacity: 0, scale: 0, rotate: -45 }}
@@ -182,7 +184,7 @@ export default function LandingPage() {
           ease: BEZIER,
         }}
         style={{ originX: 0, originY: 0.5 }}
-        className="absolute z-20 whitespace-nowrap pointer-events-none"
+        className="absolute z-10 whitespace-nowrap pointer-events-none"
       >
         <span
           className="text-[#ceff1c] font-black lowercase tracking-tight leading-none text-[12vw] md:text-[8vw]"
@@ -192,27 +194,21 @@ export default function LandingPage() {
         </span>
       </motion.div>
 
-      {/* Navigation Links */}
       <motion.div
         initial={{ opacity: 0, y: -20, x: "-50%" }}
         animate={{
-          opacity: stage === "hero" ? 1 : 0,
+          opacity: exitPath ? 0 : stage === "hero" ? 1 : 0,
           y: stage === "hero" ? 0 : -20,
-          x: "-50%",
           pointerEvents: stage === "hero" ? "auto" : "none",
         }}
-        transition={{ duration: 0.8, delay: 0.8, ease: BEZIER }}
+        transition={{ duration: 0.8, delay: exitPath ? 0 : 0.8, ease: BEZIER }}
         onMouseLeave={() => setHoveredNavIdx(null)}
-        className="absolute top-4 md:top-6 left-1/2 z-20 flex flex-row justify-center w-full max-w-3xl gap-8 md:gap-16 text-xs md:text-sm tracking-wider lowercase text-[#0c30ff]"
+        className="absolute top-4 md:top-6 left-1/2 z-[30] flex flex-row justify-center w-full max-w-3xl gap-8 md:gap-16 text-xs md:text-sm tracking-wider lowercase text-[#0c30ff]"
         style={{ fontFamily: "aonic" }}
       >
-        <Link
-          href="/about"
-          onMouseEnter={() => setHoveredNavIdx(0)}
-          className="hover:text-black transition-colors relative after:absolute after:bottom-[-4px] after:left-0 after:h-[1px] after:w-0 after:bg-black hover:after:w-full after:transition-all after:duration-300"
-        >
+        <button onClick={() => handleNavClick("/about")} onMouseEnter={() => setHoveredNavIdx(0)} className="hover:text-black transition-colors relative after:absolute after:bottom-[-4px] after:left-0 after:h-[1px] after:w-0 after:bg-black hover:after:w-full after:transition-all after:duration-300">
           about
-        </Link>
+        </button>
         <Link
           href="/cli"
           onMouseEnter={() => setHoveredNavIdx(1)}
@@ -242,8 +238,8 @@ export default function LandingPage() {
           opacity: stage === "hero" ? 1 : 0,
           x: stage === "hero" ? 0 : 50,
         }}
-        transition={{ duration: 1, ease: BEZIER, delay: 0.4 }}
-        className="absolute bottom-[35%] md:bottom-[30%] right-[8%] z-20 pointer-events-auto"
+        transition={{ duration: 1, ease: BEZIER, delay: 0.2 }}
+        className="absolute bottom-[35%] md:bottom-[30%] right-[8%] z-10 pointer-events-auto"
       >
         <motion.div
           initial={{ opacity: 0, scale: 0.5 }}
@@ -336,10 +332,10 @@ export default function LandingPage() {
           y: "-50%",
         }}
         transition={{ duration: 1, ease: BEZIER, delay: 0.5 }}
-        className="absolute top-[85%] right-[8%] z-20 pointer-events-auto"
+        className="absolute top-[85%] right-[8%] z-10 pointer-events-auto"
       >
         <button
-          onClick={handleLoginClick}
+          onClick={() => handleNavClick("/login")}
           className="group flex items-center gap-2 bg-[#ceff1c] text-[#0c30ff] px-6 py-2 rounded-full font-bold text-base md:text-lg lowercase transition-transform hover:scale-105 active:scale-95 shadow-sm"
           style={{ fontFamily: "var(--font-afacad)" }}
         >
@@ -352,8 +348,8 @@ export default function LandingPage() {
       </motion.div>
 
       <motion.div
-        initial={{ left: "100%" }}
-        animate={{ left: isExiting ? "0%" : "100%" }}
+        initial={{ left: "100%", top: 0 }}
+        animate={{ left: exitPath === "/login" ? "0%" : "100%", top: 0 }}
         transition={{ duration: 0.6, ease: BEZIER }}
         className="fixed top-0 w-full h-screen bg-[#ceff1c] z-[60] pointer-events-none"
       />
