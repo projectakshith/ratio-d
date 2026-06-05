@@ -68,9 +68,12 @@ export default function LandingPage() {
 
   const handleNavClick = (path: string) => {
     setExitPath(path);
-    setTimeout(() => {
-      router.push(path);
-    }, path === "/about" ? 800 : 600);
+    setTimeout(
+      () => {
+        router.push(path);
+      },
+      path === "/about" ? 800 : 600,
+    );
   };
 
   const currentEyeState =
@@ -83,11 +86,20 @@ export default function LandingPage() {
       <motion.div
         initial={{ y: "-100%", x: "-50%", borderRadius: "50%" }}
         animate={{
-          y: exitPath === "/about" ? "calc(-100% + 150vh)" : stage === "hero" ? "calc(-100% + 40vh)" : "-100%",
+          y:
+            exitPath === "/about"
+              ? "calc(-100% + 150vh)"
+              : stage === "hero"
+                ? "calc(-100% + 40vh)"
+                : "-100%",
           x: "-50%",
           borderRadius: "50%",
         }}
-        transition={exitPath === "/about" ? { duration: 0.8, ease: BEZIER } : { type: "spring", damping: 14, stiffness: 60, delay: 0.1 }}
+        transition={
+          exitPath === "/about"
+            ? { duration: 0.8, ease: BEZIER }
+            : { type: "spring", damping: 14, stiffness: 60, delay: 0.1 }
+        }
         className="absolute top-0 left-1/2 w-[200vw] md:w-[150vw] h-[200vw] md:h-[150vw] bg-[#ceff1c] z-[15] flex justify-center items-end"
       >
         <motion.div
@@ -195,6 +207,23 @@ export default function LandingPage() {
       </motion.div>
 
       <motion.div
+        initial={{ opacity: 0, y: 100, rotate: 0 }}
+        animate={{
+          opacity: stage === "hero" ? 1 : 0,
+          y: stage === "hero" ? 0 : 100,
+          rotate: stage === "hero" ? -45 : 0,
+        }}
+        transition={{ duration: 1, ease: BEZIER, delay: 0.2 }}
+        className="absolute bottom-[-15%] md:bottom-[-25%] left-[-5%] md:left-[-2%] w-[70vw] md:w-[40vw] max-w-[600px] z-[5] pointer-events-none"
+      >
+        <img
+          src="/mockup.png"
+          alt="ratio'd mockup"
+          className="w-full h-auto object-contain"
+        />
+      </motion.div>
+
+      <motion.div
         initial={{ opacity: 0, y: -20, x: "-50%" }}
         animate={{
           opacity: exitPath ? 0 : stage === "hero" ? 1 : 0,
@@ -206,30 +235,34 @@ export default function LandingPage() {
         className="absolute top-4 md:top-6 left-1/2 z-[30] flex flex-row justify-center w-full max-w-3xl gap-8 md:gap-16 text-xs md:text-sm tracking-wider lowercase text-[#0c30ff]"
         style={{ fontFamily: "aonic" }}
       >
-        <button onClick={() => handleNavClick("/about")} onMouseEnter={() => setHoveredNavIdx(0)} className="hover:text-black transition-colors relative after:absolute after:bottom-[-4px] after:left-0 after:h-[1px] after:w-0 after:bg-black hover:after:w-full after:transition-all after:duration-300">
+        <button
+          onClick={() => handleNavClick("/about")}
+          onMouseEnter={() => setHoveredNavIdx(0)}
+          className="hover:text-black transition-colors relative after:absolute after:bottom-[-4px] after:left-0 after:h-[1px] after:w-0 after:bg-black hover:after:w-full after:transition-all after:duration-300"
+        >
           about
         </button>
-        <Link
-          href="/cli"
+        <button
+          onClick={() => handleNavClick("/cli")}
           onMouseEnter={() => setHoveredNavIdx(1)}
           className="hover:text-black transition-colors relative after:absolute after:bottom-[-4px] after:left-0 after:h-[1px] after:w-0 after:bg-black hover:after:w-full after:transition-all after:duration-300"
         >
           cli
-        </Link>
-        <Link
-          href="/lore"
+        </button>
+        <button
+          onClick={() => handleNavClick("/lore")}
           onMouseEnter={() => setHoveredNavIdx(2)}
           className="hover:text-black transition-colors relative after:absolute after:bottom-[-4px] after:left-0 after:h-[1px] after:w-0 after:bg-black hover:after:w-full after:transition-all after:duration-300"
         >
           lore
-        </Link>
-        <Link
-          href="/devs"
+        </button>
+        <button
+          onClick={() => handleNavClick("/devs")}
           onMouseEnter={() => setHoveredNavIdx(3)}
           className="hover:text-black transition-colors relative after:absolute after:bottom-[-4px] after:left-0 after:h-[1px] after:w-0 after:bg-black hover:after:w-full after:transition-all after:duration-300"
         >
           devs
-        </Link>
+        </button>
       </motion.div>
 
       <motion.div
