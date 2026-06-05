@@ -7,9 +7,27 @@ import { ArrowRight } from "lucide-react";
 const BEZIER = [0.16, 1, 0.3, 1] as const;
 
 const EYE_STATES = [
-  { left: "polygon(0 0%, 100% 0%, 100% 100%, 0 100%)", right: "polygon(0 0%, 100% 0%, 100% 100%, 0 100%)", pupilX: 0, pupilY: 0, eyeY: 0 },
-  { left: "polygon(0 15%, 100% 40%, 100% 100%, 0 100%)", right: "polygon(0 40%, 100% 15%, 100% 100%, 0 100%)", pupilX: -8, pupilY: -2, eyeY: -2 },
-  { left: "polygon(0 40%, 100% 15%, 100% 100%, 0 100%)", right: "polygon(0 15%, 100% 40%, 100% 100%, 0 100%)", pupilX: 6, pupilY: 6, eyeY: 2 },
+  {
+    left: "polygon(0 0%, 100% 0%, 100% 100%, 0 100%)",
+    right: "polygon(0 0%, 100% 0%, 100% 100%, 0 100%)",
+    pupilX: 0,
+    pupilY: 0,
+    eyeY: 0,
+  },
+  {
+    left: "polygon(0 15%, 100% 40%, 100% 100%, 0 100%)",
+    right: "polygon(0 40%, 100% 15%, 100% 100%, 0 100%)",
+    pupilX: -8,
+    pupilY: -2,
+    eyeY: -2,
+  },
+  {
+    left: "polygon(0 40%, 100% 15%, 100% 100%, 0 100%)",
+    right: "polygon(0 15%, 100% 40%, 100% 100%, 0 100%)",
+    pupilX: 6,
+    pupilY: 6,
+    eyeY: 2,
+  },
 ];
 
 export default function LandingPage() {
@@ -43,48 +61,87 @@ export default function LandingPage() {
     <div className="h-screen w-full bg-[#0c30ff] relative overflow-hidden flex flex-col justify-center items-center selection:bg-[#ceff1c] selection:text-[#0c30ff]">
       <motion.div
         initial={{ y: "-100%", x: "-50%" }}
-        animate={{ y: stage === "hero" ? "calc(-100% + 40vh)" : "-100%", x: "-50%" }}
-        transition={{ duration: 1.2, ease: BEZIER, delay: 0.1 }}
+        animate={{
+          y: stage === "hero" ? "calc(-100% + 40vh)" : "-100%",
+          x: "-50%",
+        }}
+        transition={{ type: "spring", damping: 14, stiffness: 60, delay: 0.1 }}
         className="absolute top-0 left-1/2 w-[200vw] md:w-[150vw] h-[200vw] md:h-[150vw] bg-[#ceff1c] rounded-full z-0 flex justify-center items-end"
       >
         <motion.div
-          initial={{ opacity: 0, scale: 0.5 }}
+          initial={{ opacity: 0, scale: 0, rotate: -45 }}
           animate={{
             opacity: stage === "hero" ? 1 : 0,
-            scale: stage === "hero" ? 1 : 0.5,
+            scale: stage === "hero" ? 1 : 0,
+            rotate: stage === "hero" ? 0 : -45,
           }}
-          transition={{ duration: 0.8, ease: BEZIER, delay: 0.4 }}
+          transition={{
+            type: "spring",
+            damping: 10,
+            stiffness: 80,
+            delay: 0.6,
+          }}
           className="flex gap-3 md:gap-2 z-10 mb-[-3rem] md:mb-[-4rem]"
         >
           <motion.div
             className="w-16 h-24 md:w-20 md:h-28 bg-white relative shadow-sm overflow-hidden"
             style={{ borderRadius: "50%" }}
-            animate={{ 
-              clipPath: isExiting ? EYE_STATES[0].left : (EYE_STATES[eyeStateIdx] || EYE_STATES[0]).left, 
-              y: isExiting ? 0 : (EYE_STATES[eyeStateIdx] || EYE_STATES[0]).eyeY 
+            animate={{
+              clipPath: isExiting
+                ? EYE_STATES[0].left
+                : (EYE_STATES[eyeStateIdx] || EYE_STATES[0]).left,
+              y: isExiting
+                ? 0
+                : (EYE_STATES[eyeStateIdx] || EYE_STATES[0]).eyeY,
             }}
             transition={{ duration: 0.5, ease: BEZIER }}
           >
-            <motion.div 
-              animate={isExiting ? { scale: 1.8, x: -8, y: -15 } : { x: (EYE_STATES[eyeStateIdx] || EYE_STATES[0]).pupilX, y: (EYE_STATES[eyeStateIdx] || EYE_STATES[0]).pupilY }}
-              transition={isExiting ? { duration: 0.4, type: "spring" } : { duration: 0.5, ease: BEZIER }}
+            <motion.div
+              animate={
+                isExiting
+                  ? { scale: 1.8, x: -8, y: -15 }
+                  : {
+                      x: (EYE_STATES[eyeStateIdx] || EYE_STATES[0]).pupilX,
+                      y: (EYE_STATES[eyeStateIdx] || EYE_STATES[0]).pupilY,
+                    }
+              }
+              transition={
+                isExiting
+                  ? { duration: 0.4, type: "spring" }
+                  : { duration: 0.5, ease: BEZIER }
+              }
               className="w-6 h-6 md:w-8 md:h-10 bg-[#111] absolute bottom-4 right-3 md:bottom-1 md:right-1"
-              style={{ borderRadius: "50%" }} 
+              style={{ borderRadius: "50%" }}
             />
           </motion.div>
           <motion.div
             className="w-16 h-24 md:w-20 md:h-28 bg-white relative shadow-sm overflow-hidden"
             style={{ borderRadius: "50%" }}
-            animate={{ 
-              clipPath: isExiting ? EYE_STATES[0].right : (EYE_STATES[eyeStateIdx] || EYE_STATES[0]).right, 
-              y: isExiting ? 0 : (EYE_STATES[eyeStateIdx] || EYE_STATES[0]).eyeY 
+            animate={{
+              clipPath: isExiting
+                ? EYE_STATES[0].right
+                : (EYE_STATES[eyeStateIdx] || EYE_STATES[0]).right,
+              y: isExiting
+                ? 0
+                : (EYE_STATES[eyeStateIdx] || EYE_STATES[0]).eyeY,
             }}
             transition={{ duration: 0.5, ease: BEZIER }}
           >
-            <motion.div 
-              animate={isExiting ? { scale: 1.8, x: 8, y: -15 } : { x: (EYE_STATES[eyeStateIdx] || EYE_STATES[0]).pupilX, y: (EYE_STATES[eyeStateIdx] || EYE_STATES[0]).pupilY }}
-              transition={isExiting ? { duration: 0.4, type: "spring" } : { duration: 0.5, ease: BEZIER }}
-              className="w-6 h-6 md:w-8 md:h-10 bg-[#111] absolute bottom-4 right-3 md:bottom-1 md:right-1" 
+            <motion.div
+              animate={
+                isExiting
+                  ? { scale: 1.8, x: 8, y: -15 }
+                  : {
+                      x: (EYE_STATES[eyeStateIdx] || EYE_STATES[0]).pupilX,
+                      y: (EYE_STATES[eyeStateIdx] || EYE_STATES[0]).pupilY,
+                    }
+              }
+              transition={
+                isExiting
+                  ? { duration: 0.4, type: "spring" }
+                  : { duration: 0.5, ease: BEZIER }
+              }
+              className="w-6 h-6 md:w-8 md:h-10 bg-[#111] absolute bottom-4 right-3 md:bottom-1 md:right-1"
               style={{ borderRadius: "50%" }}
             />
           </motion.div>
@@ -132,6 +189,68 @@ export default function LandingPage() {
         transition={{ duration: 1, ease: BEZIER, delay: 0.4 }}
         className="absolute bottom-[35%] md:bottom-[30%] right-[8%] z-20 pointer-events-auto"
       >
+        <motion.div
+          initial={{ opacity: 0, scale: 0.5 }}
+          animate={{
+            opacity: stage === "hero" ? 1 : 0,
+            scale: stage === "hero" ? 1 : 0.5,
+          }}
+          transition={{ duration: 0.8, delay: 2.2, ease: BEZIER }}
+          className="absolute -top-6 left-16 md:-top-7 md:left-10 flex items-center rotate-[-4deg] text-[#ceff1c]"
+        >
+          <svg
+            width="32"
+            height="24"
+            viewBox="0 0 32 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="mr-2 mt-2"
+          >
+            <path d="M28 4 Q 14 4, 6 16" />
+            <path d="M13 16 L 6 16 L 6 9" />
+          </svg>
+          <span
+            className="text-lg md:text-l font-bold lowercase tracking-tight"
+            style={{ fontFamily: "var(--font-afacad)" }}
+          >
+            and fast too
+          </span>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, scale: 0.5 }}
+          animate={{
+            opacity: stage === "hero" ? 1 : 0,
+            scale: stage === "hero" ? 1 : 0.5,
+          }}
+          transition={{ duration: 0.8, delay: 3.5, ease: BEZIER }}
+          className="absolute -bottom-8 left-20 md:-bottom-7 md:left-10 flex items-center rotate-[6deg] text-[#ceff1c]"
+        >
+          <svg
+            width="32"
+            height="24"
+            viewBox="0 0 32 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="mr-2 -mt-2"
+          >
+            <path d="M28 20 Q 14 20, 6 8" />
+            <path d="M13 8 L 6 8 L 6 15" />
+          </svg>
+          <span
+            className="text-lg md:text-sm font-bold lowercase tracking-tight whitespace-nowrap"
+            style={{ fontFamily: "var(--font-afacad)" }}
+          >
+            oh oh and secure too
+          </span>
+        </motion.div>
+
         <h2
           className="text-xl md:text-xl lg:text-2xl font-bold lowercase tracking-tight whitespace-nowrap bg-gradient-to-r from-white to-[#ceff1c] text-transparent bg-clip-text"
           style={{ fontFamily: "var(--font-afacad)" }}
