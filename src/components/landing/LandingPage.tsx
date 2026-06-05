@@ -1,211 +1,174 @@
 "use client";
-import React, { useState, useEffect, useRef } from "react";
-import { motion, useScroll, useTransform, useSpring } from "framer-motion";
-import { ReactLenis } from "lenis/react";
+import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
+import { ArrowRight } from "lucide-react";
 
 const BEZIER = [0.16, 1, 0.3, 1] as const;
 
-const FeatureCard = ({ title, desc, index }: { title: string, desc: string, index: number }) => (
-  <motion.div 
-    initial={{ opacity: 0, y: 20 }}
-    whileInView={{ opacity: 1, y: 0 }}
-    viewport={{ once: true }}
-    transition={{ duration: 0.8, delay: 0.05 * index, ease: BEZIER }}
-    className="p-6 rounded-[32px] bg-white/[0.03] border border-white/5 transition-all duration-500 hover:bg-white/[0.05]"
-  >
-    <h3 className="text-xl font-bold text-white mb-3 lowercase tracking-tight">{title}</h3>
-    <p className="text-sm text-white/40 leading-relaxed font-medium lowercase tracking-tight">{desc}</p>
-  </motion.div>
-);
+const EYE_STATES = [
+  { left: "polygon(0 0%, 100% 0%, 100% 100%, 0 100%)", right: "polygon(0 0%, 100% 0%, 100% 100%, 0 100%)", pupilX: 0, pupilY: 0, eyeY: 0 },
+  { left: "polygon(0 15%, 100% 40%, 100% 100%, 0 100%)", right: "polygon(0 40%, 100% 15%, 100% 100%, 0 100%)", pupilX: -8, pupilY: -2, eyeY: -2 },
+  { left: "polygon(0 40%, 100% 15%, 100% 100%, 0 100%)", right: "polygon(0 15%, 100% 40%, 100% 100%, 0 100%)", pupilX: 6, pupilY: 6, eyeY: 2 },
+];
 
 export default function LandingPage() {
-  const [stage, setStage] = useState<"intro" | "splash" | "shrink" | "ready">("intro");
-  
-  const { scrollY } = useScroll();
-  const smoothProgress = useSpring(scrollY, { stiffness: 100, damping: 30, restDelta: 0.001 });
-  
-  const scrollParallaxImgY = useTransform(smoothProgress, [0, 1000], ["-4%", "4%"]);
-  const scrollParallaxTextY = useTransform(smoothProgress, [0, 1000], ["0%", "15%"]);
-  
-  const scrollParallaxImgY2 = useTransform(smoothProgress, [1000, 3000], ["-4%", "4%"]);
-  const scrollParallaxTextY2 = useTransform(smoothProgress, [1000, 3000], ["0%", "15%"]);
+  const router = useRouter();
+  const [stage, setStage] = useState<"splash" | "hero">("splash");
+  const [isExiting, setIsExiting] = useState(false);
+  const [eyeStateIdx, setEyeStateIdx] = useState(0);
 
   useEffect(() => {
-    const t1 = setTimeout(() => setStage("splash"), 100);
-    const t2 = setTimeout(() => setStage("shrink"), 1200); 
-    const t3 = setTimeout(() => setStage("ready"), 2400); 
-    return () => {
-      [t1, t2, t3].forEach(clearTimeout);
-    };
+    const t = setTimeout(() => setStage("hero"), 1000);
+    return () => clearTimeout(t);
   }, []);
 
+  useEffect(() => {
+    if (stage === "hero") {
+      const interval = setInterval(() => {
+        setEyeStateIdx((prev) => (prev + 1) % EYE_STATES.length);
+      }, 3000);
+      return () => clearInterval(interval);
+    }
+  }, [stage]);
+
+  const handleLoginClick = () => {
+    setIsExiting(true);
+    setTimeout(() => {
+      router.push("/login");
+    }, 600);
+  };
+
   return (
-    <ReactLenis root options={{ lerp: 0.05, duration: 1.2 }}>
-      <div className="min-h-screen w-full bg-black relative selection:bg-[#ceff1c] selection:text-[#0c30ff]">
-        
-        <div className="w-full relative z-10 pt-[10vh] mb-48">
-          <motion.div 
-            initial={{ opacity: 0, y: 150 }}
+    <div className="h-screen w-full bg-[#0c30ff] relative overflow-hidden flex flex-col justify-center items-center selection:bg-[#ceff1c] selection:text-[#0c30ff]">
+      <motion.div
+        initial={{ y: "-100%", x: "-50%" }}
+        animate={{ y: stage === "hero" ? "calc(-100% + 40vh)" : "-100%", x: "-50%" }}
+        transition={{ duration: 1.2, ease: BEZIER, delay: 0.1 }}
+        className="absolute top-0 left-1/2 w-[200vw] md:w-[150vw] h-[200vw] md:h-[150vw] bg-[#ceff1c] rounded-full z-0 flex justify-center items-end"
+      >
+        <motion.div
+          initial={{ opacity: 0, scale: 0.5 }}
+          animate={{
+            opacity: stage === "hero" ? 1 : 0,
+            scale: stage === "hero" ? 1 : 0.5,
+          }}
+          transition={{ duration: 0.8, ease: BEZIER, delay: 0.4 }}
+          className="flex gap-3 md:gap-2 z-10 mb-[-3rem] md:mb-[-4rem]"
+        >
+          <motion.div
+            className="w-16 h-24 md:w-20 md:h-28 bg-white relative shadow-sm overflow-hidden"
+            style={{ borderRadius: "50%" }}
             animate={{ 
-              opacity: (stage === "shrink" || stage === "ready") ? 1 : 0,
-              y: (stage === "shrink" || stage === "ready") ? 0 : 150,
+              clipPath: isExiting ? EYE_STATES[0].left : (EYE_STATES[eyeStateIdx] || EYE_STATES[0]).left, 
+              y: isExiting ? 0 : (EYE_STATES[eyeStateIdx] || EYE_STATES[0]).eyeY 
             }}
-            transition={{ duration: 2.2, ease: [0.16, 1, 0.3, 1], delay: 1.5 }}
-            className="w-full aspect-video relative overflow-hidden"
+            transition={{ duration: 0.5, ease: BEZIER }}
           >
-            <motion.img 
-              style={{ y: scrollParallaxImgY, scale: 1.05 }}
-              initial={{ scale: 1.15 }}
-              animate={{ scale: (stage === "shrink" || stage === "ready") ? 1.05 : 1.15 }}
-              transition={{ duration: 2.5, ease: BEZIER, delay: 1.5 }}
-              src="/screenshots/hero.png" 
-              alt="" 
-              className="w-full h-full object-cover opacity-50" 
+            <motion.div 
+              animate={isExiting ? { scale: 1.8, x: -8, y: -15 } : { x: (EYE_STATES[eyeStateIdx] || EYE_STATES[0]).pupilX, y: (EYE_STATES[eyeStateIdx] || EYE_STATES[0]).pupilY }}
+              transition={isExiting ? { duration: 0.4, type: "spring" } : { duration: 0.5, ease: BEZIER }}
+              className="w-6 h-6 md:w-8 md:h-10 bg-[#111] absolute bottom-4 right-3 md:bottom-1 md:right-1"
+              style={{ borderRadius: "50%" }} 
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-black/60 flex flex-col justify-center px-8 md:px-24 lg:px-48">
-              <motion.div 
-                style={{ y: scrollParallaxTextY }}
-                className="space-y-6 max-w-3xl"
-              >
-                <motion.h1 
-                  initial={{ opacity: 0, y: 40 }}
-                  animate={{ 
-                    opacity: stage === "ready" ? 1 : 0,
-                    y: stage === "ready" ? 0 : 40 
-                  }}
-                  transition={{ delay: 1.4, duration: 1.2, ease: BEZIER }}
-                  className="text-[10vw] md:text-[6vw] font-black text-white lowercase tracking-[-0.06em] leading-[0.8]"
-                  style={{ fontFamily: 'var(--font-montserrat)' }}
-                >
-                  your academia,<br />
-                  <span className="text-[#ceff1c]">redefined.</span>
-                </motion.h1>
-                
-                <motion.p 
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ 
-                    opacity: stage === "ready" ? 1 : 0,
-                    y: stage === "ready" ? 0 : 20 
-                  }}
-                  transition={{ delay: 1.6, duration: 1.2, ease: BEZIER }}
-                  className="text-lg md:text-2xl text-white/40 leading-relaxed font-medium lowercase tracking-tight max-w-2xl"
-                >
-                  experience a faster, cleaner, and more intuitive way to manage your university life. 
-                </motion.p>
-              </motion.div>
-            </div>
           </motion.div>
-        </div>
-
-        <div className="w-full max-w-5xl mx-auto px-8 md:px-16 pb-32 relative z-10">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-48">
-            {[
-              { t: "sub-second sync", d: "background refresh keeps your data fresh without ever interrupting your flow." },
-              { t: "offline first", d: "cached locally on your device. check your schedule even without wifi." },
-              { t: "secure by design", d: "non-exportable encryption ensures your credentials never leave your store." },
-              { t: "attendance pro", d: "predict exactly how many classes you can skip while staying safe." },
-              { t: "marks target", d: "know exactly what you need to score to hit your target grade." },
-              { t: "dual themes", d: "switch between minimalist and brutalist styles anytime." }
-            ].map((feat, i) => (
-              <FeatureCard key={i} title={feat.t} desc={feat.d} index={i} />
-            ))}
-          </div>
-
-          <motion.div 
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 1, ease: BEZIER }}
-            className="w-full aspect-video rounded-[40px] overflow-hidden border border-white/10 mb-48 bg-white/5 relative"
+          <motion.div
+            className="w-16 h-24 md:w-20 md:h-28 bg-white relative shadow-sm overflow-hidden"
+            style={{ borderRadius: "50%" }}
+            animate={{ 
+              clipPath: isExiting ? EYE_STATES[0].right : (EYE_STATES[eyeStateIdx] || EYE_STATES[0]).right, 
+              y: isExiting ? 0 : (EYE_STATES[eyeStateIdx] || EYE_STATES[0]).eyeY 
+            }}
+            transition={{ duration: 0.5, ease: BEZIER }}
           >
-            <motion.img 
-              style={{ y: scrollParallaxImgY2, scale: 1.05 }}
-              src="/screenshots/features.png" 
-              alt="" 
-              className="w-full h-full object-cover opacity-80" 
+            <motion.div 
+              animate={isExiting ? { scale: 1.8, x: 8, y: -15 } : { x: (EYE_STATES[eyeStateIdx] || EYE_STATES[0]).pupilX, y: (EYE_STATES[eyeStateIdx] || EYE_STATES[0]).pupilY }}
+              transition={isExiting ? { duration: 0.4, type: "spring" } : { duration: 0.5, ease: BEZIER }}
+              className="w-6 h-6 md:w-8 md:h-10 bg-[#111] absolute bottom-4 right-3 md:bottom-1 md:right-1" 
+              style={{ borderRadius: "50%" }}
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-transparent to-transparent flex items-center px-12">
-              <motion.div 
-                style={{ y: scrollParallaxTextY2 }}
-                className="space-y-4 max-w-lg"
-              >
-                <h2 className="text-4xl md:text-5xl font-black text-white lowercase tracking-tighter leading-none">everything you need.</h2>
-                <p className="text-lg text-white/60 lowercase tracking-tight">we redesigned every single part of academia from the ground up to be high-performance and aesthetically pleasing.</p>
-              </motion.div>
-            </div>
           </motion.div>
-
-          <div className="space-y-24 mb-32">
-            <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-24">
-              <div className="space-y-6">
-                <h2 className="text-4xl font-black text-white lowercase tracking-tighter leading-none">built for privacy.</h2>
-                <p className="text-lg text-white/30 leading-relaxed lowercase tracking-tight font-medium">we don't have a database for your credentials. everything is encrypted using the web crypto api and stored in your browser's indexeddb.</p>
-              </div>
-              <div className="space-y-6">
-                <h2 className="text-4xl font-black text-white lowercase tracking-tighter leading-none">open & chill.</h2>
-                <p className="text-lg text-white/30 leading-relaxed lowercase tracking-tight font-medium">ratio'd is a student project. no tracking, no ads, no nonsense. just a wrapper for academia that doesn't suck.</p>
-              </div>
-            </div>
-          </div>
-        </div>
+        </motion.div>
+      </motion.div>
 
       <motion.div
-        initial={{ clipPath: "circle(0% at 50% 50%)", height: "100vh" }}
-        animate={{ 
-          clipPath: "circle(150% at 50% 50%)",
-          height: (stage === "shrink" || stage === "ready") ? "80px" : "100vh",
-          transition: { 
-            clipPath: { duration: 1.2, ease: [0.4, 0, 0.2, 1] },
-            height: { delay: 1.4, duration: 1.2, ease: BEZIER }
-          }
+        initial={{
+          top: "50%",
+          left: "50%",
+          x: "-50%",
+          y: "-20%",
+          scale: 0.8,
+          opacity: 0,
         }}
-        className={`fixed bottom-0 left-0 w-full bg-[#0c30ff] flex items-center z-50 overflow-hidden shadow-[0_-15px_60px_rgba(12,48,255,0.15)] ${(stage === "shrink" || stage === "ready") ? "pointer-events-none" : "pointer-events-auto"}`}
+        animate={{
+          top: stage === "splash" ? "50%" : "85%",
+          left: stage === "splash" ? "50%" : "8%",
+          x: stage === "splash" ? "-50%" : "0%",
+          y: stage === "splash" ? "-50%" : "-50%",
+          scale: stage === "splash" ? 1 : 0.45,
+          opacity: 1,
+        }}
+        transition={{
+          duration: stage === "splash" ? 0.6 : 1.2,
+          ease: BEZIER,
+        }}
+        style={{ originX: 0, originY: 0.5 }}
+        className="absolute z-20 whitespace-nowrap pointer-events-none"
       >
-        <div className="relative w-full flex items-center h-full px-12">
-          <motion.div
-            initial={{ scale: 1, left: "48px", translateX: "0%" }}
-            animate={{
-              scale: (stage === "shrink" || stage === "ready") ? 0.3 : 1,
-            }}
-            transition={{ delay: 1.4, duration: 1.2, ease: BEZIER }}
-            className="flex origin-left items-center absolute"
-          >
-            <motion.span
-              initial={{ x: -100, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ delay: 0.4, duration: 0.8, ease: BEZIER }}
-              className="text-[10vw] font-black lowercase tracking-[0em] text-[#ceff1c] leading-none select-none inline-block origin-left"
-              style={{ fontFamily: 'var(--font-urbanosta)' }}
-            >
-              ratio'd
-            </motion.span>
-          </motion.div>
-
-          {stage === "ready" && (
-            <motion.div 
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, ease: BEZIER }}
-              className="ml-auto flex gap-6 items-center pointer-events-auto"
-            >
-              <div 
-                onClick={() => window.location.href = '/login'}
-                className="text-[#ceff1c] text-[10px] font-black uppercase tracking-widest hover:opacity-70 transition-opacity cursor-pointer px-4"
-              >
-                login
-              </div>
-              <div 
-                onClick={() => window.location.href = '/dashboard'}
-                className="px-8 py-2.5 rounded-full bg-[#ceff1c] text-[#0c30ff] text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-transform cursor-pointer shadow-[0_0_30px_rgba(206,255,28,0.3)]"
-              >
-                get started
-              </div>
-            </motion.div>
-          )}
-        </div>
+        <span
+          className="text-[#ceff1c] font-black lowercase tracking-tight leading-none text-[12vw] md:text-[8vw]"
+          style={{ fontFamily: "var(--font-urbanosta)" }}
+        >
+          ratio'd
+        </span>
       </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, x: 50 }}
+        animate={{
+          opacity: stage === "hero" ? 1 : 0,
+          x: stage === "hero" ? 0 : 50,
+        }}
+        transition={{ duration: 1, ease: BEZIER, delay: 0.4 }}
+        className="absolute bottom-[35%] md:bottom-[30%] right-[8%] z-20 pointer-events-auto"
+      >
+        <h2
+          className="text-xl md:text-xl lg:text-2xl font-bold lowercase tracking-tight whitespace-nowrap bg-gradient-to-r from-white to-[#ceff1c] text-transparent bg-clip-text"
+          style={{ fontFamily: "var(--font-afacad)" }}
+        >
+          a cool looking academia wrapper.
+        </h2>
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, x: 50, y: "-50%" }}
+        animate={{
+          opacity: stage === "hero" ? 1 : 0,
+          x: stage === "hero" ? 0 : 50,
+          y: "-50%",
+        }}
+        transition={{ duration: 1, ease: BEZIER, delay: 0.5 }}
+        className="absolute top-[85%] right-[8%] z-20 pointer-events-auto"
+      >
+        <button
+          onClick={handleLoginClick}
+          className="group flex items-center gap-2 bg-[#ceff1c] text-[#0c30ff] px-6 py-2 rounded-full font-bold text-base md:text-lg lowercase transition-transform hover:scale-105 active:scale-95 shadow-sm"
+          style={{ fontFamily: "var(--font-afacad)" }}
+        >
+          login
+          <ArrowRight
+            className="w-4 h-4 md:w-5 md:h-5 transition-transform group-hover:translate-x-1"
+            strokeWidth={3}
+          />
+        </button>
+      </motion.div>
+
+      <motion.div
+        initial={{ left: "100%" }}
+        animate={{ left: isExiting ? "0%" : "100%" }}
+        transition={{ duration: 0.6, ease: BEZIER }}
+        className="fixed top-0 w-full h-screen bg-[#ceff1c] z-[60] pointer-events-none"
+      />
     </div>
-    </ReactLenis>
   );
 }
