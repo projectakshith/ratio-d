@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
 const BEZIER = [0.16, 1, 0.3, 1] as const;
@@ -30,11 +31,25 @@ const EYE_STATES = [
   },
 ];
 
+const LOOK_UP_BASE = {
+  left: "polygon(0 0%, 100% 0%, 100% 100%, 0 100%)",
+  right: "polygon(0 0%, 100% 0%, 100% 100%, 0 100%)",
+  eyeY: -6,
+};
+
+const LOOK_UP_STATES = [
+  { ...LOOK_UP_BASE, pupilX: -30, pupilY: -62 }, // about
+  { ...LOOK_UP_BASE, pupilX: -20, pupilY: -62 }, // security
+  { ...LOOK_UP_BASE, pupilX: -8, pupilY: -62 },  // lore
+  { ...LOOK_UP_BASE, pupilX: 2, pupilY: -62 },   // devs
+];
+
 export default function LandingPage() {
   const router = useRouter();
   const [stage, setStage] = useState<"splash" | "hero">("splash");
   const [isExiting, setIsExiting] = useState(false);
   const [eyeStateIdx, setEyeStateIdx] = useState(0);
+  const [hoveredNavIdx, setHoveredNavIdx] = useState<number | null>(null);
 
   useEffect(() => {
     const t = setTimeout(() => setStage("hero"), 1000);
@@ -56,6 +71,8 @@ export default function LandingPage() {
       router.push("/login");
     }, 600);
   };
+
+  const currentEyeState = hoveredNavIdx !== null ? LOOK_UP_STATES[hoveredNavIdx] : (EYE_STATES[eyeStateIdx] || EYE_STATES[0]);
 
   return (
     <div className="h-screen w-full bg-[#0c30ff] relative overflow-hidden flex flex-col justify-center items-center selection:bg-[#ceff1c] selection:text-[#0c30ff]">
@@ -89,10 +106,10 @@ export default function LandingPage() {
             animate={{
               clipPath: isExiting
                 ? EYE_STATES[0].left
-                : (EYE_STATES[eyeStateIdx] || EYE_STATES[0]).left,
+                : currentEyeState.left,
               y: isExiting
                 ? 0
-                : (EYE_STATES[eyeStateIdx] || EYE_STATES[0]).eyeY,
+                : currentEyeState.eyeY,
             }}
             transition={{ duration: 0.5, ease: BEZIER }}
           >
@@ -101,8 +118,8 @@ export default function LandingPage() {
                 isExiting
                   ? { scale: 1.8, x: -8, y: -15 }
                   : {
-                      x: (EYE_STATES[eyeStateIdx] || EYE_STATES[0]).pupilX,
-                      y: (EYE_STATES[eyeStateIdx] || EYE_STATES[0]).pupilY,
+                      x: currentEyeState.pupilX,
+                      y: currentEyeState.pupilY,
                     }
               }
               transition={
@@ -120,10 +137,10 @@ export default function LandingPage() {
             animate={{
               clipPath: isExiting
                 ? EYE_STATES[0].right
-                : (EYE_STATES[eyeStateIdx] || EYE_STATES[0]).right,
+                : currentEyeState.right,
               y: isExiting
                 ? 0
-                : (EYE_STATES[eyeStateIdx] || EYE_STATES[0]).eyeY,
+                : currentEyeState.eyeY,
             }}
             transition={{ duration: 0.5, ease: BEZIER }}
           >
@@ -132,8 +149,8 @@ export default function LandingPage() {
                 isExiting
                   ? { scale: 1.8, x: 8, y: -15 }
                   : {
-                      x: (EYE_STATES[eyeStateIdx] || EYE_STATES[0]).pupilX,
-                      y: (EYE_STATES[eyeStateIdx] || EYE_STATES[0]).pupilY,
+                      x: currentEyeState.pupilX,
+                      y: currentEyeState.pupilY,
                     }
               }
               transition={
@@ -178,6 +195,34 @@ export default function LandingPage() {
         >
           ratio'd
         </span>
+      </motion.div>
+
+      {/* Navigation Links */}
+      <motion.div
+        initial={{ opacity: 0, y: -20, x: "-50%" }}
+        animate={{
+          opacity: stage === "hero" ? 1 : 0,
+          y: stage === "hero" ? 0 : -20,
+          x: "-50%",
+          pointerEvents: stage === "hero" ? "auto" : "none",
+        }}
+        transition={{ duration: 0.8, delay: 0.8, ease: BEZIER }}
+        onMouseLeave={() => setHoveredNavIdx(null)}
+        className="absolute top-4 md:top-6 left-1/2 z-20 flex flex-row justify-center w-full max-w-3xl gap-8 md:gap-16 text-xs md:text-sm tracking-wider lowercase text-[#0c30ff]"
+        style={{ fontFamily: "aonic" }}
+      >
+        <Link href="/about" onMouseEnter={() => setHoveredNavIdx(0)} className="hover:text-black transition-colors relative after:absolute after:bottom-[-4px] after:left-0 after:h-[1px] after:w-0 after:bg-black hover:after:w-full after:transition-all after:duration-300">
+          about
+        </Link>
+        <Link href="/security" onMouseEnter={() => setHoveredNavIdx(1)} className="hover:text-black transition-colors relative after:absolute after:bottom-[-4px] after:left-0 after:h-[1px] after:w-0 after:bg-black hover:after:w-full after:transition-all after:duration-300">
+          security
+        </Link>
+        <Link href="/lore" onMouseEnter={() => setHoveredNavIdx(2)} className="hover:text-black transition-colors relative after:absolute after:bottom-[-4px] after:left-0 after:h-[1px] after:w-0 after:bg-black hover:after:w-full after:transition-all after:duration-300">
+          lore
+        </Link>
+        <Link href="/devs" onMouseEnter={() => setHoveredNavIdx(3)} className="hover:text-black transition-colors relative after:absolute after:bottom-[-4px] after:left-0 after:h-[1px] after:w-0 after:bg-black hover:after:w-full after:transition-all after:duration-300">
+          devs
+        </Link>
       </motion.div>
 
       <motion.div
