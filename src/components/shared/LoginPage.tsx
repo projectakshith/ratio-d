@@ -136,7 +136,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
         animate={isExiting ? "exit" : "visible"}
         exit="exit"
         variants={containerVariants}
-        className="h-screen w-full flex flex-col justify-between md:justify-center p-8 md:p-24 md:gap-12 relative bg-[#0c30ff]"
+        className="h-screen w-full flex flex-col justify-between md:justify-center p-8 md:p-24 md:gap-12 relative bg-[#0c30ff] overflow-hidden"
       >
         <motion.header variants={itemVariants} className="relative z-10">
           <h1
@@ -148,7 +148,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
         </motion.header>
 
         <motion.main variants={itemVariants} className="relative z-10 w-full max-w-xl mt-auto md:mt-0 pb-12 md:pb-0">
-          <form onSubmit={handleSubmit} className="flex flex-col gap-12 md:gap-8">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-12 md:gap-12">
             <div className="group relative">
               <label className="text-[10px] font-mono uppercase tracking-[0.3em] text-white/60">
                 NetID
@@ -158,7 +158,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="w-full bg-transparent py-3 text-3xl md:text-4xl text-white outline-none placeholder:text-white/10"
+                  className="login-input w-full bg-transparent py-3 text-3xl md:text-4xl text-white outline-none placeholder:text-white/10"
                   placeholder="ab1234"
                   style={{ fontFamily: "Aonic", color: 'white' }}
                 />
@@ -182,7 +182,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-transparent py-3 text-3xl md:text-4xl text-white outline-none placeholder:text-white/10"
+                  className="login-input w-full bg-transparent py-3 text-3xl md:text-4xl text-white outline-none placeholder:text-white/10"
                   placeholder="••••••••"
                   style={{ fontFamily: "Aonic", color: 'white' }}
                 />
@@ -213,7 +213,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
                         type="text"
                         value={captchaInput}
                         onChange={(e) => setCaptchaInput(e.target.value.toUpperCase())}
-                        className="w-full bg-transparent py-3 text-3xl md:text-4xl text-white outline-none placeholder:text-white/10"
+                        className="login-input w-full bg-transparent py-3 text-3xl md:text-4xl text-white outline-none placeholder:text-white/10"
                         placeholder="captcha"
                         style={{ fontFamily: "Aonic", color: 'white' }}
                       />

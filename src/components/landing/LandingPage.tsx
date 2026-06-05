@@ -45,7 +45,7 @@ export default function LandingPage() {
     if (stage === "hero") {
       const interval = setInterval(() => {
         setEyeStateIdx((prev) => (prev + 1) % EYE_STATES.length);
-      }, 3000);
+      }, 2000);
       return () => clearInterval(interval);
     }
   }, [stage]);
@@ -195,7 +195,7 @@ export default function LandingPage() {
             opacity: stage === "hero" ? 1 : 0,
             scale: stage === "hero" ? 1 : 0.5,
           }}
-          transition={{ duration: 0.8, delay: 2.2, ease: BEZIER }}
+          transition={{ duration: 0.8, delay: 2.0, ease: BEZIER }}
           className="absolute -top-6 left-16 md:-top-7 md:left-10 flex items-center rotate-[-4deg] text-[#ceff1c]"
         >
           <svg
@@ -226,7 +226,7 @@ export default function LandingPage() {
             opacity: stage === "hero" ? 1 : 0,
             scale: stage === "hero" ? 1 : 0.5,
           }}
-          transition={{ duration: 0.8, delay: 3.5, ease: BEZIER }}
+          transition={{ duration: 0.8, delay: 4.0, ease: BEZIER }}
           className="absolute -bottom-8 left-20 md:-bottom-7 md:left-10 flex items-center rotate-[6deg] text-[#ceff1c]"
         >
           <svg
@@ -255,7 +255,15 @@ export default function LandingPage() {
           className="text-xl md:text-xl lg:text-2xl font-bold lowercase tracking-tight whitespace-nowrap bg-gradient-to-r from-white to-[#ceff1c] text-transparent bg-clip-text"
           style={{ fontFamily: "var(--font-afacad)" }}
         >
-          a cool looking academia wrapper.
+          a <span className="relative" style={{ WebkitTextFillColor: "white", color: "white" }}>
+            cool
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: stage === "hero" ? "100%" : 0 }}
+              transition={{ duration: 0.5, delay: 1.0, ease: BEZIER }}
+              className="absolute bottom-0 left-0 h-[2px] bg-[#ceff1c] rounded-full"
+            />
+          </span> looking academia wrapper.
         </h2>
       </motion.div>
 
