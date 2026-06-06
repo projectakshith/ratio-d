@@ -245,7 +245,7 @@ export default function LandingPage() {
         ))}
       </div>
 
-      {/* GREEN CIRCLE + EYES */}
+
       <motion.div
         initial={{ y: "-100%", x: "-50%", borderRadius: "50%" }}
         animate={{
@@ -285,7 +285,7 @@ export default function LandingPage() {
         </motion.div>
       </motion.div>
 
-      {/* SPLASH LOGO */}
+
       <motion.div
         initial={{
           top: "50%",
@@ -315,7 +315,7 @@ export default function LandingPage() {
         </span>
       </motion.div>
 
-      {/* MOCKUP IMAGE */}
+
       <motion.div
         initial={{ opacity: 0, y: 100, rotate: -45 }}
         animate={{
@@ -336,7 +336,7 @@ export default function LandingPage() {
         />
       </motion.div>
 
-      {/* NAV BAR */}
+
       <motion.div
         initial={{ opacity: 0, y: -20, x: "-50%" }}
         animate={{

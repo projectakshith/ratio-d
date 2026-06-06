@@ -4,10 +4,10 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { ArrowLeft, Zap, WifiOff, Shield, Palette, Calculator, Target, Bell, Book, Server, Network, Lock, Fingerprint, Smartphone, RefreshCw, Database } from "lucide-react";
+import { useLenis } from "lenis/react";
 
 const BEZIER = [0.16, 1, 0.3, 1] as const;
 
-// Reuse the exact same procedural grid boxes from LandingPage for consistency
 const GRID_BOXES = [[0,20],[0,40],[0,70],[0,90],[10,10],[10,40],[10,50],[10,80],[20,0],[20,30],[20,60],[20,90],[30,20],[30,40],[30,70],[40,0],[40,10],[40,50],[40,80],[50,30],[50,60],[50,90],[60,20],[60,50],[60,70],[70,0],[70,40],[70,80],[80,10],[80,30],[80,60],[80,90],[90,0],[90,20],[90,50],[90,70]];
 
 const features = [
@@ -20,13 +20,49 @@ const features = [
   { icon: Book, title: "private notes", desc: "per subject notes, stored locally, never synced anywhere" },
 ];
 
+const navSections = [
+  { id: "hero", label: "what's this", index: 4 },
+  { id: "speed", label: "speed", index: 12 },
+  { id: "security", label: "security", index: 20 },
+  { id: "features", label: "features", index: 28 },
+];
+const TOTAL_TICKS = 35;
+
 export default function AboutPageContent() {
   const [mounted, setMounted] = useState(false);
+  const [activeSection, setActiveSection] = useState("hero");
+  const lenis = useLenis((lenisInstance) => {
+    let currentId = navSections[0].id;
+    for (const { id } of navSections) {
+      const element = document.getElementById(id);
+      if (element) {
+        const rect = element.getBoundingClientRect();
+        if (rect.top <= 300) {
+          currentId = id;
+        }
+      }
+    }
+    if (activeSection !== currentId) {
+      setActiveSection(currentId);
+    }
+  }, [activeSection]);
+
   useEffect(() => setMounted(true), []);
+
+  const handleScrollTo = (id: string) => {
+    const element = document.getElementById(id);
+    if (element) {
+      if (lenis) {
+        lenis.scrollTo(element, { offset: -10, duration: 1.2 });
+      } else {
+        const y = element.getBoundingClientRect().top + window.scrollY - 10;
+        window.scrollTo({ top: y, behavior: 'smooth' });
+      }
+    }
+  };
 
   return (
     <div className="min-h-screen w-full bg-[#0c30ff] bg-checkit-grid relative flex flex-col selection:bg-[#ceff1c] selection:text-[#0c30ff] overflow-x-hidden">
-      {/* BACKGROUND SCATTERED GRID SQUARES */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         {mounted && GRID_BOXES.map(([y, x], i) => (
           <div
@@ -39,7 +75,6 @@ export default function AboutPageContent() {
         ))}
       </div>
 
-      {/* PAGE ENTRY TRANSITION WIPE */}
       <motion.div
         initial={{ top: "0%" }}
         animate={{ top: "100%" }}
@@ -47,22 +82,65 @@ export default function AboutPageContent() {
         className="fixed left-0 w-full h-screen bg-[#ceff1c] z-[60] pointer-events-none"
       />
 
-      {/* BACK BUTTON */}
-      <div className="fixed top-6 left-6 md:top-10 md:left-10 z-[50]">
-        <Link href="/" className="group flex items-center gap-2 text-white bg-black/20 backdrop-blur-md px-4 py-2 rounded-full hover:bg-[#ceff1c] hover:text-[#0c30ff] transition-colors font-mono text-xs tracking-widest uppercase shadow-lg border border-white/10 hover:border-[#ceff1c]">
+      <div className="fixed top-0 left-0 right-0 h-24 bg-gradient-to-b from-[#0c30ff] via-[#0c30ff]/60 to-[#0c30ff]/0 z-[90] pointer-events-none" />
+
+      <div className="fixed top-4 left-4 right-4 md:top-6 md:left-6 md:right-6 z-[100] flex justify-between items-start pointer-events-none">
+        
+        <Link href="/" className="pointer-events-auto group flex items-center gap-2 text-white bg-black/20 backdrop-blur-md px-4 py-2 rounded-full hover:bg-[#ceff1c] hover:text-[#0c30ff] transition-colors text-xs tracking-widest uppercase shadow-lg border border-white/10 hover:border-[#ceff1c]" style={{ fontFamily: "var(--font-afacad)" }}>
           <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" strokeWidth={2.5} />
           back
+        </Link>
+
+        <div className="hidden lg:flex flex-row gap-[8px] items-start pointer-events-none mt-2 relative">
+          <div className="absolute left-0 right-0 top-0 h-[1px] bg-white/5 -z-10" />
+          {Array.from({ length: TOTAL_TICKS }).map((_, i) => {
+            const section = navSections.find((s) => s.index === i);
+            
+            if (section) {
+              const isActive = activeSection === section.id;
+              return (
+                <button
+                  key={`nav-${i}`}
+                  onClick={() => handleScrollTo(section.id)}
+                  className="group flex flex-col items-center gap-3 pointer-events-auto outline-none w-[1px]"
+                >
+                  <div className="relative flex flex-col items-center justify-start h-8 w-[1px] shrink-0">
+                    <div className={`w-[1px] transition-all duration-300 origin-top ${isActive ? 'bg-[#ceff1c] h-8' : 'bg-white/30 h-4 group-hover:bg-white/60 group-hover:h-6'}`} />
+                    {isActive && (
+                      <motion.div 
+                        layoutId="nav-indicator-line"
+                        className="absolute top-0 left-1/2 -translate-x-1/2 w-[2px] h-8 bg-[#ceff1c]"
+                        style={{ boxShadow: '0 0 8px rgba(206, 255, 28, 0.4)' }}
+                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                      />
+                    )}
+                  </div>
+                  <span className={`text-[10px] uppercase tracking-[0.2em] transition-all duration-300 leading-[0] whitespace-nowrap ${isActive ? 'text-[#ceff1c] font-bold' : 'text-white/30 group-hover:text-white/60'}`} style={{ fontFamily: "var(--font-afacad)" }}>
+                    {section.label}
+                  </span>
+                </button>
+              );
+            }
+
+            return (
+              <div key={`tick-${i}`} className="h-[6px] w-[1px] bg-white/10 shrink-0" />
+            );
+          })}
+        </div>
+
+        <Link href="/login" className="pointer-events-auto group flex items-center gap-2 text-[#0c30ff] bg-[#ceff1c] backdrop-blur-md px-6 py-2 rounded-full hover:bg-white hover:text-black transition-colors text-xs tracking-widest uppercase shadow-[0_0_15px_rgba(206,255,28,0.4)] border border-[#ceff1c]" style={{ fontFamily: "var(--font-afacad)" }}>
+          login
         </Link>
       </div>
 
       <div className="relative z-10 max-w-5xl mx-auto px-6 py-32 flex flex-col gap-24">
         
-        {/* SECTION 1: WHAT'S THIS */}
         <motion.section 
+          id="hero"
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.3, ease: BEZIER }}
-          className="flex flex-col gap-6"
+          className="flex flex-col gap-6 scroll-mt-32"
         >
           <h1 
             className="text-6xl md:text-8xl lg:text-9xl font-black text-[#ceff1c] lowercase tracking-tight leading-[0.85]"
@@ -78,13 +156,13 @@ export default function AboutPageContent() {
           </p>
         </motion.section>
 
-        {/* SECTION 2: BUILT FOR SPEED & RELIABILITY */}
         <motion.section 
+          id="speed"
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-100px" }}
           transition={{ duration: 0.6, ease: BEZIER }}
-          className="flex flex-col gap-8 border-t border-white/10 pt-20"
+          className="flex flex-col gap-8 border-t border-white/10 pt-20 scroll-mt-10"
         >
           <h2 
             className="text-5xl md:text-7xl font-black text-[#ceff1c] lowercase tracking-tight"
@@ -110,8 +188,7 @@ export default function AboutPageContent() {
           </div>
         </motion.section>
 
-        {/* SECTION 3: SECURITY & ARCHITECTURE */}
-        <section className="flex flex-col lg:flex-row gap-16 border-t border-white/10 pt-20">
+        <section id="security" className="flex flex-col lg:flex-row gap-16 border-t border-white/10 pt-20 scroll-mt-10">
           <motion.div 
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -199,8 +276,7 @@ export default function AboutPageContent() {
           </motion.div>
         </section>
 
-        {/* SECTION 4: BENTO GRID - FEATURES */}
-        <section className="flex flex-col gap-8 border-t border-white/10 pt-20">
+        <section id="features" className="flex flex-col gap-8 border-t border-white/10 pt-20 scroll-mt-10">
           <motion.h2 
             initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -211,7 +287,7 @@ export default function AboutPageContent() {
           >
             all<br/>features.
           </motion.h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mt-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
             {features.map((feat, i) => (
               <motion.div
                 key={i}
@@ -236,14 +312,13 @@ export default function AboutPageContent() {
             ))}
           </div>
         </section>
-
-        {/* LORE / DISCLAIMER */}
         <motion.section 
+          id="lore"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, ease: BEZIER }}
-          className="flex flex-col items-center text-center gap-6 mt-8 pt-16 border-t border-white/10"
+          className="flex flex-col items-center text-center gap-6 mt-8 pt-16 border-t border-white/10 scroll-mt-20"
         >
           <p className="text-white/40 font-mono text-sm max-w-xl leading-relaxed uppercase tracking-widest font-bold">
             "ratio'd was basically built for fun. thats it. thats the lore."
