@@ -2,19 +2,13 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
 const BEZIER = [0.16, 1, 0.3, 1] as const;
+const FULL_OPEN = "polygon(0 0%, 100% 0%, 100% 100%, 0 100%)";
 
 const EYE_STATES = [
-  {
-    left: "polygon(0 0%, 100% 0%, 100% 100%, 0 100%)",
-    right: "polygon(0 0%, 100% 0%, 100% 100%, 0 100%)",
-    pupilX: 0,
-    pupilY: 0,
-    eyeY: 0,
-  },
+  { left: FULL_OPEN, right: FULL_OPEN, pupilX: 0, pupilY: 0, eyeY: 0 },
   {
     left: "polygon(0 15%, 100% 40%, 100% 100%, 0 100%)",
     right: "polygon(0 40%, 100% 15%, 100% 100%, 0 100%)",
@@ -31,12 +25,7 @@ const EYE_STATES = [
   },
 ];
 
-const LOOK_UP_BASE = {
-  left: "polygon(0 0%, 100% 0%, 100% 100%, 0 100%)",
-  right: "polygon(0 0%, 100% 0%, 100% 100%, 0 100%)",
-  eyeY: -6,
-};
-
+const LOOK_UP_BASE = { left: FULL_OPEN, right: FULL_OPEN, eyeY: -6 };
 const LOOK_UP_STATES = [
   { ...LOOK_UP_BASE, pupilX: -30, pupilY: -62 },
   { ...LOOK_UP_BASE, pupilX: -20, pupilY: -62 },
@@ -50,6 +39,14 @@ const LOGIN_HOVER_STATE = {
   pupilX: 16,
   pupilY: -10,
   eyeY: -6,
+};
+
+const IMAGE_HOVER_STATE = {
+  left: FULL_OPEN,
+  right: FULL_OPEN,
+  pupilX: -30,
+  pupilY: 20,
+  eyeY: 4,
 };
 
 const GRID_BOXES = [
@@ -91,6 +88,112 @@ const GRID_BOXES = [
   [90, 70],
 ];
 
+const NAV_ITEMS = [
+  { path: "/about", label: "about" },
+  { path: "/cli", label: "cli" },
+  { path: "/lore", label: "lore" },
+  { path: "/devs", label: "devs" },
+];
+
+const NAV_BTN_CLASS =
+  "hover:text-black transition-colors relative after:absolute after:bottom-[-4px] after:left-0 after:h-[1px] after:w-0 after:bg-black hover:after:w-full after:transition-all after:duration-300";
+
+type EyeState = {
+  left: string;
+  right: string;
+  pupilX: number;
+  pupilY: number;
+  eyeY: number;
+};
+
+function Eye({
+  side,
+  state,
+  isExiting,
+}: {
+  side: "left" | "right";
+  state: EyeState;
+  isExiting: boolean;
+}) {
+  const exitPupilX = side === "left" ? -8 : 8;
+  return (
+    <motion.div
+      className="w-16 h-24 md:w-20 md:h-28 bg-white relative shadow-sm overflow-hidden"
+      style={{ borderRadius: "50%" }}
+      animate={{
+        clipPath: isExiting ? EYE_STATES[0][side] : state[side],
+        y: isExiting ? 0 : state.eyeY,
+      }}
+      transition={{ duration: 0.5, ease: BEZIER }}
+    >
+      <motion.div
+        animate={
+          isExiting
+            ? { scale: 1.8, x: exitPupilX, y: -15 }
+            : { x: state.pupilX, y: state.pupilY }
+        }
+        transition={
+          isExiting
+            ? { duration: 0.4, type: "spring" }
+            : { duration: 0.5, ease: BEZIER }
+        }
+        className="w-6 h-6 md:w-8 md:h-10 bg-[#111] absolute bottom-4 right-3 md:bottom-1 md:right-1"
+        style={{ borderRadius: "50%" }}
+      />
+    </motion.div>
+  );
+}
+
+function ArrowCallout({
+  text,
+  direction,
+  stage,
+  delay,
+  className,
+}: {
+  text: string;
+  direction: "up" | "down";
+  stage: string;
+  delay: number;
+  className: string;
+}) {
+  const isUp = direction === "up";
+  const pathD = isUp ? "M28 4 Q 14 4, 6 16" : "M28 20 Q 14 20, 6 8";
+  const arrowD = isUp ? "M13 16 L 6 16 L 6 9" : "M13 8 L 6 8 L 6 15";
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.5 }}
+      animate={{
+        opacity: stage === "hero" ? 1 : 0,
+        scale: stage === "hero" ? 1 : 0.5,
+      }}
+      transition={{ duration: 0.8, delay, ease: BEZIER }}
+      className={className}
+    >
+      <svg
+        width="32"
+        height="24"
+        viewBox="0 0 32 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className={isUp ? "mr-2 mt-2" : "mr-2 -mt-2"}
+      >
+        <path d={pathD} />
+        <path d={arrowD} />
+      </svg>
+      <span
+        className="text-lg md:text-sm font-bold lowercase tracking-tight whitespace-nowrap"
+        style={{ fontFamily: "var(--font-afacad)" }}
+      >
+        {text}
+      </span>
+    </motion.div>
+  );
+}
+
 export default function LandingPage() {
   const router = useRouter();
   const [stage, setStage] = useState<"splash" | "hero">("splash");
@@ -99,6 +202,7 @@ export default function LandingPage() {
   const [eyeStateIdx, setEyeStateIdx] = useState(0);
   const [hoveredNavIdx, setHoveredNavIdx] = useState<number | null>(null);
   const [isHoveringLogin, setIsHoveringLogin] = useState(false);
+  const [isHoveringImage, setIsHoveringImage] = useState(false);
 
   useEffect(() => {
     const t = setTimeout(() => setStage("hero"), 1000);
@@ -116,37 +220,32 @@ export default function LandingPage() {
 
   const handleNavClick = (path: string) => {
     setExitPath(path);
-    setTimeout(
-      () => {
-        router.push(path);
-      },
-      path === "/about" ? 800 : 600,
-    );
+    setTimeout(() => router.push(path), path === "/about" ? 800 : 600);
   };
 
-  const currentEyeState = isHoveringLogin
-    ? LOGIN_HOVER_STATE
-    : hoveredNavIdx !== null
-      ? LOOK_UP_STATES[hoveredNavIdx]
-      : EYE_STATES[eyeStateIdx] || EYE_STATES[0];
+  const currentEyeState = isHoveringImage
+    ? IMAGE_HOVER_STATE
+    : isHoveringLogin
+      ? LOGIN_HOVER_STATE
+      : hoveredNavIdx !== null
+        ? LOOK_UP_STATES[hoveredNavIdx]
+        : EYE_STATES[eyeStateIdx] || EYE_STATES[0];
 
   return (
     <div className="h-[100dvh] w-full bg-[#0c30ff] bg-checkit-grid relative overflow-hidden flex flex-col justify-center items-center selection:bg-[#ceff1c] selection:text-[#0c30ff]">
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
-        {GRID_BOXES.map(([y, x], i) => {
-          const isLighter = (x * 7 + y * 13) % 2 === 0;
-          return (
-            <div
-              key={i}
-              className={`absolute w-[10vw] h-[10vw] transition-colors ${
-                isLighter ? "bg-white/[0.02]" : "bg-black/[0.16]"
-              }`}
-              style={{ top: `${y}vw`, left: `${x}vw` }}
-            />
-          );
-        })}
+        {GRID_BOXES.map(([y, x], i) => (
+          <div
+            key={i}
+            className={`absolute w-[10vw] h-[10vw] transition-colors ${
+              (x * 7 + y * 13) % 2 === 0 ? "bg-white/[0.02]" : "bg-black/[0.16]"
+            }`}
+            style={{ top: `${y}vw`, left: `${x}vw` }}
+          />
+        ))}
       </div>
 
+      {/* GREEN CIRCLE + EYES */}
       <motion.div
         initial={{ y: "-100%", x: "-50%", borderRadius: "50%" }}
         animate={{
@@ -181,63 +280,12 @@ export default function LandingPage() {
           }}
           className="flex gap-3 md:gap-2 z-10 mb-[-3rem] md:mb-[-4rem]"
         >
-          <motion.div
-            className="w-16 h-24 md:w-20 md:h-28 bg-white relative shadow-sm overflow-hidden"
-            style={{ borderRadius: "50%" }}
-            animate={{
-              clipPath: isExiting ? EYE_STATES[0].left : currentEyeState.left,
-              y: isExiting ? 0 : currentEyeState.eyeY,
-            }}
-            transition={{ duration: 0.5, ease: BEZIER }}
-          >
-            <motion.div
-              animate={
-                isExiting
-                  ? { scale: 1.8, x: -8, y: -15 }
-                  : {
-                      x: currentEyeState.pupilX,
-                      y: currentEyeState.pupilY,
-                    }
-              }
-              transition={
-                isExiting
-                  ? { duration: 0.4, type: "spring" }
-                  : { duration: 0.5, ease: BEZIER }
-              }
-              className="w-6 h-6 md:w-8 md:h-10 bg-[#111] absolute bottom-4 right-3 md:bottom-1 md:right-1"
-              style={{ borderRadius: "50%" }}
-            />
-          </motion.div>
-          <motion.div
-            className="w-16 h-24 md:w-20 md:h-28 bg-white relative shadow-sm overflow-hidden"
-            style={{ borderRadius: "50%" }}
-            animate={{
-              clipPath: isExiting ? EYE_STATES[0].right : currentEyeState.right,
-              y: isExiting ? 0 : currentEyeState.eyeY,
-            }}
-            transition={{ duration: 0.5, ease: BEZIER }}
-          >
-            <motion.div
-              animate={
-                isExiting
-                  ? { scale: 1.8, x: 8, y: -15 }
-                  : {
-                      x: currentEyeState.pupilX,
-                      y: currentEyeState.pupilY,
-                    }
-              }
-              transition={
-                isExiting
-                  ? { duration: 0.4, type: "spring" }
-                  : { duration: 0.5, ease: BEZIER }
-              }
-              className="w-6 h-6 md:w-8 md:h-10 bg-[#111] absolute bottom-4 right-3 md:bottom-1 md:right-1"
-              style={{ borderRadius: "50%" }}
-            />
-          </motion.div>
+          <Eye side="left" state={currentEyeState} isExiting={isExiting} />
+          <Eye side="right" state={currentEyeState} isExiting={isExiting} />
         </motion.div>
       </motion.div>
 
+      {/* SPLASH LOGO */}
       <motion.div
         initial={{
           top: "50%",
@@ -267,33 +315,19 @@ export default function LandingPage() {
         </span>
       </motion.div>
 
-      <motion.div
-        initial={{
-          rotate: -20,
-          scale: 0.4,
-          opacity: 0,
-        }}
-        animate={{
-          opacity: stage === "hero" ? 1 : 0,
-        }}
-        transition={{
-          duration: 1,
-          delay: 1.6,
-          ease: BEZIER,
-        }}
-        style={{ originX: 0.5, originY: 0.5 }}
-        className="absolute z-[25] whitespace-nowrap pointer-events-none bottom-[101vw] left-[15vw] md:bottom-[30vw] md:left-[4vw] -translate-x-1/2 -translate-y-1/2"
-      ></motion.div>
-
+      {/* MOCKUP IMAGE */}
       <motion.div
         initial={{ opacity: 0, y: 100, rotate: -45 }}
         animate={{
           opacity: stage === "hero" ? 1 : 0,
           y: stage === "hero" ? 0 : 100,
           rotate: -45,
+          pointerEvents: stage === "hero" ? "auto" : "none",
         }}
         transition={{ duration: 1, ease: BEZIER, delay: 1.6 }}
-        className="absolute bottom-[-20vw] md:bottom-[-12vw] left-[-8%] md:left-[-9%] w-[90vw] md:w-[55vw] max-w-[900px] z-[5] pointer-events-none"
+        onMouseEnter={() => setIsHoveringImage(true)}
+        onMouseLeave={() => setIsHoveringImage(false)}
+        className="absolute bottom-[-20vw] md:bottom-[-12vw] left-[-8%] md:left-[-9%] w-[90vw] md:w-[55vw] max-w-[900px] z-[5]"
       >
         <img
           src="/mockup.png"
@@ -302,6 +336,7 @@ export default function LandingPage() {
         />
       </motion.div>
 
+      {/* NAV BAR */}
       <motion.div
         initial={{ opacity: 0, y: -20, x: "-50%" }}
         animate={{
@@ -314,34 +349,16 @@ export default function LandingPage() {
         className="absolute top-4 md:top-6 left-1/2 z-[30] flex flex-row justify-center w-full max-w-3xl gap-8 md:gap-16 text-xs md:text-sm tracking-wider lowercase text-[#0c30ff]"
         style={{ fontFamily: "aonic" }}
       >
-        <button
-          onClick={() => handleNavClick("/about")}
-          onMouseEnter={() => setHoveredNavIdx(0)}
-          className="hover:text-black transition-colors relative after:absolute after:bottom-[-4px] after:left-0 after:h-[1px] after:w-0 after:bg-black hover:after:w-full after:transition-all after:duration-300"
-        >
-          about
-        </button>
-        <button
-          onClick={() => handleNavClick("/cli")}
-          onMouseEnter={() => setHoveredNavIdx(1)}
-          className="hover:text-black transition-colors relative after:absolute after:bottom-[-4px] after:left-0 after:h-[1px] after:w-0 after:bg-black hover:after:w-full after:transition-all after:duration-300"
-        >
-          cli
-        </button>
-        <button
-          onClick={() => handleNavClick("/lore")}
-          onMouseEnter={() => setHoveredNavIdx(2)}
-          className="hover:text-black transition-colors relative after:absolute after:bottom-[-4px] after:left-0 after:h-[1px] after:w-0 after:bg-black hover:after:w-full after:transition-all after:duration-300"
-        >
-          lore
-        </button>
-        <button
-          onClick={() => handleNavClick("/devs")}
-          onMouseEnter={() => setHoveredNavIdx(3)}
-          className="hover:text-black transition-colors relative after:absolute after:bottom-[-4px] after:left-0 after:h-[1px] after:w-0 after:bg-black hover:after:w-full after:transition-all after:duration-300"
-        >
-          devs
-        </button>
+        {NAV_ITEMS.map((item, i) => (
+          <button
+            key={item.path}
+            onClick={() => handleNavClick(item.path)}
+            onMouseEnter={() => setHoveredNavIdx(i)}
+            className={NAV_BTN_CLASS}
+          >
+            {item.label}
+          </button>
+        ))}
       </motion.div>
 
       <motion.div
@@ -353,67 +370,21 @@ export default function LandingPage() {
         transition={{ duration: 1, ease: BEZIER, delay: 1.2 }}
         className="absolute bottom-[75vw] md:bottom-[20vw] right-[8%] z-10 pointer-events-auto"
       >
-        <motion.div
-          initial={{ opacity: 0, scale: 0.5 }}
-          animate={{
-            opacity: stage === "hero" ? 1 : 0,
-            scale: stage === "hero" ? 1 : 0.5,
-          }}
-          transition={{ duration: 0.8, delay: 2.0, ease: BEZIER }}
+        <ArrowCallout
+          text="and fast too"
+          direction="up"
+          stage={stage}
+          delay={2.0}
           className="absolute -top-6 left-16 md:-top-7 md:left-10 flex items-center rotate-[-4deg] text-[#ceff1c]"
-        >
-          <svg
-            width="32"
-            height="24"
-            viewBox="0 0 32 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="mr-2 mt-2"
-          >
-            <path d="M28 4 Q 14 4, 6 16" />
-            <path d="M13 16 L 6 16 L 6 9" />
-          </svg>
-          <span
-            className="text-lg md:text-l font-bold lowercase tracking-tight"
-            style={{ fontFamily: "var(--font-afacad)" }}
-          >
-            and fast too
-          </span>
-        </motion.div>
+        />
 
-        <motion.div
-          initial={{ opacity: 0, scale: 0.5 }}
-          animate={{
-            opacity: stage === "hero" ? 1 : 0,
-            scale: stage === "hero" ? 1 : 0.5,
-          }}
-          transition={{ duration: 0.8, delay: 4.0, ease: BEZIER }}
+        <ArrowCallout
+          text="oh oh and secure too"
+          direction="down"
+          stage={stage}
+          delay={4.0}
           className="absolute -bottom-8 left-20 md:-bottom-7 md:left-10 flex items-center rotate-[6deg] text-[#ceff1c]"
-        >
-          <svg
-            width="32"
-            height="24"
-            viewBox="0 0 32 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="mr-2 -mt-2"
-          >
-            <path d="M28 20 Q 14 20, 6 8" />
-            <path d="M13 8 L 6 8 L 6 15" />
-          </svg>
-          <span
-            className="text-lg md:text-sm font-bold lowercase tracking-tight whitespace-nowrap"
-            style={{ fontFamily: "var(--font-afacad)" }}
-          >
-            oh oh and secure too
-          </span>
-        </motion.div>
+        />
 
         <h2
           className="text-xl md:text-xl lg:text-2xl font-bold lowercase tracking-tight whitespace-nowrap bg-gradient-to-r from-white to-[#ceff1c] text-transparent bg-clip-text"
