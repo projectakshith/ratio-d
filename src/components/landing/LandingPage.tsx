@@ -45,14 +45,14 @@ const IMAGE_HOVER_STATE = {
   left: FULL_OPEN,
   right: FULL_OPEN,
   pupilX: -30,
-  pupilY: 20,
+  pupilY: 10,
   eyeY: 4,
 };
 
 const STATS_HOVER_STATE = {
   left: FULL_OPEN,
   right: FULL_OPEN,
-  pupilX: -20,
+  pupilX: -5,
   pupilY: 10,
   eyeY: 14,
 };
@@ -220,10 +220,17 @@ export default function LandingPage() {
 
   useEffect(() => {
     if (stage === "hero") {
-      const interval = setInterval(() => {
-        setEyeStateIdx((prev) => (prev + 1) % EYE_STATES.length);
-      }, 2000);
-      return () => clearInterval(interval);
+      const t1 = setTimeout(() => setEyeStateIdx(1), 3000);
+      const t2 = setTimeout(() => setEyeStateIdx(2), 5000);
+      const t3 = setTimeout(() => setEyeStateIdx(3), 7000);
+      const t4 = setTimeout(() => setEyeStateIdx(0), 9000);
+      
+      return () => {
+        clearTimeout(t1);
+        clearTimeout(t2);
+        clearTimeout(t3);
+        clearTimeout(t4);
+      };
     }
   }, [stage]);
 
@@ -239,8 +246,8 @@ export default function LandingPage() {
       : isHoveringStats
         ? STATS_HOVER_STATE
         : hoveredNavIdx !== null
-        ? LOOK_UP_STATES[hoveredNavIdx]
-        : EYE_STATES[eyeStateIdx] || EYE_STATES[0];
+          ? LOOK_UP_STATES[hoveredNavIdx]
+          : EYE_STATES[eyeStateIdx] || EYE_STATES[0];
 
   return (
     <div className="h-[100dvh] w-full bg-[#0c30ff] bg-checkit-grid relative overflow-hidden flex flex-col justify-center items-center selection:bg-[#ceff1c] selection:text-[#0c30ff]">
@@ -256,7 +263,6 @@ export default function LandingPage() {
         ))}
       </div>
 
-
       <motion.div
         initial={{ y: "-100%", x: "-50%", borderRadius: "50%" }}
         animate={{
@@ -264,15 +270,18 @@ export default function LandingPage() {
             exitPath === "/about"
               ? "calc(-100% + 150vh)"
               : stage === "hero"
-                ? "calc(-100% + 40vh)"
+                ? `calc(-100% + 40vh + ${currentEyeState.pupilY * 1}px)`
                 : "-100%",
-          x: "-50%",
+          x:
+            stage === "hero"
+              ? `calc(-50% + ${currentEyeState.pupilX * 1}px)`
+              : "-50%",
           borderRadius: "50%",
         }}
         transition={
           exitPath === "/about"
             ? { duration: 0.8, ease: BEZIER }
-            : { type: "spring", damping: 14, stiffness: 60, delay: 0.1 }
+            : { type: "spring", damping: 14, stiffness: 60 }
         }
         className="absolute top-0 left-1/2 w-[200vw] md:w-[150vw] h-[200vw] md:h-[150vw] bg-[#ceff1c] z-[15] flex justify-center items-end"
       >
@@ -295,7 +304,6 @@ export default function LandingPage() {
           <Eye side="right" state={currentEyeState} isExiting={isExiting} />
         </motion.div>
       </motion.div>
-
 
       <motion.div
         initial={{
@@ -326,7 +334,6 @@ export default function LandingPage() {
         </span>
       </motion.div>
 
-
       <motion.div
         initial={{ opacity: 0, y: 100, rotate: -45 }}
         animate={{
@@ -343,13 +350,12 @@ export default function LandingPage() {
           alt="ratio'd mockup"
           className="w-full h-auto object-contain drop-shadow-2xl"
         />
-        <div 
+        <div
           className="absolute top-[15%] left-[15%] w-[50%] h-[70%] z-10"
           onMouseEnter={() => setIsHoveringImage(true)}
           onMouseLeave={() => setIsHoveringImage(false)}
         />
       </motion.div>
-
 
       <motion.div
         initial={{ opacity: 0, y: -20, x: "-50%" }}
@@ -388,7 +394,7 @@ export default function LandingPage() {
           text="and fast too"
           direction="up"
           stage={stage}
-          delay={2.0}
+          delay={3.0}
           className="absolute -top-6 left-16 md:-top-7 md:left-10 flex items-center rotate-[-4deg] text-[#ceff1c]"
         />
 
@@ -396,7 +402,7 @@ export default function LandingPage() {
           text="oh oh and secure too"
           direction="down"
           stage={stage}
-          delay={4.0}
+          delay={5.0}
           className="absolute -bottom-8 left-20 md:-bottom-7 md:left-10 flex items-center rotate-[6deg] text-[#ceff1c]"
         />
 
@@ -420,22 +426,20 @@ export default function LandingPage() {
           looking academia wrapper.
         </h2>
 
-
-
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{
-            opacity: stage === "hero" ? 1 : 0,
-            y: stage === "hero" ? 0 : 20,
-          }}
-          transition={{ duration: 0.8, delay: 1.0, ease: BEZIER }}
-          className="absolute -bottom-[90px] md:-bottom-[100px] left-0 w-full flex justify-center"
-        >
+        initial={{ opacity: 0, y: 20 }}
+        animate={{
+          opacity: stage === "hero" ? 1 : 0,
+          y: stage === "hero" ? 0 : 20,
+        }}
+        transition={{ duration: 0.8, delay: 1.0, ease: BEZIER }}
+        className="absolute -bottom-[80px] md:-bottom-[90px] left-0 w-full flex justify-center -translate-x-6"
+      >
           <button
+            onClick={() => handleNavClick("/login")}
             onMouseEnter={() => setIsHoveringLogin(true)}
             onMouseLeave={() => setIsHoveringLogin(false)}
-            onClick={() => handleNavClick("/login")}
-            className="group flex items-center gap-2 bg-[#ceff1c] text-[#0c30ff] px-6 py-2.5 rounded-full font-bold text-lg md:text-xl lowercase transition-transform hover:scale-105 active:scale-95 shadow-lg transform -rotate-3"
+            className="group flex items-center justify-center gap-2 bg-[#ceff1c] border-2 border-black text-black px-6 py-2 rounded-full font-black lowercase tracking-tight text-base shadow-[4px_4px_0_0_#000] hover:-translate-y-[2px] hover:shadow-[6px_6px_0_0_#000] transition-all pointer-events-auto transform -rotate-3"
             style={{ fontFamily: "var(--font-afacad)" }}
           >
             login
@@ -455,13 +459,17 @@ export default function LandingPage() {
           x: "-50%",
         }}
         transition={{ duration: 0.6, delay: exitPath ? 0 : 1.4, ease: BEZIER }}
-        onMouseEnter={() => setIsHoveringStats(true)}
-        onMouseLeave={() => setIsHoveringStats(false)}
-        className="fixed bottom-6 md:bottom-8 left-1/2 z-[70] bg-[#ceff1c] border-2 border-black rounded-full px-5 py-2 cursor-default shadow-[4px_4px_0_0_#000] hover:translate-y-[-2px] hover:shadow-[6px_6px_0_0_#000] transition-all pointer-events-auto whitespace-nowrap"
+        className="fixed bottom-6 md:bottom-8 left-1/2 z-[70] pointer-events-none"
       >
-        <span className="text-black text-xs md:text-sm font-black lowercase tracking-tight" style={{ fontFamily: "var(--font-afacad)" }}>
-          5m+ requests. thousands of daily users.
-        </span>
+        <div
+          onMouseEnter={() => setIsHoveringStats(true)}
+          onMouseLeave={() => setIsHoveringStats(false)}
+          className="flex items-center justify-center bg-[#ceff1c] text-black px-5 py-2 rounded-full font-bold text-xs md:text-sm transition-transform hover:scale-105 active:scale-95 shadow-md cursor-pointer pointer-events-auto whitespace-nowrap"
+        >
+          <span style={{ fontFamily: "var(--font-afacad)" }}>
+            <span className="text-[#0c30ff]">5M+ requests.</span> thousands of daily users. uwu
+          </span>
+        </div>
       </motion.div>
 
       <motion.div
