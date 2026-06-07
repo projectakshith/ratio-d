@@ -49,6 +49,14 @@ const IMAGE_HOVER_STATE = {
   eyeY: 4,
 };
 
+const STATS_HOVER_STATE = {
+  left: FULL_OPEN,
+  right: FULL_OPEN,
+  pupilX: -20,
+  pupilY: 10,
+  eyeY: 14,
+};
+
 const GRID_BOXES = [
   [0, 20],
   [0, 40],
@@ -203,6 +211,7 @@ export default function LandingPage() {
   const [hoveredNavIdx, setHoveredNavIdx] = useState<number | null>(null);
   const [isHoveringLogin, setIsHoveringLogin] = useState(false);
   const [isHoveringImage, setIsHoveringImage] = useState(false);
+  const [isHoveringStats, setIsHoveringStats] = useState(false);
 
   useEffect(() => {
     const t = setTimeout(() => setStage("hero"), 1000);
@@ -227,7 +236,9 @@ export default function LandingPage() {
     ? IMAGE_HOVER_STATE
     : isHoveringLogin
       ? LOGIN_HOVER_STATE
-      : hoveredNavIdx !== null
+      : isHoveringStats
+        ? STATS_HOVER_STATE
+        : hoveredNavIdx !== null
         ? LOOK_UP_STATES[hoveredNavIdx]
         : EYE_STATES[eyeStateIdx] || EYE_STATES[0];
 
@@ -325,14 +336,17 @@ export default function LandingPage() {
           pointerEvents: stage === "hero" ? "auto" : "none",
         }}
         transition={{ duration: 1, ease: BEZIER, delay: 1.6 }}
-        onMouseEnter={() => setIsHoveringImage(true)}
-        onMouseLeave={() => setIsHoveringImage(false)}
         className="absolute bottom-[-20vw] md:bottom-[-12vw] left-[-8%] md:left-[-9%] w-[90vw] md:w-[55vw] max-w-[900px] z-[5]"
       >
         <img
           src="/mockup.png"
           alt="ratio'd mockup"
           className="w-full h-auto object-contain drop-shadow-2xl"
+        />
+        <div 
+          className="absolute top-[15%] left-[15%] w-[50%] h-[70%] z-10"
+          onMouseEnter={() => setIsHoveringImage(true)}
+          onMouseLeave={() => setIsHoveringImage(false)}
         />
       </motion.div>
 
@@ -406,6 +420,8 @@ export default function LandingPage() {
           looking academia wrapper.
         </h2>
 
+
+
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{
@@ -429,6 +445,23 @@ export default function LandingPage() {
             />
           </button>
         </motion.div>
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 50, x: "-50%" }}
+        animate={{
+          opacity: exitPath ? 0 : stage === "hero" ? 1 : 0,
+          y: stage === "hero" ? 0 : 50,
+          x: "-50%",
+        }}
+        transition={{ duration: 0.6, delay: exitPath ? 0 : 1.4, ease: BEZIER }}
+        onMouseEnter={() => setIsHoveringStats(true)}
+        onMouseLeave={() => setIsHoveringStats(false)}
+        className="fixed bottom-6 md:bottom-8 left-1/2 z-[70] bg-[#ceff1c] border-2 border-black rounded-full px-5 py-2 cursor-default shadow-[4px_4px_0_0_#000] hover:translate-y-[-2px] hover:shadow-[6px_6px_0_0_#000] transition-all pointer-events-auto whitespace-nowrap"
+      >
+        <span className="text-black text-xs md:text-sm font-black lowercase tracking-tight" style={{ fontFamily: "var(--font-afacad)" }}>
+          5m+ requests. thousands of daily users.
+        </span>
       </motion.div>
 
       <motion.div
