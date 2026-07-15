@@ -153,29 +153,36 @@ async def refresh_data(creds: Credentials, request: Request):
             raise HTTPException(status_code=401, detail={"type": "SESSION_EXPIRED"})
 
         client = AcademiaClient(creds.username, creds.password, creds.cookies)
-        if not creds.cookies:
+        if not creds.cookies and os.getenv("MOCK_ACADEMIA") != "true":
             await client.authenticate(creds.captcha, creds.cdigest)
 
-        att_html = await client.get_attendance_html()
-        if not att_html or att_html == "CONCURRENT_ERROR":
-            if not creds.password:
-                raise HTTPException(status_code=401, detail={"type": "SESSION_EXPIRED"})
-            
-            print(f"{get_now()}\n  -> [AUTH] Session invalid or site glitch. Attempting re-auth...", flush=True)
-            try:
-                await client.authenticate(creds.captcha, creds.cdigest)
-                att_html = await client.get_attendance_html()
-            except Exception:
-                raise HTTPException(status_code=503, detail="Academia is temporarily unavailable. Try again.")
+        if os.getenv("MOCK_ACADEMIA") == "true":
+            from pathlib import Path
+            att_html = (Path(__file__).parent / "tests" / "snapshots" / "attendance_good.html").read_text(encoding="utf-8")
+        else:
+            att_html = await client.get_attendance_html()
+            if not att_html or att_html == "CONCURRENT_ERROR":
+                if not creds.password:
+                    raise HTTPException(status_code=401, detail={"type": "SESSION_EXPIRED"})
+                
+                print(f"{get_now()}\n  -> [AUTH] Session invalid or site glitch. Attempting re-auth...", flush=True)
+                try:
+                    await client.authenticate(creds.captcha, creds.cdigest)
+                    att_html = await client.get_attendance_html()
+                except Exception:
+                    raise HTTPException(status_code=503, detail="Academia is temporarily unavailable. Try again.")
 
-        if not att_html:
-            print(f"{get_now()}\n  -> [AUTH] FAILED: Site returned no data after re-auth.", flush=True)
-            raise HTTPException(status_code=503, detail="Academia returned no data. Site might be down.")
+            if not att_html:
+                print(f"{get_now()}\n  -> [AUTH] FAILED: Site returned no data after re-auth.", flush=True)
+                raise HTTPException(status_code=503, detail="Academia returned no data. Site might be down.")
 
         attendance = AttendanceService.parse_attendance(att_html)
         marks = MarksService.parse_test_performance(att_html)
 
-        current_cookies = {c.name: c.value for c in client.session_handler.client.cookies.jar}
+        if os.getenv("MOCK_ACADEMIA") == "true":
+            current_cookies = {"mock_cookie": "1234"}
+        else:
+            current_cookies = {c.name: c.value for c in client.session_handler.client.cookies.jar}
         print(f"[API] Refresh completed in {time.time() - start_total:.2f}s", flush=True)
         return {
             "success": True,
@@ -207,18 +214,22 @@ async def login(creds: LoginCredentials, request: Request):
     print(f"[API] Incoming login request for: ...{creds.username[-4:]}", flush=True)
     try:
         client = AcademiaClient(creds.username, creds.password, creds.cookies)
-        if not creds.cookies:
+        if not creds.cookies and os.getenv("MOCK_ACADEMIA") != "true":
             await client.authenticate(creds.captcha, creds.cdigest)
             
-        profile_html = await client.get_profile_html()
-        if not profile_html or profile_html == "CONCURRENT_ERROR":
-            print(f"{get_now()}\n  -> [AUTH] Re-authenticating...", flush=True)
-            await client.authenticate(creds.captcha, creds.cdigest)
+        if os.getenv("MOCK_ACADEMIA") == "true":
+            from pathlib import Path
+            profile_html = (Path(__file__).parent / "tests" / "snapshots" / "profile_good.html").read_text(encoding="utf-8")
+        else:
             profile_html = await client.get_profile_html()
-            
-        if not profile_html:
-            print(f"{get_now()}\n  -> [AUTH] FAILED: Could not retrieve profile.", flush=True)
-            raise HTTPException(status_code=401, detail="Invalid Credentials")
+            if not profile_html or profile_html == "CONCURRENT_ERROR":
+                print(f"{get_now()}\n  -> [AUTH] Re-authenticating...", flush=True)
+                await client.authenticate(creds.captcha, creds.cdigest)
+                profile_html = await client.get_profile_html()
+                
+            if not profile_html:
+                print(f"{get_now()}\n  -> [AUTH] FAILED: Could not retrieve profile.", flush=True)
+                raise HTTPException(status_code=401, detail="Invalid Credentials")
             
         profile = ProfileService.parse_student_profile(profile_html)
         course_map = CourseService.get_course_map(profile_html)
@@ -232,8 +243,13 @@ async def login(creds: LoginCredentials, request: Request):
         else:
             formatted_batch = "batch_2"
         
-        att_html = await client.get_attendance_html()
-        grid_html = await client.get_grid_html(formatted_batch)
+        if os.getenv("MOCK_ACADEMIA") == "true":
+            from pathlib import Path
+            att_html = (Path(__file__).parent / "tests" / "snapshots" / "attendance_good.html").read_text(encoding="utf-8")
+            grid_html = ""
+        else:
+            att_html = await client.get_attendance_html()
+            grid_html = await client.get_grid_html(formatted_batch)
         
         attendance = AttendanceService.parse_attendance(att_html)
         marks = MarksService.parse_test_performance(att_html)
@@ -242,7 +258,10 @@ async def login(creds: LoginCredentials, request: Request):
         if grid_html:
             schedule = TimetableService.parse_unified_grid(grid_html, course_map)
             
-        current_cookies = {c.name: c.value for c in client.session_handler.client.cookies.jar}
+        if os.getenv("MOCK_ACADEMIA") == "true":
+            current_cookies = {"mock_cookie": "1234"}
+        else:
+            current_cookies = {c.name: c.value for c in client.session_handler.client.cookies.jar}
         print(f"[API] Login completed in {time.time() - start_total:.2f}s", flush=True)
         return {
             "success": True,
