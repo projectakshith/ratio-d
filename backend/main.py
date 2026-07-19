@@ -217,8 +217,8 @@ async def login(creds: LoginCredentials, request: Request):
             profile_html = await client.get_profile_html()
             
         if not profile_html:
-            print(f"{get_now()}\n  -> [AUTH] FAILED: Could not retrieve profile.", flush=True)
-            raise HTTPException(status_code=401, detail="Academia is not fully operational yet.")
+            print(f"{get_now()}\n  -> [ACADEMIA] INFO: Authenticated successfully, but profile page is not yet operational.", flush=True)
+            raise HTTPException(status_code=503, detail="Academia is not fully operational yet.")
             
         profile = ProfileService.parse_student_profile(profile_html)
         course_map = CourseService.get_course_map(profile_html)
