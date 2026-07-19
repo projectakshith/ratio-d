@@ -2,7 +2,7 @@
   {
     "date": "01 Jan 2026",
     "day": "Thu",
-    "description": "New Year\u2019s Day - Holiday",
+    "description": "New Year’s Day - Holiday",
     "order": "-"
   },
   {
@@ -482,7 +482,7 @@
   {
     "date": "19 Mar 2026",
     "day": "Thu",
-    "description": "Telugu New Year\u2019s Day - Holiday",
+    "description": "Telugu New Year’s Day - Holiday",
     "order": "-"
   },
   {
@@ -646,7 +646,7 @@
   {
     "date": "14 Apr 2026",
     "day": "Tue",
-    "description": "Tamil New Year\u2019s Day - Holiday",
+    "description": "Tamil New Year’s Day - Holiday",
     "order": "-"
   },
   {
@@ -792,5 +792,1109 @@
     "description": "Last working Day - PD-Internal: Digital Image Processing / LLT-1: Computer Graphics and Animation / LLT-1: VLSI Physical Design",
     "order": "5",
     "type": "exam"
+  },
+  {
+    "date": "01 Jul 2026",
+    "day": "Wed",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "02 Jul 2026",
+    "day": "Thu",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "03 Jul 2026",
+    "day": "Fri",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "04 Jul 2026",
+    "day": "Sat",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "05 Jul 2026",
+    "day": "Sun",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "06 Jul 2026",
+    "day": "Mon",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "07 Jul 2026",
+    "day": "Tue",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "08 Jul 2026",
+    "day": "Wed",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "09 Jul 2026",
+    "day": "Thu",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "10 Jul 2026",
+    "day": "Fri",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "11 Jul 2026",
+    "day": "Sat",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "12 Jul 2026",
+    "day": "Sun",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "13 Jul 2026",
+    "day": "Mon",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "14 Jul 2026",
+    "day": "Tue",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "15 Jul 2026",
+    "day": "Wed",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "16 Jul 2026",
+    "day": "Thu",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "17 Jul 2026",
+    "day": "Fri",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "18 Jul 2026",
+    "day": "Sat",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "19 Jul 2026",
+    "day": "Sun",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "20 Jul 2026",
+    "day": "Mon",
+    "description": "Enrolment Day - B. Tech - II,III,IV / M. Tech (Int) - II,III,IV,V / M. Tech - I,II / B. Arch - II,III,IV,V / B. Des - III,IV / M. Arch & M. Des - I,II / Minor Degree (Year)",
+    "order": "-"
+  },
+  {
+    "date": "21 Jul 2026",
+    "day": "Tue",
+    "description": "Commencement of Classes for - B.Tech - II,III,IV / M.Tech (Int) - II,III,IV,V / M.Tech - I,II / B. Arch - II,III,IV,V / B. Des - III,IV / M. Arch & M. Des - I,II (Year)",
+    "order": "1"
+  },
+  {
+    "date": "22 Jul 2026",
+    "day": "Wed",
+    "description": "Instructional Day",
+    "order": "2"
+  },
+  {
+    "date": "23 Jul 2026",
+    "day": "Thu",
+    "description": "Instructional Day",
+    "order": "3"
+  },
+  {
+    "date": "24 Jul 2026",
+    "day": "Fri",
+    "description": "Instructional Day",
+    "order": "4"
+  },
+  {
+    "date": "25 Jul 2026",
+    "day": "Sat",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "26 Jul 2026",
+    "day": "Sun",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "27 Jul 2026",
+    "day": "Mon",
+    "description": "Instructional Day",
+    "order": "5"
+  },
+  {
+    "date": "28 Jul 2026",
+    "day": "Tue",
+    "description": "Instructional Day",
+    "order": "1"
+  },
+  {
+    "date": "29 Jul 2026",
+    "day": "Wed",
+    "description": "Instructional Day",
+    "order": "2"
+  },
+  {
+    "date": "30 Jul 2026",
+    "day": "Thu",
+    "description": "Instructional Day",
+    "order": "3"
+  },
+  {
+    "date": "31 Jul 2026",
+    "day": "Fri",
+    "description": "Instructional Day",
+    "order": "4"
+  },
+  {
+    "date": "01 Aug 2026",
+    "day": "Sat",
+    "description": "Enrolment Day Starts B.Tech - I / M.Tech (Int) - I (Year)",
+    "order": "-"
+  },
+  {
+    "date": "02 Aug 2026",
+    "day": "Sun",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "03 Aug 2026",
+    "day": "Mon",
+    "description": "Enrolment Day Starts B. Arch & B. Des - I (Year) / Commencement of Classes for Minor Degree",
+    "order": "5"
+  },
+  {
+    "date": "04 Aug 2026",
+    "day": "Tue",
+    "description": "Instructional Day",
+    "order": "1"
+  },
+  {
+    "date": "05 Aug 2026",
+    "day": "Wed",
+    "description": "Instructional Day",
+    "order": "2"
+  },
+  {
+    "date": "06 Aug 2026",
+    "day": "Thu",
+    "description": "Instructional Day",
+    "order": "3"
+  },
+  {
+    "date": "07 Aug 2026",
+    "day": "Fri",
+    "description": "Enrolment Day Ends with B.Tech - I / M.Tech (Int) - I / B. Arch & B. Des - I(Year)",
+    "order": "4"
+  },
+  {
+    "date": "08 Aug 2026",
+    "day": "Sat",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "09 Aug 2026",
+    "day": "Sun",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "10 Aug 2026",
+    "day": "Mon",
+    "description": "Instructional Day",
+    "order": "5"
+  },
+  {
+    "date": "11 Aug 2026",
+    "day": "Tue",
+    "description": "Instructional Day",
+    "order": "1"
+  },
+  {
+    "date": "12 Aug 2026",
+    "day": "Wed",
+    "description": "Instructional Day",
+    "order": "2"
+  },
+  {
+    "date": "13 Aug 2026",
+    "day": "Thu",
+    "description": "Instructional Day",
+    "order": "3"
+  },
+  {
+    "date": "14 Aug 2026",
+    "day": "Fri",
+    "description": "Instructional Day",
+    "order": "4"
+  },
+  {
+    "date": "15 Aug 2026",
+    "day": "Sat",
+    "description": "Independence Day - Holiday",
+    "order": "-"
+  },
+  {
+    "date": "16 Aug 2026",
+    "day": "Sun",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "17 Aug 2026",
+    "day": "Mon",
+    "description": "Commencement of Classes for B. Tech - I / M. Tech (Int) - I / B .Arch & B. Des - I (Year)",
+    "order": "5"
+  },
+  {
+    "date": "18 Aug 2026",
+    "day": "Tue",
+    "description": "Instructional Day",
+    "order": "1"
+  },
+  {
+    "date": "19 Aug 2026",
+    "day": "Wed",
+    "description": "Instructional Day",
+    "order": "2"
+  },
+  {
+    "date": "20 Aug 2026",
+    "day": "Thu",
+    "description": "Instructional Day",
+    "order": "3"
+  },
+  {
+    "date": "21 Aug 2026",
+    "day": "Fri",
+    "description": "Instructional Day",
+    "order": "4"
+  },
+  {
+    "date": "22 Aug 2026",
+    "day": "Sat",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "23 Aug 2026",
+    "day": "Sun",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "24 Aug 2026",
+    "day": "Mon",
+    "description": "Instructional Day",
+    "order": "5"
+  },
+  {
+    "date": "25 Aug 2026",
+    "day": "Tue",
+    "description": "Instructional Day",
+    "order": "1"
+  },
+  {
+    "date": "26 Aug 2026",
+    "day": "Wed",
+    "description": "Milad - un - Nabi - Holiday",
+    "order": "-"
+  },
+  {
+    "date": "27 Aug 2026",
+    "day": "Thu",
+    "description": "Instructional Day",
+    "order": "2"
+  },
+  {
+    "date": "28 Aug 2026",
+    "day": "Fri",
+    "description": "Instructional Day",
+    "order": "3"
+  },
+  {
+    "date": "29 Aug 2026",
+    "day": "Sat",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "30 Aug 2026",
+    "day": "Sun",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "31 Aug 2026",
+    "day": "Mon",
+    "description": "Instructional Day",
+    "order": "4"
+  },
+  {
+    "date": "01 Sep 2026",
+    "day": "Tue",
+    "description": "Instructional Day",
+    "order": "5"
+  },
+  {
+    "date": "02 Sep 2026",
+    "day": "Wed",
+    "description": "Instructional Day",
+    "order": "1"
+  },
+  {
+    "date": "03 Sep 2026",
+    "day": "Thu",
+    "description": "Instructional Day",
+    "order": "2"
+  },
+  {
+    "date": "04 Sep 2026",
+    "day": "Fri",
+    "description": "Krishna Jayanthi - Holiday",
+    "order": "-"
+  },
+  {
+    "date": "05 Sep 2026",
+    "day": "Sat",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "06 Sep 2026",
+    "day": "Sun",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "07 Sep 2026",
+    "day": "Mon",
+    "description": "Instructional Day",
+    "order": "3"
+  },
+  {
+    "date": "08 Sep 2026",
+    "day": "Tue",
+    "description": "Instructional Day",
+    "order": "4"
+  },
+  {
+    "date": "09 Sep 2026",
+    "day": "Wed",
+    "description": "Instructional Day",
+    "order": "5"
+  },
+  {
+    "date": "10 Sep 2026",
+    "day": "Thu",
+    "description": "Instructional Day",
+    "order": "1"
+  },
+  {
+    "date": "11 Sep 2026",
+    "day": "Fri",
+    "description": "Instructional Day",
+    "order": "2"
+  },
+  {
+    "date": "12 Sep 2026",
+    "day": "Sat",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "13 Sep 2026",
+    "day": "Sun",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "14 Sep 2026",
+    "day": "Mon",
+    "description": "Vinayakar Chathurthi - Holiday",
+    "order": "-"
+  },
+  {
+    "date": "15 Sep 2026",
+    "day": "Tue",
+    "description": "Instructional Day",
+    "order": "3"
+  },
+  {
+    "date": "16 Sep 2026",
+    "day": "Wed",
+    "description": "Instructional Day",
+    "order": "4"
+  },
+  {
+    "date": "17 Sep 2026",
+    "day": "Thu",
+    "description": "Instructional Day",
+    "order": "5"
+  },
+  {
+    "date": "18 Sep 2026",
+    "day": "Fri",
+    "description": "Instructional Day",
+    "order": "1"
+  },
+  {
+    "date": "19 Sep 2026",
+    "day": "Sat",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "20 Sep 2026",
+    "day": "Sun",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "21 Sep 2026",
+    "day": "Mon",
+    "description": "Instructional Day",
+    "order": "2"
+  },
+  {
+    "date": "22 Sep 2026",
+    "day": "Tue",
+    "description": "Instructional Day",
+    "order": "3"
+  },
+  {
+    "date": "23 Sep 2026",
+    "day": "Wed",
+    "description": "Instructional Day",
+    "order": "4"
+  },
+  {
+    "date": "24 Sep 2026",
+    "day": "Thu",
+    "description": "Instructional Day",
+    "order": "5"
+  },
+  {
+    "date": "25 Sep 2026",
+    "day": "Fri",
+    "description": "Instructional Day",
+    "order": "1"
+  },
+  {
+    "date": "26 Sep 2026",
+    "day": "Sat",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "27 Sep 2026",
+    "day": "Sun",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "28 Sep 2026",
+    "day": "Mon",
+    "description": "Instructional Day",
+    "order": "2"
+  },
+  {
+    "date": "29 Sep 2026",
+    "day": "Tue",
+    "description": "Instructional Day",
+    "order": "3"
+  },
+  {
+    "date": "30 Sep 2026",
+    "day": "Wed",
+    "description": "Instructional Day",
+    "order": "4"
+  },
+  {
+    "date": "01 Oct 2026",
+    "day": "Thu",
+    "description": "Instructional Day",
+    "order": "5"
+  },
+  {
+    "date": "02 Oct 2026",
+    "day": "Fri",
+    "description": "Gandhi Jayanthi - Holiday",
+    "order": "-"
+  },
+  {
+    "date": "03 Oct 2026",
+    "day": "Sat",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "04 Oct 2026",
+    "day": "Sun",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "05 Oct 2026",
+    "day": "Mon",
+    "description": "Instructional Day",
+    "order": "1"
+  },
+  {
+    "date": "06 Oct 2026",
+    "day": "Tue",
+    "description": "Instructional Day",
+    "order": "2"
+  },
+  {
+    "date": "07 Oct 2026",
+    "day": "Wed",
+    "description": "Instructional Day",
+    "order": "3"
+  },
+  {
+    "date": "08 Oct 2026",
+    "day": "Thu",
+    "description": "Instructional Day",
+    "order": "4"
+  },
+  {
+    "date": "09 Oct 2026",
+    "day": "Fri",
+    "description": "Instructional Day",
+    "order": "5"
+  },
+  {
+    "date": "10 Oct 2026",
+    "day": "Sat",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "11 Oct 2026",
+    "day": "Sun",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "12 Oct 2026",
+    "day": "Mon",
+    "description": "Instructional Day",
+    "order": "1"
+  },
+  {
+    "date": "13 Oct 2026",
+    "day": "Tue",
+    "description": "Instructional Day",
+    "order": "2"
+  },
+  {
+    "date": "14 Oct 2026",
+    "day": "Wed",
+    "description": "Instructional Day",
+    "order": "3"
+  },
+  {
+    "date": "15 Oct 2026",
+    "day": "Thu",
+    "description": "Instructional Day",
+    "order": "4"
+  },
+  {
+    "date": "16 Oct 2026",
+    "day": "Fri",
+    "description": "Instructional Day",
+    "order": "5"
+  },
+  {
+    "date": "17 Oct 2026",
+    "day": "Sat",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "18 Oct 2026",
+    "day": "Sun",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "19 Oct 2026",
+    "day": "Mon",
+    "description": "Ayutha Pooja - Holiday",
+    "order": "-"
+  },
+  {
+    "date": "20 Oct 2026",
+    "day": "Tue",
+    "description": "Vijaya Dasami - Holiday",
+    "order": "-"
+  },
+  {
+    "date": "21 Oct 2026",
+    "day": "Wed",
+    "description": "Instructional Day",
+    "order": "1"
+  },
+  {
+    "date": "22 Oct 2026",
+    "day": "Thu",
+    "description": "Instructional Day",
+    "order": "2"
+  },
+  {
+    "date": "23 Oct 2026",
+    "day": "Fri",
+    "description": "Instructional Day",
+    "order": "3"
+  },
+  {
+    "date": "24 Oct 2026",
+    "day": "Sat",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "25 Oct 2026",
+    "day": "Sun",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "26 Oct 2026",
+    "day": "Mon",
+    "description": "Instructional Day",
+    "order": "4"
+  },
+  {
+    "date": "27 Oct 2026",
+    "day": "Tue",
+    "description": "Instructional Day",
+    "order": "5"
+  },
+  {
+    "date": "28 Oct 2026",
+    "day": "Wed",
+    "description": "Instructional Day",
+    "order": "1"
+  },
+  {
+    "date": "29 Oct 2026",
+    "day": "Thu",
+    "description": "Instructional Day",
+    "order": "2"
+  },
+  {
+    "date": "30 Oct 2026",
+    "day": "Fri",
+    "description": "Instructional Day",
+    "order": "3"
+  },
+  {
+    "date": "31 Oct 2026",
+    "day": "Sat",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "01 Nov 2026",
+    "day": "Sun",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "02 Nov 2026",
+    "day": "Mon",
+    "description": "Instructional Day",
+    "order": "4"
+  },
+  {
+    "date": "03 Nov 2026",
+    "day": "Tue",
+    "description": "Instructional Day",
+    "order": "5"
+  },
+  {
+    "date": "04 Nov 2026",
+    "day": "Wed",
+    "description": "Instructional Day",
+    "order": "1"
+  },
+  {
+    "date": "05 Nov 2026",
+    "day": "Thu",
+    "description": "Instructional Day",
+    "order": "2"
+  },
+  {
+    "date": "06 Nov 2026",
+    "day": "Fri",
+    "description": "Instructional Day",
+    "order": "3"
+  },
+  {
+    "date": "07 Nov 2026",
+    "day": "Sat",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "08 Nov 2026",
+    "day": "Sun",
+    "description": "Deepavali - Holiday",
+    "order": "-"
+  },
+  {
+    "date": "09 Nov 2026",
+    "day": "Mon",
+    "description": "Instructional Day",
+    "order": "4"
+  },
+  {
+    "date": "10 Nov 2026",
+    "day": "Tue",
+    "description": "Instructional Day",
+    "order": "5"
+  },
+  {
+    "date": "11 Nov 2026",
+    "day": "Wed",
+    "description": "Instructional Day",
+    "order": "1"
+  },
+  {
+    "date": "12 Nov 2026",
+    "day": "Thu",
+    "description": "Instructional Day",
+    "order": "2"
+  },
+  {
+    "date": "13 Nov 2026",
+    "day": "Fri",
+    "description": "Instructional Day",
+    "order": "3"
+  },
+  {
+    "date": "14 Nov 2026",
+    "day": "Sat",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "15 Nov 2026",
+    "day": "Sun",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "16 Nov 2026",
+    "day": "Mon",
+    "description": "Instructional Day",
+    "order": "4"
+  },
+  {
+    "date": "17 Nov 2026",
+    "day": "Tue",
+    "description": "Instructional Day",
+    "order": "5"
+  },
+  {
+    "date": "18 Nov 2026",
+    "day": "Wed",
+    "description": "Instructional Day",
+    "order": "1"
+  },
+  {
+    "date": "19 Nov 2026",
+    "day": "Thu",
+    "description": "Instructional Day",
+    "order": "2"
+  },
+  {
+    "date": "20 Nov 2026",
+    "day": "Fri",
+    "description": "Last Working Day - B. Tech - II,III,IV / M. Tech (Int) - II,III,IV,V / M. Tech - I,II / B. Arch - II,III,IV,V / B. Des - III,IV / M. Arch & M. Des - I,II / Minor Degree (Year)",
+    "order": "3"
+  },
+  {
+    "date": "21 Nov 2026",
+    "day": "Sat",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "22 Nov 2026",
+    "day": "Sun",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "23 Nov 2026",
+    "day": "Mon",
+    "description": "Instructional Day",
+    "order": "4"
+  },
+  {
+    "date": "24 Nov 2026",
+    "day": "Tue",
+    "description": "Instructional Day",
+    "order": "5"
+  },
+  {
+    "date": "25 Nov 2026",
+    "day": "Wed",
+    "description": "Instructional Day",
+    "order": "1"
+  },
+  {
+    "date": "26 Nov 2026",
+    "day": "Thu",
+    "description": "Instructional Day",
+    "order": "2"
+  },
+  {
+    "date": "27 Nov 2026",
+    "day": "Fri",
+    "description": "Instructional Day",
+    "order": "3"
+  },
+  {
+    "date": "28 Nov 2026",
+    "day": "Sat",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "29 Nov 2026",
+    "day": "Sun",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "30 Nov 2026",
+    "day": "Mon",
+    "description": "Instructional Day",
+    "order": "4"
+  },
+  {
+    "date": "01 Dec 2026",
+    "day": "Tue",
+    "description": "Instructional Day",
+    "order": "5"
+  },
+  {
+    "date": "02 Dec 2026",
+    "day": "Wed",
+    "description": "Instructional Day",
+    "order": "1"
+  },
+  {
+    "date": "03 Dec 2026",
+    "day": "Thu",
+    "description": "Instructional Day",
+    "order": "2"
+  },
+  {
+    "date": "04 Dec 2026",
+    "day": "Fri",
+    "description": "Instructional Day",
+    "order": "3"
+  },
+  {
+    "date": "05 Dec 2026",
+    "day": "Sat",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "06 Dec 2026",
+    "day": "Sun",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "07 Dec 2026",
+    "day": "Mon",
+    "description": "Last Working Day - B.Tech - I / M.Tech (Int) - I / B. Arch & B. Des - I (Year)",
+    "order": "4"
+  },
+  {
+    "date": "08 Dec 2026",
+    "day": "Tue",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "09 Dec 2026",
+    "day": "Wed",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "10 Dec 2026",
+    "day": "Thu",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "11 Dec 2026",
+    "day": "Fri",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "12 Dec 2026",
+    "day": "Sat",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "13 Dec 2026",
+    "day": "Sun",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "14 Dec 2026",
+    "day": "Mon",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "15 Dec 2026",
+    "day": "Tue",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "16 Dec 2026",
+    "day": "Wed",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "17 Dec 2026",
+    "day": "Thu",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "18 Dec 2026",
+    "day": "Fri",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "19 Dec 2026",
+    "day": "Sat",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "20 Dec 2026",
+    "day": "Sun",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "21 Dec 2026",
+    "day": "Mon",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "22 Dec 2026",
+    "day": "Tue",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "23 Dec 2026",
+    "day": "Wed",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "24 Dec 2026",
+    "day": "Thu",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "25 Dec 2026",
+    "day": "Fri",
+    "description": "Christmas - Holiday",
+    "order": "-"
+  },
+  {
+    "date": "26 Dec 2026",
+    "day": "Sat",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "27 Dec 2026",
+    "day": "Sun",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "28 Dec 2026",
+    "day": "Mon",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "29 Dec 2026",
+    "day": "Tue",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "30 Dec 2026",
+    "day": "Wed",
+    "description": "Holiday",
+    "order": "-"
+  },
+  {
+    "date": "31 Dec 2026",
+    "day": "Thu",
+    "description": "Holiday",
+    "order": "-"
   }
 ]
