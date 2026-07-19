@@ -77,6 +77,7 @@ the worker sits between the frontend and all backends. it adds a cryptographic s
 | frontend | Next.js 14, TypeScript, Tailwind CSS, Framer Motion |
 | backend | Python, FastAPI, httpx, BeautifulSoup4 |
 | proxy | Cloudflare Workers |
+| CLI | Go, Bubble Tea, Lip Gloss, Cobra |
 | hosting | Cloudflare Pages + Render |
 | pwa | Workbox via `@ducanh2912/next-pwa` |
 | auth | Web Crypto API, AES-GCM, IndexedDB |
@@ -99,6 +100,10 @@ ratio-d/
 │   ├── services/         # parsers: attendance, marks, timetable, profile
 │   ├── models/           # pydantic schemas
 │   └── main.py           # fastapi app, routes, middleware
+├── cli/
+│   ├── cmd/              # cobra CLI commands
+│   ├── internal/         # client, logic, session storage, and views
+│   └── main.go           # CLI entrypoint
 ├── worker/
 │   ├── index.ts          # cloudflare worker: proxy + HMAC signing
 │   └── wrangler.toml     # worker config
@@ -113,6 +118,7 @@ to develop locally, you can use the development bypass. the app automatically de
 
 1.  **backend**: set `ENV=development` in `backend/.env`. this disables HMAC verification.
 2.  **frontend**: set `NEXT_PUBLIC_BACKEND_URLS=http://localhost:8000` in `.env.local`.
+3.  **CLI**: set `RATIOD_DEV=true` and `RATIOD_BACKEND_URL=http://localhost:8000`.
 
 the app will now hit your local backend directly without needing a cloudflare worker.
 
@@ -152,6 +158,20 @@ npm run dev
 **frontend env** (`.env.local`):
 ```env
 NEXT_PUBLIC_BACKEND_URLS=http://localhost:8000
+```
+
+### 4. CLI TUI
+
+```bash
+cd cli
+go build -o ratiod.exe .
+```
+
+**CLI env** (PowerShell / Command Prompt):
+```powershell
+$env:RATIOD_DEV="true"
+$env:RATIOD_BACKEND_URL="http://localhost:8000"
+.\ratiod.exe
 ```
 
 ---
