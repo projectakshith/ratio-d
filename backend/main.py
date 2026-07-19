@@ -218,7 +218,7 @@ async def login(creds: LoginCredentials, request: Request):
             
         if not profile_html:
             print(f"{get_now()}\n  -> [AUTH] FAILED: Could not retrieve profile.", flush=True)
-            raise HTTPException(status_code=401, detail="Invalid Credentials")
+            raise HTTPException(status_code=401, detail="Academia is not fully operational yet.")
             
         profile = ProfileService.parse_student_profile(profile_html)
         course_map = CourseService.get_course_map(profile_html)
