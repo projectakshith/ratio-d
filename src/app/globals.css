@@ -228,6 +228,15 @@ input:-webkit-autofill {
   -webkit-box-shadow: 0 0 0px 1000px var(--theme-bg) inset;
 }
 
+.login-input:-webkit-autofill,
+.login-input:-webkit-autofill:hover, 
+.login-input:-webkit-autofill:focus, 
+.login-input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 1000px #0c30ff inset !important;
+    -webkit-text-fill-color: white !important;
+    transition: background-color 5000s ease-in-out 0s;
+}
+
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
@@ -352,4 +361,11 @@ html.lenis, html.lenis body {
   html, body {
     background-color: #0c30ff;
   }
+}
+
+.bg-checkit-grid {
+  background-size: 10vw 10vw;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.09) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.09) 1px, transparent 1px);
 }

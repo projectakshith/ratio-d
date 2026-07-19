@@ -287,9 +287,36 @@ export default function Marks({
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
         >
-          <motion.div
-            variants={itemVariants}
-            className="w-full flex flex-col items-center mt-2 mb-12 shrink-0"
+          {subjects.length === 0 ? (
+            <motion.div
+              variants={itemVariants}
+              className="w-full flex-1 flex flex-col items-center justify-center p-8 text-center min-h-[450px]"
+            >
+              <div className="text-6xl mb-6 animate-bounce">🦖</div>
+              <h3 
+                className="text-xl font-black uppercase tracking-widest text-theme-text mb-2 animate-pulse" 
+                style={{ fontFamily: "var(--font-montserrat)" }}
+              >
+                zoho ate your marks
+              </h3>
+              <p 
+                className="text-sm text-theme-muted max-w-xs lowercase mb-6" 
+                style={{ fontFamily: "var(--font-afacad)" }}
+              >
+                no marks found. either you haven't given any tests, or zoho is taking a nap.
+              </p>
+              <span 
+                className="text-[10px] font-black uppercase tracking-[0.2em] text-theme-muted/50 animate-pulse"
+                style={{ fontFamily: "var(--font-afacad)" }}
+              >
+                ↓ pull down to check again ↓
+              </span>
+            </motion.div>
+          ) : (
+            <>
+              <motion.div
+                variants={itemVariants}
+                className="w-full flex flex-col items-center mt-2 mb-12 shrink-0"
           >
             <span
               className="text-[12px] font-bold lowercase tracking-[0.3em] text-theme-muted mb-3"
@@ -619,6 +646,8 @@ export default function Marks({
               </motion.div>
             ))}
           </motion.div>
+          </>
+        )}
         </motion.div>
 
         <motion.div

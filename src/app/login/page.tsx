@@ -4,6 +4,7 @@ import LoginPage from "@/components/shared/LoginPage";
 import { useApp } from "@/context/AppContext";
 import { useRouter } from "next/navigation";
 import { EncryptionUtils } from "@/utils/shared/Encryption";
+import { motion } from "framer-motion";
 
 export default function LoginRoute() {
   const { setUserData } = useApp();
@@ -37,7 +38,13 @@ export default function LoginRoute() {
   };
 
   return (
-    <div data-theme="gojo" className="w-full h-full bg-[#0c30ff]">
+    <div data-theme="gojo" className="w-full h-screen bg-[#0c30ff] relative overflow-hidden">
+      <motion.div
+        initial={{ left: "0%" }}
+        animate={{ left: "-100%" }}
+        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+        className="fixed top-0 w-full h-screen bg-[#ceff1c] z-[60] pointer-events-none"
+      />
       <LoginPage onLogin={handleLoginSuccess} />
     </div>
   );

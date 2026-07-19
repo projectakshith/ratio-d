@@ -136,35 +136,35 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
         animate={isExiting ? "exit" : "visible"}
         exit="exit"
         variants={containerVariants}
-        className="h-screen w-full flex flex-col justify-between md:justify-center p-8 md:p-24 md:gap-12 relative bg-[#0c30ff]"
+        className="h-screen w-full flex flex-col justify-between md:justify-center p-8 md:p-24 md:gap-12 relative bg-[#0c30ff] overflow-hidden"
       >
         <motion.header variants={itemVariants} className="relative z-10">
           <h1
-            className="text-5xl md:text-6xl lowercase leading-none tracking-tighter"
+            className="text-4xl md:text-5xl lowercase leading-none tracking-tighter"
             style={{ fontFamily: "Urbanosta", color: "#ceff1c" }}
           >
             ratio'd
           </h1>
         </motion.header>
 
-        <motion.main variants={itemVariants} className="relative z-10 w-full max-w-2xl mt-auto md:mt-0 pb-12 md:pb-0">
-          <form onSubmit={handleSubmit} className="flex flex-col gap-10 md:gap-6">
+        <motion.main variants={itemVariants} className="relative z-10 w-full max-w-xl mt-auto md:mt-0 pb-12 md:pb-0">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-12 md:gap-12">
             <div className="group relative">
               <label className="text-[10px] font-mono uppercase tracking-[0.3em] text-white/60">
-                Identification (NetID)
+                NetID
               </label>
-              <div className="relative flex items-center border-b-2 border-white focus-within:border-[#ceff1c] transition-colors">
+              <div className="relative flex items-center border-b-[1.5px] border-white focus-within:border-[#ceff1c] transition-colors">
                 <input
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="w-full bg-transparent py-4 text-4xl md:text-5xl text-white outline-none placeholder:text-white/10"
-                  placeholder="username"
+                  className="login-input w-full bg-transparent py-3 text-3xl md:text-4xl text-white outline-none placeholder:text-white/10"
+                  placeholder="ab1234"
                   style={{ fontFamily: "Aonic", color: 'white' }}
                 />
-                {!username.includes("@") && username.length > 0 && (
+                {!username.includes("@") && (
                   <span
-                    className="text-2xl md:text-4xl text-white/30 lowercase pointer-events-none pr-2 select-none"
+                    className="text-xl md:text-3xl text-white/30 lowercase pointer-events-none pr-2 select-none whitespace-nowrap"
                     style={{ fontFamily: "Aonic" }}
                   >
                     @srmist.edu.in
@@ -175,14 +175,14 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
 
             <div className="group relative">
               <label className="text-[10px] font-mono uppercase tracking-[0.3em] text-white/60">
-                Passkey
+                Password
               </label>
-              <div className="relative flex items-center border-b-2 border-white focus-within:border-[#ceff1c] transition-colors">
+              <div className="relative flex items-center border-b-[1.5px] border-white focus-within:border-[#ceff1c] transition-colors">
                 <input
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-transparent py-4 text-4xl md:text-5xl text-white outline-none placeholder:text-white/10"
+                  className="login-input w-full bg-transparent py-3 text-3xl md:text-4xl text-white outline-none placeholder:text-white/10"
                   placeholder="••••••••"
                   style={{ fontFamily: "Aonic", color: 'white' }}
                 />
@@ -191,7 +191,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
                   onClick={() => setShowPassword(!showPassword)}
                   className="text-white/40 hover:text-[#ceff1c] pr-2"
                 >
-                  {showPassword ? <EyeOff size={24} /> : <Eye size={24} />}
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
             </div>
@@ -208,17 +208,17 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
                     Security Check
                   </label>
                   <div className="flex flex-col md:flex-row items-stretch md:items-center gap-4">
-                    <div className="relative flex-1 flex items-center border-b-2 border-white focus-within:border-[#ceff1c] transition-colors">
+                    <div className="relative flex-1 flex items-center border-b-[1.5px] border-white focus-within:border-[#ceff1c] transition-colors">
                       <input
                         type="text"
                         value={captchaInput}
                         onChange={(e) => setCaptchaInput(e.target.value.toUpperCase())}
-                        className="w-full bg-transparent py-4 text-4xl md:text-5xl text-white outline-none placeholder:text-white/10"
+                        className="login-input w-full bg-transparent py-3 text-3xl md:text-4xl text-white outline-none placeholder:text-white/10"
                         placeholder="captcha"
                         style={{ fontFamily: "Aonic", color: 'white' }}
                       />
                     </div>
-                    <div className="bg-white rounded p-1 h-[70px] flex-shrink-0 flex items-center justify-center overflow-hidden">
+                    <div className="bg-white rounded p-1 h-[52px] flex-shrink-0 flex items-center justify-center overflow-hidden">
                       <img src={captchaImage} alt="CAPTCHA" className="h-full object-contain mix-blend-multiply" />
                     </div>
                   </div>
@@ -226,40 +226,42 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
               )}
             </AnimatePresence>
 
-            <AnimatePresence>
-              {error && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0 }}
-                  className="text-red-400 font-mono text-xs uppercase flex items-center gap-2"
-                >
-                  <AlertCircle size={14} /> {error}
-                </motion.div>
-              )}
-            </AnimatePresence>
+            <div className="relative w-full mt-3 md:mt-6">
+              <AnimatePresence>
+                {error && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    className="absolute -top-8 left-0 text-red-400 font-mono text-xs uppercase flex items-center gap-2 whitespace-nowrap"
+                  >
+                    <AlertCircle size={14} /> {error}
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full flex items-center justify-between border-t border-white pt-6 mt-4 md:mt-8 group disabled:opacity-30"
-            >
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full flex items-center justify-between border-t border-white pt-4 group disabled:opacity-30"
+              >
               <span
-                className="text-4xl md:text-4xl lowercase text-white group-hover:text-[#ceff1c]"
+                className="text-3xl md:text-3xl lowercase text-white group-hover:text-[#ceff1c]"
                 style={{ fontFamily: "aonic" }}
               >
                 {loading ? "WAIT_" : "signin"}
               </span>
               {loading ? (
-                <Loader2 className="animate-spin text-white" size={40} />
+                <Loader2 className="animate-spin text-white" size={30} />
               ) : (
                 <ArrowRight
-                  size={48}
+                  size={36}
                   className="text-white group-hover:text-[#ceff1c] group-hover:translate-x-4 transition-all"
                 />
               )}
             </button>
-          </form>
+          </div>
+        </form>
         </motion.main>
       </motion.div>
     </>

@@ -1,0 +1,56 @@
+name: Verify and Heal Scrapers
+
+on:
+  workflow_dispatch:
+
+jobs:
+  check-and-heal:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Run Live Verification
+        id: verification
+        continue-on-error: true
+        env:
+          SRM_TEST_USER: ${{ secrets.SRM_TEST_USER }}
+          SRM_TEST_PASS: ${{ secrets.SRM_TEST_PASS }}
+        run: |
+          python backend/tests/verify.py --mode live
+
+      - name: Execute Repair Agent
+        if: steps.verification.outcome == 'failure'
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        run: |
+          python backend/tests/repair_agent.py
+
+      - name: Re-Verify Fixed Code Offline
+        if: steps.verification.outcome == 'failure'
+        run: |
+          cp backend/tests/snapshots/latest_failed_attendance.html backend/tests/snapshots/attendance_good.html || true
+          cp backend/tests/snapshots/latest_failed_profile.html backend/tests/snapshots/profile_good.html || true
+          python backend/tests/verify.py --mode offline
+
+      - name: Commit and Push Changes
+        if: steps.verification.outcome == 'failure'
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add backend/services/
+          git add backend/tests/snapshots/
+          git commit -m "chore(auto-heal): patch broken scraper layouts"
+          git push origin HEAD
