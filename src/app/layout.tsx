@@ -86,6 +86,20 @@ export default function RootLayout({
     <html lang="en" className="h-full">
       <head>
         <meta name="color-scheme" content="dark light" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.addEventListener('error', function(e) {
+                if (e.message && (e.message.includes('Failed to fetch dynamically imported module') || e.message.includes('ChunkLoadError') || e.message.includes('Loading chunk'))) {
+                  if (!sessionStorage.getItem('chunk_reloaded')) {
+                    sessionStorage.setItem('chunk_reloaded', 'true');
+                    window.location.reload();
+                  }
+                }
+              }, true);
+            `,
+          }}
+        />
       </head>
 
       <body
