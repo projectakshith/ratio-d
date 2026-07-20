@@ -15,15 +15,14 @@ export default function OnboardingRoute() {
 
     if (isOnboarded && hasData && (hasSession || userData)) {
       router.replace("/dashboard");
-    } else if (!hasData && !hasSession && !loginPromise) {
-      router.replace("/login");
     }
-  }, [router, userData, loginPromise]);
+  }, [router, userData]);
 
   const handleComplete = () => {
     localStorage.setItem("ratiod_onboarded", "true");
     document.cookie = "ratio_onboarded=true; path=/; max-age=31536000; SameSite=Lax";
-    router.push("/dashboard");
+    const hasSession = document.cookie.includes("ratio_session=");
+    router.replace(hasSession ? "/dashboard" : "/login");
   };
 
   return <OnboardingPage onComplete={handleComplete} />;

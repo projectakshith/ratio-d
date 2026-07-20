@@ -30,7 +30,8 @@ export default function LoginRoute() {
 
     const isMobile = window.innerWidth < 768;
     if (isMobile) {
-      router.replace("/onboarding");
+      const isOnboarded = localStorage.getItem("ratiod_onboarded") === "true";
+      router.replace(isOnboarded ? "/dashboard" : "/onboarding");
     } else {
       localStorage.setItem("ratiod_onboarded", "true");
       router.replace("/dashboard");

@@ -35,20 +35,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
-    const isOnboarded = localStorage.getItem("ratiod_onboarded") === "true";
     const hasSession = document.cookie.includes("ratio_session=");
-    
+    const isOnboarded = localStorage.getItem("ratiod_onboarded") === "true";
     const isMobile = window.innerWidth < 768;
-    if (isMobile) {
-      if (!isOnboarded || !hasSession) {
-        router.replace("/onboarding");
-        return;
-      }
-    } else {
-      if (!hasSession) {
-        router.replace("/login");
-        return;
-      }
+
+    if (!hasSession) {
+      router.replace("/login");
+    } else if (isMobile && !isOnboarded) {
+      router.replace("/onboarding");
     }
   }, [router]);
 
