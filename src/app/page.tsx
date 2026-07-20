@@ -16,7 +16,7 @@ export default function Page() {
     } else {
       const isMobile = window.innerWidth < 768 || /android|iphone|ipad|ipod/i.test(navigator.userAgent);
       if (isMobile) {
-        router.replace("/setup");
+        router.replace("/onboarding");
       } else {
         setShowLanding(true);
       }
