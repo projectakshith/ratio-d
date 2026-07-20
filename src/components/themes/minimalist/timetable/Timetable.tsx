@@ -23,7 +23,7 @@ import {
 import calendarDataJson from "@/data/calendar_data.json";
 import CustomClass from "./CustomClass";
 import { AcademiaData } from "@/types";
-import DesktopTimetable, { DesktopTimetableRef } from "@/components/desktop/timetable/Timetable";
+import TimetablePreviewModal from "@/components/shared/TimetablePreviewModal";
 
 const BEZIER = [0.34, 0.15, 0.16, 0.96] as const;
 
@@ -110,10 +110,10 @@ export default function Timetable({
   }, [isAddingClass, setIsSwipeDisabled]);
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const desktopTimetableRef = useRef<DesktopTimetableRef>(null);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   const handleDownload = () => {
-    desktopTimetableRef.current?.download();
+    setIsPreviewOpen(true);
   };
 
   const [newSub, setNewSub] = useState("");
@@ -648,16 +648,13 @@ export default function Timetable({
         setStartTime={setStartTime}
         endTime={endTime}
         setEndTime={setEndTime}
-        newType={newType}
-        setNewType={setNewType}
         handleAddClass={handleAddClass}
       />
-      <div 
-        className="fixed -top-[9999px] -left-[9999px] w-[1200px] h-[800px] pointer-events-none opacity-0 overflow-hidden z-0"
-        style={{ WebkitTextSizeAdjust: 'none' }}
-      >
-        <DesktopTimetable ref={desktopTimetableRef} initialView="full" />
-      </div>
+
+      <TimetablePreviewModal 
+        isOpen={isPreviewOpen}
+        onClose={() => setIsPreviewOpen(false)}
+      />
     </>
   );
 }

@@ -9,7 +9,7 @@ import {
 import { flavorText } from "@/utils/shared/flavortext";
 import { useApp } from "@/context/AppContext";
 import { UserAvatar } from "@/components/shared/UserAvatar";
-import DesktopTimetable, { DesktopTimetableRef } from "@/components/desktop/timetable/Timetable";
+import TimetablePreviewModal from "@/components/shared/TimetablePreviewModal";
 
 export default function Timetable({ schedule, dayOrder, data }) {
   const { profileSeed } = useApp();
@@ -19,9 +19,10 @@ export default function Timetable({ schedule, dayOrder, data }) {
   const [mounted, setMounted] = useState(false);
   const [introMode, setIntroMode] = useState(true);
   
-  const desktopTimetableRef = React.useRef<DesktopTimetableRef>(null);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  
   const handleDownload = () => {
-    desktopTimetableRef.current?.download();
+    setIsPreviewOpen(true);
   };
 
   useEffect(() => {
@@ -299,12 +300,10 @@ export default function Timetable({ schedule, dayOrder, data }) {
         </div>
       </motion.div>
 
-      <div 
-        className="fixed -top-[9999px] -left-[9999px] w-[1200px] h-[800px] pointer-events-none opacity-0 overflow-hidden z-0"
-        style={{ WebkitTextSizeAdjust: 'none' }}
-      >
-        <DesktopTimetable ref={desktopTimetableRef} initialView="full" />
-      </div>
+      <TimetablePreviewModal 
+        isOpen={isPreviewOpen}
+        onClose={() => setIsPreviewOpen(false)}
+      />
 
       <AnimatePresence>
         {introMode && (
