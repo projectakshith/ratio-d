@@ -42,7 +42,7 @@ async def custom_rate_limit_exceeded_handler(request: Request, exc: RateLimitExc
         content={"detail": "stop spamming blud"}
     )
 
-_dev_origins = ["http://localhost:3000", "http://localhost:9002"] if os.getenv("ENV") == "development" else []
+_dev_origins = ["http://localhost:3000", "http://localhost:9002", "http://localhost:9001", "http://localhost:9000"]
 
 app.add_middleware(
     CORSMiddleware,

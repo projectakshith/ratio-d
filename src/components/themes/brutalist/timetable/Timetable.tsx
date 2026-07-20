@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MapPin, User, ArrowRight, Layers, Clock } from "lucide-react";
+import { MapPin, User, ArrowRight, Layers, Clock, Download } from "lucide-react";
 import {
   getDayOverview,
   processSchedule,
@@ -9,6 +9,7 @@ import {
 import { flavorText } from "@/utils/shared/flavortext";
 import { useApp } from "@/context/AppContext";
 import { UserAvatar } from "@/components/shared/UserAvatar";
+import DesktopTimetable, { DesktopTimetableRef } from "@/components/desktop/timetable/Timetable";
 
 export default function Timetable({ schedule, dayOrder, data }) {
   const { profileSeed } = useApp();
@@ -17,6 +18,11 @@ export default function Timetable({ schedule, dayOrder, data }) {
   const [customClasses, setCustomClasses] = useState<Record<number, any[]>>({});
   const [mounted, setMounted] = useState(false);
   const [introMode, setIntroMode] = useState(true);
+  
+  const desktopTimetableRef = React.useRef<DesktopTimetableRef>(null);
+  const handleDownload = () => {
+    desktopTimetableRef.current?.download();
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -148,11 +154,19 @@ export default function Timetable({ schedule, dayOrder, data }) {
               <span className="text-[10px] font-black uppercase tracking-widest text-black/40">
                 Day Order
               </span>
-              {parseInt(dayOrder) === activeDayOrder && (
-                <span className="text-[9px] font-bold uppercase tracking-widest text-black bg-[#ceff1c] px-2 py-0.5 rounded-sm">
-                  Today
-                </span>
-              )}
+              <div className="flex items-center gap-3">
+                {parseInt(dayOrder) === activeDayOrder && (
+                  <span className="text-[9px] font-bold uppercase tracking-widest text-black bg-[#ceff1c] px-2 py-0.5 rounded-sm">
+                    Today
+                  </span>
+                )}
+                <button
+                  onClick={handleDownload}
+                  className="p-1.5 bg-black/5 rounded-md text-black hover:bg-black/10 active:scale-95 transition-all"
+                >
+                  <Download size={14} strokeWidth={3} />
+                </button>
+              </div>
             </div>
 
             <div className="flex justify-between gap-2">
@@ -284,6 +298,13 @@ export default function Timetable({ schedule, dayOrder, data }) {
           </div>
         </div>
       </motion.div>
+
+      <div 
+        className="fixed -top-[9999px] -left-[9999px] w-[1200px] h-[800px] pointer-events-none opacity-0 overflow-hidden z-0"
+        style={{ WebkitTextSizeAdjust: 'none' }}
+      >
+        <DesktopTimetable ref={desktopTimetableRef} initialView="full" />
+      </div>
 
       <AnimatePresence>
         {introMode && (
