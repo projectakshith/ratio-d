@@ -14,7 +14,12 @@ export default function Page() {
     if (hasSession && isOnboarded) {
       router.replace("/dashboard");
     } else {
-      setShowLanding(true);
+      const isMobile = window.innerWidth < 768 || /android|iphone|ipad|ipod/i.test(navigator.userAgent);
+      if (isMobile) {
+        router.replace("/setup");
+      } else {
+        setShowLanding(true);
+      }
     }
   }, [router]);
 
