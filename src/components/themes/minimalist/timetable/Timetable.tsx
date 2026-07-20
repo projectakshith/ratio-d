@@ -8,6 +8,7 @@ import {
   Plus,
   X,
   ChevronRight,
+  Download,
 } from "lucide-react";
 import {
   buildCourseMap,
@@ -22,6 +23,7 @@ import {
 import calendarDataJson from "@/data/calendar_data.json";
 import CustomClass from "./CustomClass";
 import { AcademiaData } from "@/types";
+import DesktopTimetable, { DesktopTimetableRef } from "@/components/desktop/timetable/Timetable";
 
 const BEZIER = [0.34, 0.15, 0.16, 0.96] as const;
 
@@ -108,6 +110,11 @@ export default function Timetable({
   }, [isAddingClass, setIsSwipeDisabled]);
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const desktopTimetableRef = useRef<DesktopTimetableRef>(null);
+
+  const handleDownload = () => {
+    desktopTimetableRef.current?.download();
+  };
 
   const [newSub, setNewSub] = useState("");
   const [newRoom, setNewRoom] = useState("");
@@ -281,6 +288,12 @@ export default function Timetable({
                   ? "upcoming day order"
                   : "selected day order"}
             </span>
+            <button
+              onClick={handleDownload}
+              className="absolute right-0 top-0 p-3 bg-theme-surface border-[1.5px] border-theme-border rounded-[16px] text-theme-text active:scale-95 transition-all shadow-[2px_2px_0px_var(--theme-text)]"
+            >
+              <Download size={20} strokeWidth={2.5} />
+            </button>
             <div className="flex items-baseline gap-2">
               <span
                 className={`text-[7.5rem] leading-[0.8] font-black tracking-tighter ${textClass} text-center`}
@@ -639,6 +652,12 @@ export default function Timetable({
         setNewType={setNewType}
         handleAddClass={handleAddClass}
       />
+      <div 
+        className="fixed -top-[9999px] -left-[9999px] w-[1200px] h-[800px] pointer-events-none opacity-0 overflow-hidden z-0"
+        style={{ WebkitTextSizeAdjust: 'none' }}
+      >
+        <DesktopTimetable ref={desktopTimetableRef} initialView="full" />
+      </div>
     </>
   );
 }

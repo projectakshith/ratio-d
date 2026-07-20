@@ -12,6 +12,7 @@ import SmoothScroll from "@/components/desktop/SmoothScroll";
 import DesktopSidebar from "@/components/desktop/DesktopSidebar";
 import FeedbackPopup from "@/components/shared/FeedbackPopup";
 import CommunityPopup from "@/components/shared/CommunityPopup";
+import TimetableFeatureModal from "@/components/shared/TimetableFeatureModal";
 
 const BrutalistThemeLayout = dynamic(
   () => import("@/components/themes/brutalist/BrutalistTheme"),
@@ -76,6 +77,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       setIsSwipeDisabled
     }}>
       <div className="fixed inset-0 bg-theme-bg overflow-hidden">
+        <TimetableFeatureModal />
         <div className="md:hidden h-full w-full">
           {uiStyle === "brutalist" ? (
             <BrutalistThemeLayout {...sharedProps}>
