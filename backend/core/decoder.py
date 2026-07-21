@@ -1,7 +1,6 @@
 import html
 import re
-
-from bs4 import BeautifulSoup
+from selectolax.parser import HTMLParser
 
 class HTMLDecoder:
     @staticmethod
@@ -17,13 +16,13 @@ class HTMLDecoder:
             try:
                 extracted = match.group(1).encode("utf-8").decode("unicode_escape")
                 return extracted.replace("\\-", "-").replace("\\/", "/")
-            except:
+            except Exception:
                 pass
 
-        soup = BeautifulSoup(raw_html, 'lxml')
-        hidden = soup.find("div", class_="zc-pb-embed-placeholder-content")
-        if hidden and hidden.has_attr("zmlvalue"):
-            unescaped = html.unescape(hidden["zmlvalue"])
+        parser = HTMLParser(raw_html)
+        hidden = parser.css_first("div.zc-pb-embed-placeholder-content")
+        if hidden and "zmlvalue" in hidden.attributes:
+            unescaped = html.unescape(hidden.attributes["zmlvalue"])
             return unescaped.replace("\\-", "-").replace("\\/", "/")
 
         return None

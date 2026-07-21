@@ -1,7 +1,7 @@
 import httpx
 import json
 from urllib.parse import urljoin
-from bs4 import BeautifulSoup
+from selectolax.parser import HTMLParser
 from core.config import BASE_URL, LOGIN_URL, HEADERS
 
 class SessionHandler:
@@ -13,30 +13,31 @@ class SessionHandler:
 
     async def force_logout_sessions(self, html_content):
         print("  -> [SESSION] Parsing Concurrent Sessions Page...", flush=True)
-        soup = BeautifulSoup(html_content, 'lxml')
-        forms = soup.find_all('form')
+        parser = HTMLParser(html_content)
+        forms = parser.css("form")
         terminate_form = None
-        
+
         for form in forms:
-            if "terminate" in form.get_text().lower() or form.find('input', {'value': 'Terminate All Sessions'}):
+            if "terminate" in form.text().lower() or form.css_first("input[value='Terminate All Sessions']"):
                 terminate_form = form
                 break
         if not terminate_form and forms:
             terminate_form = forms[0]
 
         if terminate_form:
-            action_url = terminate_form.get('action')
-            if not action_url.startswith('http'):
+            action_url = terminate_form.attributes.get("action", "")
+            if not action_url.startswith("http"):
                 action_url = urljoin(BASE_URL, action_url)
-            
+
             data = {}
-            for inp in terminate_form.find_all('input'):
-                if inp.get('name'):
-                    data[inp.get('name')] = inp.get('value', '')
-            
-            submit_btn = terminate_form.find('button') or terminate_form.find('input', type='submit')
-            if submit_btn and submit_btn.get('name'):
-                data[submit_btn.get('name')] = submit_btn.get('value', '')
+            for inp in terminate_form.css("input"):
+                name = inp.attributes.get("name")
+                if name:
+                    data[name] = inp.attributes.get("value", "")
+
+            submit_btn = terminate_form.css_first("button") or terminate_form.css_first("input[type='submit']")
+            if submit_btn and "name" in submit_btn.attributes:
+                data[submit_btn.attributes["name"]] = submit_btn.attributes.get("value", "")
 
             try:
                 print("  -> [SESSION] Terminating ghost sessions...", flush=True)
@@ -44,69 +45,64 @@ class SessionHandler:
                 if r.status_code == 200:
                     print("  -> [SESSION] Ghost sessions terminated successfully.", flush=True)
                     return True
-            except:
+            except Exception:
                 pass
         return False
 
     async def login(self, username, password, captcha=None, cdigest=None):
         print(f"  -> [SESSION] Executing hard login for {username}...", flush=True)
+        if hasattr(self, "client") and self.client:
+            await self.client.aclose()
         self.client = httpx.AsyncClient(headers=HEADERS, follow_redirects=True, timeout=30.0)
-        
+
         payload = {
             'username': username, 'password': password, 'client_portal': 'true',
             'portal': '10002227248', 'servicename': 'ZohoCreator',
             'serviceurl': 'https://academia.srmist.edu.in/', 'is_ajax': 'true',
             'grant_type': 'password', 'service_language': 'en'
         }
-        
-        if cdigest:
-            payload['cdigest'] = cdigest
-        if captcha:
+
+        if captcha and cdigest:
             payload['captcha'] = captcha
+            payload['cdigest'] = cdigest
 
         r = await self.client.post(LOGIN_URL, data=payload)
-        
-        if "concurrent" in r.text.lower():
-            print("  -> [SESSION] Concurrent session limit reached!", flush=True)
-            if await self.force_logout_sessions(r.text):
-                print("  -> [SESSION] Retrying hard login...", flush=True)
-                return await self.login(username, password, captcha, cdigest)  
+        res_data = r.json()
 
-        try:
-            data = json.loads(r.text)
-            
-            if data.get('status') == 'fail':
-                code = data.get('code')
-                if code in ['HIP_REQUIRED', 'HIP_FAILED']:
-                    cdig = data.get('cdigest')
-                    msg = data.get('message', 'Captcha required')
-                    if cdig:
-                        print(f"  -> [SESSION] CAPTCHA required ({code}).", flush=True)
-                        raise Exception(json.dumps({
-                            "type": "CAPTCHA_REQUIRED",
-                            "message": msg,
-                            "cdigest": cdig,
-                            "image": f"https://academia.srmist.edu.in/accounts/p/40-10002227248/webclient/v1/captcha/{cdig}?darkmode=false"
-                        }))
-                if 'error' in data:
-                    raise Exception(data['error'].get('msg', 'Login failed'))
+        if "captcha" in res_data:
+            c_info = res_data["captcha"]
+            img_url = f"https://academia.srmist.edu.in/accounts/captcha/images/{c_info['digest']}"
+            img_res = await self.client.get(img_url)
+            import base64
+            b64_img = base64.b64encode(img_res.content).decode('utf-8')
+            raise Exception(json.dumps({
+                "type": "CAPTCHA_REQUIRED",
+                "cdigest": c_info['digest'],
+                "image": f"data:image/jpeg;base64,{b64_img}",
+                "message": "Security check required. Please enter CAPTCHA."
+            }))
 
-            if 'data' in data and 'access_token' in data['data']:
-                token = data['data']['access_token']
-                redirect_url = data['data']['oauthorize_uri']
-                final_auth_url = f"{redirect_url}&access_token={token}"
-                
-                print("  -> [SESSION] Access Token received. Exchanging for JSESSIONID...", flush=True)
-                r = await self.client.get(final_auth_url)
-                
-                if any(c.name == 'JSESSIONID' for c in self.client.cookies.jar):
-                    print("  -> [SESSION] SUCCESS: New cookies established.", flush=True)
-                    return True
-                else:
-                    print("  -> [SESSION] ERROR: JSESSIONID not found.", flush=True)
-                    raise Exception("No JSESSIONID received")
-            else:
-                print("  -> [SESSION] ERROR: Invalid credentials.", flush=True)
-                raise Exception("Invalid credentials")
-        except Exception as e:
-            raise e
+        if "error" in res_data or res_data.get("status") == "error":
+            msg = res_data.get("message", "Invalid Credentials")
+            if "invalid" in msg.lower() or "password" in msg.lower():
+                raise Exception(json.dumps({"type": "INVALID_CREDENTIALS", "message": msg}))
+            raise Exception(msg)
+
+        token = res_data.get("token")
+        if not token:
+            raise Exception("No token returned from Zoho")
+
+        token_url = f"https://academia.srmist.edu.in/srm_university/academia-academic-services/page/My_Attendance?servicename=ZohoCreator&token={token}"
+        portal_res = await self.client.get(token_url)
+
+        if "concurrent" in portal_res.text.lower() and "terminate" in portal_res.text.lower():
+            success = await self.force_logout_sessions(portal_res.text)
+            if success:
+                r_retry = await self.client.post(LOGIN_URL, data=payload)
+                retry_data = r_retry.json()
+                new_token = retry_data.get("token")
+                if new_token:
+                    t_url = f"https://academia.srmist.edu.in/srm_university/academia-academic-services/page/My_Attendance?servicename=ZohoCreator&token={new_token}"
+                    await self.client.get(t_url)
+
+        return True

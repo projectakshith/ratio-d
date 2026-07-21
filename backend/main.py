@@ -25,6 +25,14 @@ from slowapi.errors import RateLimitExceeded
 load_dotenv()
 load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env.local'))
 
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    app.state.http_client = httpx.AsyncClient(timeout=10.0)
+    yield
+    await app.state.http_client.aclose()
+
 def get_rate_limit_key(request: Request):
     return (
         request.headers.get("CF-Connecting-IP") or
@@ -32,8 +40,9 @@ def get_rate_limit_key(request: Request):
     )
 
 limiter = Limiter(key_func=get_rate_limit_key)
-app = FastAPI()
+app = FastAPI(lifespan=lifespan)
 app.state.limiter = limiter
+
 
 @app.exception_handler(RateLimitExceeded)
 async def custom_rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded):
@@ -108,8 +117,7 @@ async def submit_feedback(request: Request):
     if not webhook_url:
         raise HTTPException(status_code=500, detail="not configured")
     body = await request.json()
-    async with httpx.AsyncClient() as client:
-        res = await client.post(webhook_url, json=body, timeout=8.0)
+    res = await request.app.state.http_client.post(webhook_url, json=body, timeout=8.0)
     if not res.is_success:
         raise HTTPException(status_code=502, detail="failed to deliver")
     return {"ok": True}
@@ -119,11 +127,9 @@ async def get_version():
     return {"version": "2.0.0"}
 
 @app.get("/pyq-proxy")
-async def pyq_proxy(path: str, q: str = None, limit: int = None, cursor: str = None):
-    """
-    Proxy requests to the SRM PYQ API to bypass CORS.
-    Example: /pyq-proxy?path=/v1/courses/21CSE253T/papers
-    """
+async def pyq_proxy(request: Request, path: str, q: str = None, limit: int = None, cursor: str = None):
+    if not path.startswith("/"):
+        raise HTTPException(status_code=400, detail="Invalid path parameter")
     target_base = "https://srm-pyq-api.onrender.com"
     target_url = f"{target_base}{path}"
     
@@ -132,16 +138,16 @@ async def pyq_proxy(path: str, q: str = None, limit: int = None, cursor: str = N
     if limit: params["limit"] = limit
     if cursor: params["cursor"] = cursor
 
-    async with httpx.AsyncClient() as client:
-        try:
-            response = await client.get(target_url, params=params, timeout=10.0)
-            return JSONResponse(
-                status_code=response.status_code,
-                content=response.json()
-            )
-        except Exception as e:
-            print(f"[API] PYQ Proxy Error: {str(e)}")
-            raise HTTPException(status_code=500, detail="Failed to fetch from PYQ API")
+    try:
+        response = await request.app.state.http_client.get(target_url, params=params, timeout=10.0)
+        return JSONResponse(
+            status_code=response.status_code,
+            content=response.json()
+        )
+    except Exception as e:
+        print(f"[API] PYQ Proxy Error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to fetch from PYQ API")
+
 
 @app.post("/refresh")
 @limiter.limit("3/minute")
