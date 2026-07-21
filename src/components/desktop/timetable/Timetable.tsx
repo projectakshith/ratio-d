@@ -5,6 +5,7 @@ import { useApp } from "@/context/AppContext";
 import { buildCourseMap, processSchedule, parseTimetableTime } from "@/utils/dashboard/timetableLogic";
 import { Clock, Plus, ChevronRight, LayoutGrid, List, MapPin, Coffee, Zap, Download, RotateCcw } from "lucide-react";
 import { toPng } from 'html-to-image';
+import TimetablePreviewModal from "@/components/shared/TimetablePreviewModal";
 
 const CompactSlot = ({ slot }: { slot: any }) => {
   if (!slot) {
@@ -33,18 +34,18 @@ const CompactSlot = ({ slot }: { slot: any }) => {
     >
       <div className="flex flex-col gap-0.5">
         <h3 
-          className={`text-[12px] font-black uppercase tracking-tight leading-[1.1] line-clamp-2 ${isLab ? "text-[#0EA5E9]" : "text-theme-text"}`} 
+          className={`text-[9px] font-black uppercase tracking-tight leading-[1.1] line-clamp-2 ${isLab ? "text-[#0EA5E9]" : "text-theme-text"}`} 
           style={{ fontFamily: 'var(--font-montserrat)' }}
         >
           {slot.name}
         </h3>
-        <p className={`text-[9px] font-bold opacity-60 truncate ${isLab ? "text-[#0EA5E9]" : "text-theme-muted"}`} style={{ fontFamily: 'var(--font-afacad)' }}>
+        <p className={`text-[7px] font-bold opacity-60 truncate ${isLab ? "text-[#0EA5E9]" : "text-theme-muted"}`} style={{ fontFamily: 'var(--font-afacad)' }}>
           {slot.faculty}
         </p>
       </div>
       
       <div className="flex flex-col mt-0.5">
-        <span className={`text-[10px] font-black uppercase text-theme-muted/60`} style={{ fontFamily: 'var(--font-afacad)' }}>
+        <span className={`text-[8px] font-black uppercase text-theme-muted/60`} style={{ fontFamily: 'var(--font-afacad)' }}>
           {slot.room}
         </span>
       </div>
@@ -65,8 +66,8 @@ const TimelineCard = ({ slot, time, active, onClick }: { slot: any, time: string
           borderDasharray: "4 6"
         } as any}
       >
-        <Coffee size={24} className={`transition-colors ${active ? 'text-theme-emphasis' : 'text-theme-muted opacity-40'}`} />
-        <span className={`text-[10px] font-black uppercase tracking-widest transition-colors ${active ? 'text-theme-emphasis' : 'text-theme-muted/40'}`} style={{ fontFamily: 'var(--font-montserrat)' }}>free</span>
+        <Coffee size={20} className={`transition-colors ${active ? 'text-theme-emphasis' : 'text-theme-muted opacity-40'}`} />
+        <span className={`text-[8px] font-black uppercase tracking-widest transition-colors ${active ? 'text-theme-emphasis' : 'text-theme-muted/40'}`} style={{ fontFamily: 'var(--font-montserrat)' }}>free</span>
       </div>
     );
   }
@@ -84,16 +85,16 @@ const TimelineCard = ({ slot, time, active, onClick }: { slot: any, time: string
       }`}
     >
       <div className="flex flex-col">
-        <span className={`text-[16px] font-black uppercase tracking-tighter leading-none mb-1`} style={{ fontFamily: 'var(--font-montserrat)' }}>
+        <span className={`text-[13px] font-black uppercase tracking-tighter leading-none mb-1`} style={{ fontFamily: 'var(--font-montserrat)' }}>
           {time.split('-')[0].trim()}
         </span>
-        <h4 className={`text-[12px] font-bold lowercase tracking-tight line-clamp-2 leading-tight ${active ? 'opacity-90' : 'opacity-60'}`} style={{ fontFamily: 'var(--font-afacad)' }}>
+        <h4 className={`text-[9px] font-bold lowercase tracking-tight line-clamp-2 leading-tight ${active ? 'opacity-90' : 'opacity-60'}`} style={{ fontFamily: 'var(--font-afacad)' }}>
           {slot.name}
         </h4>
       </div>
 
       <div className="flex flex-col">
-        <span className={`text-[12px] font-black uppercase tracking-widest truncate ${active ? 'opacity-80' : 'opacity-40'}`} style={{ fontFamily: 'var(--font-afacad)' }}>
+        <span className={`text-[8px] font-black uppercase tracking-widest truncate ${active ? 'opacity-80' : 'opacity-40'}`} style={{ fontFamily: 'var(--font-afacad)' }}>
           {slot.room}
         </span>
       </div>
@@ -101,19 +102,13 @@ const TimelineCard = ({ slot, time, active, onClick }: { slot: any, time: string
   );
 };
 
-export interface DesktopTimetableRef {
-  download: () => Promise<void>;
-}
-
-export interface DesktopTimetableProps {
-  initialView?: "full" | "default";
-}
-
-const DesktopTimetable = React.forwardRef<DesktopTimetableRef, DesktopTimetableProps>((props, ref) => {
+export default function DesktopTimetable() {
   const { userData, calendarData } = useApp();
   const [showExtra, setShowExtra] = useState(false);
-  const [view, setView] = useState<"full" | "default">(props.initialView || "default");
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [view, setView] = useState<"full" | "default">("default");
   const timetableRef = useRef<HTMLDivElement>(null);
+
   
   const downloadTimetable = async () => {
     if (timetableRef.current === null) return;
@@ -149,22 +144,6 @@ const DesktopTimetable = React.forwardRef<DesktopTimetableRef, DesktopTimetableP
       logo.remove();
     }
   };
-
-  React.useImperativeHandle(ref, () => ({
-    download: async () => {
-      if (view === "full") {
-        await downloadTimetable();
-      } else {
-        setView("full");
-        return new Promise((resolve) => {
-          setTimeout(async () => {
-            await downloadTimetable();
-            resolve();
-          }, 800);
-        });
-      }
-    }
-  }));
 
   const scheduleData = useMemo(() => 
     userData?.timetable || userData?.schedule || {}, 
@@ -358,6 +337,8 @@ const DesktopTimetable = React.forwardRef<DesktopTimetableRef, DesktopTimetableP
     setPreviewTime(null);
   };
 
+  const isUpcomingLabel = (selectedDay !== currentDayOrder) || isHoliday || isTodayFinished;
+
   return (
     <div className="h-full w-full flex flex-col bg-theme-bg overflow-hidden relative">
       <div ref={timetableRef} className="flex-1 relative min-h-0 bg-theme-bg overflow-hidden pb-12">
@@ -376,11 +357,11 @@ const DesktopTimetable = React.forwardRef<DesktopTimetableRef, DesktopTimetableP
                 </div>
                 {displayTimings.map(time => (
                   <div key={time} className="flex flex-col items-center justify-center py-2.5 rounded-xl bg-theme-surface border border-theme-border shadow-sm">
-                    <span className="text-theme-text text-[12px] font-black tabular-nums tracking-tighter leading-none" style={{ fontFamily: 'var(--font-montserrat)' }}>
+                    <span className="text-theme-text text-[9px] font-black tabular-nums tracking-tighter leading-none" style={{ fontFamily: 'var(--font-montserrat)' }}>
                       {time.split('-')[0].trim()}
                     </span>
                     <div className="h-[1px] w-2 bg-theme-border my-1 rounded-full" />
-                    <span className="text-theme-muted text-[12px] font-black tabular-nums tracking-tighter leading-none" style={{ fontFamily: 'var(--font-montserrat)' }}>
+                    <span className="text-theme-muted text-[8px] font-black tabular-nums tracking-tighter leading-none" style={{ fontFamily: 'var(--font-montserrat)' }}>
                       {time.split('-')[1].trim()}
                     </span>
                   </div>
@@ -393,7 +374,7 @@ const DesktopTimetable = React.forwardRef<DesktopTimetableRef, DesktopTimetableP
                     <div className={`flex flex-col items-center justify-center rounded-xl shadow-sm transition-colors relative ${currentDayOrder === day ? 'bg-theme-emphasis' : 'bg-theme-surface border border-theme-border'}`}>
                       <span className={`text-xl font-black leading-none ${currentDayOrder === day ? 'text-theme-bg translate-y-0.5' : 'text-theme-text'}`} style={{ fontFamily: 'var(--font-montserrat)' }}>{day}</span>
                       {currentDayOrder === day && (
-                        <span className="absolute bottom-1.5 text-[12px] font-black uppercase tracking-widest text-theme-bg/60" style={{ fontFamily: 'var(--font-montserrat)' }}>today</span>
+                        <span className="absolute bottom-1.5 text-[6px] font-black uppercase tracking-widest text-theme-bg/60" style={{ fontFamily: 'var(--font-montserrat)' }}>today</span>
                       )}
                     </div>
                     {displayTimings.map(time => (
@@ -416,7 +397,7 @@ const DesktopTimetable = React.forwardRef<DesktopTimetableRef, DesktopTimetableP
               <div className="flex-[1.8] flex flex-col justify-center px-12 pt-36 shrink-0">
                 <div className="max-w-5xl">
                   <div className="flex items-center gap-3 mb-2 translate-y-[-4px]">
-                    <span className="text-theme-muted text-[12px] font-bold uppercase tracking-[0.5em]" style={{ fontFamily: 'var(--font-montserrat)' }}>
+                    <span className="text-theme-muted text-[9px] font-bold uppercase tracking-[0.5em]" style={{ fontFamily: 'var(--font-montserrat)' }}>
                       day order {selectedDay} {isActuallyToday ? (
                         <span className="text-theme-emphasis opacity-100">- today</span>
                       ) : isActuallyUpcoming ? (
@@ -437,7 +418,7 @@ const DesktopTimetable = React.forwardRef<DesktopTimetableRef, DesktopTimetableP
                     {(activeHeroTime || (nextUpSlot && nextUpSlot.time)) && (
                       <>
                         <div className="flex flex-col">
-                          <span className="text-theme-muted text-[12px] font-bold uppercase tracking-[0.4em] mb-2" style={{ fontFamily: 'var(--font-afacad)' }}>timing</span>
+                          <span className="text-theme-muted text-[9px] font-bold uppercase tracking-[0.4em] mb-2" style={{ fontFamily: 'var(--font-afacad)' }}>timing</span>
                           <span className="text-xl font-black uppercase text-theme-highlight whitespace-nowrap" style={{ fontFamily: 'var(--font-montserrat)' }}>
                             {activeHeroTime || (nextUpSlot && nextUpSlot.time)}
                           </span>
@@ -446,14 +427,14 @@ const DesktopTimetable = React.forwardRef<DesktopTimetableRef, DesktopTimetableP
                       </>
                     )}
                     <div className="flex flex-col">
-                      <span className="text-theme-muted text-[12px] font-bold uppercase tracking-[0.4em] mb-2" style={{ fontFamily: 'var(--font-afacad)' }}>location</span>
+                      <span className="text-theme-muted text-[9px] font-bold uppercase tracking-[0.4em] mb-2" style={{ fontFamily: 'var(--font-afacad)' }}>location</span>
                       <span className="text-xl font-black lowercase text-theme-text opacity-70" style={{ fontFamily: 'var(--font-montserrat)' }}>
                         {(activeHeroSlot?.room || nextUpSlot?.room || "anywhere").toLowerCase()}
                       </span>
                     </div>
                     <div className="w-[1px] h-10 bg-theme-border" />
                     <div className="flex flex-col">
-                      <span className="text-theme-muted text-[12px] font-bold uppercase tracking-[0.4em] mb-2" style={{ fontFamily: 'var(--font-afacad)' }}>faculty</span>
+                      <span className="text-theme-muted text-[9px] font-bold uppercase tracking-[0.4em] mb-2" style={{ fontFamily: 'var(--font-afacad)' }}>faculty</span>
                       <span className="text-xl font-black lowercase text-theme-text opacity-70" style={{ fontFamily: 'var(--font-montserrat)' }}>
                         {(activeHeroSlot?.faculty || nextUpSlot?.faculty || "Nobody").split('(')[0].trim()}
                       </span>
@@ -476,7 +457,7 @@ const DesktopTimetable = React.forwardRef<DesktopTimetableRef, DesktopTimetableP
                       <button
                         key={d}
                         onClick={() => { setSelectedDay(d); setPreviewTime(null); }}
-                        className={`w-8 h-8 flex flex-col items-center justify-center rounded-[12px] text-[12px] font-black transition-all relative ${selectedDay === d ? 'bg-theme-emphasis text-theme-bg' : 'text-theme-muted hover:text-theme-text'}`}
+                        className={`w-8 h-8 flex flex-col items-center justify-center rounded-[12px] text-[11px] font-black transition-all relative ${selectedDay === d ? 'bg-theme-emphasis text-theme-bg' : 'text-theme-muted hover:text-theme-text'}`}
                         style={{ fontFamily: 'var(--font-montserrat)' }}
                       >
                         <span className="translate-y-[1px]">{d}</span>
@@ -540,7 +521,7 @@ const DesktopTimetable = React.forwardRef<DesktopTimetableRef, DesktopTimetableP
           
           {view === "full" && (
             <button 
-              onClick={downloadTimetable}
+              onClick={() => setShowPreviewModal(true)}
               className="p-2.5 rounded-2xl bg-theme-surface border border-theme-border text-theme-muted hover:text-theme-text transition-all shadow-sm group active:scale-95"
               title="download as image"
             >
@@ -552,9 +533,11 @@ const DesktopTimetable = React.forwardRef<DesktopTimetableRef, DesktopTimetableP
       <div className="absolute bottom-8 right-8 pointer-events-none z-0 text-right">
         <h1 className="text-theme-text font-regular lowercase leading-none select-none opacity-80" style={{ fontFamily: 'var(--font-afacad)', fontSize: '48px', letterSpacing: '-4px' }}>timetable</h1>
       </div>
+      <TimetablePreviewModal
+        isOpen={showPreviewModal}
+        onClose={() => setShowPreviewModal(false)}
+      />
     </div>
   );
-});
+}
 
-DesktopTimetable.displayName = "DesktopTimetable";
-export default DesktopTimetable;
