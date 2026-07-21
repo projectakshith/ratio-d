@@ -66,7 +66,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const sessionNotificationsSent = React.useRef<Set<string>>(new Set());
   const classNotificationsSent = React.useRef<Set<string>>(new Set());
   const hasRefreshed = React.useRef(false);
-  const hasPrecached = React.useRef(false);
   const router = useRouter();
 
   const cleanupHistory = (history: UpdateHistoryItem[]) => {
@@ -136,15 +135,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return () => clearInterval(interval);
   }, [userData]);
 
-  useEffect(() => {
-    if (typeof window !== "undefined" && "caches" in window && !hasPrecached.current) {
-      hasPrecached.current = true;
-      const coreRoutes = ["/dashboard", "/attendance", "/marks", "/timetable", "/calendar"];
-      coreRoutes.forEach(route => {
-        router.prefetch(route);
-      });
-    }
-  }, [router]);
 
   const calendarData = useMemo(() => {
     return (calendarDataJson as any[]).map(item => ({

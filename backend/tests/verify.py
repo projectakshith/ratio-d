@@ -5,7 +5,8 @@ from pathlib import Path
 
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
-from services.attendance_service_v2 import AttendanceService
+from services.attendance_service import AttendanceService
+
 from services.marks_service import MarksService
 from services.profile_service import ProfileService
 from core.academia_client import AcademiaClient

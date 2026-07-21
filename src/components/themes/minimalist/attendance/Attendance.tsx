@@ -288,9 +288,36 @@ export default function Attendance({
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
         >
-          <motion.div
-            variants={itemVariants}
-            className="w-full flex flex-col items-center mt-2 mb-12 shrink-0"
+          {baseAttendance.length === 0 ? (
+            <motion.div
+              variants={itemVariants}
+              className="w-full flex-1 flex flex-col items-center justify-center p-8 text-center min-h-[450px]"
+            >
+              <div className="text-6xl mb-6 animate-bounce">🦖</div>
+              <h3 
+                className="text-xl font-black uppercase tracking-widest mb-2" 
+                style={{ fontFamily: "var(--font-montserrat)", color: "#FF4D4D" }}
+              >
+                zoho ate your attendance
+              </h3>
+              <p 
+                className="text-sm max-w-xs lowercase mb-6" 
+                style={{ fontFamily: "var(--font-afacad)", color: "#FF4D4Db3" }}
+              >
+                academia is either digesting your records or hasn't generated your classes yet.
+              </p>
+              <span 
+                className="text-[10px] font-black uppercase tracking-[0.2em] animate-pulse"
+                style={{ fontFamily: "var(--font-afacad)", color: "#FF4D4D80" }}
+              >
+                ↓ pull down to search the dino's stomach ↓
+              </span>
+            </motion.div>
+          ) : (
+            <>
+              <motion.div
+                variants={itemVariants}
+                className="w-full flex flex-col items-center mt-2 mb-12 shrink-0"
           >
             <span
               className="text-[12px] font-bold lowercase tracking-[0.3em] mb-3 text-theme-muted"
@@ -673,6 +700,8 @@ export default function Attendance({
               );
             })}
           </motion.div>
+          </>
+        )}
         </motion.div>
 
         <motion.div
