@@ -82,15 +82,23 @@ class SessionHandler:
                 "message": "Security check required. Please enter CAPTCHA."
             }))
 
-        if "error" in res_data or res_data.get("status") == "error":
-            msg = res_data.get("message", "Invalid Credentials")
+        if "error" in res_data or res_data.get("status") == "error" or res_data.get("STATUS") == "error":
+            msg = res_data.get("message") or res_data.get("msg") or "Invalid Credentials"
             if "invalid" in msg.lower() or "password" in msg.lower():
                 raise Exception(json.dumps({"type": "INVALID_CREDENTIALS", "message": msg}))
             raise Exception(msg)
 
-        token = res_data.get("token")
+        data_block = res_data.get("data") if isinstance(res_data.get("data"), dict) else {}
+        token = res_data.get("token") or data_block.get("access_token") or data_block.get("token")
+
         if not token:
-            raise Exception("No token returned from Zoho")
+            print(f"  -> [SESSION] Zoho Login Error Payload: {res_data}", flush=True)
+            msg = res_data.get("message") or res_data.get("msg") or res_data.get("error") or data_block.get("message") or "Invalid credentials or CAPTCHA required"
+            if isinstance(msg, str) and ("invalid" in msg.lower() or "password" in msg.lower()):
+                raise Exception(json.dumps({"type": "INVALID_CREDENTIALS", "message": msg}))
+            raise Exception(f"No token returned from Zoho: {msg}")
+
+
 
         token_url = f"https://academia.srmist.edu.in/srm_university/academia-academic-services/page/My_Attendance?servicename=ZohoCreator&token={token}"
         portal_res = await self.client.get(token_url)
@@ -100,9 +108,11 @@ class SessionHandler:
             if success:
                 r_retry = await self.client.post(LOGIN_URL, data=payload)
                 retry_data = r_retry.json()
-                new_token = retry_data.get("token")
+                retry_block = retry_data.get("data") if isinstance(retry_data.get("data"), dict) else {}
+                new_token = retry_data.get("token") or retry_block.get("access_token")
                 if new_token:
                     t_url = f"https://academia.srmist.edu.in/srm_university/academia-academic-services/page/My_Attendance?servicename=ZohoCreator&token={new_token}"
                     await self.client.get(t_url)
+
 
         return True

@@ -5,7 +5,7 @@ LOGIN_URL = "https://academia.srmist.edu.in/accounts/signin.ac"
 SESSION_FILE = "user_cookies.json"
 
 HEADERS = {
-    "User-Agent": "Mozilla/5.0",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
     "Origin": "https://academia.srmist.edu.in",
     "Referer": "https://academia.srmist.edu.in/",
 }
