@@ -167,37 +167,58 @@ async def refresh_data(creds: Credentials, request: Request):
         if os.getenv("MOCK_ACADEMIA") == "true":
             from pathlib import Path
             att_html = (Path(__file__).parent / "tests" / "snapshots" / "attendance_good.html").read_text(encoding="utf-8")
+            profile_html = (Path(__file__).parent / "tests" / "snapshots" / "profile_good.html").read_text(encoding="utf-8")
         else:
-            att_html = await client.get_attendance_html()
-            if not att_html or att_html == "CONCURRENT_ERROR":
-                if not creds.password:
-                    raise HTTPException(status_code=401, detail={"type": "SESSION_EXPIRED"})
-                
+            res_att, res_prof = await asyncio.gather(
+                client.get_attendance_html(),
+                client.get_profile_html(),
+                return_exceptions=True
+            )
+            att_html = res_att if isinstance(res_att, str) else None
+            profile_html = res_prof if isinstance(res_prof, str) else None
+
+            if (not att_html or att_html == "CONCURRENT_ERROR") and creds.password:
                 print(f"{get_now()}\n  -> [AUTH] Session invalid or site glitch. Attempting re-auth...", flush=True)
                 try:
                     await client.authenticate(creds.captcha, creds.cdigest)
-                    att_html = await client.get_attendance_html()
+                    res_att, res_prof = await asyncio.gather(
+                        client.get_attendance_html(),
+                        client.get_profile_html(),
+                        return_exceptions=True
+                    )
+                    att_html = res_att if isinstance(res_att, str) else None
+                    profile_html = res_prof if isinstance(res_prof, str) else None
                 except Exception:
                     raise HTTPException(status_code=503, detail="Academia is temporarily unavailable. Try again.")
 
             if not att_html:
+                if not creds.password:
+                    raise HTTPException(status_code=401, detail={"type": "SESSION_EXPIRED"})
                 print(f"{get_now()}\n  -> [AUTH] FAILED: Site returned no data after re-auth.", flush=True)
                 raise HTTPException(status_code=503, detail="Academia returned no data. Site might be down.")
 
         attendance = AttendanceService.parse_attendance(att_html)
         marks = MarksService.parse_test_performance(att_html)
+        profile = ProfileService.parse_student_profile(profile_html) if profile_html else None
+        courses = CourseService.get_course_map(profile_html) if profile_html else None
 
         if os.getenv("MOCK_ACADEMIA") == "true":
             current_cookies = {"mock_cookie": "1234"}
         else:
             current_cookies = {c.name: c.value for c in client.session_handler.client.cookies.jar}
         print(f"[API] Refresh completed in {time.time() - start_total:.2f}s", flush=True)
-        return {
+        res_data = {
             "success": True,
             "attendance": attendance,
             "marks": marks,
             "cookies": current_cookies,
         }
+        if profile:
+            res_data["profile"] = profile
+        if courses:
+            res_data["courses"] = courses
+        return res_data
+
     except (httpx.NetworkError, httpx.TimeoutException) as e:
         err_msg = str(e)
         print(f"{get_now()}\n  -> [API] NETWORK ERROR in /refresh: {err_msg}", flush=True)
