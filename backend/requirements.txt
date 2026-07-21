@@ -1,8 +1,7 @@
 fastapi
 uvicorn[standard]
 httpx
-beautifulsoup4
-lxml
+selectolax
 pydantic
 python-dotenv
 slowapi
