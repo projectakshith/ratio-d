@@ -89,14 +89,19 @@ export default function RootLayout({
         <script
           dangerouslySetInnerHTML={{
             __html: `
-              window.addEventListener('error', function(e) {
-                if (e.message && (e.message.includes('Failed to fetch dynamically imported module') || e.message.includes('ChunkLoadError') || e.message.includes('Loading chunk'))) {
+              function handleChunkError(msg) {
+                if (msg && (msg.includes('Failed to fetch') || msg.includes('ChunkLoadError') || msg.includes('Loading chunk'))) {
                   if (!sessionStorage.getItem('chunk_reloaded')) {
                     sessionStorage.setItem('chunk_reloaded', 'true');
                     window.location.reload();
                   }
                 }
-              }, true);
+              }
+              window.addEventListener('error', function(e) { handleChunkError(e.message); }, true);
+              window.addEventListener('unhandledrejection', function(e) { handleChunkError(e.reason?.message || String(e.reason)); });
+              window.addEventListener('load', function() {
+                setTimeout(function() { sessionStorage.removeItem('chunk_reloaded'); }, 5000);
+              });
             `,
           }}
         />
