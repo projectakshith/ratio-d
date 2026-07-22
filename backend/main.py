@@ -187,6 +187,18 @@ async def refresh_data(creds: Credentials, request: Request):
         profile = ProfileService.parse_student_profile(profile_html) if profile_html else None
         courses = CourseService.get_course_map(profile_html) if profile_html else None
 
+        schedule = None
+        if profile and courses:
+            raw_batch = str(profile.get("batch", "1")).strip()
+            actual_batch = raw_batch.split("/")[-1].strip() if "/" in raw_batch else raw_batch
+            profile["batch"] = actual_batch
+            if actual_batch == "1":
+                formatted_batch = "Batch_1"
+            else:
+                formatted_batch = "batch_2"
+            grid_html = await client.get_grid_html(formatted_batch)
+            if grid_html:
+                schedule = TimetableService.parse_unified_grid(grid_html, courses)
 
         current_cookies = {c.name: c.value for c in client.session_handler.client.cookies.jar}
         print(f"[API] Refresh completed in {time.time() - start_total:.2f}s", flush=True)
@@ -200,7 +212,10 @@ async def refresh_data(creds: Credentials, request: Request):
             res_data["profile"] = profile
         if courses:
             res_data["courses"] = courses
+        if schedule:
+            res_data["schedule"] = schedule
         return res_data
+
 
 
 
