@@ -13,9 +13,12 @@ export default function OnboardingRoute() {
     const hasData = localStorage.getItem("ratio_data") || userData;
     const hasSession = document.cookie.includes("ratio_session=");
 
-    if (isOnboarded && hasData && (hasSession || userData)) {
+    if (isOnboarded && !hasSession && !userData) {
+      router.replace("/login");
+    } else if (isOnboarded && hasData && (hasSession || userData)) {
       router.replace("/dashboard");
     }
+
   }, [router, userData]);
 
   const handleComplete = () => {

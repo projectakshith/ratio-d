@@ -134,15 +134,13 @@ export default function Marks({
   ], []);
 
   useEffect(() => {
-    if (subjects.length > 0) {
-      setTargetGrades((prev: Record<string, any>) => {
-        if (Object.keys(prev).length === 0) {
-          return getInitialTargetGrades(subjects);
-        }
-        return prev;
-      });
+    if (subjects.length > 0 && Object.keys(targetGrades).length === 0) {
+      const initial = getInitialTargetGrades(subjects);
+      if (Object.keys(initial).length > 0) {
+        setTargetGrades(initial);
+      }
     }
-  }, [subjects]);
+  }, [subjects, targetGrades]);
 
   const activePredSub = subjects.find((s: any) => s.id === predSubjectId) ||
     subjects[0] || {

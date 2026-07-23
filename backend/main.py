@@ -155,7 +155,7 @@ async def pyq_proxy(request: Request, path: str, q: str = None, limit: int = Non
 @limiter.limit("3/minute")
 async def refresh_data(creds: Credentials, request: Request):
     start_total = time.time()
-    print(f"[API] Incoming REFRESH request for: ...{creds.username[-4:]}", flush=True)
+    print(f"[API] Incoming REFRESH request for: {creds.username}", flush=True)
     try:
         if not creds.cookies and not creds.password:
             raise HTTPException(status_code=401, detail={"type": "SESSION_EXPIRED"})
@@ -168,21 +168,36 @@ async def refresh_data(creds: Credentials, request: Request):
             from pathlib import Path
             att_html = (Path(__file__).parent / "tests" / "snapshots" / "attendance_good.html").read_text(encoding="utf-8")
             profile_html = (Path(__file__).parent / "tests" / "snapshots" / "profile_good.html").read_text(encoding="utf-8")
+            g1_html = ""
+            g2_html = ""
             session_dead = False
         else:
-            res_prof = await client.get_profile_html()
+            res_prof, res_g1, res_g2, res_att = await asyncio.gather(
+                client.get_profile_html(),
+                client.get_grid_html("Batch_1"),
+                client.get_grid_html("batch_2"),
+                client.get_attendance_html()
+            )
             profile_html = res_prof if isinstance(res_prof, str) else None
-            res_att = await client.get_attendance_html()
+            g1_html = res_g1 if isinstance(res_g1, str) else None
+            g2_html = res_g2 if isinstance(res_g2, str) else None
             att_html = res_att if isinstance(res_att, str) else None
+
             session_dead = (profile_html is None or profile_html == "CONCURRENT_ERROR") and (att_html is None or att_html == "CONCURRENT_ERROR")
 
             if session_dead and creds.password:
                 print(f"{get_now()}\n  -> [AUTH] Session invalid or site glitch. Attempting re-auth...", flush=True)
                 try:
                     await client.authenticate(creds.captcha, creds.cdigest)
-                    res_prof = await client.get_profile_html()
+                    res_prof, res_g1, res_g2, res_att = await asyncio.gather(
+                        client.get_profile_html(),
+                        client.get_grid_html("Batch_1"),
+                        client.get_grid_html("batch_2"),
+                        client.get_attendance_html()
+                    )
                     profile_html = res_prof if isinstance(res_prof, str) else None
-                    res_att = await client.get_attendance_html()
+                    g1_html = res_g1 if isinstance(res_g1, str) else None
+                    g2_html = res_g2 if isinstance(res_g2, str) else None
                     att_html = res_att if isinstance(res_att, str) else None
                     session_dead = (profile_html is None or profile_html == "CONCURRENT_ERROR") and (att_html is None or att_html == "CONCURRENT_ERROR")
                 except Exception as e:
@@ -207,17 +222,11 @@ async def refresh_data(creds: Credentials, request: Request):
             raw_batch = str(profile.get("batch", "1")).strip()
             actual_batch = raw_batch.split("/")[-1].strip() if "/" in raw_batch else raw_batch
             profile["batch"] = actual_batch
-            if actual_batch == "1":
-                formatted_batch = "Batch_1"
-            else:
-                formatted_batch = "batch_2"
-            
             if os.getenv("MOCK_ACADEMIA") == "true":
                 from pathlib import Path
                 grid_html = (Path(__file__).parent / "tests" / "snapshots" / "grid_good.html").read_text(encoding="utf-8")
             else:
-                grid_html = await client.get_grid_html(formatted_batch)
-                
+                grid_html = g1_html if actual_batch == "1" else g2_html
             if grid_html:
                 schedule = TimetableService.parse_unified_grid(grid_html, courses)
 
@@ -261,7 +270,7 @@ async def refresh_data(creds: Credentials, request: Request):
 @limiter.limit("5/minute")
 async def login(creds: LoginCredentials, request: Request):
     start_total = time.time()
-    print(f"[API] Incoming login request for: ...{creds.username[-4:]}", flush=True)
+    print(f"[API] Incoming login request for: {creds.username}", flush=True)
     try:
         client = AcademiaClient(creds.username, creds.password, creds.cookies)
         if not creds.cookies and os.getenv("MOCK_ACADEMIA") != "true":
@@ -270,18 +279,41 @@ async def login(creds: LoginCredentials, request: Request):
         if os.getenv("MOCK_ACADEMIA") == "true":
             from pathlib import Path
             profile_html = (Path(__file__).parent / "tests" / "snapshots" / "profile_good.html").read_text(encoding="utf-8")
+            att_html = (Path(__file__).parent / "tests" / "snapshots" / "attendance_good.html").read_text(encoding="utf-8")
+            g1_html = ""
+            g2_html = ""
         else:
-            profile_html = await client.get_profile_html()
-            if not profile_html or profile_html == "CONCURRENT_ERROR":
+            res_prof, res_g1, res_g2, res_att = await asyncio.gather(
+                client.get_profile_html(),
+                client.get_grid_html("Batch_1"),
+                client.get_grid_html("batch_2"),
+                client.get_attendance_html()
+            )
+            profile_html = res_prof if isinstance(res_prof, str) else None
+            g1_html = res_g1 if isinstance(res_g1, str) else None
+            g2_html = res_g2 if isinstance(res_g2, str) else None
+            att_html = res_att if isinstance(res_att, str) else None
+
+            session_dead = (profile_html is None or profile_html == "CONCURRENT_ERROR")
+
+            if session_dead:
                 print(f"{get_now()}\n  -> [AUTH] Re-authenticating...", flush=True)
                 await client.authenticate(creds.captcha, creds.cdigest)
-                profile_html = await client.get_profile_html()
+                res_prof, res_g1, res_g2, res_att = await asyncio.gather(
+                    client.get_profile_html(),
+                    client.get_grid_html("Batch_1"),
+                    client.get_grid_html("batch_2"),
+                    client.get_attendance_html()
+                )
+                profile_html = res_prof if isinstance(res_prof, str) else None
+                g1_html = res_g1 if isinstance(res_g1, str) else None
+                g2_html = res_g2 if isinstance(res_g2, str) else None
+                att_html = res_att if isinstance(res_att, str) else None
 
             if not profile_html:
                 print(f"{get_now()}\n  -> [ACADEMIA] INFO: Authenticated successfully, but profile page is not yet operational.", flush=True)
                 raise HTTPException(status_code=503, detail="Academia is not fully operational yet.")
 
-            
         profile = ProfileService.parse_student_profile(profile_html)
         course_map = CourseService.get_course_map(profile_html)
         
@@ -289,18 +321,10 @@ async def login(creds: LoginCredentials, request: Request):
         actual_batch = raw_batch.split("/")[-1].strip() if "/" in raw_batch else raw_batch
         profile["batch"] = actual_batch
         
-        if actual_batch == "1":
-            formatted_batch = "Batch_1"
-        else:
-            formatted_batch = "batch_2"
-        
         if os.getenv("MOCK_ACADEMIA") == "true":
-            from pathlib import Path
-            att_html = (Path(__file__).parent / "tests" / "snapshots" / "attendance_good.html").read_text(encoding="utf-8")
             grid_html = ""
         else:
-            att_html = await client.get_attendance_html()
-            grid_html = await client.get_grid_html(formatted_batch)
+            grid_html = g1_html if actual_batch == "1" else g2_html
         
         attendance = AttendanceService.parse_attendance(att_html)
         marks = MarksService.parse_test_performance(att_html)
