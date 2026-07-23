@@ -135,7 +135,10 @@ export default function Marks({
 
   useEffect(() => {
     if (subjects.length > 0 && Object.keys(targetGrades).length === 0) {
-      setTargetGrades(getInitialTargetGrades(subjects));
+      const initial = getInitialTargetGrades(subjects);
+      if (Object.keys(initial).length > 0) {
+        setTargetGrades(initial);
+      }
     }
   }, [subjects, targetGrades]);
 
