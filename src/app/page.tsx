@@ -16,10 +16,15 @@ export default function Page() {
     } else {
       const isMobile = window.innerWidth < 768 || /android|iphone|ipad|ipod/i.test(navigator.userAgent);
       if (isMobile) {
-        router.replace("/onboarding");
+        if (isOnboarded) {
+          router.replace("/login");
+        } else {
+          router.replace("/onboarding");
+        }
       } else {
         setShowLanding(true);
       }
+
     }
   }, [router]);
 
