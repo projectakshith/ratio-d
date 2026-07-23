@@ -173,8 +173,12 @@ async def refresh_data(creds: Credentials, request: Request):
                 res_att = await client.get_attendance_html()
                 att_html = res_att if isinstance(res_att, str) else None
                 session_dead = (profile_html is None or profile_html == "CONCURRENT_ERROR") and (att_html is None or att_html == "CONCURRENT_ERROR")
-            except Exception:
+            except Exception as e:
+                err_msg = str(e)
+                if "Invalid credentials" in err_msg or "check your username/password" in err_msg.lower():
+                    raise HTTPException(status_code=401, detail="Invalid Credentials")
                 raise HTTPException(status_code=503, detail="Academia is temporarily unavailable. Try again.")
+
 
         if session_dead:
             if not creds.password:
