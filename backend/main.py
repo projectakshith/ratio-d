@@ -168,30 +168,30 @@ async def refresh_data(creds: Credentials, request: Request):
             from pathlib import Path
             att_html = (Path(__file__).parent / "tests" / "snapshots" / "attendance_good.html").read_text(encoding="utf-8")
             profile_html = (Path(__file__).parent / "tests" / "snapshots" / "profile_good.html").read_text(encoding="utf-8")
+            session_dead = False
         else:
-            res_att, res_prof = await asyncio.gather(
-                client.get_attendance_html(),
-                client.get_profile_html(),
-                return_exceptions=True
-            )
-            att_html = res_att if isinstance(res_att, str) else None
+            res_prof = await client.get_profile_html()
             profile_html = res_prof if isinstance(res_prof, str) else None
+            res_att = await client.get_attendance_html()
+            att_html = res_att if isinstance(res_att, str) else None
+            session_dead = (profile_html is None or profile_html == "CONCURRENT_ERROR") and (att_html is None or att_html == "CONCURRENT_ERROR")
 
-            if (not att_html or att_html == "CONCURRENT_ERROR") and creds.password:
+            if session_dead and creds.password:
                 print(f"{get_now()}\n  -> [AUTH] Session invalid or site glitch. Attempting re-auth...", flush=True)
                 try:
                     await client.authenticate(creds.captcha, creds.cdigest)
-                    res_att, res_prof = await asyncio.gather(
-                        client.get_attendance_html(),
-                        client.get_profile_html(),
-                        return_exceptions=True
-                    )
-                    att_html = res_att if isinstance(res_att, str) else None
+                    res_prof = await client.get_profile_html()
                     profile_html = res_prof if isinstance(res_prof, str) else None
-                except Exception:
+                    res_att = await client.get_attendance_html()
+                    att_html = res_att if isinstance(res_att, str) else None
+                    session_dead = (profile_html is None or profile_html == "CONCURRENT_ERROR") and (att_html is None or att_html == "CONCURRENT_ERROR")
+                except Exception as e:
+                    err_msg = str(e)
+                    if "Invalid credentials" in err_msg or "check your username/password" in err_msg.lower():
+                        raise HTTPException(status_code=401, detail="Invalid Credentials")
                     raise HTTPException(status_code=503, detail="Academia is temporarily unavailable. Try again.")
 
-            if not att_html:
+            if session_dead:
                 if not creds.password:
                     raise HTTPException(status_code=401, detail={"type": "SESSION_EXPIRED"})
                 print(f"{get_now()}\n  -> [AUTH] FAILED: Site returned no data after re-auth.", flush=True)
@@ -201,6 +201,25 @@ async def refresh_data(creds: Credentials, request: Request):
         marks = MarksService.parse_test_performance(att_html)
         profile = ProfileService.parse_student_profile(profile_html) if profile_html else None
         courses = CourseService.get_course_map(profile_html) if profile_html else None
+
+        schedule = None
+        if profile and courses:
+            raw_batch = str(profile.get("batch", "1")).strip()
+            actual_batch = raw_batch.split("/")[-1].strip() if "/" in raw_batch else raw_batch
+            profile["batch"] = actual_batch
+            if actual_batch == "1":
+                formatted_batch = "Batch_1"
+            else:
+                formatted_batch = "batch_2"
+            
+            if os.getenv("MOCK_ACADEMIA") == "true":
+                from pathlib import Path
+                grid_html = (Path(__file__).parent / "tests" / "snapshots" / "grid_good.html").read_text(encoding="utf-8")
+            else:
+                grid_html = await client.get_grid_html(formatted_batch)
+                
+            if grid_html:
+                schedule = TimetableService.parse_unified_grid(grid_html, courses)
 
         if os.getenv("MOCK_ACADEMIA") == "true":
             current_cookies = {"mock_cookie": "1234"}
@@ -217,6 +236,8 @@ async def refresh_data(creds: Credentials, request: Request):
             res_data["profile"] = profile
         if courses:
             res_data["courses"] = courses
+        if schedule:
+            res_data["schedule"] = schedule
         return res_data
 
     except (httpx.NetworkError, httpx.TimeoutException) as e:
