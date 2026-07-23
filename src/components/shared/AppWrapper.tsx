@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useApp } from "@/context/AppContext";
-import { WifiOff, ServerCrash, RefreshCw } from "lucide-react";
+import { WifiOff, ServerCrash, RefreshCw, CheckCircle2 } from "lucide-react";
 import MinecraftParticles from "./MinecraftParticles";
 import MinecraftAmbience from "./MinecraftAmbience";
 import SyncStatusNotification from "./SyncStatusNotification";
@@ -12,11 +12,31 @@ import { useTabFocus } from "@/hooks/useTabFocus";
 
 export default function AppWrapper({ children }: { children: React.ReactNode }) {
   useTabFocus();
-  const { isOffline, isBackendError, setIsBackendError, backendErrorMsg, setBackendErrorMsg, showWelcome, setShowWelcome, userData, isUpdateHistoryOpen, setIsUpdateHistoryOpen } = useApp();
+  const { isOffline, isBackendError, setIsBackendError, backendErrorMsg, setBackendErrorMsg, showWelcome, setShowWelcome, userData, isUpdateHistoryOpen, setIsUpdateHistoryOpen, isUpdating } = useApp();
   const [showSplash, setShowSplash] = useState(false);
   const [isFirstSplash, setIsFirstSplash] = useState(false);
   const [showAutoWhatsNew, setShowAutoWhatsNew] = useState(false);
   const [updateAvailable, setUpdateAvailable] = useState(false);
+  const [showSyncSuccess, setShowSyncSuccess] = useState(false);
+  const wasUpdating = React.useRef(false);
+
+  useEffect(() => {
+    if (isUpdating) {
+      wasUpdating.current = true;
+      setShowSyncSuccess(false);
+    } else {
+      if (wasUpdating.current) {
+        wasUpdating.current = false;
+        if (!isBackendError && !isOffline) {
+          setShowSyncSuccess(true);
+          const timer = setTimeout(() => {
+            setShowSyncSuccess(false);
+          }, 2500);
+          return () => clearTimeout(timer);
+        }
+      }
+    }
+  }, [isUpdating, isBackendError, isOffline]);
 
 useEffect(() => {
   if (typeof window !== "undefined" && "serviceWorker" in navigator) {
@@ -141,6 +161,38 @@ useEffect(() => {
               <ServerCrash size={12} className="text-white" />
               <span className="text-[10px] font-bold uppercase tracking-widest text-white">
                 {backendErrorMsg || "Backend Servers Down"}
+              </span>
+            </div>
+          </motion.div>
+        )}
+        {isUpdating && !isOffline && (
+          <motion.div
+            key="syncing-status"
+            initial={{ y: -20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: -20, opacity: 0 }}
+            className="fixed top-4 left-0 right-0 z-[10001] flex justify-center pointer-events-none"
+          >
+            <div className="bg-theme-surface/90 px-4 py-1.5 rounded-full shadow-lg flex items-center gap-2 border border-theme-border pointer-events-auto">
+              <RefreshCw size={12} className="text-theme-highlight animate-spin" />
+              <span className="text-[10px] font-bold uppercase tracking-widest text-theme-text">
+                syncing...
+              </span>
+            </div>
+          </motion.div>
+        )}
+        {showSyncSuccess && !isOffline && !isUpdating && (
+          <motion.div
+            key="sync-success-status"
+            initial={{ y: -20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: -20, opacity: 0 }}
+            className="fixed top-4 left-0 right-0 z-[10001] flex justify-center pointer-events-none"
+          >
+            <div className="bg-theme-emphasis px-4 py-1.5 rounded-full shadow-lg flex items-center gap-2 border border-theme-emphasis pointer-events-auto">
+              <CheckCircle2 size={12} className="text-theme-bg" />
+              <span className="text-[10px] font-black uppercase tracking-widest text-theme-bg">
+                synced
               </span>
             </div>
           </motion.div>
