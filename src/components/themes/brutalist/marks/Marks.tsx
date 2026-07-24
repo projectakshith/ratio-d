@@ -134,7 +134,10 @@ const MarksPage = ({ data }: { data: AcademiaData }) => {
 
   useEffect(() => {
     if (sortedMarks.length > 0 && Object.keys(targetGrades).length === 0) {
-      setTargetGrades(getInitialTargetGrades(sortedMarks));
+      const initial = getInitialTargetGrades(sortedMarks);
+      if (Object.keys(initial).length > 0) {
+        setTargetGrades(initial);
+      }
     }
   }, [sortedMarks, targetGrades]);
 
