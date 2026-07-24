@@ -17,6 +17,8 @@ export default function CustomClass({
   setEndTime,
   newType,
   setNewType,
+  classDay,
+  setClassDay,
   handleAddClass,
 }: any) {
 
@@ -102,6 +104,32 @@ export default function CustomClass({
                 className="w-full bg-theme-surface border-theme-subtle text-theme-text placeholder:text-theme-faint border rounded-[16px] px-4 py-4 text-[16px] font-bold uppercase tracking-widest outline-none focus:[border-color:var(--theme-highlight)] transition-colors"
                 style={{ fontFamily: "'Montserrat', sans-serif" }}
               />
+            </div>
+
+            <div className="flex flex-col gap-2 mt-1">
+              <span
+                className="text-[11px] font-bold uppercase tracking-widest text-theme-muted pl-1"
+                style={{ fontFamily: "'Afacad', sans-serif" }}
+              >
+                Day Order
+              </span>
+              <div className="grid grid-cols-5 gap-2">
+                {[1, 2, 3, 4, 5].map((d) => (
+                  <button
+                    key={d}
+                    type="button"
+                    onClick={() => {
+                      Haptics.selection();
+                      setClassDay(d);
+                    }}
+                    className={`py-3 rounded-[16px] flex flex-col items-center justify-center transition-all ${classDay === d ? "bg-theme-emphasis text-theme-bg" : "bg-theme-surface text-theme-muted border border-theme-subtle"}`}
+                    style={{ fontFamily: "'Montserrat', sans-serif" }}
+                  >
+                    <span className="text-[15px] font-black">{d}</span>
+                    <span className="text-[8px] font-bold uppercase tracking-wider opacity-60">day</span>
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div className="flex gap-3">

@@ -107,7 +107,10 @@ export default function Timetable({
     if (setIsSwipeDisabled) {
       setIsSwipeDisabled(isAddingClass);
     }
-  }, [isAddingClass, setIsSwipeDisabled]);
+    if (isAddingClass) {
+      setClassDay(activeDay);
+    }
+  }, [isAddingClass, activeDay, setIsSwipeDisabled]);
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
@@ -121,6 +124,7 @@ export default function Timetable({
   const [startTime, setStartTime] = useState("08:00");
   const [endTime, setEndTime] = useState("08:50");
   const [newType, setNewType] = useState<"theory" | "lab">("theory");
+  const [classDay, setClassDay] = useState<number>(1);
 
   const [customClasses, setCustomClasses] = useState<Record<number, any[]>>({});
 
@@ -186,7 +190,7 @@ export default function Timetable({
       startTime,
       endTime,
       newType,
-      activeDay,
+      classDay,
     );
     if (success) {
       setNewSub("");
@@ -637,7 +641,6 @@ export default function Timetable({
       </div>
 
       <CustomClass
-
         isOpen={isAddingClass}
         onClose={() => setIsAddingClass(false)}
         newSub={newSub}
@@ -648,6 +651,10 @@ export default function Timetable({
         setStartTime={setStartTime}
         endTime={endTime}
         setEndTime={setEndTime}
+        newType={newType}
+        setNewType={setNewType}
+        classDay={classDay}
+        setClassDay={setClassDay}
         handleAddClass={handleAddClass}
       />
 

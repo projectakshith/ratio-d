@@ -50,11 +50,31 @@ const CompactSlot = ({ slot }: { slot: any }) => {
 
 export default function ExportTimetable() {
   const { userData } = useApp();
+  const [customClasses, setCustomClasses] = React.useState<any>(null);
 
-  const scheduleData = useMemo(() => 
-    userData?.timetable || userData?.schedule || {}, 
-    [userData]
-  );
+  React.useEffect(() => {
+    const stored = localStorage.getItem("ratio_custom_classes");
+    if (stored) {
+      try {
+        setCustomClasses(JSON.parse(stored));
+      } catch {}
+    }
+  }, []);
+
+  const scheduleData = useMemo(() => {
+    const initialSchedule = userData?.timetable || userData?.schedule || {};
+    if (!customClasses) return initialSchedule;
+
+    const mergedSchedule = JSON.parse(JSON.stringify(initialSchedule));
+    Object.keys(customClasses).forEach((dayNum) => {
+      const dayKey = `Day ${dayNum}`;
+      if (!mergedSchedule[dayKey]) mergedSchedule[dayKey] = {};
+      customClasses[dayNum].forEach((cls: any) => {
+        mergedSchedule[dayKey][cls.time] = { ...cls };
+      });
+    });
+    return mergedSchedule;
+  }, [userData, customClasses]);
 
   const courseMap = useMemo(() => 
     buildCourseMap(userData), 
