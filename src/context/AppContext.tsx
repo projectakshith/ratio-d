@@ -205,8 +205,18 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
         return data;
       } catch (err: any) {
-        if (navigator.onLine && (err.name === 'AbortError' || err.message === 'Failed to fetch' || err.message === 'Backend error')) {
+        if (err.message === 'Backend error') {
           setIsBackendError(true);
+        } else if (err.name === 'AbortError' || err.message === 'Failed to fetch') {
+          try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 1200);
+            await fetch("https://1.1.1.1", { method: "HEAD", mode: "no-cors", signal: controller.signal });
+            clearTimeout(timeoutId);
+            setIsBackendError(true);
+          } catch {
+            setIsOffline(true);
+          }
         }
         throw err;
       }
@@ -324,8 +334,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem("ratio_data", JSON.stringify(mergedData));
       return mergedData;
     } catch (err: any) {
-      if (navigator.onLine && (err.name === 'AbortError' || err.message === 'Failed to fetch')) {
-        setIsBackendError(true);
+      if (err.name === 'AbortError' || err.message === 'Failed to fetch') {
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 1200);
+          await fetch("https://1.1.1.1", { method: "HEAD", mode: "no-cors", signal: controller.signal });
+          clearTimeout(timeoutId);
+          setIsBackendError(true);
+        } catch {
+          setIsOffline(true);
+        }
       }
       return existingData;
     } finally {

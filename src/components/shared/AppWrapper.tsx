@@ -19,6 +19,15 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const [showSyncSuccess, setShowSyncSuccess] = useState(false);
   const wasUpdating = React.useRef(false);
+  const [showWifiPopup, setShowWifiPopup] = useState(false);
+  const prevOffline = React.useRef(isOffline);
+
+  useEffect(() => {
+    if (isOffline && !prevOffline.current) {
+      setShowWifiPopup(true);
+    }
+    prevOffline.current = isOffline;
+  }, [isOffline]);
 
   useEffect(() => {
     if (isUpdating) {
@@ -302,6 +311,60 @@ useEffect(() => {
               </motion.div>
             )}
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showWifiPopup && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[10002] pointer-events-auto"
+              onClick={() => setShowWifiPopup(false)}
+            />
+            <motion.div
+              initial={{ y: "100%", opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: "100%", opacity: 0 }}
+              transition={{ type: "spring", damping: 25, stiffness: 250 }}
+              className="fixed bottom-0 left-0 right-0 max-w-xl mx-auto bg-theme-bg border-t border-theme-border rounded-t-[32px] p-6 pb-12 z-[10003] shadow-2xl pointer-events-auto text-center"
+            >
+              <div className="w-12 h-1.5 bg-theme-text-10 rounded-full mx-auto mb-6 shrink-0" />
+              <div className="text-5xl mb-4">🛜</div>
+              <h3 
+                className="text-lg font-black uppercase tracking-widest text-theme-text mb-2"
+                style={{ fontFamily: 'var(--font-montserrat)' }}
+              >
+                offline. again.
+              </h3>
+              <p 
+                className="text-xs text-theme-muted max-w-xs mx-auto lowercase mb-6 leading-relaxed"
+                style={{ fontFamily: 'var(--font-afacad)' }}
+              >
+                you're completely off the grid. if you're on srmist wifi, you probably forgot to log in (again). go feed the captive portal.
+              </p>
+              <div className="flex flex-col gap-3">
+                <a
+                  href="https://iac.srmist.edu.in/Connect/PortalMain"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full py-4 bg-theme-emphasis text-theme-bg font-black uppercase tracking-[0.2em] rounded-xl flex items-center justify-center gap-2 active:scale-[0.98] transition-transform text-[11px]"
+                  style={{ fontFamily: 'var(--font-montserrat)' }}
+                >
+                  login to srm wifi
+                </a>
+                <button
+                  onClick={() => setShowWifiPopup(false)}
+                  className="w-full py-4 bg-theme-surface border border-theme-border text-theme-text font-black uppercase tracking-[0.2em] rounded-xl active:scale-[0.98] transition-transform text-[11px]"
+                  style={{ fontFamily: 'var(--font-montserrat)' }}
+                >
+                  whatever
+                </button>
+              </div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
     </main>
