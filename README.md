@@ -15,6 +15,9 @@
 [![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python)
 [![Cloudflare](https://img.shields.io/badge/Cloudflare-F38020?style=for-the-badge&logo=cloudflare&logoColor=white)](https://cloudflare)
 
+<img width="1280" height="720" alt="1785130732540" src="https://github.com/user-attachments/assets/02f3a0d3-dd1e-4c51-83e5-62d9956ededa" />
+
+
 <img src="public/screenshots/mobile.jpeg" width="42%" />
 &nbsp;&nbsp;
 <img src="public/screenshots/attendance.jpeg" width="42%" />
