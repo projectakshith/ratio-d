@@ -3,7 +3,6 @@
 
 <div align="center">
 
-# ratio'd
 
 ### built for speed.
 
