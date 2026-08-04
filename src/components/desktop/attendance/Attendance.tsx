@@ -17,7 +17,7 @@ import { DayPicker } from "react-day-picker";
 import { format } from "date-fns";
 import { AttendanceRecord, CalendarEvent } from "@/types";
 
-const SubjectCard = ({ code, title, percent, present, conducted, val, safe, type, recoveryDate, hasChanged }: {
+const SubjectCard = ({ code, title, percent, present, conducted, val, safe, type, recoveryDate, hasChanged, predConducted, predPresent }: {
   code: string;
   title: string;
   percent: string;
@@ -28,6 +28,8 @@ const SubjectCard = ({ code, title, percent, present, conducted, val, safe, type
   type?: string;
   recoveryDate?: string | null;
   hasChanged?: boolean;
+  predConducted?: number;
+  predPresent?: number;
 }) => {
   const isPractical = type?.toLowerCase() === 'practical';
   const isCritical = !safe;
@@ -159,7 +161,7 @@ const SubjectCard = ({ code, title, percent, present, conducted, val, safe, type
               <span className={`text-base font-black ${textStyles} opacity-40`}>%</span>
             </div>
             <span className={`text-[11px] font-bold tabular-nums ${textStyles} opacity-60`} style={{ fontFamily: 'var(--font-afacad)' }}>
-              {conducted > 0 ? `${present}/${conducted}` : "—"}
+              {predConducted !== undefined ? `${predPresent}/${predConducted}` : (conducted > 0 ? `${present}/${conducted}` : "—")}
             </span>
           </div>
           <div className={`w-full h-1 rounded-full overflow-hidden mt-2 ${progressBarBg}`}>

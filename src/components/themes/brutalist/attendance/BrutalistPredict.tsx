@@ -95,13 +95,6 @@ export default function BrutalistPredict({
                 leaves
               </button>
               <button
-                onClick={() => { Haptics.selection(); setPredictAction("attend"); }}
-                className={`flex-1 py-2.5 rounded-[12px] text-[11px] font-bold uppercase transition-all ${predictAction === "attend" ? "bg-[#ceff1c] text-black" : "text-white/40"}`}
-                style={{ fontFamily: "Montserrat" }}
-              >
-                attending
-              </button>
-              <button
                 onClick={() => { Haptics.selection(); setPredictAction("od"); }}
                 className={`flex-1 py-2.5 rounded-[12px] text-[11px] font-bold uppercase transition-all ${predictAction === "od" ? "bg-[#F97316] text-white" : "text-white/40"}`}
                 style={{ fontFamily: "Montserrat" }}
@@ -144,28 +137,22 @@ export default function BrutalistPredict({
                   const isToday = dateObj.getTime() === now.getTime();
                   const isWeekend = isWeekendStr(dStr);
                   const isHoliday = holidayMap.has(dStr);
-                  const isDisabled = (isWeekend || isHoliday) || (isPast && predictAction !== "od");
+                  const isDisabled = (isWeekend || isHoliday) || (predictAction === "od" ? !isPast : isPast);
                   
                   const selectedType = selectedDates[dStr];
                   const isSelected = !!selectedType;
                   
-                  let cellStyle = "bg-white/5 text-white";
-                  if (isSelected) {
-                    if (selectedType === "leave") cellStyle = "bg-[#ff003c] text-white shadow-[#ff003c]/20";
-                    else if (selectedType === "od") cellStyle = "bg-[#F97316] text-white shadow-[#F97316]/20";
-                    else if (selectedType === "attend") cellStyle = "bg-[#ceff1c] text-black shadow-[#ceff1c]/20";
-                  } else if (isToday) {
-                    cellStyle = "bg-white/10 text-white ring-1 ring-white/30";
-                  }
+                  const cellStyle = isToday ? "bg-white/10 text-white ring-1 ring-white/30" : "bg-white/5 text-white";
+                  const cellStyleToUse = isSelected
+                    ? (selectedType === "leave" ? "bg-[#ff003c] text-white shadow-[#ff003c]/20 shadow-lg" : "bg-[#F97316] text-white shadow-[#F97316]/20 shadow-lg")
+                    : (isDisabled ? "text-white/10" : cellStyle + " shadow-lg");
                   
                   return (
                     <div key={day} className="relative aspect-square flex flex-col items-center justify-center">
                       <button
                         onClick={() => { Haptics.selection(); handleDateClick(day); }}
-                        disabled={isDisabled}
-                        className={`w-full h-full rounded-[12px] flex items-center justify-center text-[15px] font-black transition-all 
-                          ${isDisabled ? "text-white/10" : cellStyle + " shadow-lg"}
-                        `}
+                        disabled={isDisabled && !isSelected}
+                        className={`w-full h-full rounded-[12px] flex items-center justify-center text-[15px] font-black transition-all ${cellStyleToUse}`}
                         style={{ fontFamily: "Montserrat" }}
                       >
                         {day}
@@ -194,7 +181,7 @@ export default function BrutalistPredict({
             </div>
           </div>
 
-          <div className="w-full flex justify-between items-center bg-white/5 border border-white/10 p-4 rounded-[24px] shrink-0 mt-auto">
+          <div className="w-full flex justify-between items-center bg-white/5 border border-white/10 p-4 rounded-[24px] shrink-0 mt-auto gap-3">
             <div className="flex flex-col ml-2">
               <span className="text-[12px] font-bold lowercase tracking-widest text-white/40 mb-0.5" style={{ fontFamily: "Aonic" }}>
                 total days
@@ -203,20 +190,35 @@ export default function BrutalistPredict({
                 {Object.keys(selectedDates).length}
               </span>
             </div>
-            <button
-              onClick={() => {
-                if (Object.keys(selectedDates).length > 0) {
-                  setIsPredicting(true);
-                  onClose();
-                }
-              }}
-              className={`px-8 py-4 rounded-[16px] flex items-center gap-3 active:scale-95 shadow-xl transition-all ${predictAction === "leave" ? "bg-[#ff003c] text-white" : predictAction === "od" ? "bg-[#F97316] text-white" : "bg-[#ceff1c] text-black"}`}
-            >
-              <span className="text-[14px] font-black uppercase" style={{ fontFamily: "Montserrat" }}>
-                confirm
-              </span>
-              <Check size={20} strokeWidth={3} />
-            </button>
+            <div className="flex items-center gap-2">
+              {Object.keys(selectedDates).length > 0 && (
+                <button
+                  onClick={() => {
+                    Haptics.selection();
+                    setSelectedDates({});
+                    setIsPredicting(false);
+                  }}
+                  className="bg-white/5 text-white/60 px-4 py-4 rounded-[16px] flex items-center justify-center text-[12px] font-black uppercase active:scale-95 transition-all border border-white/10"
+                  style={{ fontFamily: "Montserrat" }}
+                >
+                  revert
+                </button>
+              )}
+              <button
+                onClick={() => {
+                  if (Object.keys(selectedDates).length > 0) {
+                    setIsPredicting(true);
+                    onClose();
+                  }
+                }}
+                className={`px-6 py-4 rounded-[16px] flex items-center gap-2 active:scale-95 shadow-xl transition-all ${predictAction === "leave" ? "bg-[#ff003c] text-white" : "bg-[#F97316] text-white"}`}
+              >
+                <span className="text-[14px] font-black uppercase" style={{ fontFamily: "Montserrat" }}>
+                  confirm
+                </span>
+                <Check size={20} strokeWidth={3} />
+              </button>
+            </div>
           </div>
         </motion.div>
       )}

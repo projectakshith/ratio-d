@@ -78,12 +78,14 @@ export const getOverallStats = (baseAttendance: any[]) => {
   let totalConducted = 0;
   let totalPresent = 0;
   baseAttendance.forEach((s) => {
-    totalConducted += s.conducted;
-    totalPresent += s.present;
+    const cond = s.predConducted !== undefined ? s.predConducted : s.conducted;
+    const pres = s.predPresent !== undefined ? s.predPresent : s.present;
+    totalConducted += cond;
+    totalPresent += pres;
   });
   const overallPct =
     totalConducted === 0
-      ? baseAttendance.reduce((sum, s) => sum + parseFloat(s.percentage), 0) / baseAttendance.length
+      ? baseAttendance.reduce((sum, s) => sum + parseFloat(s.pred?.pct ?? s.percentage), 0) / baseAttendance.length
       : (totalPresent / totalConducted) * 100;
   const category =
     overallPct < 75 ? "cooked" : overallPct >= 85 ? "safe" : "danger";
@@ -182,7 +184,7 @@ export const getImpactMap = (
   effectiveSchedule: ScheduleData,
   baseAttendance: any[]
 ) => {
-  const impact: Record<string, { conducted: number; present: number }> = {};
+  const impact: Record<string, { conducted: number; present: number; pastOdCredit: number }> = {};
   if (calendarData.length === 0 || Object.keys(effectiveSchedule).length === 0)
     return impact;
 
@@ -191,8 +193,8 @@ export const getImpactMap = (
     normDate: parseDateString(c.date),
   }));
 
-  const todayStr = parseDateString(new Date().toISOString());
-  if (!todayStr) return impact;
+  const now = new Date();
+  const todayObj = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
   const dateEntries = Object.entries(selectedDates);
   if (dateEntries.length === 0) return impact;
@@ -203,12 +205,12 @@ export const getImpactMap = (
   if (leaveDates.length > 0) {
     const sortedLeaves = [...leaveDates].sort();
     const lastLeaveStr = sortedLeaves[sortedLeaves.length - 1];
-    const start = new Date(todayStr);
+    const start = new Date(todayObj);
     const end = new Date(lastLeaveStr);
     const simulationSet = new Set(datesToSimulate);
     
     for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-      const dStr = parseDateString(d.toISOString());
+      const dStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
       if (dStr) simulationSet.add(dStr);
     }
     datesToSimulate = Array.from(simulationSet);
@@ -226,6 +228,9 @@ export const getImpactMap = (
           effectiveSchedule[String(orderNum)];
         if (dayClasses) {
           const action = selectedDates[dateStr];
+          const [y, m, d] = dateStr.split("-").map(Number);
+          const dObj = new Date(y, m - 1, d);
+          const isPast = dObj < todayObj;
 
           Object.entries(dayClasses).forEach(([timeRange, cls]: [string, any]) => {
             if (!cls) return;
@@ -234,12 +239,16 @@ export const getImpactMap = (
 
             if (targetSubject) {
               if (!impact[targetSubject.id]) {
-                impact[targetSubject.id] = { conducted: 0, present: 0 };
+                impact[targetSubject.id] = { conducted: 0, present: 0, pastOdCredit: 0 };
               }
 
-              impact[targetSubject.id].conducted += sessionWeight;
-              if (action === "od" || action === "attend" || !action) {
-                impact[targetSubject.id].present += sessionWeight;
+              if (action === "od" && isPast) {
+                impact[targetSubject.id].pastOdCredit += sessionWeight;
+              } else {
+                impact[targetSubject.id].conducted += sessionWeight;
+                if (action === "od" || action === "attend" || !action) {
+                  impact[targetSubject.id].present += sessionWeight;
+                }
               }
             }
           });
@@ -272,7 +281,8 @@ export const getRecoveryDate = (
 
   Object.entries(selectedDates).forEach(([dateStr, type]) => {
     if (type !== "od") return;
-    const dObj = new Date(dateStr);
+    const [y, m, d] = dateStr.split("-").map(Number);
+    const dObj = new Date(y, m - 1, d);
     if (dObj < today) {
       const dayInfo = normalizedCalData.find((c) => c.normDate === dateStr);
       if (dayInfo) {
@@ -341,12 +351,14 @@ export const getRecoveryDate = (
 
 export const getProcessedList = (
   baseAttendance: any[],
-  predictionImpact: Record<string, { conducted: number; present: number }>,
+  predictionImpact: Record<string, { conducted: number; present: number; pastOdCredit?: number }>,
   predictMode: boolean,
 ) => {
   const list = baseAttendance.map((subject) => {
-    const imp = predictionImpact[subject.id] || { conducted: 0, present: 0 };
-    const currentPresent = subject.present;
+    const imp = predictionImpact[subject.id] || { conducted: 0, present: 0, pastOdCredit: 0 };
+    const maxAbsent = Math.max(0, subject.conducted - subject.present);
+    const odCredit = Math.min(imp.pastOdCredit || 0, maxAbsent);
+    const currentPresent = subject.present + odCredit;
     const currentConducted = subject.conducted;
 
     const newConducted = currentConducted + imp.conducted;
@@ -357,10 +369,12 @@ export const getProcessedList = (
 
     return {
       ...subject,
+      predConducted: newConducted,
+      predPresent: newPresent,
       pred: {
         pct: newPct,
         status: newStatus,
-        sessionsAffected: imp.conducted > 0 || imp.present > 0,
+        sessionsAffected: imp.conducted > 0 || imp.present > 0 || odCredit > 0,
       },
     };
   });

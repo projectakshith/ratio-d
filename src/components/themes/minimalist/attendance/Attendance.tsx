@@ -151,23 +151,12 @@ export default function Attendance({
   );
 
   const stats = useMemo(() => {
-    let totalC = 0,
-      totalP = 0;
-    baseAttendance.forEach((s) => {
-      const imp = (impactMap && impactMap[s.id]) || { conducted: 0, present: 0 };
-      totalC += s.conducted + imp.conducted;
-      totalP += s.present + imp.present;
-    });
-    const pct = totalC === 0
-      ? baseAttendance.reduce((sum, s) => sum + parseFloat(s.percentage), 0) / (baseAttendance.length || 1)
-      : (totalP / totalC) * 100;
-    
-    const overallStats = getOverallStats(baseAttendance);
+    const overallStats = getOverallStats(processedList);
     const roast = getRandomRoast(overallStats.badge as any, "header");
     const emergencyRoast = getRandomRoast("cooked", "header");
     
-    return { percent: pct.toFixed(1), safe: pct >= 75, roast, emergencyRoast };
-  }, [baseAttendance, impactMap, isPredicting]);
+    return { percent: overallStats.pct.toFixed(1), safe: overallStats.pct >= 75, roast, emergencyRoast };
+  }, [processedList]);
 
   const calYear = currentCalDate.getFullYear();
   const calMonth = currentCalDate.getMonth();
@@ -413,11 +402,14 @@ export default function Attendance({
                         predicting
                       </span>
                       <span
-                        className="text-[10px] font-bold lowercase tracking-wider mt-1 text-theme-bg-70"
+                        className="text-[11px] font-bold tracking-wide mt-1 text-theme-bg opacity-100 truncate max-w-[240px]"
                         style={{ fontFamily: "var(--font-afacad), sans-serif" }}
                       >
-                        {selectedDates.length} days{" "}
-                        {predictAction === "leave" ? "off" : "present"}
+                        {Object.keys(selectedDates).length} {Object.keys(selectedDates).length === 1 ? "day" : "days"}: {Object.keys(selectedDates).sort().map(dStr => {
+                          const [y, m, d] = dStr.split("-").map(Number);
+                          const dateText = new Date(y, m - 1, d).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+                          return selectedDates[dStr] === "od" ? `${dateText} (OD/ML)` : dateText;
+                        }).join(", ")}
                       </span>
                     </div>
                   </div>
@@ -548,7 +540,7 @@ export default function Attendance({
                           className="text-[12px] font-bold opacity-70"
                           style={{ color: "#FF4D4D" }}
                         >
-                          {sub.conducted > 0 ? `${sub.present}/${sub.conducted}` : "—"}
+                          {isPredicting && sub.predConducted !== undefined ? `${sub.predPresent}/${sub.predConducted}` : (sub.conducted > 0 ? `${sub.present}/${sub.conducted}` : "—")}
                         </span>
                         <div
                           className="w-[3px] h-[3px] rounded-full opacity-40"
@@ -679,7 +671,7 @@ export default function Attendance({
                         className="text-[12px] font-bold opacity-70"
                         style={{ color: baseColor }}
                       >
-                        {sub.conducted > 0 ? `${sub.present}/${sub.conducted}` : "—"}
+                        {isPredicting && sub.predConducted !== undefined ? `${sub.predPresent}/${sub.predConducted}` : (sub.conducted > 0 ? `${sub.present}/${sub.conducted}` : "—")}
                       </span>
                       <div
                         className="w-[3px] h-[3px] rounded-full opacity-40"

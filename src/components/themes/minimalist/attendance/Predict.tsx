@@ -111,13 +111,6 @@ export default function Predict({
                 leaves
               </button>
               <button
-                onClick={() => { Haptics.selection(); setPredictAction("attend"); }}
-                className={`flex-1 py-2.5 rounded-[12px] text-[11px] font-bold uppercase transition-all ${predictAction === "attend" ? "bg-theme-highlight text-theme-text" : "text-theme-muted"}`}
-                style={{ fontFamily: "'Montserrat', sans-serif" }}
-              >
-                attending
-              </button>
-              <button
                 onClick={() => { Haptics.selection(); setPredictAction("od"); }}
                 className={`flex-1 py-2.5 rounded-[12px] text-[11px] font-bold uppercase transition-all ${predictAction === "od" ? "bg-[#F97316] text-white" : "text-theme-muted"}`}
                 style={{ fontFamily: "'Montserrat', sans-serif" }}
@@ -177,19 +170,13 @@ export default function Predict({
                   const isToday = dateObj.getTime() === now.getTime();
                   const isWeekend = isWeekendStr(dStr);
                   const isHoliday = holidayMap.has(dStr);
-                  const isDisabled = (isWeekend || isHoliday) || (isPast && predictAction !== "od");
-                  
+                  const isDisabled = (isWeekend || isHoliday) || (predictAction === "od" ? !isPast : isPast);
                   const selectedType = selectedDates[dStr];
                   const isSelected = !!selectedType;
-                  
-                  let cellStyle = "bg-theme-surface text-theme-text";
-                  if (isSelected) {
-                    if (selectedType === "leave") cellStyle = "bg-[#FF4D4D] text-white shadow-[#FF4D4D]/20";
-                    else if (selectedType === "od") cellStyle = "bg-[#F97316] text-white shadow-[#F97316]/20";
-                    else if (selectedType === "attend") cellStyle = "bg-theme-highlight text-theme-text shadow-theme-highlight/20";
-                  } else if (isToday) {
-                    cellStyle = "bg-[#0EA5E9]/10 text-[#0EA5E9] border border-[#0EA5E9]/30";
-                  }
+                  const cellStyle = isToday ? "bg-[#0EA5E9]/10 text-[#0EA5E9] border border-[#0EA5E9]/30" : "bg-theme-surface text-theme-text";
+                  const cellStyleToUse = isSelected
+                    ? (selectedType === "leave" ? "bg-[#FF4D4D] text-white shadow-[#FF4D4D]/20 shadow-lg" : "bg-[#F97316] text-white shadow-[#F97316]/20 shadow-lg")
+                    : (isDisabled ? "text-theme-subtle opacity-20" : cellStyle + " shadow-lg");
 
                   return (
                     <div
@@ -198,8 +185,8 @@ export default function Predict({
                     >
                       <button
                         onClick={() => { Haptics.selection(); handleDateClick(day); }}
-                        disabled={isDisabled}
-                        className={`w-full h-full rounded-[12px] flex items-center justify-center text-[15px] font-black transition-all ${isDisabled ? "text-theme-subtle opacity-20" : cellStyle + " shadow-lg"}`}
+                        disabled={isDisabled && !isSelected}
+                        className={`w-full h-full rounded-[12px] flex items-center justify-center text-[15px] font-black transition-all ${cellStyleToUse}`}
                         style={{ fontFamily: "'Montserrat', sans-serif" }}
                       >
                         {day}
@@ -243,7 +230,7 @@ export default function Predict({
             </div>
           </div>
           <div
-              className="w-full flex justify-between items-center bg-theme-surface border border-theme-subtle p-4 rounded-[24px] shrink-0 mt-auto"
+              className="w-full flex justify-between items-center bg-theme-surface border border-theme-subtle p-4 rounded-[24px] shrink-0 mt-auto gap-3"
           >
             <div className="flex flex-col ml-2">
               <span
@@ -259,23 +246,38 @@ export default function Predict({
                 {Object.keys(selectedDates).length}
               </span>
             </div>
-            <button
-              onClick={() => {
-                if (Object.keys(selectedDates).length > 0) {
-                  setIsPredicting(true);
-                  onClose();
-                }
-              }}
-              className="bg-theme-highlight text-theme-text px-8 py-4 rounded-[16px] flex items-center gap-3 active:scale-95 shadow-xl transition-all"
-            >
-              <span
-                className="text-[14px] font-black uppercase"
-                style={{ fontFamily: "'Montserrat', sans-serif" }}
+            <div className="flex items-center gap-2">
+              {Object.keys(selectedDates).length > 0 && (
+                <button
+                  onClick={() => {
+                    Haptics.selection();
+                    setSelectedDates({});
+                    setIsPredicting(false);
+                  }}
+                  className="bg-theme-surface text-theme-muted px-4 py-4 rounded-[16px] flex items-center justify-center text-[12px] font-black uppercase active:scale-95 transition-all border border-theme-subtle"
+                  style={{ fontFamily: "'Montserrat', sans-serif" }}
+                >
+                  revert
+                </button>
+              )}
+              <button
+                onClick={() => {
+                  if (Object.keys(selectedDates).length > 0) {
+                    setIsPredicting(true);
+                    onClose();
+                  }
+                }}
+                className="bg-theme-highlight text-theme-text px-6 py-4 rounded-[16px] flex items-center gap-2 active:scale-95 shadow-xl transition-all"
               >
-                confirm
-              </span>
-              <Check size={20} strokeWidth={3} />
-            </button>
+                <span
+                  className="text-[14px] font-black uppercase"
+                  style={{ fontFamily: "'Montserrat', sans-serif" }}
+                >
+                  confirm
+                </span>
+                <Check size={20} strokeWidth={3} />
+              </button>
+            </div>
           </div>
         </motion.div>
       )}

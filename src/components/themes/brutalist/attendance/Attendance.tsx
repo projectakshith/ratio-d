@@ -404,11 +404,13 @@ const MobileAttendance = ({
                 <div className="flex flex-col">
                   <span className="font-mono text-[10px] lowercase tracking-widest font-bold text-white/40 mb-1">prediction active</span>
                   <div className="flex items-center gap-2">
-                    <span className={`text-2xl font-black lowercase ${predType === "leave" ? "text-[#ff003c]" : "text-[#ceff1c]"}`} style={{ fontFamily: "Urbanosta" }}>
-                      {predType === "leave" ? "leave" : "attend"}
+                    <span className="text-white font-bold text-sm tracking-wide lowercase truncate max-w-[280px]" style={{ fontFamily: "Aonic" }}>
+                      {Object.keys(selectedDates).length} {Object.keys(selectedDates).length === 1 ? "day" : "days"}: {Object.keys(selectedDates).sort().map(dStr => {
+                        const [y, m, d] = dStr.split("-").map(Number);
+                        const dateText = new Date(y, m - 1, d).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+                        return selectedDates[dStr] === "od" ? `${dateText} (OD/ML)` : dateText;
+                      }).join(", ")}
                     </span>
-                    <span className="text-white/20 text-xl font-bold">/</span>
-                    <span className="text-white/60 text-xl font-bold lowercase" style={{ fontFamily: "Aonic" }}>{Object.keys(selectedDates).length} days</span>
                   </div>
                 </div>
                 <button

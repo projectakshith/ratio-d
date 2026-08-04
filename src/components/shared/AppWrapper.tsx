@@ -29,112 +29,156 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
     prevOffline.current = isOffline;
   }, [isOffline]);
 
+  const [syncText, setSyncText] = useState("syncing...");
+  const [syncFailed, setSyncFailed] = useState(false);
+  const hasExpiredRef = React.useRef(false);
+
   useEffect(() => {
     if (isUpdating) {
       wasUpdating.current = true;
+      hasExpiredRef.current = false;
       setShowSyncSuccess(false);
+      setSyncFailed(false);
+      setSyncText("syncing...");
+
+      const t1 = setTimeout(() => {
+        hasExpiredRef.current = true;
+        setSyncText("session expired");
+      }, 2000);
+
+      const t2 = setTimeout(() => {
+        setSyncText("re-authenticating...");
+      }, 3400);
+
+      const t3 = setTimeout(() => {
+        setSyncText("syncing...");
+      }, 4800);
+
+      const tSafety = setTimeout(() => {
+        setSyncFailed(true);
+        setSyncText("sync failed • check internet or try logging back in");
+      }, 15000);
+
+      return () => {
+        clearTimeout(t1);
+        clearTimeout(t2);
+        clearTimeout(t3);
+        clearTimeout(tSafety);
+      };
     } else {
       if (wasUpdating.current) {
         wasUpdating.current = false;
         if (!isBackendError && !isOffline) {
-          setShowSyncSuccess(true);
-          const timer = setTimeout(() => {
-            setShowSyncSuccess(false);
-          }, 2500);
-          return () => clearTimeout(timer);
+          if (hasExpiredRef.current) {
+            hasExpiredRef.current = false;
+            setSyncText("re-authenticating...");
+            const tReauth = setTimeout(() => {
+              setShowSyncSuccess(true);
+              const timer = setTimeout(() => {
+                setShowSyncSuccess(false);
+              }, 2500);
+            }, 1200);
+            return () => clearTimeout(tReauth);
+          } else {
+            setShowSyncSuccess(true);
+            const timer = setTimeout(() => {
+              setShowSyncSuccess(false);
+            }, 2500);
+            return () => clearTimeout(timer);
+          }
         }
       }
     }
   }, [isUpdating, isBackendError, isOffline]);
 
-useEffect(() => {
-  if (typeof window !== "undefined" && "serviceWorker" in navigator) {
-    const wb = (window as any).workbox;
-    if (wb) {
-      wb.addEventListener("waiting", () => setUpdateAvailable(true));
-      wb.addEventListener("externalwaiting", () => setUpdateAvailable(true));
+  useEffect(() => {
+    if (typeof window !== "undefined" && "serviceWorker" in navigator) {
+      const wb = (window as any).workbox;
+      if (wb) {
+        wb.addEventListener("waiting", () => setUpdateAvailable(true));
+        wb.addEventListener("externalwaiting", () => setUpdateAvailable(true));
+      }
     }
-  }
-}, []);
+  }, []);
 
-const handleUpdate = () => {
-  if (typeof window !== "undefined") {
-    window.location.reload();
-  }
-};
+  const handleUpdate = () => {
+    if (typeof window !== "undefined") {
+      window.location.reload();
+    }
+  };
 
-useEffect(() => {
-  const CURRENT_VERSION = "1.1.0";
-  const seenVersion = localStorage.getItem("ratio_seen_version");
-  const isOnboarded = localStorage.getItem("ratiod_onboarded") === "true";
-
-  if (isOnboarded && seenVersion !== CURRENT_VERSION && window.innerWidth < 768) {
-    const timer = setTimeout(() => {
-      setShowAutoWhatsNew(true);
-    }, 3000);
-    return () => clearTimeout(timer);
-  }
-}, []);
-
-const handleCloseWhatsNew = () => {
-  const CURRENT_VERSION = "1.1.0";
-  localStorage.setItem("ratio_seen_version", CURRENT_VERSION);
-  setShowAutoWhatsNew(false);
-};
-
-useEffect(() => {
-  const splashPlayed = sessionStorage.getItem("ratio_splash_played") === "true";
-  if (splashPlayed) return;
-
-  const isStandalone =
-    window.matchMedia("(display-mode: standalone)").matches ||
-    (window.navigator as any).standalone;
-
-  if (isStandalone) {
-    sessionStorage.setItem("ratio_splash_played", "true");
+  useEffect(() => {
+    const CURRENT_VERSION = "1.1.0";
+    const seenVersion = localStorage.getItem("ratio_seen_version");
     const isOnboarded = localStorage.getItem("ratiod_onboarded") === "true";
 
-    if (!isOnboarded) {
-      setIsFirstSplash(true);
+    if (isOnboarded && seenVersion !== CURRENT_VERSION && window.innerWidth < 768) {
+      const timer = setTimeout(() => {
+        setShowAutoWhatsNew(true);
+      }, 3000);
+      return () => clearTimeout(timer);
     }
+  }, []);
 
-    let meta = document.querySelector('meta[name="theme-color"]');
-    if (!meta) {
-      meta = document.createElement("meta");
-      meta.setAttribute("name", "theme-color");
-      document.head.appendChild(meta);
+  const handleCloseWhatsNew = () => {
+    const CURRENT_VERSION = "1.1.0";
+    localStorage.setItem("ratio_seen_version", CURRENT_VERSION);
+    setShowAutoWhatsNew(false);
+  };
+
+  useEffect(() => {
+    const splashPlayed = sessionStorage.getItem("ratio_splash_played") === "true";
+    if (splashPlayed) return;
+
+    const isStandalone =
+      window.matchMedia("(display-mode: standalone)").matches ||
+      (window.navigator as any).standalone;
+
+    if (isStandalone) {
+      sessionStorage.setItem("ratio_splash_played", "true");
+      const isOnboarded = localStorage.getItem("ratiod_onboarded") === "true";
+
+      if (!isOnboarded) {
+        setIsFirstSplash(true);
+      }
+
+      let meta = document.querySelector('meta[name="theme-color"]');
+      if (!meta) {
+        meta = document.createElement("meta");
+        meta.setAttribute("name", "theme-color");
+        document.head.appendChild(meta);
+      }
+      const prevColor = meta.getAttribute("content") || "#111111";
+      meta.setAttribute("content", "#0c30ff");
+
+      setShowSplash(true);
+      const safetyTimer = setTimeout(() => {
+        setShowSplash(false);
+        meta!.setAttribute("content", prevColor);
+      }, !isOnboarded ? 3500 : 800);
+      return () => clearTimeout(safetyTimer);
     }
-    const prevColor = meta.getAttribute("content") || "#111111";
-    meta.setAttribute("content", "#0c30ff");
+  }, []);
 
-    setShowSplash(true);
-    const safetyTimer = setTimeout(() => {
+  useEffect(() => {
+    if (isBackendError) {
+      const timer = setTimeout(() => {
+        setIsBackendError(false);
+        setBackendErrorMsg(null);
+      }, 10000);
+      return () => clearTimeout(timer);
+    }
+  }, [isBackendError, setIsBackendError, setBackendErrorMsg]);
+
+  useEffect(() => {
+    if (showWelcome) {
       setShowSplash(false);
-      meta!.setAttribute("content", prevColor);
-    }, !isOnboarded ? 3500 : 800);
-    return () => clearTimeout(safetyTimer);
-  }
-}, []);
-
-useEffect(() => {
-  if (isBackendError) {
-    const timer = setTimeout(() => {
-      setIsBackendError(false);
-      setBackendErrorMsg(null);
-    }, 10000);
-    return () => clearTimeout(timer);
-  }
-}, [isBackendError, setIsBackendError, setBackendErrorMsg]);
-
-useEffect(() => {
-  if (showWelcome) {
-    setShowSplash(false);
-    const timer = setTimeout(() => {
-      setShowWelcome(false);
-    }, 2000);
-    return () => clearTimeout(timer);
-  }
-}, [showWelcome, setShowWelcome]);
+      const timer = setTimeout(() => {
+        setShowWelcome(false);
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [showWelcome, setShowWelcome]);
 
   return (
     <main className="bg-theme-bg min-h-full w-full flex flex-col relative">
@@ -182,10 +226,10 @@ useEffect(() => {
             exit={{ y: -20, opacity: 0 }}
             className="fixed top-4 left-0 right-0 z-[10001] flex justify-center pointer-events-none"
           >
-            <div className="bg-theme-surface/90 px-4 py-1.5 rounded-full shadow-lg flex items-center gap-2 border border-theme-border pointer-events-auto">
-              <RefreshCw size={12} className="text-theme-highlight animate-spin" />
-              <span className="text-[10px] font-bold uppercase tracking-widest text-theme-text">
-                syncing...
+            <div className={`px-4 py-1.5 rounded-full shadow-lg flex items-center gap-2 border pointer-events-auto transition-all ${syncFailed ? "bg-[#FF4D4D] border-white/20 text-white" : "bg-theme-surface/90 border-theme-border text-theme-text"}`}>
+              <RefreshCw size={12} className={`shrink-0 ${syncFailed ? "text-white" : "text-theme-highlight animate-spin"}`} />
+              <span className="text-[10px] font-bold uppercase tracking-widest">
+                {syncText}
               </span>
             </div>
           </motion.div>
