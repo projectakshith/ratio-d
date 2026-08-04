@@ -31,28 +31,23 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
 
   const [syncText, setSyncText] = useState("syncing...");
   const [syncFailed, setSyncFailed] = useState(false);
-  const hasExpiredRef = React.useRef(false);
+  const [isSyncingPillVisible, setIsSyncingPillVisible] = useState(false);
 
   useEffect(() => {
     if (isUpdating) {
       wasUpdating.current = true;
-      hasExpiredRef.current = false;
+      setIsSyncingPillVisible(true);
       setShowSyncSuccess(false);
       setSyncFailed(false);
       setSyncText("syncing...");
 
       const t1 = setTimeout(() => {
-        hasExpiredRef.current = true;
         setSyncText("session expired");
-      }, 2000);
+      }, 2500);
 
       const t2 = setTimeout(() => {
         setSyncText("re-authenticating...");
-      }, 3400);
-
-      const t3 = setTimeout(() => {
-        setSyncText("syncing...");
-      }, 4800);
+      }, 4000);
 
       const tSafety = setTimeout(() => {
         setSyncFailed(true);
@@ -62,30 +57,20 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
       return () => {
         clearTimeout(t1);
         clearTimeout(t2);
-        clearTimeout(t3);
         clearTimeout(tSafety);
       };
     } else {
       if (wasUpdating.current) {
         wasUpdating.current = false;
         if (!isBackendError && !isOffline) {
-          if (hasExpiredRef.current) {
-            hasExpiredRef.current = false;
-            setSyncText("re-authenticating...");
-            const tReauth = setTimeout(() => {
-              setShowSyncSuccess(true);
-              const timer = setTimeout(() => {
-                setShowSyncSuccess(false);
-              }, 2500);
-            }, 1200);
-            return () => clearTimeout(tReauth);
-          } else {
-            setShowSyncSuccess(true);
-            const timer = setTimeout(() => {
-              setShowSyncSuccess(false);
-            }, 2500);
-            return () => clearTimeout(timer);
-          }
+          setIsSyncingPillVisible(false);
+          setShowSyncSuccess(true);
+          const timer = setTimeout(() => {
+            setShowSyncSuccess(false);
+          }, 2500);
+          return () => clearTimeout(timer);
+        } else {
+          setIsSyncingPillVisible(false);
         }
       }
     }
@@ -218,7 +203,7 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
             </div>
           </motion.div>
         )}
-        {isUpdating && !isOffline && (
+        {isSyncingPillVisible && !isOffline && (
           <motion.div
             key="syncing-status"
             initial={{ y: -20, opacity: 0 }}
@@ -234,7 +219,7 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
             </div>
           </motion.div>
         )}
-        {showSyncSuccess && !isOffline && !isUpdating && (
+        {showSyncSuccess && !isOffline && !isSyncingPillVisible && (
           <motion.div
             key="sync-success-status"
             initial={{ y: -20, opacity: 0 }}
