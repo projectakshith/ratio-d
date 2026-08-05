@@ -310,10 +310,6 @@ export const getRecoveryDate = (
     .filter(c => c.dObj >= today)
     .sort((a, b) => a.dObj.getTime() - b.dObj.getTime());
 
-  if (currentConducted > 0 && (currentPresent / currentConducted) * 100 >= 75) {
-    return sortedCal[0]?.date || null;
-  }
-
   for (const day of sortedCal) {
     const rawOrder = day.dayOrder || day.order;
     if (rawOrder && rawOrder !== "-" && !isNaN(parseInt(rawOrder))) {
