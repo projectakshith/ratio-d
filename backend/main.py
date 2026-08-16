@@ -57,10 +57,12 @@ app.add_middleware(
     allow_origins=[
         "https://getratiod.lol",
         "https://www.getratiod.lol",
+        "https://api.getratiod.lol",
         *_dev_origins,
     ],
-    allow_methods=["POST", "GET"],
-    allow_headers=["Content-Type"],
+    allow_origin_regex=r"https://.*\.getratiod\.lol",
+    allow_methods=["*"],
+    allow_headers=["*"],
     max_age=86400,
 )
 

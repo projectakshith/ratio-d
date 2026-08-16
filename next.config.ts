@@ -104,7 +104,8 @@ const withPWA = withPWAInit({
 });
 
 const workerUrl = process.env.NEXT_PUBLIC_WORKER_URL ?? "";
-const backendUrls = (process.env.NEXT_PUBLIC_BACKEND_URLS ?? "").split(",").map(u => u.trim()).filter(Boolean);
+const portalAuthUrl = process.env.NEXT_PUBLIC_PORTAL_AUTH_URL ?? "";
+const backendUrls = (process.env.NEXT_PUBLIC_BACKEND_URLS || process.env.NEXT_PUBLIC_BACKEND || "").split(",").map(u => u.trim()).filter(Boolean);
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
@@ -112,9 +113,13 @@ const nextConfig: NextConfig = {
     const connectSrc = [
       "'self'",
       "https://getratiod.lol",
+      "https://*.getratiod.lol",
+      "https://api.getratiod.lol",
       "https://academia.srmist.edu.in",
+      "https://sp.srmist.edu.in",
       "https://srm-pyq-api.onrender.com",
       "https://va.vercel-scripts.com",
+      portalAuthUrl,
       workerUrl,
       ...backendUrls,
       "http://localhost:8000",
