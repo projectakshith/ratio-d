@@ -6,11 +6,10 @@ export async function fetchWithLoadBalancer(endpoint: string, options: RequestIn
     process.env.NODE_ENV === "development" || 
     process.env.NEXT_PUBLIC_ENV === "development";
 
-  const cleanUrl = (url: string) => (url || "").trim().replace(/^["']|["']$/g, "");
-  const urls = (process.env.NEXT_PUBLIC_BACKEND_URLS || "").split(",").map(cleanUrl).filter(Boolean);
+  const urls = (process.env.NEXT_PUBLIC_BACKEND_URLS || "").split(",").filter(Boolean);
 
   const localBackend = urls.find(u => u.includes("localhost")) || "http://localhost:8000";
-  const portalAuthHost = cleanUrl(process.env.NEXT_PUBLIC_PORTAL_AUTH_URL || "");
+  const portalAuthHost = process.env.NEXT_PUBLIC_PORTAL_AUTH_URL;
 
   const isPortalAuthEndpoint = endpoint === "/portal/captcha" || endpoint === "/portal/login";
   let targetUrl = isDev
