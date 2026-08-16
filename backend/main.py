@@ -4,19 +4,27 @@ import os
 import json
 import hmac
 import hashlib
+import secrets
+import logging
 from datetime import datetime
 import httpx
 import uvicorn
+
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("httpcore").setLevel(logging.WARNING)
 from core.academia_client import AcademiaClient
+from core.portal_client import PortalClient, PortalSession
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse, PlainTextResponse
 from fastapi.middleware.cors import CORSMiddleware
-from models.schemas import Credentials, LoginCredentials
+from models.schemas import Credentials, LoginCredentials, PortalCredentials
 from services.marks_service import MarksService
 from services.profile_service import ProfileService
 from services.course_service import CourseService
 from services.attendance_service import AttendanceService
 from services.timetable_service import TimetableService
+from services.portal_attendance_service import PortalAttendanceService
+from services.portal_marks_service import PortalMarksService
 from dotenv import load_dotenv
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
@@ -330,3 +338,114 @@ async def login(creds: LoginCredentials, request: Request):
         except Exception:
             pass
         raise HTTPException(status_code=401, detail="Invalid Credentials")
+
+
+_portal_captcha_sessions = {}
+
+
+@app.post("/portal/captcha")
+@limiter.limit("5/minute")
+async def portal_captcha(request: Request):
+    session = PortalSession()
+    try:
+        info = await session.load_captcha()
+    except Exception as e:
+        print(f"{get_now()}\n  -> [API] ERROR loading portal captcha: {e}", flush=True)
+        raise HTTPException(status_code=503, detail="Portal unavailable right now.")
+    sid = secrets.token_hex(8)
+    _portal_captcha_sessions[sid] = session
+    if len(_portal_captcha_sessions) > 20:
+        _portal_captcha_sessions.clear()
+    return {"session": sid, **info}
+
+
+@app.post("/portal/login")
+@limiter.limit("8/minute")
+async def portal_login(creds: PortalCredentials, request: Request):
+    if creds.cookies:
+        client = PortalClient(creds.cookies)
+        att_html, marks_html = await asyncio.gather(
+            client.get_attendance_html(),
+            client.get_marks_html()
+        )
+        if att_html is None:
+            raise HTTPException(status_code=401, detail={"type": "SESSION_EXPIRED"})
+        courses, monthly = PortalAttendanceService.parse(att_html)
+        marks = PortalMarksService.parse(marks_html) if marks_html else []
+        res = {
+            "success": True,
+            "isPortal": True,
+            "attendance": courses,
+            "monthly": monthly,
+            "cookies": {c.name: c.value for c in client.client.cookies.jar},
+        }
+        if marks:
+            res["marks"] = marks
+        return res
+
+    session = _portal_captcha_sessions.pop(creds.cdigest, None) if creds.cdigest else None
+    if not session:
+        raise HTTPException(status_code=401, detail="captcha required")
+    if not creds.captcha:
+        _portal_captcha_sessions[creds.cdigest] = session
+        raise HTTPException(status_code=401, detail="captcha required")
+
+    try:
+        netid = (creds.username or "").strip().split("@")[0]
+        res = await session.login(netid, creds.password or "", creds.captcha, telemetry=creds.telemetry)
+    except Exception as e:
+        print(f"{get_now()}\n  -> [API] ERROR in /portal/login: {e}", flush=True)
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    if not res.get("ok"):
+        reason = res.get("reason", "login_failed")
+        msg = {
+            "wrong_captcha": "wrong captcha, try the new one",
+            "invalid_credentials": "invalid credentials, check your netid/password",
+            "session_expired": "session expired, refresh the captcha and retry",
+        }.get(reason, "login failed")
+        raise HTTPException(status_code=401, detail=msg)
+
+    client = PortalClient(res["cookies"])
+    att_html, marks_html = await asyncio.gather(
+        client.get_attendance_html(),
+        client.get_marks_html()
+    )
+    courses, monthly = PortalAttendanceService.parse(att_html) if att_html else ([], [])
+    marks = PortalMarksService.parse(marks_html) if marks_html else []
+    out = {
+        "success": True,
+        "isPortal": True,
+        "attendance": courses,
+        "monthly": monthly,
+        "cookies": {c.name: c.value for c in client.client.cookies.jar},
+    }
+    if marks:
+        out["marks"] = marks
+    return out
+
+
+@app.post("/portal/refresh")
+@limiter.limit("8/minute")
+async def portal_refresh(creds: PortalCredentials, request: Request):
+    if not creds.cookies:
+        raise HTTPException(status_code=401, detail={"type": "SESSION_EXPIRED"})
+    client = PortalClient(creds.cookies)
+    await client.keepalive()
+    att_html, marks_html = await asyncio.gather(
+        client.get_attendance_html(),
+        client.get_marks_html()
+    )
+    if att_html is None:
+        raise HTTPException(status_code=401, detail={"type": "SESSION_EXPIRED"})
+    courses, monthly = PortalAttendanceService.parse(att_html)
+    marks = PortalMarksService.parse(marks_html) if marks_html else []
+    res = {
+        "success": True,
+        "isPortal": True,
+        "attendance": courses,
+        "monthly": monthly,
+        "cookies": {c.name: c.value for c in client.client.cookies.jar},
+    }
+    if marks:
+        res["marks"] = marks
+    return res

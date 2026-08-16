@@ -5,7 +5,8 @@ from utils.text import TextUtils
 class ProfileService:
     @staticmethod
     def parse_student_profile(html_content):
-        if not html_content: return {}
+        if not html_content:
+            return {}
         soup = BeautifulSoup(html_content, 'lxml')
         
         profile = {
@@ -21,37 +22,36 @@ class ProfileService:
                 if label_td:
                     value_td = label_td.find_next_sibling("td")
                     if value_td:
-                        return value_td.find("strong")
+                        found = value_td.find("strong") or value_td.find("div")
+                        return found if found else value_td
             return None
 
- 
-        el = get_element_by_label("Registration Number")
-        if el: profile["regNo"] = TextUtils.clean(el.get_text())
+        el = get_element_by_label("Registration Number") or get_element_by_label("Register No")
+        if el:
+            profile["regNo"] = TextUtils.clean(el.get_text())
 
- 
-        el = get_element_by_label("Name")
-        if el: profile["name"] = TextUtils.clean(el.get_text())
+        el = get_element_by_label("Student Name") or get_element_by_label("Name")
+        if el:
+            profile["name"] = TextUtils.clean(el.get_text())
 
- 
-        el = get_element_by_label("Mobile")
-        if el: profile["mobile"] = TextUtils.clean(el.get_text())
+        el = get_element_by_label("Mobile") or get_element_by_label("Email ID")
+        if el:
+            profile["mobile"] = TextUtils.clean(el.get_text())
 
-  
         el = get_element_by_label("Program")
-        if el: profile["program"] = TextUtils.clean(el.get_text())
+        if el:
+            profile["program"] = TextUtils.clean(el.get_text())
 
-     
         el = get_element_by_label("Semester")
-        if el: profile["semester"] = TextUtils.clean(el.get_text())
+        if el:
+            profile["semester"] = TextUtils.clean(el.get_text())
 
-   
         el = get_element_by_label("Batch")
         if el:
             val = TextUtils.clean(el.get_text())
             profile["batch"] = val
 
- 
-        el = get_element_by_label("Department")
+        el = get_element_by_label("Department") or get_element_by_label("Institution")
         if el:
             full = TextUtils.clean(el.get_text())
             profile["dept"] = full

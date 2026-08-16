@@ -180,7 +180,7 @@ const SubjectCard = ({ code, title, percent, present, conducted, val, safe, type
 };
 
 export default function DesktopAttendance() {
-  const { userData } = useApp();
+  const { userData, setPortalAuthOpen } = useApp();
   const [isPredicting, setIsPredicting] = useState(false);
   const [isStatsExpanded, setIsStatsExpanded] = useState(true);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -188,7 +188,8 @@ export default function DesktopAttendance() {
   const [selectedDates, setSelectedDates] = useState<Record<string, "leave" | "attend" | "od">>({});
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const baseAttendance = useMemo(() => getBaseAttendance(userData?.attendance || []), [userData]);
+  const isPortalData = useMemo(() => Boolean((userData as any)?.isPortal || (userData as any)?.portal_cookies || (userData?.attendance || []).some((s: any) => s.isPortal)), [userData]);
+  const baseAttendance = useMemo(() => getBaseAttendance(userData?.attendance || [], isPortalData), [userData, isPortalData]);
 
   const impactMap = useMemo(() => {
     if (!isPredicting || Object.keys(selectedDates).length === 0) return {};
@@ -346,11 +347,22 @@ export default function DesktopAttendance() {
                   ) : (
                     <div className="flex flex-col justify-center">
                       <div className="mb-10">
-                        <span className="text-theme-muted text-[10px] font-bold uppercase tracking-[0.5em] block mb-2" style={{ fontFamily: 'var(--font-afacad)' }}>overall presence</span>
+                        {!isPortalData ? (
+                          <span className="text-theme-muted text-[10px] font-bold uppercase tracking-[0.5em] block mb-2" style={{ fontFamily: 'var(--font-afacad)' }}>overall presence</span>
+                        ) : (
+                          <span className="text-amber-400 text-[10px] font-bold uppercase tracking-[0.5em] block mb-2" style={{ fontFamily: 'var(--font-afacad)' }}>student portal</span>
+                        )}
                         <div className="flex items-baseline">
                           <h2 className="text-[64px] font-black text-theme-text leading-[0.8] tracking-[-0.08em]" style={{ fontFamily: 'var(--font-montserrat)' }}>{stats.pct.toFixed(1)}</h2>
                           <span className="text-xl font-black text-theme-muted ml-2" style={{ fontFamily: 'var(--font-montserrat)' }}>%</span>
                         </div>
+                        {isPortalData && (
+                          <p className="text-[10px] font-medium lowercase text-amber-400/80 tracking-tight max-w-[380px] leading-relaxed mt-3" style={{ fontFamily: 'var(--font-montserrat)' }}>
+                            <strong className="font-bold text-amber-400">note:</strong> this is a temporary and fragile fallback.
+                            <br />
+                            <span className="whitespace-nowrap">student portal displays theory & practical hours combined.</span>
+                          </p>
+                        )}
                       </div>
                       <div className="space-y-8">
                         <div className="h-[80px] min-h-[80px] overflow-hidden flex items-center">
@@ -421,6 +433,14 @@ export default function DesktopAttendance() {
                     <p className="text-[9px] font-black uppercase tracking-[0.4em] mt-2" style={{ fontFamily: 'var(--font-montserrat)' }}>
                       waiting for the hamsters to wake up
                     </p>
+                    <button
+                      type="button"
+                      onClick={() => setPortalAuthOpen(true)}
+                      className="mt-4 px-5 py-2.5 rounded-xl bg-theme-highlight text-theme-bg font-black uppercase tracking-[0.2em] text-[10px] hover:opacity-90 active:scale-95 transition-all shadow-xl shadow-theme-highlight/20"
+                      style={{ fontFamily: 'var(--font-montserrat)' }}
+                    >
+                      try student portal
+                    </button>
                   </div>
                 </div>
               ) : (

@@ -50,7 +50,7 @@ export default function Attendance({
   data: AcademiaData;
   academia: any;
 }) {
-  const { profileSeed } = useApp();
+  const { profileSeed, setPortalAuthOpen } = useApp();
   const { setIsSwipeDisabled } = useAppLayout();
   const [isPredictOverlay, setIsPredictOverlay] = useState(false);
   const [isPredicting, setIsPredicting] = useState(false);
@@ -83,9 +83,18 @@ export default function Attendance({
     setMounted(true);
   }, []);
 
+  const isPortalData = useMemo(
+    () => Boolean(
+      (data as any)?.isPortal ||
+      (data as any)?.portal_cookies ||
+      (data?.attendance || []).some((s: any) => s.isPortal)
+    ),
+    [data]
+  );
+
   const baseAttendance = useMemo(
-    () => getBaseAttendance(data?.attendance || []),
-    [data?.attendance],
+    () => getBaseAttendance(data?.attendance || [], isPortalData),
+    [data?.attendance, isPortalData],
   );
 
   const impactMap = useMemo(() => {
@@ -301,36 +310,63 @@ export default function Attendance({
               >
                 ↓ pull down to search the dino's stomach ↓
               </span>
+              <button
+                type="button"
+                onClick={() => setPortalAuthOpen(true)}
+                className="mt-6 px-6 py-3.5 rounded-2xl bg-theme-highlight text-theme-bg font-black uppercase tracking-[0.2em] text-xs hover:opacity-90 active:scale-95 transition-all shadow-xl shadow-theme-highlight/20"
+                style={{ fontFamily: "var(--font-montserrat)" }}
+              >
+                try student portal
+              </button>
             </motion.div>
           ) : (
             <>
               <motion.div
                 variants={itemVariants}
-                className="w-full flex flex-col items-center mt-2 mb-12 shrink-0"
-          >
-            <span
-              className="text-[12px] font-bold lowercase tracking-[0.3em] mb-3 text-theme-muted"
-              style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
-            >
-              overall attendance
-            </span>
-            <div className="flex items-baseline gap-1">
-              <span
-                className="leading-[0.8] font-black tracking-tighter text-theme-text"
-                style={{ fontSize: "clamp(3rem, 17vw, 7.5rem)",
-                  fontFamily: "var(--font-montserrat), sans-serif",
-                }}
+                className="w-full flex flex-col items-center mt-2 mb-8 shrink-0"
               >
-                {stats.percent}
-              </span>
-              <span
-                className="text-[2.5rem] font-bold text-theme-muted"
-                style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
-              >
-                %
-              </span>
-            </div>
-          </motion.div>
+              {!isPortalData ? (
+                <span
+                  className="text-[12px] font-bold lowercase tracking-[0.3em] mb-3 text-theme-muted"
+                  style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
+                >
+                  overall attendance
+                </span>
+              ) : (
+                <div
+                  className="mb-4 px-5 py-2.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-400 font-black uppercase text-xs tracking-[0.25em]"
+                  style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
+                >
+                  student portal
+                </div>
+              )}
+              <div className="flex items-baseline gap-1">
+                <span
+                  className="leading-[0.8] font-black tracking-tighter text-theme-text"
+                  style={{ fontSize: "clamp(3rem, 17vw, 7.5rem)",
+                    fontFamily: "var(--font-montserrat), sans-serif",
+                  }}
+                >
+                  {stats.percent}
+                </span>
+                <span
+                  className="text-[2.5rem] font-bold text-theme-muted"
+                  style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
+                >
+                  %
+                </span>
+              </div>
+              {isPortalData && (
+                <p
+                  className="text-[10px] font-medium lowercase text-amber-400/80 tracking-tight text-center max-w-[360px] leading-relaxed mt-4 px-1"
+                  style={{ fontFamily: "var(--font-montserrat)" }}
+                >
+                  <strong className="font-bold text-amber-400">note:</strong> this is a temporary and fragile fallback.
+                  <br />
+                  <span className="whitespace-nowrap">student portal displays theory & practical hours combined.</span>
+                </p>
+              )}
+            </motion.div>
 
           <motion.div
             variants={itemVariants}
@@ -574,11 +610,12 @@ export default function Attendance({
 
           <motion.div
             key={`safe-subjects-${isPredicting}-${Object.keys(selectedDates).length}-${predictAction}`}
-            variants={containerVariants}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
             className="flex flex-col gap-3.5 w-full shrink-0"
           >
-            <motion.div
-              variants={itemVariants}
+            <div
               className="flex items-center gap-3 mb-2 w-full px-1"
             >
               <span
@@ -590,14 +627,16 @@ export default function Attendance({
               <div
                 className="flex-1 h-[1.5px] bg-theme-text-10 rounded-full"
               />
-            </motion.div>
+            </div>
             {safeSubjectsList.map((sub: any) => {
               const isPrac = sub.isPractical;
               const baseColor = isPrac ? "#0EA5E9" : "var(--theme-text)";
               return (
                 <motion.div
                   key={sub.id}
-                  variants={itemVariants}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.25 }}
                   className={`w-full bg-theme-surface border-[1.5px] rounded-[24px] p-5 flex items-center justify-between shadow-sm transition-all ${isPredicting && sub.hasChanged ? "affected-dotted-border" : "border-theme-subtle"}`}
                 >
                   <div className="flex flex-col items-center justify-center min-w-[80px] shrink-0">

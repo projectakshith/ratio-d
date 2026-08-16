@@ -8,11 +8,12 @@ import MinecraftAmbience from "./MinecraftAmbience";
 import SyncStatusNotification from "./SyncStatusNotification";
 import UpdateHistory from "./UpdateHistory";
 import WhatsNew from "./WhatsNew";
+import PortalLoginModal from "./PortalLoginModal";
 import { useTabFocus } from "@/hooks/useTabFocus";
 
 export default function AppWrapper({ children }: { children: React.ReactNode }) {
   useTabFocus();
-  const { isOffline, isBackendError, setIsBackendError, backendErrorMsg, setBackendErrorMsg, showWelcome, setShowWelcome, userData, isUpdateHistoryOpen, setIsUpdateHistoryOpen, isUpdating } = useApp();
+  const { isOffline, isBackendError, setIsBackendError, backendErrorMsg, setBackendErrorMsg, showWelcome, setShowWelcome, userData, isUpdateHistoryOpen, setIsUpdateHistoryOpen, isUpdating, portalAuthOpen, setPortalAuthOpen, portalAuthMode, isCheckingPortal } = useApp();
   const [showSplash, setShowSplash] = useState(false);
   const [isFirstSplash, setIsFirstSplash] = useState(false);
   const [showAutoWhatsNew, setShowAutoWhatsNew] = useState(false);
@@ -193,13 +194,22 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
             className="fixed top-4 left-0 right-0 z-[10001] flex justify-center pointer-events-none"
           >
             <div 
-              className="px-4 py-1.5 rounded-full shadow-lg flex items-center gap-2 border border-white/20 pointer-events-auto"
+              className="px-4 py-1.5 rounded-full shadow-lg flex items-center gap-3 border border-white/20 pointer-events-auto"
               style={{ backgroundColor: 'var(--theme-secondary)' }}
             >
-              <ServerCrash size={12} className="text-white" />
-              <span className="text-[10px] font-bold uppercase tracking-widest text-white">
-                {backendErrorMsg || "Backend Servers Down"}
-              </span>
+              <div className="flex items-center gap-2">
+                <ServerCrash size={12} className="text-white" />
+                <span className="text-[10px] font-bold uppercase tracking-widest text-white">
+                  {backendErrorMsg || "Backend Servers Down"}
+                </span>
+              </div>
+              <button
+                onClick={() => setPortalAuthOpen(true)}
+                className="px-2.5 py-0.5 rounded-full bg-white/20 hover:bg-white/30 text-white text-[9px] font-black uppercase tracking-wider transition-colors"
+                style={{ fontFamily: 'var(--font-montserrat)' }}
+              >
+                try student portal
+              </button>
             </div>
           </motion.div>
         )}
@@ -211,11 +221,24 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
             exit={{ y: -20, opacity: 0 }}
             className="fixed top-4 left-0 right-0 z-[10001] flex justify-center pointer-events-none"
           >
-            <div className={`px-4 py-1.5 rounded-full shadow-lg flex items-center gap-2 border pointer-events-auto transition-all ${syncFailed ? "bg-[#FF4D4D] border-white/20 text-white" : "bg-theme-surface/90 border-theme-border text-theme-text"}`}>
+            <div className={`px-4 py-1.5 rounded-full shadow-lg flex items-center gap-2.5 border backdrop-blur-md pointer-events-auto transition-all ${syncFailed ? "bg-[#FF4D4D] border-white/20 text-white" : "bg-theme-surface/90 border-theme-border text-theme-text"}`}>
               <RefreshCw size={12} className={`shrink-0 ${syncFailed ? "text-white" : "text-theme-highlight animate-spin"}`} />
               <span className="text-[10px] font-bold uppercase tracking-widest">
                 {syncText}
               </span>
+              <AnimatePresence>
+                {isCheckingPortal && (
+                  <motion.span
+                    initial={{ opacity: 0, x: -4 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -4 }}
+                    className="text-[9px] font-mono text-theme-highlight flex items-center gap-1.5 opacity-90"
+                  >
+                    <span className="w-1 h-1 rounded-full bg-theme-highlight animate-pulse" />
+                    portal
+                  </motion.span>
+                )}
+              </AnimatePresence>
             </div>
           </motion.div>
         )}
@@ -254,6 +277,12 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
       <SyncStatusNotification />
       <UpdateHistory isOpen={isUpdateHistoryOpen} onClose={() => setIsUpdateHistoryOpen(false)} />
       <WhatsNew isOpen={showAutoWhatsNew} onClose={handleCloseWhatsNew} />
+      <PortalLoginModal
+        open={portalAuthOpen}
+        onClose={() => setPortalAuthOpen(false)}
+        onSuccess={() => {}}
+        captchaOnly={portalAuthMode === "captcha_only"}
+      />
 
       <AnimatePresence>
         {updateAvailable && (

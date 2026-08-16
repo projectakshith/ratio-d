@@ -43,6 +43,11 @@ interface AppContextType {
   profileSeed: string;
   setProfileSeed: (seed: string) => void;
   calendarData: any[];
+  portalAuthOpen: boolean;
+  setPortalAuthOpen: (open: boolean) => void;
+  portalAuthMode: "full" | "captcha_only";
+  setPortalAuthMode: (mode: "full" | "captcha_only") => void;
+  isCheckingPortal: boolean;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -62,6 +67,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [canInstall, setCanInstall] = useState<boolean>(false);
   const [showWelcome, setShowWelcome] = useState(false);
   const [profileSeed, setProfileSeed] = useState<string>("");
+  const [portalAuthOpen, setPortalAuthOpen] = useState(false);
+  const [portalAuthMode, setPortalAuthMode] = useState<"full" | "captcha_only">("full");
+  const [isCheckingPortal, setIsCheckingPortal] = useState(false);
   const updateInProgress = React.useRef(false);
   const sessionNotificationsSent = React.useRef<Set<string>>(new Set());
   const classNotificationsSent = React.useRef<Set<string>>(new Set());
@@ -234,6 +242,41 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setBackendErrorMsg(null);
     try {
       const savedCookies = await EncryptionUtils.loadDecrypted("academia_cookies");
+      const portalCookies = await EncryptionUtils.loadDecrypted("portal_cookies") as Record<string, string> | null;
+
+      if (portalCookies) {
+        setIsCheckingPortal(true);
+        try {
+          const portalRes = await fetchWithLoadBalancer("/portal/refresh", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ cookies: portalCookies }),
+          });
+          if (portalRes.ok) {
+            const portalData = await portalRes.json();
+            if (portalData?.success && portalData.attendance?.length) {
+              let next = { ...existingData, attendance: portalData.attendance };
+              if (portalData.monthly) next.monthly = portalData.monthly;
+              if (portalData.cookies) {
+                await EncryptionUtils.saveEncrypted("portal_cookies", portalData.cookies);
+              }
+              setUserData(next);
+              localStorage.setItem("ratio_data", JSON.stringify(next));
+              return next;
+            }
+          } else if (portalRes.status === 401) {
+            const portalCreds = await EncryptionUtils.loadDecrypted("portal_credentials") as any;
+            const acadCreds = await EncryptionUtils.loadDecrypted("ratio_credentials") as any;
+            if (portalCreds?.password || acadCreds?.password) {
+              setPortalAuthMode("captcha_only");
+              setPortalAuthOpen(true);
+            }
+          }
+        } catch {
+        } finally {
+          setIsCheckingPortal(false);
+        }
+      }
 
       const makeRefreshRequest = async (includePassword: boolean) => {
         const body: Record<string, unknown> = { username: creds.username, cookies: savedCookies };
@@ -451,7 +494,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   }, [latestDiff]);
 
-const value = useMemo(() => ({
+  const value = useMemo(() => ({
     userData,
     setUserData,
     customDisplayName,
@@ -483,7 +526,12 @@ const value = useMemo(() => ({
     profileSeed,
     setProfileSeed,
     calendarData,
-  }), [userData, customDisplayName, isUpdating, isOffline, isBackendError, backendErrorMsg, refreshData, performLogin, loginPromise, logout, latestDiff, updateHistory, isUpdateHistoryOpen, deferredPrompt, canInstall, showWelcome, profileSeed, calendarData]);
+    portalAuthOpen,
+    setPortalAuthOpen,
+    portalAuthMode,
+    setPortalAuthMode,
+    isCheckingPortal,
+  }), [userData, customDisplayName, isUpdating, isOffline, isBackendError, backendErrorMsg, refreshData, performLogin, loginPromise, logout, latestDiff, updateHistory, isUpdateHistoryOpen, deferredPrompt, canInstall, showWelcome, profileSeed, calendarData, portalAuthOpen, portalAuthMode, isCheckingPortal]);
 
   return (
     <AppContext.Provider value={value}>

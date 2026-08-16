@@ -260,6 +260,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
                 />
               )}
             </button>
+
           </div>
         </form>
         </motion.main>

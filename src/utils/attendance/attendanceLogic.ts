@@ -34,23 +34,31 @@ export const getPercentColor = (percent: string) => {
   return "var(--theme-highlight)";
 };
 
-export const getBaseAttendance = (rawAttendance: any[]) => {
+const getStableBadge = (category: string) => {
+  const list = flavorText.header?.[category as keyof typeof flavorText.header] ||
+    flavorText.header?.danger || ["..."];
+  return list[Math.floor(Math.random() * list.length)].toLowerCase();
+};
+
+export const getBaseAttendance = (rawAttendance: any[], isPortalData: boolean = false) => {
+  if (!Array.isArray(rawAttendance)) return [];
+
   return rawAttendance
     .map((subject, index) => {
       const pct = parseFloat(subject?.percent || "0");
       const category = pct < 75 ? "cooked" : pct >= 85 ? "safe" : "danger";
-      const list = flavorText.header?.[category] ||
-        flavorText.header?.danger || ["..."];
-      const stableBadge = list[Math.floor(index % list.length)].toLowerCase();
+      const stableBadge = getStableBadge(category);
       const safeTitle =
         subject.title || subject.courseTitle || "Unknown Subject";
       const slot = (subject.slot || "").toUpperCase();
       const code = String(subject?.code || "").trim();
 
-      const attCategory =
-        (subject.category || "").trim() ||
-        (slot.startsWith("P") || slot.startsWith("L") ? "Practical" : "Theory");
-      const isPractical = attCategory.toLowerCase() === "practical";
+      const isPortal = Boolean(subject.isPortal || isPortalData);
+      const attCategory = isPortal
+        ? "Theory"
+        : (subject.category || "").trim() ||
+          (slot.startsWith("P") || slot.startsWith("L") ? "Practical" : "Theory");
+      const isPractical = !isPortal && attCategory.toLowerCase() === "practical";
 
       return {
         id: `${norm(code)}_${norm(attCategory)}_${index}`,
@@ -64,8 +72,9 @@ export const getBaseAttendance = (rawAttendance: any[]) => {
           parseInt(subject?.absent || "0"),
         badge: category,
         tagline: stableBadge,
-        slot: slot,
+        slot: isPortal ? "" : slot,
         isPractical: isPractical,
+        isPortal: isPortal,
         type: attCategory,
       };
     })
@@ -386,7 +395,9 @@ export const getProcessedList = (
       return scoreB - scoreA;
     });
   }
-  return list.sort(
-    (a, b) => parseFloat(a.percentage) - parseFloat(b.percentage),
-  );
+  return list.sort((a, b) => {
+    const diff = parseFloat(a.percentage) - parseFloat(b.percentage);
+    if (diff !== 0) return diff;
+    return (a.conducted || 0) - (b.conducted || 0);
+  });
 };
