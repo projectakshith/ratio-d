@@ -9,7 +9,14 @@ export async function fetchWithLoadBalancer(endpoint: string, options: RequestIn
   const urls = (process.env.NEXT_PUBLIC_BACKEND_URLS || "").split(",").filter(Boolean);
 
   const localBackend = urls.find(u => u.includes("localhost")) || "http://localhost:8000";
-  let targetUrl = isDev ? localBackend : (urls[0] || localBackend);
+  const portalAuthHost = process.env.NEXT_PUBLIC_PORTAL_AUTH_URL;
+
+  const isPortalAuthEndpoint = endpoint === "/portal/captcha" || endpoint === "/portal/login";
+  let targetUrl = isDev
+    ? localBackend
+    : (isPortalAuthEndpoint && portalAuthHost)
+    ? portalAuthHost
+    : urls[0] || localBackend;
 
   if (targetUrl.endsWith('/')) {
     targetUrl = targetUrl.slice(0, -1);
