@@ -9,6 +9,7 @@ import SyncStatusNotification from "./SyncStatusNotification";
 import UpdateHistory from "./UpdateHistory";
 import WhatsNew from "./WhatsNew";
 import PortalLoginModal from "./PortalLoginModal";
+import AnnouncementToast from "./AnnouncementToast";
 import { useTabFocus } from "@/hooks/useTabFocus";
 
 export default function AppWrapper({ children }: { children: React.ReactNode }) {
@@ -275,6 +276,7 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
       <MinecraftParticles />
       <MinecraftAmbience />
       <SyncStatusNotification />
+      <AnnouncementToast />
       <UpdateHistory isOpen={isUpdateHistoryOpen} onClose={() => setIsUpdateHistoryOpen(false)} />
       <WhatsNew isOpen={showAutoWhatsNew} onClose={handleCloseWhatsNew} />
       <PortalLoginModal
