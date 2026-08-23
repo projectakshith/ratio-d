@@ -139,7 +139,7 @@ const nextConfig: NextConfig = {
               "default-src 'self'",
               "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com",
               "style-src 'self' 'unsafe-inline'",
-              "img-src 'self' data: https://academia.srmist.edu.in",
+              "img-src 'self' data: https://academia.srmist.edu.in https://cdn.discordapp.com https://media.discordapp.net",
               `connect-src ${connectSrc}`,
               "font-src 'self'",
               "frame-src 'self' https: blob: data:",

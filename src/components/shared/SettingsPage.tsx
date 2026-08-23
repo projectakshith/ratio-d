@@ -20,6 +20,9 @@ import {
   Clock,
   MessageSquare,
   Star,
+  Megaphone,
+  Download,
+  ExternalLink,
 } from "lucide-react";
 import { requestNotificationPermission, getNotifPreference, setNotifPreference } from "@/utils/shared/notifs";
 import { StudentProfile } from "@/types";
@@ -216,6 +219,8 @@ const SettingsPage = ({
   const [showCourseDetails, setShowCourseDetails] = useState(false);
   const [showProfileCard, setShowProfileCard] = useState(false);
   const [showWhatsNew, setShowWhatsNew] = useState(false);
+  const [showAnnouncements, setShowAnnouncements] = useState(false);
+  const [announcementsList, setAnnouncementsList] = useState<any[]>([]);
   const [showFeedback, setShowFeedback] = useState(false);
   const [feedbackRating, setFeedbackRating] = useState(0);
   const [feedbackHover, setFeedbackHover] = useState(0);
@@ -231,6 +236,19 @@ const SettingsPage = ({
   useEffect(() => {
     setNotifEnabled(getNotifPreference());
   }, []);
+
+  useEffect(() => {
+    if (!showAnnouncements) return;
+    (async () => {
+      try {
+        const res = await fetchWithLoadBalancer("/api/announcements");
+        if (res.ok) {
+          const data = await res.json();
+          setAnnouncementsList(data.history || (data.id ? [data] : []));
+        }
+      } catch (e) {}
+    })();
+  }, [showAnnouncements]);
 
   const handleApply = () => {
     if (tempName.trim()) {
@@ -434,6 +452,7 @@ const SettingsPage = ({
                   <div className="h-[1.5px] flex-1 bg-theme-text opacity-40 rounded-full" />
                 </div>
                 <div className="space-y-1 px-1">
+                  <SettingItem icon={<Megaphone className="w-5 h-5 opacity-80 text-theme-text" />} label="Dev Drops" onClick={() => setShowAnnouncements(true)} />
                   <SettingItem icon={<PartyPopper className="w-5 h-5 opacity-80 text-theme-text" />} label="What's New" onClick={() => setShowWhatsNew(true)} />
                   <SettingItem icon={<MessageSquare className="w-5 h-5 opacity-80 text-theme-text" />} label="Feedback" onClick={() => { setFeedbackStatus("idle"); setFeedbackRating(0); setFeedbackMessage(""); setShowFeedback(true); }} />
                   <SettingItem icon={<Lock className="w-5 h-5 opacity-80 text-theme-text" />} label="Privacy" onClick={() => setShowPrivacy(true)} />
@@ -466,6 +485,67 @@ const SettingsPage = ({
       </AnimatePresence>
 
       <PrivacyProtocol isOpen={showPrivacy} onClose={() => setShowPrivacy(false)} />
+
+      <AnimatePresence>
+        {showAnnouncements && (
+          <>
+            <motion.div variants={backdropVariants} initial="hidden" animate="visible" exit="exit" className="fixed inset-0 z-[60] bg-black/20" onClick={() => setShowAnnouncements(false)} />
+            <motion.div variants={themePanelVariants} initial="hidden" animate="visible" exit="exit" className="fixed inset-0 z-[70] bg-theme-bg flex flex-col overflow-hidden">
+              <div className="pt-12 pb-4 px-6 flex items-center gap-4 border-b border-theme-border">
+                <button onClick={() => setShowAnnouncements(false)} className="w-10 h-10 rounded-full bg-theme-surface flex items-center justify-center active:scale-90 transition-transform">
+                  <ChevronLeft className="w-6 h-6" strokeWidth={2.5} />
+                </button>
+                <div>
+                  <h1 className="text-xl font-bold tracking-tight">Dev Drops</h1>
+                  <p className="text-[10px] text-theme-muted font-mono">from the devs</p>
+                </div>
+              </div>
+
+              <div className="flex-1 overflow-y-auto no-scrollbar px-6 py-6 space-y-4">
+                {announcementsList.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-64 text-center gap-2 text-theme-muted">
+                    <Megaphone size={32} strokeWidth={1.5} />
+                    <p className="text-sm font-medium">no announcements yet</p>
+                  </div>
+                ) : (
+                  announcementsList.map((item, idx) => (
+                    <div key={item.id || idx} className="bg-theme-surface border border-theme-border rounded-[24px] p-5 space-y-3">
+                      {item.text && (
+                        <p className="text-xs leading-relaxed text-theme-text font-medium whitespace-pre-wrap" style={{ fontFamily: "var(--font-afacad)" }}>
+                          {item.text}
+                        </p>
+                      )}
+                      {item.image_url && (
+                        <div className="rounded-2xl overflow-hidden border border-theme-border bg-black/20 max-h-64 flex justify-center">
+                          <img src={item.image_url} alt="Announcement" className="object-contain max-h-64 w-full" />
+                        </div>
+                      )}
+                      {item.files && item.files.length > 0 && (
+                        <div className="space-y-2 pt-1">
+                          {item.files.map((file: any, fIdx: number) => (
+                            <a key={fIdx} href={file.url} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-3 rounded-xl bg-theme-bg border border-theme-border text-xs">
+                              <span className="truncate font-mono text-[11px] text-theme-text flex items-center gap-2">
+                                <Download size={14} className="text-theme-highlight shrink-0" />
+                                {file.name}
+                              </span>
+                              <ExternalLink size={14} className="shrink-0 text-theme-muted ml-2" />
+                            </a>
+                          ))}
+                        </div>
+                      )}
+                      {item.created_at && (
+                        <p className="text-[9px] font-mono text-theme-muted/60 text-right pt-1">
+                          {new Date(item.created_at).toLocaleString()}
+                        </p>
+                      )}
+                    </div>
+                  ))
+                )}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>
         {showFeedback && (

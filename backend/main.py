@@ -453,52 +453,57 @@ async def portal_refresh(creds: PortalCredentials, request: Request):
     return res
 
 
-_announcement_cache = {
-    "data": {"id": None, "text": "", "image_url": None, "files": [], "created_at": None},
+_announcements_history = {
+    "latest": {"id": None, "text": "", "image_url": None, "files": [], "created_at": None},
+    "history": [],
     "last_fetched": 0
 }
 
 @app.get("/api/announcements")
-async def get_announcement():
+async def get_announcements():
     now = time.time()
-    if now - _announcement_cache["last_fetched"] < 30 and _announcement_cache["data"]["id"] is not None:
-        return _announcement_cache["data"]
+    if now - _announcements_history["last_fetched"] < 30 and _announcements_history["latest"]["id"] is not None:
+        return _announcements_history
 
     bot_token = os.getenv("DISCORD_BOT_TOKEN", "")
     channel_id = os.getenv("DISCORD_CHANNEL_ID", "")
     if not bot_token or not channel_id:
-        return _announcement_cache["data"]
+        return _announcements_history
 
     headers = {"Authorization": f"Bot {bot_token}"}
-    url = f"https://discord.com/api/v10/channels/{channel_id}/messages?limit=1"
+    url = f"https://discord.com/api/v10/channels/{channel_id}/messages?limit=10"
     try:
         async with httpx.AsyncClient() as client:
             res = await client.get(url, headers=headers, timeout=5.0)
             if res.status_code == 200:
                 msgs = res.json()
                 if msgs and isinstance(msgs, list) and len(msgs) > 0:
-                    msg = msgs[0]
-                    content = msg.get("content", "")
-                    attachments = msg.get("attachments", [])
-                    image_url = None
-                    files = []
-                    for att in attachments:
-                        att_url = att.get("url", "")
-                        content_type = att.get("content_type", "")
-                        if content_type and "image" in content_type:
-                            image_url = att_url
-                        else:
-                            files.append({"name": att.get("filename", "file"), "url": att_url})
-                    _announcement_cache["data"] = {
-                        "id": msg.get("id"),
-                        "text": content,
-                        "image_url": image_url,
-                        "files": files,
-                        "created_at": msg.get("timestamp")
-                    }
-                    _announcement_cache["last_fetched"] = now
+                    history = []
+                    for msg in msgs:
+                        content = msg.get("content", "")
+                        attachments = msg.get("attachments", [])
+                        image_url = None
+                        files = []
+                        for att in attachments:
+                            att_url = att.get("url", "")
+                            content_type = att.get("content_type", "")
+                            if content_type and "image" in content_type:
+                                image_url = att_url
+                            else:
+                                files.append({"name": att.get("filename", "file"), "url": att_url})
+                        history.append({
+                            "id": msg.get("id"),
+                            "text": content,
+                            "image_url": image_url,
+                            "files": files,
+                            "created_at": msg.get("timestamp")
+                        })
+                    _announcements_history["latest"] = history[0]
+                    _announcements_history["history"] = history
+                    _announcements_history["last_fetched"] = now
     except Exception:
         pass
 
-    return _announcement_cache["data"]
+    return _announcements_history
+
 
