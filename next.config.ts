@@ -89,7 +89,7 @@ const withPWA = withPWAInit({
         },
       },
       {
-        urlPattern: /.*/i,
+        urlPattern: ({ url }) => url.origin === self.origin,
         handler: "StaleWhileRevalidate",
         options: {
           cacheName: "others",
