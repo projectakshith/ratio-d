@@ -247,10 +247,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       if (portalCookies) {
         setIsCheckingPortal(true);
         try {
+          const portalCreds = await EncryptionUtils.loadDecrypted("portal_credentials") as any;
           const portalRes = await fetchWithLoadBalancer("/portal/refresh", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ cookies: portalCookies }),
+            body: JSON.stringify({
+              cookies: portalCookies,
+              username: portalCreds?.username,
+              password: portalCreds?.password,
+            }),
           });
           if (portalRes.ok) {
             const portalData = await portalRes.json();

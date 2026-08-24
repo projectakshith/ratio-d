@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Loader2, AlertCircle, Eye, EyeOff, RefreshCw } from "lucide-react";
+import { X, Loader2, AlertCircle, Eye, EyeOff, RefreshCw, Zap } from "lucide-react";
 import { EncryptionUtils } from "@/utils/shared/Encryption";
 import { fetchWithLoadBalancer } from "@/utils/backendProxy";
 import { useApp } from "@/context/AppContext";
@@ -31,6 +31,9 @@ export default function PortalLoginModal({ open, onClose, onSuccess, captchaOnly
   const [cdigest, setCdigest] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [loadingCaptcha, setLoadingCaptcha] = useState(false);
+  const [loadingOcr, setLoadingOcr] = useState(false);
+  const [ocrStatus, setOcrStatus] = useState<string | null>(null);
+  const [ocrExhausted, setOcrExhausted] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
 
@@ -39,6 +42,8 @@ export default function PortalLoginModal({ open, onClose, onSuccess, captchaOnly
     setError("");
     setCaptcha("");
     setPassword("");
+    setOcrStatus(null);
+    setOcrExhausted(false);
     const texts = PORTAL_MESSAGES;
     setMessage(texts[Math.floor(Math.random() * texts.length)]);
     (async () => {
@@ -57,6 +62,7 @@ export default function PortalLoginModal({ open, onClose, onSuccess, captchaOnly
   const fetchCaptcha = async () => {
     setLoadingCaptcha(true);
     setError("");
+    setOcrStatus(null);
     try {
       const res = await fetchWithLoadBalancer("/portal/captcha", {
         method: "POST",
@@ -79,9 +85,39 @@ export default function PortalLoginModal({ open, onClose, onSuccess, captchaOnly
     }
   };
 
+  /** Test and debug TinyOCR model prediction directly on current captcha */
+  const solveWithOcr = async () => {
+    if (!captchaImage) return;
+    setLoadingOcr(true);
+    setOcrStatus("running tinyocr...");
+    setError("");
+    try {
+      const res = await fetchWithLoadBalancer("/captcha/solve", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image: captchaImage }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.success && data.text) {
+        setCaptcha(data.text);
+        setOcrStatus(`predicted: "${data.text}"`);
+      } else {
+        const errMsg = data.error || data.detail || "OCR prediction failed";
+        setOcrStatus("ocr failed");
+        setError(`OCR: ${errMsg}`);
+      }
+    } catch (err: any) {
+      setOcrStatus("ocr failed");
+      setError(err.message || "Failed to reach TinyOCR solver");
+    } finally {
+      setLoadingOcr(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!username || !password || !captcha || !cdigest) return;
+    if (!username || !password || !cdigest) return;
+    if ((isCaptchaView || ocrExhausted) && !captcha) return;
     setLoading(true);
     setError("");
     try {
@@ -91,12 +127,13 @@ export default function PortalLoginModal({ open, onClose, onSuccess, captchaOnly
         body: JSON.stringify({
           username,
           password,
-          captcha,
+          captcha: captcha || undefined,
           cdigest,
         }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
+        setOcrExhausted(true);
         if (typeof data.detail === "object" && data.detail !== null) {
           setError(data.detail.message || "invalid credentials");
         } else {
@@ -222,40 +259,65 @@ export default function PortalLoginModal({ open, onClose, onSuccess, captchaOnly
                 </div>
               )}
 
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[9px] font-black uppercase tracking-[0.3em] text-theme-muted pl-1" style={{ fontFamily: "var(--font-montserrat)" }}>
-                  captcha verification
-                </label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    value={captcha}
-                    onChange={(e) => setCaptcha(e.target.value)}
-                    className="flex-1 min-w-0 bg-theme-surface border border-theme-border rounded-2xl px-3.5 py-3.5 text-sm text-theme-text outline-none focus:border-theme-text transition-all tracking-widest font-mono placeholder:normal-case placeholder:font-sans placeholder:tracking-normal placeholder:text-theme-muted/40"
-                    style={{ fontFamily: "var(--font-afacad)" }}
-                    placeholder="type captcha"
-                    maxLength={8}
-                    autoComplete="off"
-                  />
-                  <div className="w-[125px] h-[52px] shrink-0 rounded-2xl overflow-hidden bg-white flex items-center justify-center relative border border-theme-border shadow-inner">
-                    {loadingCaptcha ? (
-                      <Loader2 size={16} className="animate-spin text-neutral-500" />
-                    ) : captchaImage ? (
-                      <img src={captchaImage} alt="captcha" className="w-full h-full object-contain p-1" />
-                    ) : (
-                      <span className="text-[8px] font-bold uppercase tracking-widest text-neutral-400" style={{ fontFamily: "var(--font-montserrat)" }}>loading</span>
+              {(isCaptchaView || ocrExhausted) && (
+                <div className="flex flex-col gap-1.5">
+                  <div className="flex items-center justify-between pl-1">
+                    <label className="text-[9px] font-black uppercase tracking-[0.3em] text-theme-muted" style={{ fontFamily: "var(--font-montserrat)" }}>
+                      captcha verification
+                    </label>
+                    {ocrStatus && (
+                      <span className="text-[9px] font-mono text-theme-highlight">
+                        {ocrStatus}
+                      </span>
                     )}
                   </div>
-                  <button
-                    type="button"
-                    onClick={fetchCaptcha}
-                    title="refresh captcha"
-                    className="w-10 h-[52px] shrink-0 rounded-2xl bg-theme-surface border border-theme-border flex items-center justify-center text-theme-muted hover:text-theme-text hover:bg-theme-card active:scale-95 transition-all"
-                  >
-                    <RefreshCw size={14} className={loadingCaptcha ? "animate-spin" : ""} />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={captcha}
+                      onChange={(e) => setCaptcha(e.target.value)}
+                      className="flex-1 min-w-0 bg-theme-surface border border-theme-border rounded-2xl px-3.5 py-3.5 text-sm text-theme-text outline-none focus:border-theme-text transition-all tracking-widest font-mono placeholder:normal-case placeholder:font-sans placeholder:tracking-normal placeholder:text-theme-muted/40"
+                      style={{ fontFamily: "var(--font-afacad)" }}
+                      placeholder="type captcha"
+                      maxLength={8}
+                      autoComplete="off"
+                    />
+                    <div className="w-[125px] h-[52px] shrink-0 rounded-2xl overflow-hidden bg-white flex items-center justify-center relative border border-theme-border shadow-inner">
+                      {loadingCaptcha ? (
+                        <Loader2 size={16} className="animate-spin text-neutral-500" />
+                      ) : captchaImage ? (
+                        <img src={captchaImage} alt="captcha" className="w-full h-full object-contain p-1" />
+                      ) : (
+                        <span className="text-[8px] font-bold uppercase tracking-widest text-neutral-400" style={{ fontFamily: "var(--font-montserrat)" }}>loading</span>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={fetchCaptcha}
+                      title="refresh captcha"
+                      className="w-10 h-[52px] shrink-0 rounded-2xl bg-theme-surface border border-theme-border flex items-center justify-center text-theme-muted hover:text-theme-text hover:bg-theme-card active:scale-95 transition-all"
+                    >
+                      <RefreshCw size={14} className={loadingCaptcha ? "animate-spin" : ""} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={solveWithOcr}
+                      disabled={loadingCaptcha || loadingOcr || !captchaImage}
+                      title="solve with tinyocr"
+                      className="h-[52px] px-3 shrink-0 rounded-2xl bg-theme-surface border border-theme-border flex items-center justify-center gap-1 text-theme-highlight hover:bg-theme-card hover:border-theme-highlight active:scale-95 transition-all disabled:opacity-40"
+                    >
+                      {loadingOcr ? (
+                        <Loader2 size={13} className="animate-spin text-theme-highlight" />
+                      ) : (
+                        <Zap size={13} className="text-theme-highlight fill-theme-highlight/20" />
+                      )}
+                      <span className="text-[9px] font-black uppercase tracking-wider hidden sm:inline" style={{ fontFamily: "var(--font-montserrat)" }}>
+                        ocr
+                      </span>
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
 
               <AnimatePresence>
                 {error && (
@@ -273,7 +335,7 @@ export default function PortalLoginModal({ open, onClose, onSuccess, captchaOnly
 
               <button
                 type="submit"
-                disabled={loading || loadingCaptcha || !username || !password || !captcha}
+                disabled={loading || loadingCaptcha || !username || !password || ((isCaptchaView || ocrExhausted) && !captcha)}
                 className="w-full py-4 mt-2 rounded-2xl bg-theme-highlight text-black font-black uppercase tracking-[0.2em] text-xs hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-30 flex items-center justify-center gap-2.5 shadow-xl shadow-theme-highlight/20"
                 style={{ fontFamily: "var(--font-montserrat)" }}
               >

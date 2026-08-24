@@ -103,6 +103,7 @@ class PortalSession:
             })
             if cr.status_code == 200:
                 img_b64 = base64.b64encode(cr.content).decode()
+                self.captcha_bytes = cr.content
         self.captcha_page = text
         self.load_ms = int(time.time() * 1000)
         return {

@@ -388,23 +388,60 @@ async def portal_login(creds: PortalCredentials, request: Request):
     session = _portal_captcha_sessions.pop(creds.cdigest, None) if creds.cdigest else None
     if not session:
         raise HTTPException(status_code=401, detail="captcha required")
-    if not creds.captcha:
-        _portal_captcha_sessions[creds.cdigest] = session
-        raise HTTPException(status_code=401, detail="captcha required")
 
-    try:
-        netid = (creds.username or "").strip().split("@")[0]
-        res = await session.login(netid, creds.password or "", creds.captcha, telemetry=creds.telemetry)
-    except Exception as e:
-        print(f"{get_now()}\n  -> [API] ERROR in /portal/login: {e}", flush=True)
-        raise HTTPException(status_code=401, detail="Invalid credentials")
-    if not res.get("ok"):
-        reason = res.get("reason", "login_failed")
+    netid = (creds.username or "").strip().split("@")[0]
+    password = creds.password or ""
+    captcha_val = creds.captcha
+    ocr_attempts = 0
+    login_res = None
+
+    if not captcha_val:
+        while ocr_attempts < 4:
+            if not hasattr(session, "captcha_bytes") or not session.captcha_bytes:
+                await session.load_captcha()
+            ocr_attempts += 1
+            print(f"  -> [OCR] Portal auto-solve attempt {ocr_attempts}/4", flush=True)
+            ok, solved, _ = await solve_captcha_ocr_bytes(session.captcha_bytes)
+            if not ok or not solved:
+                print("  -> [OCR] Portal OCR solver failed to predict captcha", flush=True)
+                break
+            print(f"  -> [OCR] Predicted: '{solved}'", flush=True)
+            try:
+                res = await session.login(netid, password, solved, telemetry=creds.telemetry)
+                if res.get("ok"):
+                    print(f"  -> [OCR] Portal login successful on attempt {ocr_attempts}!", flush=True)
+                    captcha_val = solved
+                    login_res = res
+                    break
+                if res.get("reason") == "wrong_captcha":
+                    session.captcha_bytes = None
+                    await session.load_captcha()
+                else:
+                    login_res = res
+                    break
+            except Exception as e:
+                print(f"  -> [OCR] Portal login error: {e}", flush=True)
+                break
+
+    if not captcha_val:
+        _portal_captcha_sessions[creds.cdigest] = session
+        raise HTTPException(status_code=401, detail="wrong captcha, try the new one")
+
+    if not login_res:
+        try:
+            login_res = await session.login(netid, password, captcha_val, telemetry=creds.telemetry)
+        except Exception as e:
+            print(f"{get_now()}\n  -> [API] ERROR in /portal/login: {e}", flush=True)
+            raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    if not login_res.get("ok"):
+        reason = login_res.get("reason", "login_failed")
         msg = {
             "wrong_captcha": "wrong captcha, try the new one",
             "invalid_credentials": "invalid credentials, check your netid/password",
             "session_expired": "session expired, refresh the captcha and retry",
         }.get(reason, "login failed")
+        _portal_captcha_sessions[creds.cdigest] = session
         raise HTTPException(status_code=401, detail=msg)
 
     client = PortalClient(res["cookies"])
@@ -437,6 +474,41 @@ async def portal_refresh(creds: PortalCredentials, request: Request):
         client.get_attendance_html(),
         client.get_marks_html()
     )
+    if att_html is None:
+        if creds.username and creds.password:
+            print("  -> [OCR] Portal session expired. Running background re-auth...", flush=True)
+            session = PortalSession()
+            netid = (creds.username or "").strip().split("@")[0]
+            password = creds.password or ""
+            ocr_attempts = 0
+            reauth_success = False
+
+            while ocr_attempts < 4:
+                await session.load_captcha()
+                ocr_attempts += 1
+                print(f"  -> [OCR] Portal background re-auth attempt {ocr_attempts}/4", flush=True)
+                ok, solved, _ = await solve_captcha_ocr_bytes(session.captcha_bytes)
+                if not ok or not solved:
+                    break
+                print(f"  -> [OCR] Predicted: '{solved}'", flush=True)
+                try:
+                    res = await session.login(netid, password, solved)
+                    if res.get("ok"):
+                        print(f"  -> [OCR] Portal background re-auth successful!", flush=True)
+                        reauth_success = True
+                        client = PortalClient(res["cookies"])
+                        att_html, marks_html = await asyncio.gather(
+                            client.get_attendance_html(),
+                            client.get_marks_html()
+                        )
+                        break
+                except Exception as e:
+                    print(f"  -> [OCR] Background Portal re-auth error: {e}", flush=True)
+                    break
+
+            if not reauth_success:
+                print("  -> [OCR] Background Portal re-auth failed after 4 attempts", flush=True)
+
     if att_html is None:
         raise HTTPException(status_code=401, detail={"type": "SESSION_EXPIRED"})
     courses, monthly = PortalAttendanceService.parse(att_html)
@@ -505,5 +577,4 @@ async def get_announcements():
         pass
 
     return _announcements_history
-
 
