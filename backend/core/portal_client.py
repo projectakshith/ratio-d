@@ -173,8 +173,8 @@ class PortalSession:
             r = await self.client.get(MARKS_URL)
             if r.status_code == 200 and "table" in r.text.lower():
                 return r.text
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"  -> [PORTAL] Network error fetching marks: {e}", flush=True)
         return None
 
 class PortalClient:
@@ -190,10 +190,14 @@ class PortalClient:
             pass
 
     async def get_attendance_html(self):
-        r = await self.client.get(ATT_URL)
-        if r.status_code != 200 or "login_form" in r.text or "theGR8LoginLoader" in r.text:
+        try:
+            r = await self.client.get(ATT_URL)
+            if r.status_code != 200 or "login_form" in r.text or "theGR8LoginLoader" in r.text:
+                return None
+            return r.text
+        except Exception as e:
+            print(f"  -> [PORTAL] Network error fetching attendance: {e}", flush=True)
             return None
-        return r.text
 
     async def get_marks_html(self):
         try:

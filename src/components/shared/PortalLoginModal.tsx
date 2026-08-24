@@ -33,6 +33,7 @@ export default function PortalLoginModal({ open, onClose, onSuccess, captchaOnly
   const [loadingCaptcha, setLoadingCaptcha] = useState(false);
   const [loadingOcr, setLoadingOcr] = useState(false);
   const [ocrStatus, setOcrStatus] = useState<string | null>(null);
+  const [autoAttempts, setAutoAttempts] = useState(0);
   const [ocrExhausted, setOcrExhausted] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
@@ -44,22 +45,31 @@ export default function PortalLoginModal({ open, onClose, onSuccess, captchaOnly
     setPassword("");
     setOcrStatus(null);
     setOcrExhausted(false);
+    setAutoAttempts(0);
     const texts = PORTAL_MESSAGES;
     setMessage(texts[Math.floor(Math.random() * texts.length)]);
     (async () => {
       const portalCreds = await EncryptionUtils.loadDecrypted("portal_credentials") as any;
       const acadCreds = await EncryptionUtils.loadDecrypted("ratio_credentials") as any;
+      let hasPass = false;
       if (portalCreds?.username) {
         setUsername(portalCreds.username.replace(/@srmist\.edu\.in$/i, ""));
-        if (portalCreds?.password) setPassword(portalCreds.password);
+        if (portalCreds?.password) {
+          setPassword(portalCreds.password);
+          hasPass = true;
+        }
       } else if (acadCreds?.username) {
         setUsername(acadCreds.username.replace(/@srmist\.edu\.in$/i, ""));
+        if (acadCreds?.password) {
+          setPassword(acadCreds.password);
+          hasPass = true;
+        }
       }
-      fetchCaptcha();
+      fetchCaptcha(hasPass);
     })();
   }, [open]);
 
-  const fetchCaptcha = async () => {
+  const fetchCaptcha = async (isAuto = false) => {
     setLoadingCaptcha(true);
     setError("");
     setOcrStatus(null);
@@ -78,6 +88,13 @@ export default function PortalLoginModal({ open, onClose, onSuccess, captchaOnly
       setCaptchaImage(data.captcha_image);
       setCdigest(data.session);
       setCaptcha("");
+
+      if (isAuto && autoAttempts < 4) {
+        setAutoAttempts(prev => prev + 1);
+        setTimeout(() => {
+          solveWithOcr(true, data.captcha_image, data.session);
+        }, 300);
+      }
     } catch (err: any) {
       setError(err.message || "portal unreachable right now");
     } finally {
@@ -86,8 +103,10 @@ export default function PortalLoginModal({ open, onClose, onSuccess, captchaOnly
   };
 
   /** Test and debug TinyOCR model prediction directly on current captcha */
-  const solveWithOcr = async () => {
-    if (!captchaImage) return;
+  const solveWithOcr = async (shouldAutoSubmit = false, overrideImg?: string, overrideCdigest?: string) => {
+    const img = overrideImg || captchaImage;
+    const digest = overrideCdigest || cdigest;
+    if (!img) return;
     setLoadingOcr(true);
     setOcrStatus("running tinyocr...");
     setError("");
@@ -95,12 +114,15 @@ export default function PortalLoginModal({ open, onClose, onSuccess, captchaOnly
       const res = await fetchWithLoadBalancer("/captcha/solve", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ image: captchaImage }),
+        body: JSON.stringify({ image: img }),
       });
       const data = await res.json().catch(() => ({}));
       if (res.ok && data.success && data.text) {
         setCaptcha(data.text);
         setOcrStatus(`predicted: "${data.text}"`);
+        if (shouldAutoSubmit) {
+          await submitWithCaptcha(data.text, digest);
+        }
       } else {
         const errMsg = data.error || data.detail || "OCR prediction failed";
         setOcrStatus("ocr failed");
@@ -114,10 +136,9 @@ export default function PortalLoginModal({ open, onClose, onSuccess, captchaOnly
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!username || !password || !cdigest) return;
-    if ((isCaptchaView || ocrExhausted) && !captcha) return;
+  const submitWithCaptcha = async (captchaVal: string, overrideCdigest?: string) => {
+    const digest = overrideCdigest || cdigest;
+    if (!username || !password || !digest) return;
     setLoading(true);
     setError("");
     try {
@@ -127,19 +148,27 @@ export default function PortalLoginModal({ open, onClose, onSuccess, captchaOnly
         body: JSON.stringify({
           username,
           password,
-          captcha: captcha || undefined,
-          cdigest,
+          captcha: captchaVal,
+          cdigest: digest,
         }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
+        const isWrongCaptcha = data.detail === "wrong captcha, try the new one" || 
+                               (typeof data.detail === "string" && data.detail.includes("captcha"));
+        if (isWrongCaptcha && autoAttempts < 4) {
+          console.log(`[OCR] Auto-solve attempt failed (${autoAttempts}/4). Retrying...`);
+          await fetchCaptcha(true);
+          return;
+        }
+
         setOcrExhausted(true);
         if (typeof data.detail === "object" && data.detail !== null) {
           setError(data.detail.message || "invalid credentials");
         } else {
           setError(data.detail || "login failed");
         }
-        await fetchCaptcha();
+        await fetchCaptcha(false);
         return;
       }
       if (data.cookies) {
@@ -161,10 +190,15 @@ export default function PortalLoginModal({ open, onClose, onSuccess, captchaOnly
       onClose();
     } catch (err: any) {
       setError(err.message || "something broke, try again");
-      await fetchCaptcha();
+      await fetchCaptcha(false);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await submitWithCaptcha(captcha);
   };
 
   const isCaptchaView = captchaOnly && username && password;

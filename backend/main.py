@@ -197,6 +197,67 @@ async def submit_feedback(request: Request):
 async def get_version():
     return {"version": "2.0.0"}
 
+@app.post("/captcha/solve")
+@limiter.limit("30/minute")
+async def solve_captcha_endpoint(request: Request):
+    """
+    Debug and integration endpoint for TinyOCR captcha prediction.
+    Accepts:
+      - JSON: { "image": "data:image/png;base64,..." } or { "image_b64": "..." } or { "image_url": "..." }
+      - Raw body: image bytes
+    Returns:
+      { "success": true, "text": "...", "image": "data:image/png;base64,..." }
+    """
+    image_bytes = None
+    content_type = request.headers.get("content-type", "")
+
+    if "application/json" in content_type:
+        try:
+            body = await request.json()
+        except Exception:
+            raise HTTPException(status_code=400, detail="Invalid JSON body")
+        raw_img = body.get("image") or body.get("image_b64")
+        img_url = body.get("image_url")
+
+        if raw_img:
+            if "," in raw_img:
+                raw_img = raw_img.split(",", 1)[1]
+            try:
+                image_bytes = base64.b64decode(raw_img)
+            except Exception as e:
+                raise HTTPException(status_code=400, detail=f"Invalid base64 image: {e}")
+        elif img_url:
+            async with httpx.AsyncClient(timeout=5.0) as dl:
+                img_resp = await dl.get(img_url)
+                if img_resp.status_code != 200:
+                    raise HTTPException(status_code=400, detail=f"Failed to fetch image from URL (HTTP {img_resp.status_code})")
+                image_bytes = img_resp.content
+    else:
+        image_bytes = await request.body()
+
+    if not image_bytes:
+        raise HTTPException(status_code=400, detail="No image provided. Pass { image: 'data:image/png;base64,...' } or raw bytes.")
+
+    ok, text, code = await solve_captcha_ocr_bytes(image_bytes)
+    img_b64_out = f"data:image/png;base64,{base64.b64encode(image_bytes).decode()}"
+
+    if not ok:
+        return JSONResponse(
+            status_code=code if code in [400, 413, 429, 503, 504] else 500,
+            content={
+                "success": False,
+                "error": text,
+                "image": img_b64_out,
+                "text": ""
+            }
+        )
+
+    return {
+        "success": True,
+        "text": text,
+        "image": img_b64_out
+    }
+
 @app.get("/pyq-proxy")
 async def pyq_proxy(path: str, q: str = None, limit: int = None, cursor: str = None):
     """
@@ -415,7 +476,7 @@ _portal_captcha_sessions = {}
 
 
 @app.post("/portal/captcha")
-@limiter.limit("5/minute")
+@limiter.limit("60/minute")
 async def portal_captcha(request: Request):
     session = PortalSession()
     try:
@@ -431,7 +492,7 @@ async def portal_captcha(request: Request):
 
 
 @app.post("/portal/login")
-@limiter.limit("8/minute")
+@limiter.limit("60/minute")
 async def portal_login(creds: PortalCredentials, request: Request):
     if creds.cookies:
         client = PortalClient(creds.cookies)
@@ -475,6 +536,7 @@ async def portal_login(creds: PortalCredentials, request: Request):
                 print("  -> [OCR] Portal OCR solver failed to predict captcha", flush=True)
                 break
             print(f"  -> [OCR] Predicted: '{solved}'", flush=True)
+            await asyncio.sleep(2)  # Bypass timing trap
             try:
                 res = await session.login(netid, password, solved, telemetry=creds.telemetry)
                 if res.get("ok"):
@@ -483,7 +545,7 @@ async def portal_login(creds: PortalCredentials, request: Request):
                     login_res = res
                     break
                 if res.get("reason") == "wrong_captcha":
-                    session.captcha_bytes = None
+                    session = PortalSession()
                     await session.load_captcha()
                 else:
                     login_res = res
@@ -513,11 +575,15 @@ async def portal_login(creds: PortalCredentials, request: Request):
         _portal_captcha_sessions[creds.cdigest] = session
         raise HTTPException(status_code=401, detail=msg)
 
-    client = PortalClient(res["cookies"])
-    att_html, marks_html = await asyncio.gather(
-        client.get_attendance_html(),
-        client.get_marks_html()
-    )
+    client = PortalClient(login_res["cookies"])
+    try:
+        att_html, marks_html = await asyncio.gather(
+            client.get_attendance_html(),
+            client.get_marks_html()
+        )
+    except Exception as e:
+        print(f"  -> [PORTAL] Connect error fetching details after login: {e}", flush=True)
+        att_html, marks_html = None, None
     courses, monthly = PortalAttendanceService.parse(att_html) if att_html else ([], [])
     marks = PortalMarksService.parse(marks_html) if marks_html else []
     out = {
@@ -533,7 +599,7 @@ async def portal_login(creds: PortalCredentials, request: Request):
 
 
 @app.post("/portal/refresh")
-@limiter.limit("8/minute")
+@limiter.limit("60/minute")
 async def portal_refresh(creds: PortalCredentials, request: Request):
     if not creds.cookies:
         raise HTTPException(status_code=401, detail={"type": "SESSION_EXPIRED"})
@@ -546,13 +612,13 @@ async def portal_refresh(creds: PortalCredentials, request: Request):
     if att_html is None:
         if creds.username and creds.password:
             print("  -> [OCR] Portal session expired. Running background re-auth...", flush=True)
-            session = PortalSession()
             netid = (creds.username or "").strip().split("@")[0]
             password = creds.password or ""
             ocr_attempts = 0
             reauth_success = False
 
             while ocr_attempts < 4:
+                session = PortalSession()
                 await session.load_captcha()
                 ocr_attempts += 1
                 print(f"  -> [OCR] Portal background re-auth attempt {ocr_attempts}/4", flush=True)
@@ -560,6 +626,7 @@ async def portal_refresh(creds: PortalCredentials, request: Request):
                 if not ok or not solved:
                     break
                 print(f"  -> [OCR] Predicted: '{solved}'", flush=True)
+                await asyncio.sleep(2)  # Bypass timing trap
                 try:
                     res = await session.login(netid, password, solved)
                     if res.get("ok"):
@@ -571,6 +638,8 @@ async def portal_refresh(creds: PortalCredentials, request: Request):
                             client.get_marks_html()
                         )
                         break
+                    else:
+                        print(f"  -> [OCR] Portal background re-auth attempt {ocr_attempts} failed. Reason: {res.get('reason')}", flush=True)
                 except Exception as e:
                     print(f"  -> [OCR] Background Portal re-auth error: {e}", flush=True)
                     break
