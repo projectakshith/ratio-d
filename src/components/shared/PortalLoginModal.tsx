@@ -136,7 +136,7 @@ export default function PortalLoginModal({ open, onClose, onSuccess, captchaOnly
     }
   };
 
-  const submitWithCaptcha = async (captchaVal: string, overrideCdigest?: string) => {
+  const submitWithCaptcha = async (captchaVal: string, overrideCdigest?: string | null) => {
     const digest = overrideCdigest || cdigest;
     if (!username || !password || !digest) return;
     setLoading(true);
@@ -201,7 +201,7 @@ export default function PortalLoginModal({ open, onClose, onSuccess, captchaOnly
     await submitWithCaptcha(captcha);
   };
 
-  const isCaptchaView = captchaOnly && username && password;
+  const isCaptchaView = !!(captchaOnly && username && password);
 
   return (
     <AnimatePresence>
@@ -327,7 +327,7 @@ export default function PortalLoginModal({ open, onClose, onSuccess, captchaOnly
                     </div>
                     <button
                       type="button"
-                      onClick={fetchCaptcha}
+                      onClick={() => fetchCaptcha(false)}
                       title="refresh captcha"
                       className="w-10 h-[52px] shrink-0 rounded-2xl bg-theme-surface border border-theme-border flex items-center justify-center text-theme-muted hover:text-theme-text hover:bg-theme-card active:scale-95 transition-all"
                     >
@@ -335,7 +335,7 @@ export default function PortalLoginModal({ open, onClose, onSuccess, captchaOnly
                     </button>
                     <button
                       type="button"
-                      onClick={solveWithOcr}
+                      onClick={() => solveWithOcr(false)}
                       disabled={loadingCaptcha || loadingOcr || !captchaImage}
                       title="solve with tinyocr"
                       className="h-[52px] px-3 shrink-0 rounded-2xl bg-theme-surface border border-theme-border flex items-center justify-center gap-1 text-theme-highlight hover:bg-theme-card hover:border-theme-highlight active:scale-95 transition-all disabled:opacity-40"
