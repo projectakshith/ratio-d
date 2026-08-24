@@ -2,7 +2,7 @@
   {
     "date": "01 Jan 2026",
     "day": "Thu",
-    "description": "New Year’s Day - Holiday",
+    "description": "New Year's Day - Holiday",
     "order": "-"
   },
   {
@@ -482,7 +482,7 @@
   {
     "date": "19 Mar 2026",
     "day": "Thu",
-    "description": "Telugu New Year’s Day - Holiday",
+    "description": "Telugu New Year's Day - Holiday",
     "order": "-"
   },
   {
@@ -646,7 +646,7 @@
   {
     "date": "14 Apr 2026",
     "day": "Tue",
-    "description": "Tamil New Year’s Day - Holiday",
+    "description": "Tamil New Year's Day - Holiday",
     "order": "-"
   },
   {
@@ -1120,32 +1120,32 @@
   {
     "date": "24 Aug 2026",
     "day": "Mon",
-    "description": "Instructional Day",
-    "order": "5"
+    "description": "Classes Suspended - Holiday",
+    "order": "-"
   },
   {
     "date": "25 Aug 2026",
     "day": "Tue",
     "description": "Instructional Day",
-    "order": "1"
+    "order": "5"
   },
   {
     "date": "26 Aug 2026",
     "day": "Wed",
-    "description": "Milad - un - Nabi - Holiday",
+    "description": "Milad-un-nabi - Holiday",
     "order": "-"
   },
   {
     "date": "27 Aug 2026",
     "day": "Thu",
     "description": "Instructional Day",
-    "order": "2"
+    "order": "1"
   },
   {
     "date": "28 Aug 2026",
     "day": "Fri",
     "description": "Instructional Day",
-    "order": "3"
+    "order": "2"
   },
   {
     "date": "29 Aug 2026",
@@ -1163,25 +1163,25 @@
     "date": "31 Aug 2026",
     "day": "Mon",
     "description": "Instructional Day",
-    "order": "4"
+    "order": "3"
   },
   {
     "date": "01 Sep 2026",
     "day": "Tue",
     "description": "Instructional Day",
-    "order": "5"
+    "order": "4"
   },
   {
     "date": "02 Sep 2026",
     "day": "Wed",
     "description": "Instructional Day",
-    "order": "1"
+    "order": "5"
   },
   {
     "date": "03 Sep 2026",
     "day": "Thu",
     "description": "Instructional Day",
-    "order": "2"
+    "order": "1"
   },
   {
     "date": "04 Sep 2026",
@@ -1205,31 +1205,31 @@
     "date": "07 Sep 2026",
     "day": "Mon",
     "description": "Instructional Day",
-    "order": "3"
+    "order": "2"
   },
   {
     "date": "08 Sep 2026",
     "day": "Tue",
     "description": "Instructional Day",
-    "order": "4"
+    "order": "3"
   },
   {
     "date": "09 Sep 2026",
     "day": "Wed",
     "description": "Instructional Day",
-    "order": "5"
+    "order": "4"
   },
   {
     "date": "10 Sep 2026",
     "day": "Thu",
     "description": "Instructional Day",
-    "order": "1"
+    "order": "5"
   },
   {
     "date": "11 Sep 2026",
     "day": "Fri",
     "description": "Instructional Day",
-    "order": "2"
+    "order": "1"
   },
   {
     "date": "12 Sep 2026",
@@ -1253,25 +1253,25 @@
     "date": "15 Sep 2026",
     "day": "Tue",
     "description": "Instructional Day",
-    "order": "3"
+    "order": "2"
   },
   {
     "date": "16 Sep 2026",
     "day": "Wed",
     "description": "Instructional Day",
-    "order": "4"
+    "order": "3"
   },
   {
     "date": "17 Sep 2026",
     "day": "Thu",
     "description": "Instructional Day",
-    "order": "5"
+    "order": "4"
   },
   {
     "date": "18 Sep 2026",
     "day": "Fri",
     "description": "Instructional Day",
-    "order": "1"
+    "order": "5"
   },
   {
     "date": "19 Sep 2026",
@@ -1289,31 +1289,31 @@
     "date": "21 Sep 2026",
     "day": "Mon",
     "description": "Instructional Day",
-    "order": "2"
+    "order": "1"
   },
   {
     "date": "22 Sep 2026",
     "day": "Tue",
     "description": "Instructional Day",
-    "order": "3"
+    "order": "2"
   },
   {
     "date": "23 Sep 2026",
     "day": "Wed",
     "description": "Instructional Day",
-    "order": "4"
+    "order": "3"
   },
   {
     "date": "24 Sep 2026",
     "day": "Thu",
     "description": "Instructional Day",
-    "order": "5"
+    "order": "4"
   },
   {
     "date": "25 Sep 2026",
     "day": "Fri",
     "description": "Instructional Day",
-    "order": "1"
+    "order": "5"
   },
   {
     "date": "26 Sep 2026",
@@ -1331,25 +1331,25 @@
     "date": "28 Sep 2026",
     "day": "Mon",
     "description": "Instructional Day",
-    "order": "2"
+    "order": "1"
   },
   {
     "date": "29 Sep 2026",
     "day": "Tue",
     "description": "Instructional Day",
-    "order": "3"
+    "order": "2"
   },
   {
     "date": "30 Sep 2026",
     "day": "Wed",
     "description": "Instructional Day",
-    "order": "4"
+    "order": "3"
   },
   {
     "date": "01 Oct 2026",
     "day": "Thu",
     "description": "Instructional Day",
-    "order": "5"
+    "order": "4"
   },
   {
     "date": "02 Oct 2026",
@@ -1373,31 +1373,31 @@
     "date": "05 Oct 2026",
     "day": "Mon",
     "description": "Instructional Day",
-    "order": "1"
+    "order": "5"
   },
   {
     "date": "06 Oct 2026",
     "day": "Tue",
     "description": "Instructional Day",
-    "order": "2"
+    "order": "1"
   },
   {
     "date": "07 Oct 2026",
     "day": "Wed",
     "description": "Instructional Day",
-    "order": "3"
+    "order": "2"
   },
   {
     "date": "08 Oct 2026",
     "day": "Thu",
     "description": "Instructional Day",
-    "order": "4"
+    "order": "3"
   },
   {
     "date": "09 Oct 2026",
     "day": "Fri",
     "description": "Instructional Day",
-    "order": "5"
+    "order": "4"
   },
   {
     "date": "10 Oct 2026",
@@ -1415,31 +1415,31 @@
     "date": "12 Oct 2026",
     "day": "Mon",
     "description": "Instructional Day",
-    "order": "1"
+    "order": "5"
   },
   {
     "date": "13 Oct 2026",
     "day": "Tue",
     "description": "Instructional Day",
-    "order": "2"
+    "order": "1"
   },
   {
     "date": "14 Oct 2026",
     "day": "Wed",
     "description": "Instructional Day",
-    "order": "3"
+    "order": "2"
   },
   {
     "date": "15 Oct 2026",
     "day": "Thu",
     "description": "Instructional Day",
-    "order": "4"
+    "order": "3"
   },
   {
     "date": "16 Oct 2026",
     "day": "Fri",
     "description": "Instructional Day",
-    "order": "5"
+    "order": "4"
   },
   {
     "date": "17 Oct 2026",
@@ -1469,19 +1469,19 @@
     "date": "21 Oct 2026",
     "day": "Wed",
     "description": "Instructional Day",
-    "order": "1"
+    "order": "5"
   },
   {
     "date": "22 Oct 2026",
     "day": "Thu",
     "description": "Instructional Day",
-    "order": "2"
+    "order": "1"
   },
   {
     "date": "23 Oct 2026",
     "day": "Fri",
     "description": "Instructional Day",
-    "order": "3"
+    "order": "2"
   },
   {
     "date": "24 Oct 2026",
@@ -1499,31 +1499,31 @@
     "date": "26 Oct 2026",
     "day": "Mon",
     "description": "Instructional Day",
-    "order": "4"
+    "order": "3"
   },
   {
     "date": "27 Oct 2026",
     "day": "Tue",
     "description": "Instructional Day",
-    "order": "5"
+    "order": "4"
   },
   {
     "date": "28 Oct 2026",
     "day": "Wed",
     "description": "Instructional Day",
-    "order": "1"
+    "order": "5"
   },
   {
     "date": "29 Oct 2026",
     "day": "Thu",
     "description": "Instructional Day",
-    "order": "2"
+    "order": "1"
   },
   {
     "date": "30 Oct 2026",
     "day": "Fri",
     "description": "Instructional Day",
-    "order": "3"
+    "order": "2"
   },
   {
     "date": "31 Oct 2026",
@@ -1541,31 +1541,31 @@
     "date": "02 Nov 2026",
     "day": "Mon",
     "description": "Instructional Day",
-    "order": "4"
+    "order": "3"
   },
   {
     "date": "03 Nov 2026",
     "day": "Tue",
     "description": "Instructional Day",
-    "order": "5"
+    "order": "4"
   },
   {
     "date": "04 Nov 2026",
     "day": "Wed",
     "description": "Instructional Day",
-    "order": "1"
+    "order": "5"
   },
   {
     "date": "05 Nov 2026",
     "day": "Thu",
     "description": "Instructional Day",
-    "order": "2"
+    "order": "1"
   },
   {
     "date": "06 Nov 2026",
     "day": "Fri",
     "description": "Instructional Day",
-    "order": "3"
+    "order": "2"
   },
   {
     "date": "07 Nov 2026",
@@ -1583,31 +1583,31 @@
     "date": "09 Nov 2026",
     "day": "Mon",
     "description": "Instructional Day",
-    "order": "4"
+    "order": "3"
   },
   {
     "date": "10 Nov 2026",
     "day": "Tue",
     "description": "Instructional Day",
-    "order": "5"
+    "order": "4"
   },
   {
     "date": "11 Nov 2026",
     "day": "Wed",
     "description": "Instructional Day",
-    "order": "1"
+    "order": "5"
   },
   {
     "date": "12 Nov 2026",
     "day": "Thu",
     "description": "Instructional Day",
-    "order": "2"
+    "order": "1"
   },
   {
     "date": "13 Nov 2026",
     "day": "Fri",
     "description": "Instructional Day",
-    "order": "3"
+    "order": "2"
   },
   {
     "date": "14 Nov 2026",
@@ -1625,31 +1625,31 @@
     "date": "16 Nov 2026",
     "day": "Mon",
     "description": "Instructional Day",
-    "order": "4"
+    "order": "3"
   },
   {
     "date": "17 Nov 2026",
     "day": "Tue",
     "description": "Instructional Day",
-    "order": "5"
+    "order": "4"
   },
   {
     "date": "18 Nov 2026",
     "day": "Wed",
     "description": "Instructional Day",
-    "order": "1"
+    "order": "5"
   },
   {
     "date": "19 Nov 2026",
     "day": "Thu",
     "description": "Instructional Day",
-    "order": "2"
+    "order": "1"
   },
   {
     "date": "20 Nov 2026",
     "day": "Fri",
     "description": "Last Working Day - B. Tech - II,III,IV / M. Tech (Int) - II,III,IV,V / M. Tech - I,II / B. Arch - II,III,IV,V / B. Des - III,IV / M. Arch & M. Des - I,II / Minor Degree (Year)",
-    "order": "3"
+    "order": "2"
   },
   {
     "date": "21 Nov 2026",
@@ -1667,31 +1667,31 @@
     "date": "23 Nov 2026",
     "day": "Mon",
     "description": "Instructional Day",
-    "order": "4"
+    "order": "3"
   },
   {
     "date": "24 Nov 2026",
     "day": "Tue",
     "description": "Instructional Day",
-    "order": "5"
+    "order": "4"
   },
   {
     "date": "25 Nov 2026",
     "day": "Wed",
     "description": "Instructional Day",
-    "order": "1"
+    "order": "5"
   },
   {
     "date": "26 Nov 2026",
     "day": "Thu",
     "description": "Instructional Day",
-    "order": "2"
+    "order": "1"
   },
   {
     "date": "27 Nov 2026",
     "day": "Fri",
     "description": "Instructional Day",
-    "order": "3"
+    "order": "2"
   },
   {
     "date": "28 Nov 2026",
@@ -1709,31 +1709,31 @@
     "date": "30 Nov 2026",
     "day": "Mon",
     "description": "Instructional Day",
-    "order": "4"
+    "order": "3"
   },
   {
     "date": "01 Dec 2026",
     "day": "Tue",
     "description": "Instructional Day",
-    "order": "5"
+    "order": "4"
   },
   {
     "date": "02 Dec 2026",
     "day": "Wed",
     "description": "Instructional Day",
-    "order": "1"
+    "order": "5"
   },
   {
     "date": "03 Dec 2026",
     "day": "Thu",
     "description": "Instructional Day",
-    "order": "2"
+    "order": "1"
   },
   {
     "date": "04 Dec 2026",
     "day": "Fri",
     "description": "Instructional Day",
-    "order": "3"
+    "order": "2"
   },
   {
     "date": "05 Dec 2026",
@@ -1751,7 +1751,7 @@
     "date": "07 Dec 2026",
     "day": "Mon",
     "description": "Last Working Day - B.Tech - I / M.Tech (Int) - I / B. Arch & B. Des - I (Year)",
-    "order": "4"
+    "order": "3"
   },
   {
     "date": "08 Dec 2026",
