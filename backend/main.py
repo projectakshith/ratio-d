@@ -1,3 +1,4 @@
+import base64
 import time
 import asyncio
 import os
@@ -7,6 +8,7 @@ import hashlib
 import secrets
 import logging
 from datetime import datetime
+from contextlib import asynccontextmanager
 import httpx
 import uvicorn
 
@@ -33,6 +35,73 @@ from slowapi.errors import RateLimitExceeded
 load_dotenv()
 load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env.local'))
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    app.state.http_client = httpx.AsyncClient(timeout=10.0)
+    yield
+    await app.state.http_client.aclose()
+
+
+# ── tinyocr captcha auto-solver ──────────────────────────────
+TINYOCR_URL = os.getenv("TINYOCR_URL", "http://127.0.0.1:8080")
+TINYOCR_API_KEY = os.getenv("TINYOCR_API_KEY", "")
+MAX_OCR_ATTEMPTS = 4  # portal locks at 5 wrong captchas; keep 1 for manual
+
+_ocr_client: httpx.AsyncClient | None = None
+
+
+async def _get_ocr_client() -> httpx.AsyncClient:
+    global _ocr_client
+    if _ocr_client is None or _ocr_client.is_closed:
+        headers = {}
+        if TINYOCR_API_KEY:
+            headers["x-api-key"] = TINYOCR_API_KEY
+        _ocr_client = httpx.AsyncClient(
+            base_url=TINYOCR_URL, headers=headers, timeout=3.0
+        )
+    return _ocr_client
+
+
+async def solve_captcha_ocr_bytes(image_bytes: bytes) -> tuple[bool, str, int]:
+    """Send raw image bytes to TinyOCR /predict and return (ok, text_or_error, status_code)."""
+    try:
+        ocr = await _get_ocr_client()
+        resp = await ocr.post(
+            "/predict",
+            content=image_bytes,
+            headers={"content-type": "image/png"},
+        )
+        if resp.status_code == 200:
+            data = resp.json()
+            return True, data.get("text", ""), 200
+        else:
+            err_detail = ""
+            try:
+                err_detail = resp.json().get("error", resp.text)
+            except Exception:
+                err_detail = resp.text
+            return False, f"TinyOCR error ({resp.status_code}): {err_detail}", resp.status_code
+    except Exception as e:
+        return False, f"TinyOCR request failed: {str(e)}", 503
+
+
+async def solve_captcha_ocr(image_url: str) -> str | None:
+    """Download captcha image from academia and send to TinyOCR /predict."""
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as dl:
+            img_resp = await dl.get(image_url)
+            if img_resp.status_code != 200:
+                print(f"  -> [OCR] Failed to download captcha image (HTTP {img_resp.status_code})", flush=True)
+                return None
+            image_bytes = img_resp.content
+        ok, text, _ = await solve_captcha_ocr_bytes(image_bytes)
+        return text if ok else None
+    except Exception as e:
+        print(f"  -> [OCR] TinyOCR error: {e}", flush=True)
+        return None
+
+
 def get_rate_limit_key(request: Request):
     return (
         request.headers.get("CF-Connecting-IP") or
@@ -40,7 +109,7 @@ def get_rate_limit_key(request: Request):
     )
 
 limiter = Limiter(key_func=get_rate_limit_key)
-app = FastAPI()
+app = FastAPI(lifespan=lifespan)
 app.state.limiter = limiter
 
 @app.exception_handler(RateLimitExceeded)
