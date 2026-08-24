@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, Loader2, AlertCircle, Eye, EyeOff } from "lucide-react";
+import { ArrowRight, Loader2, AlertCircle, Eye, EyeOff, RotateCcw, Zap } from "lucide-react";
 import { EncryptionUtils } from "@/utils/shared/Encryption";
 import { useApp } from "@/context/AppContext";
 import { useRouter } from "next/navigation";
@@ -25,9 +25,28 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
 
   const [isExiting, setIsExiting] = useState(false);
 
+  // OCR auto-solve fallback state
+  const [ocrExhausted, setOcrExhausted] = useState<boolean>(false);
+  const [ocrAttempts, setOcrAttempts] = useState<number>(0);
+  const [isGambling, setIsGambling] = useState<boolean>(false);
+
   const formatUsername = (val: string) => {
     const cleanVal = val.trim();
     return cleanVal.includes("@") ? cleanVal : `${cleanVal}@srmist.edu.in`;
+  };
+
+  /** Handle CAPTCHA_REQUIRED errors from the backend */
+  const handleCaptchaError = (err: any) => {
+    setCaptchaImage(err.image);
+    setCdigest(err.cdigest);
+    setCaptchaInput("");
+    if (err.ocr_exhausted) {
+      setOcrExhausted(true);
+      setOcrAttempts(err.ocr_attempts || 0);
+      setError("auto-solve failed — verify manually");
+    } else {
+      setError(err.message || "Please enter the CAPTCHA.");
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -63,13 +82,11 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
           onLogin(data);
         } catch (err: any) {
           if (err?.type === "CAPTCHA_REQUIRED") {
-            setCaptchaImage(err.image);
-            setCdigest(err.cdigest);
-            setError(err.message || "Please enter the CAPTCHA.");
-            setCaptchaInput("");
+            handleCaptchaError(err);
           } else {
             setCaptchaImage(null);
             setCdigest(null);
+            setOcrExhausted(false);
             setError(err.message || "auth failed");
           }
           setLoading(false);
@@ -77,16 +94,47 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
       }
     } catch (err: any) {
       if (err?.type === "CAPTCHA_REQUIRED") {
-        setCaptchaImage(err.image);
-        setCdigest(err.cdigest);
-        setError(err.message || "Please enter the CAPTCHA.");
-        setCaptchaInput("");
+        handleCaptchaError(err);
       } else {
         setCaptchaImage(null);
         setCdigest(null);
+        setOcrExhausted(false);
         setError(err.message || "auth failed");
       }
       setLoading(false);
+    }
+  };
+
+  /** Gamble: let OCR try one more time (5th attempt — portal's last chance) */
+  const handleGamble = async () => {
+    if (!username || !password) return;
+    setIsGambling(true);
+    setError("");
+    setLoading(true);
+    const fullUsername = formatUsername(username);
+
+    try {
+      EncryptionUtils.cleanOldKeys();
+      const creds = {
+        username: fullUsername,
+        password: password,
+        cookies: null as any,
+        gamble: true,
+      };
+      const data = await performLogin(creds);
+      onLogin(data);
+    } catch (err: any) {
+      if (err?.type === "CAPTCHA_REQUIRED") {
+        setCaptchaImage(err.image);
+        setCdigest(err.cdigest);
+        setCaptchaInput("");
+        setOcrAttempts(err.ocr_attempts || ocrAttempts + 1);
+        setError("gamble failed — last chance, enter it manually");
+      } else {
+        setError(err.message || "auth failed");
+      }
+      setLoading(false);
+      setIsGambling(false);
     }
   };
 
@@ -207,6 +255,19 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
                   <label className="text-[10px] font-mono uppercase tracking-[0.3em] text-white/60 mb-2 block">
                     Security Check
                   </label>
+
+                  {/* OCR exhaustion banner */}
+                  {ocrExhausted && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.2em] text-[#ceff1c]/80 mb-3"
+                    >
+                      <AlertCircle size={14} />
+                      auto-solver exhausted ({ocrAttempts}/4) — enter captcha manually
+                    </motion.div>
+                  )}
+
                   <div className="flex flex-col md:flex-row items-stretch md:items-center gap-4">
                     <div className="relative flex-1 flex items-center border-b-[1.5px] border-white focus-within:border-[#ceff1c] transition-colors">
                       <input
@@ -222,6 +283,30 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
                       <img src={captchaImage} alt="CAPTCHA" className="h-full object-contain mix-blend-multiply" />
                     </div>
                   </div>
+
+                  {/* Gamble button — visible after OCR exhaustion, before user has gambled */}
+                  {ocrExhausted && !isGambling && (
+                    <motion.button
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.2 }}
+                      type="button"
+                      onClick={handleGamble}
+                      disabled={loading}
+                      className="w-full flex items-center justify-between border-t border-white/20 pt-4 mt-6 group disabled:opacity-30"
+                    >
+                      <span
+                        className="text-lg md:text-xl lowercase text-white/60 group-hover:text-[#ceff1c] transition-colors"
+                        style={{ fontFamily: "aonic" }}
+                      >
+                        gamble — let ocr try once more
+                      </span>
+                      <RotateCcw
+                        size={22}
+                        className="text-white/60 group-hover:text-[#ceff1c] group-hover:rotate-180 transition-all"
+                      />
+                    </motion.button>
+                  )}
                 </motion.div>
               )}
             </AnimatePresence>

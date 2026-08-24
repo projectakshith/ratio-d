@@ -1,0 +1,22 @@
+# TinyOCR production configuration.
+# Every value can be overridden via environment variables:
+#   TINYOCR_HOST, TINYOCR_PORT, TINYOCR_BACKEND, TINYOCR_MODEL_PATH,
+#   TINYOCR_VOCAB_PATH, TINYOCR_MAX_BATCH, TINYOCR_MAX_WAIT_US,
+#   TINYOCR_MAX_QUEUE, TINYOCR_REQUEST_TIMEOUT_MS, TINYOCR_MAX_IMAGE_BYTES
+
+host = "0.0.0.0"
+port = 8080
+
+# "cuda" requires a build with `--features cuda` and a working CUDA runtime.
+# "cpu" runs ONNX Runtime on CPU (fast enough for this tiny model).
+backend = "cpu"
+
+model_path = "./model/captcha_crnn.onnx"
+vocab_path = "./model/vocab.json"
+
+max_batch = 16
+max_wait_us = 500
+max_queue = 512
+
+request_timeout_ms = 1000
+max_image_bytes = 1048576

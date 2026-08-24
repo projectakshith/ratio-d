@@ -1,0 +1,15 @@
+# Container-facing configuration (paths are container-absolute).
+host = "0.0.0.0"
+port = 8080
+
+backend = "cuda"
+
+model_path = "/app/model/captcha_crnn.onnx"
+vocab_path = "/app/model/vocab.json"
+
+max_batch = 16
+max_wait_us = 500
+max_queue = 512
+
+request_timeout_ms = 1000
+max_image_bytes = 1048576

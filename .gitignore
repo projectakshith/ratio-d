@@ -58,3 +58,10 @@ src/app/test
 # Debugging scripts
 backend/debug_fetch.py
 backend/debug_*.html
+
+# Rust build artifacts
+ocr-engine/target/
+ocr-engine/**/target/
+
+# IDE
+.vscode/
