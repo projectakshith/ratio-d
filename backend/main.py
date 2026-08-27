@@ -109,7 +109,14 @@ def get_rate_limit_key(request: Request):
     )
 
 limiter = Limiter(key_func=get_rate_limit_key)
-app = FastAPI(lifespan=lifespan)
+
+_docs_enabled = os.getenv("ENV") == "development"
+app = FastAPI(
+    lifespan=lifespan,
+    docs_url="/docs" if _docs_enabled else None,
+    redoc_url="/redoc" if _docs_enabled else None,
+    openapi_url="/openapi.json" if _docs_enabled else None,
+)
 app.state.limiter = limiter
 
 @app.exception_handler(RateLimitExceeded)
@@ -550,6 +557,9 @@ async def portal_login(creds: PortalCredentials, request: Request):
                 else:
                     login_res = res
                     break
+            except (httpx.ConnectTimeout, httpx.ConnectError, httpx.ReadTimeout, httpx.ReadError) as e:
+                print(f"  -> [OCR] Portal connection error: {e}", flush=True)
+                raise HTTPException(status_code=503, detail="Student Portal is unreachable or timing out. Please try again later.")
             except Exception as e:
                 print(f"  -> [OCR] Portal login error: {e}", flush=True)
                 break
@@ -561,6 +571,9 @@ async def portal_login(creds: PortalCredentials, request: Request):
     if not login_res:
         try:
             login_res = await session.login(netid, password, captcha_val, telemetry=creds.telemetry)
+        except (httpx.ConnectTimeout, httpx.ConnectError, httpx.ReadTimeout, httpx.ReadError) as e:
+            print(f"{get_now()}\n  -> [API] Portal connection error in /portal/login: {e}", flush=True)
+            raise HTTPException(status_code=503, detail="Student Portal is unreachable or timing out. Please try again later.")
         except Exception as e:
             print(f"{get_now()}\n  -> [API] ERROR in /portal/login: {e}", flush=True)
             raise HTTPException(status_code=401, detail="Invalid credentials")

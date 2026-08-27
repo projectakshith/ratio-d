@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ExternalLink, Megaphone, Download } from "lucide-react";
 import { fetchWithLoadBalancer } from "@/utils/backendProxy";
+import { useApp } from "@/context/AppContext";
 
 interface AnnouncementFile {
   name: string;
@@ -18,10 +19,12 @@ interface Announcement {
 }
 
 export default function AnnouncementToast() {
+  const { userData } = useApp();
   const [announcement, setAnnouncement] = useState<Announcement | null>(null);
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
+    if (!userData) return;
     let isMounted = true;
     const fetchAnnouncement = async () => {
       try {
@@ -44,7 +47,7 @@ export default function AnnouncementToast() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [userData]);
 
   const handleDismiss = () => {
     if (announcement?.id) {

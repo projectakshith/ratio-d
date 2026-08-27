@@ -121,7 +121,7 @@ export default function PortalLoginModal({ open, onClose, onSuccess, captchaOnly
         setCaptcha(data.text);
         setOcrStatus(`predicted: "${data.text}"`);
         if (shouldAutoSubmit) {
-          await submitWithCaptcha(data.text, digest);
+          await submitWithCaptcha(data.text, digest, true);
         }
       } else {
         const errMsg = data.error || data.detail || "OCR prediction failed";
@@ -136,7 +136,7 @@ export default function PortalLoginModal({ open, onClose, onSuccess, captchaOnly
     }
   };
 
-  const submitWithCaptcha = async (captchaVal: string, overrideCdigest?: string | null) => {
+  const submitWithCaptcha = async (captchaVal: string, overrideCdigest?: string | null, isAuto = false) => {
     const digest = overrideCdigest || cdigest;
     if (!username || !password || !digest) return;
     setLoading(true);
@@ -156,18 +156,26 @@ export default function PortalLoginModal({ open, onClose, onSuccess, captchaOnly
       if (!res.ok) {
         const isWrongCaptcha = data.detail === "wrong captcha, try the new one" || 
                                (typeof data.detail === "string" && data.detail.includes("captcha"));
-        if (isWrongCaptcha && autoAttempts < 4) {
-          console.log(`[OCR] Auto-solve attempt failed (${autoAttempts}/4). Retrying...`);
+        const isWrongCredentials = typeof data.detail === "string" && data.detail.toLowerCase().includes("credentials");
+
+        const maxAttempts = isWrongCaptcha ? 4 : (isWrongCredentials ? 2 : 1);
+
+        if (isAuto && autoAttempts < maxAttempts) {
+          console.log(`[OCR] Auto-solve attempt failed (${autoAttempts}/${maxAttempts}). Retrying...`);
           await fetchCaptcha(true);
           return;
         }
 
         setOcrExhausted(true);
-        if (typeof data.detail === "object" && data.detail !== null) {
-          setError(data.detail.message || "invalid credentials");
-        } else {
-          setError(data.detail || "login failed");
+        const errDetail = typeof data.detail === "object" && data.detail !== null 
+          ? (data.detail.message || "invalid credentials") 
+          : (data.detail || "login failed");
+        setError(errDetail);
+
+        if (isWrongCredentials) {
+          setPassword("");
         }
+
         await fetchCaptcha(false);
         return;
       }
@@ -201,7 +209,7 @@ export default function PortalLoginModal({ open, onClose, onSuccess, captchaOnly
     await submitWithCaptcha(captcha);
   };
 
-  const isCaptchaView = !!(captchaOnly && username && password);
+  const isCaptchaView = !!(captchaOnly && username && password && !ocrExhausted);
 
   return (
     <AnimatePresence>
