@@ -65,9 +65,11 @@ export default function PortalLoginModal({ open, onClose, onSuccess, captchaOnly
     })();
   }, [open]);
 
-  const fetchCaptcha = async (isAuto = false) => {
+  const fetchCaptcha = async (isAuto = false, clearError = true) => {
     setLoadingCaptcha(true);
-    setError("");
+    if (clearError) {
+      setError("");
+    }
     setOcrStatus(null);
     try {
       const res = await fetchWithLoadBalancer("/portal/captcha", {
@@ -169,6 +171,8 @@ export default function PortalLoginModal({ open, onClose, onSuccess, captchaOnly
 
         if (isWrongCredentials) {
           errDetail = "invalid credentials. make sure this is your student portal password and not your academia password!";
+        } else if (isWrongCaptcha || isAuto) {
+          errDetail = "failed to authenticate";
         }
         setError(errDetail);
 
@@ -176,7 +180,7 @@ export default function PortalLoginModal({ open, onClose, onSuccess, captchaOnly
           setPassword("");
         }
 
-        await fetchCaptcha(false);
+        await fetchCaptcha(false, false);
         return;
       }
       if (data.cookies) {
@@ -199,7 +203,7 @@ export default function PortalLoginModal({ open, onClose, onSuccess, captchaOnly
       onClose();
     } catch (err: any) {
       setError(err.message || "something broke, try again");
-      await fetchCaptcha(false);
+      await fetchCaptcha(false, false);
     } finally {
       setLoading(false);
     }
@@ -289,6 +293,9 @@ export default function PortalLoginModal({ open, onClose, onSuccess, captchaOnly
                         {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                       </button>
                     </div>
+                    <span className="text-xs text-yellow-500/90 pl-1 mt-1 font-medium">
+                      enter student portal pw (not academia)
+                    </span>
                   </div>
                 </>
               ) : (
