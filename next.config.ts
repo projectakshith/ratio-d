@@ -20,6 +20,7 @@ const withPWA = withPWAInit({
         handler: "NetworkFirst",
         options: {
           cacheName: "pages",
+          networkTimeoutSeconds: 3,
           expiration: {
             maxEntries: 32,
             maxAgeSeconds: 60 * 60 * 24,

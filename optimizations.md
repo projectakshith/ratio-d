@@ -130,6 +130,27 @@ This document outlines the optimization strategy for the **ratio-d** dashboard. 
 
 ---
 
+### 15. Client-Side Avatar Generation Bloat (Dicebear Core & Styles)
+* **Location:** [UserAvatar.tsx](file:///C:/Users/Rajesh/ratio-d/src/components/shared/UserAvatar.tsx)
+* **The Issue:** Generating SVG avatars dynamically on the client side using `@dicebear/core` and `@dicebear/croodles` pulls a massive footprint (~100KB+ minified JS) into the bundle.
+* **The Fix:** Replace it with a simple `<img>` tag hitting the official, fast Dicebear API CDN:
+  ```typescript
+  export const UserAvatar = ({ seed, className }: { seed: string, className?: string }) => {
+    const avatarUrl = `https://api.dicebear.com/9.x/croodles/svg?seed=${seed || 'default'}`;
+    return <img src={avatarUrl} className={className} alt="User Avatar" loading="lazy" />;
+  };
+  ```
+* **Required CSP Change:** In [next.config.ts](file:///C:/Users/Rajesh/ratio-d/next.config.ts#L142), add `https://api.dicebear.com` to `img-src` to prevent Content Security Policy blocks.
+
+---
+
+### 16. React Render Thrashing on Pull-to-Refresh Dragging
+* **Location:** [usePullToRefresh.ts](file:///C:/Users/Rajesh/ratio-d/src/hooks/usePullToRefresh.ts)
+* **The Issue:** Animating the pull Y-axis offset via React state on every single `touchmove` pixel causes continuous React re-renders of the page wrapper, causing touch dragging lag.
+* **The Fix:** Animate dragging by setting a CSS variable (`target.style.setProperty('--pull-y', ... )`) and using GPU-accelerated CSS transforms (`transform: translateY(var(--pull-y))`), bypassing React's render loop entirely for dragging animations.
+
+---
+
 ## 🐛 Core Logic Bugs to Fix
 
 * **Today Double Counting:** In [attendanceLogic.ts](file:///C:/Users/Rajesh/ratio-d/src/utils/attendance/attendanceLogic.ts#L317), prevent `getRecoveryDate` from simulating classes on today's date if those classes have already completed.

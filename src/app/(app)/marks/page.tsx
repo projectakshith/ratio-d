@@ -1,11 +1,21 @@
 "use client";
-
 import React from "react";
+import dynamic from "next/dynamic";
 import { useApp } from "@/context/AppContext";
 import { useTheme } from "@/context/ThemeContext";
-import MarksMinimalist from "@/components/themes/minimalist/marks/Marks";
-import MarksBrutalist from "@/components/themes/brutalist/marks/Marks";
-import DesktopMarks from "@/components/desktop/marks/Marks";
+
+const MarksMinimalist = dynamic(
+  () => import("@/components/themes/minimalist/marks/Marks"),
+  { loading: () => <div className="h-full w-full bg-theme-bg" /> }
+);
+const MarksBrutalist = dynamic(
+  () => import("@/components/themes/brutalist/marks/Marks"),
+  { loading: () => <div className="h-full w-full bg-theme-bg" /> }
+);
+const DesktopMarks = dynamic(
+  () => import("@/components/desktop/marks/Marks"),
+  { loading: () => <div className="h-full w-full bg-theme-bg" /> }
+);
 
 export default function MarksPage() {
   const { userData } = useApp();

@@ -1,13 +1,23 @@
 "use client";
-
 import React from "react";
+import dynamic from "next/dynamic";
 import { useApp } from "@/context/AppContext";
 import { useTheme } from "@/context/ThemeContext";
-import AttendanceMinimalist from "@/components/themes/minimalist/attendance/Attendance";
-import AttendanceBrutalist from "@/components/themes/brutalist/attendance/Attendance";
-import DesktopAttendance from "@/components/desktop/attendance/Attendance";
 import { useAcademiaData } from "@/hooks/useAcademiaData";
 import { useIsMobile } from "@/hooks/use-mobile";
+
+const AttendanceMinimalist = dynamic(
+  () => import("@/components/themes/minimalist/attendance/Attendance"),
+  { loading: () => <div className="h-full w-full bg-theme-bg" /> }
+);
+const AttendanceBrutalist = dynamic(
+  () => import("@/components/themes/brutalist/attendance/Attendance"),
+  { loading: () => <div className="h-full w-full bg-theme-bg" /> }
+);
+const DesktopAttendance = dynamic(
+  () => import("@/components/desktop/attendance/Attendance"),
+  { loading: () => <div className="h-full w-full bg-theme-bg" /> }
+);
 
 export default function AttendancePage() {
   const { userData } = useApp();

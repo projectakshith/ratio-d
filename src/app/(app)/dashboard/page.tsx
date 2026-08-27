@@ -1,11 +1,22 @@
 "use client";
 import React, { useState, useCallback } from "react";
+import dynamic from "next/dynamic";
 import { useApp } from "@/context/AppContext";
-
 import { useTheme } from "@/context/ThemeContext";
-import DashboardMinimalist from "@/components/themes/minimalist/dashboard/Dashboard";
-import DashboardBrutalist from "@/components/themes/brutalist/dashboard/Dashboard";
-import DesktopDashboard from "@/components/desktop/dashboard/Dashboard";
+
+const DashboardMinimalist = dynamic(
+  () => import("@/components/themes/minimalist/dashboard/Dashboard"),
+  { loading: () => <div className="h-full w-full bg-theme-bg" /> }
+);
+const DashboardBrutalist = dynamic(
+  () => import("@/components/themes/brutalist/dashboard/Dashboard"),
+  { loading: () => <div className="h-full w-full bg-theme-bg" /> }
+);
+const DesktopDashboard = dynamic(
+  () => import("@/components/desktop/dashboard/Dashboard"),
+  { loading: () => <div className="h-full w-full bg-theme-bg" /> }
+);
+
 import { useAcademiaData } from "@/hooks/useAcademiaData";
 import { useAppLayout } from "@/context/AppLayoutContext";
 import { EncryptionUtils } from "@/utils/shared/Encryption";

@@ -14,7 +14,6 @@ import { flavorText } from "@/utils/shared/flavortext";
 import { useApp } from "@/context/AppContext";
 import calendarDataJson from "@/data/calendar_data.json";
 import { DayPicker } from "react-day-picker";
-import { format } from "date-fns";
 import { AttendanceRecord, CalendarEvent } from "@/types";
 
 const SubjectCard = ({ code, title, percent, present, conducted, val, safe, type, recoveryDate, hasChanged, predConducted, predPresent }: {
@@ -266,7 +265,7 @@ export default function DesktopAttendance() {
   };
 
   const handleDayClick = (day: Date) => {
-    const dStr = format(day, "yyyy-MM-dd");
+    const dStr = `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, "0")}-${String(day.getDate()).padStart(2, "0")}`;
     setSelectedDates(prev => {
       const next = { ...prev };
       if (next[dStr]) delete next[dStr];
