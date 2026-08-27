@@ -19,6 +19,7 @@ from core.portal_client import PortalClient, PortalSession
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse, PlainTextResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from models.schemas import Credentials, LoginCredentials, PortalCredentials
 from services.marks_service import MarksService
 from services.profile_service import ProfileService
@@ -126,7 +127,7 @@ async def custom_rate_limit_exceeded_handler(request: Request, exc: RateLimitExc
         content={"detail": "stop spamming blud"}
     )
 
-_dev_origins = ["http://localhost:3000", "http://localhost:9002", "http://localhost:9001", "http://localhost:9000"]
+_dev_origins = ["http://localhost:3000", "http://localhost:3001", "http://localhost:9002", "http://localhost:9001", "http://localhost:9000"]
 
 app.add_middleware(
     CORSMiddleware,
@@ -141,6 +142,8 @@ app.add_middleware(
     allow_headers=["*"],
     max_age=86400,
 )
+
+app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 HMAC_SECRET = os.getenv("HMAC_SECRET", "")
 
@@ -205,7 +208,7 @@ async def get_version():
     return {"version": "2.0.0"}
 
 @app.post("/captcha/solve")
-@limiter.limit("30/minute")
+@limiter.limit("15/minute")
 async def solve_captcha_endpoint(request: Request):
     """
     Debug and integration endpoint for TinyOCR captcha prediction.
@@ -483,7 +486,7 @@ _portal_captcha_sessions = {}
 
 
 @app.post("/portal/captcha")
-@limiter.limit("60/minute")
+@limiter.limit("15/minute")
 async def portal_captcha(request: Request):
     session = PortalSession()
     try:
@@ -499,7 +502,7 @@ async def portal_captcha(request: Request):
 
 
 @app.post("/portal/login")
-@limiter.limit("60/minute")
+@limiter.limit("15/minute")
 async def portal_login(creds: PortalCredentials, request: Request):
     if creds.cookies:
         client = PortalClient(creds.cookies)
@@ -509,7 +512,7 @@ async def portal_login(creds: PortalCredentials, request: Request):
         )
         if att_html is None:
             raise HTTPException(status_code=401, detail={"type": "SESSION_EXPIRED"})
-        courses, monthly = PortalAttendanceService.parse(att_html)
+        courses, monthly = await asyncio.to_thread(PortalAttendanceService.parse, att_html)
         res = {
             "success": True,
             "isPortal": True,
@@ -596,7 +599,7 @@ async def portal_login(creds: PortalCredentials, request: Request):
     except Exception as e:
         print(f"  -> [PORTAL] Connect error fetching details after login: {e}", flush=True)
         att_html, marks = None, []
-    courses, monthly = PortalAttendanceService.parse(att_html) if att_html else ([], [])
+    courses, monthly = await asyncio.to_thread(PortalAttendanceService.parse, att_html) if att_html else ([], [])
     out = {
         "success": True,
         "isPortal": True,
@@ -644,9 +647,9 @@ async def portal_refresh(creds: PortalCredentials, request: Request):
                         print(f"  -> [OCR] Portal background re-auth successful!", flush=True)
                         reauth_success = True
                         client = PortalClient(res["cookies"])
-                        att_html, marks_html = await asyncio.gather(
+                        att_html, marks = await asyncio.gather(
                             client.get_attendance_html(),
-                            client.get_marks_html()
+                            client.get_marks_data()
                         )
                         break
                     else:
@@ -660,7 +663,7 @@ async def portal_refresh(creds: PortalCredentials, request: Request):
 
     if att_html is None:
         raise HTTPException(status_code=401, detail={"type": "SESSION_EXPIRED"})
-    courses, monthly = PortalAttendanceService.parse(att_html)
+    courses, monthly = await asyncio.to_thread(PortalAttendanceService.parse, att_html)
     res = {
         "success": True,
         "isPortal": True,
