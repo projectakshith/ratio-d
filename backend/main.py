@@ -503,14 +503,13 @@ async def portal_captcha(request: Request):
 async def portal_login(creds: PortalCredentials, request: Request):
     if creds.cookies:
         client = PortalClient(creds.cookies)
-        att_html, marks_html = await asyncio.gather(
+        att_html, marks = await asyncio.gather(
             client.get_attendance_html(),
-            client.get_marks_html()
+            client.get_marks_data()
         )
         if att_html is None:
             raise HTTPException(status_code=401, detail={"type": "SESSION_EXPIRED"})
         courses, monthly = PortalAttendanceService.parse(att_html)
-        marks = PortalMarksService.parse(marks_html) if marks_html else []
         res = {
             "success": True,
             "isPortal": True,
@@ -590,15 +589,14 @@ async def portal_login(creds: PortalCredentials, request: Request):
 
     client = PortalClient(login_res["cookies"])
     try:
-        att_html, marks_html = await asyncio.gather(
+        att_html, marks = await asyncio.gather(
             client.get_attendance_html(),
-            client.get_marks_html()
+            client.get_marks_data()
         )
     except Exception as e:
         print(f"  -> [PORTAL] Connect error fetching details after login: {e}", flush=True)
-        att_html, marks_html = None, None
+        att_html, marks = None, []
     courses, monthly = PortalAttendanceService.parse(att_html) if att_html else ([], [])
-    marks = PortalMarksService.parse(marks_html) if marks_html else []
     out = {
         "success": True,
         "isPortal": True,
@@ -618,9 +616,9 @@ async def portal_refresh(creds: PortalCredentials, request: Request):
         raise HTTPException(status_code=401, detail={"type": "SESSION_EXPIRED"})
     client = PortalClient(creds.cookies)
     await client.keepalive()
-    att_html, marks_html = await asyncio.gather(
+    att_html, marks = await asyncio.gather(
         client.get_attendance_html(),
-        client.get_marks_html()
+        client.get_marks_data()
     )
     if att_html is None:
         if creds.username and creds.password:
@@ -663,7 +661,6 @@ async def portal_refresh(creds: PortalCredentials, request: Request):
     if att_html is None:
         raise HTTPException(status_code=401, detail={"type": "SESSION_EXPIRED"})
     courses, monthly = PortalAttendanceService.parse(att_html)
-    marks = PortalMarksService.parse(marks_html) if marks_html else []
     res = {
         "success": True,
         "isPortal": True,

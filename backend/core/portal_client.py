@@ -5,12 +5,15 @@ import re
 import time
 
 import httpx
+import asyncio
+from services.portal_marks_service import PortalMarksService
 
 LOGIN_URL = "https://sp.srmist.edu.in/srmiststudentportal/students/loginManager/youLogin.jsp"
 BASE_URL = "https://sp.srmist.edu.in/srmiststudentportal"
 HRD_URL = BASE_URL + "/students/template/HRDSystem.jsp"
 ATT_URL = BASE_URL + "/students/report/studentAttendanceDetails.jsp"
 MARKS_URL = BASE_URL + "/students/report/studentInternalMarkDetails.jsp"
+INNER_MARKS_URL = BASE_URL + "/students/report/studentInternalMarkDetailsInner.jsp"
 LOGIN_SERVLET = BASE_URL + "/LoginServlet"
 FP_TOKEN_URL = BASE_URL + "/fpToken"
 
@@ -207,3 +210,39 @@ class PortalClient:
         except Exception:
             pass
         return None
+
+    async def get_marks_data(self):
+        try:
+            r = await self.client.get(MARKS_URL)
+            if r.status_code != 200 or "table" not in r.text.lower():
+                return []
+            
+            subjects = PortalMarksService.parse_main(r.text)
+            if not subjects:
+                return []
+
+            async def fetch_inner(subj):
+                if not subj.get("subjectId"):
+                    return
+                payload = {
+                    "iden": "1",
+                    "hdnSubjectId": subj["subjectId"],
+                    "status": subj.get("status", "2")
+                }
+                try:
+                    r_inner = await self.client.post(INNER_MARKS_URL, data=payload)
+                    if r_inner.status_code == 200:
+                        subj["assessments"] = PortalMarksService.parse_inner(r_inner.text)
+                except Exception:
+                    pass
+
+            await asyncio.gather(*[fetch_inner(s) for s in subjects])
+
+            for s in subjects:
+                s.pop("subjectId", None)
+                s.pop("status", None)
+
+            return subjects
+        except Exception as e:
+            print(f"  -> [PORTAL] Error fetching marks data: {e}", flush=True)
+            return []
