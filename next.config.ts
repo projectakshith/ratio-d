@@ -119,6 +119,7 @@ const nextConfig: NextConfig = {
       "https://sp.srmist.edu.in",
       "https://srm-pyq-api.onrender.com",
       "https://va.vercel-scripts.com",
+      "https://1.1.1.1",
       portalAuthUrl,
       workerUrl,
       ...backendUrls,
