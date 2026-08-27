@@ -163,9 +163,13 @@ export default function PortalLoginModal({ open, onClose, onSuccess, captchaOnly
         }
 
         setOcrExhausted(true);
-        const errDetail = typeof data.detail === "object" && data.detail !== null 
+        let errDetail = typeof data.detail === "object" && data.detail !== null 
           ? (data.detail.message || "invalid credentials") 
           : (data.detail || "login failed");
+
+        if (isWrongCredentials) {
+          errDetail = "invalid credentials. make sure this is your student portal password and not your academia password!";
+        }
         setError(errDetail);
 
         if (isWrongCredentials) {
