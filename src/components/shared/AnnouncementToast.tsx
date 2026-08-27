@@ -22,9 +22,9 @@ export default function AnnouncementToast() {
   const { userData } = useApp();
   const [announcement, setAnnouncement] = useState<Announcement | null>(null);
   const [visible, setVisible] = useState(false);
-
   useEffect(() => {
     if (!userData) return;
+
     let isMounted = true;
     const fetchAnnouncement = async () => {
       try {
@@ -44,10 +44,20 @@ export default function AnnouncementToast() {
     };
 
     fetchAnnouncement();
+
+    const handleRefresh = () => {
+      if (isMounted) {
+        fetchAnnouncement();
+      }
+    };
+
+    window.addEventListener("ratio_refresh_completed", handleRefresh);
+
     return () => {
       isMounted = false;
+      window.removeEventListener("ratio_refresh_completed", handleRefresh);
     };
-  }, [userData]);
+  }, [!userData]);
 
   const handleDismiss = () => {
     if (announcement?.id) {

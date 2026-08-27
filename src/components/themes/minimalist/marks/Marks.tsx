@@ -181,7 +181,7 @@ export default function Marks({
   };
 
   const attentionRequired = useMemo(() => {
-    const valid = subjects.filter((s: any) => !s.isNA && s.totalMax > 0);
+    const valid = subjects.filter((s: any) => !s.isNA && s.totalMax > 0 && s.percentage < 75);
     return [...valid]
       .sort((a: any, b: any) => {
         if (a.percentage !== b.percentage) return a.percentage - b.percentage;
@@ -426,8 +426,8 @@ export default function Marks({
                       >
                         {fmt(sub.totalGot)}
                       </span>
-                      <span
-                        className="text-[10px] font-bold uppercase tracking-widest mt-1 text-center text-theme-secondary"
+                       <span
+                        className={`text-[10px] font-bold uppercase tracking-widest mt-1 text-center ${sub.percentage < 75 ? "text-theme-secondary" : "text-theme-muted"}`}
                         style={{ fontFamily: "var(--font-afacad), sans-serif" }}
                       >
                         out of {sub.totalMax}
@@ -444,14 +444,14 @@ export default function Marks({
                           </span>
                         )}
                         <span
-                          className="text-[16px] font-black uppercase tracking-widest leading-[1.1] truncate text-theme-secondary"
+                          className={`text-[16px] font-black uppercase tracking-widest leading-[1.1] truncate ${sub.percentage < 75 ? "text-theme-secondary" : "text-theme-text"}`}
                           style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
                         >
                           {sub.displayCode}
                         </span>
                       </div>
                       <span
-                        className="text-[13px] font-medium lowercase tracking-wide leading-[1.1] mt-0.5 truncate w-full text-theme-secondary"
+                        className={`text-[13px] font-medium lowercase tracking-wide leading-[1.1] mt-0.5 truncate w-full ${sub.percentage < 75 ? "text-theme-secondary" : "text-theme-muted"}`}
                         style={{ fontFamily: "var(--font-afacad), sans-serif" }}
                       >
                         {sub.displayName}

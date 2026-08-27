@@ -247,6 +247,28 @@ class PortalClient:
                 s.pop("subjectId", None)
                 s.pop("status", None)
 
+            try:
+                att_html = await self.get_attendance_html()
+                if att_html:
+                    from services.portal_attendance_service import PortalAttendanceService
+                    courses, _ = PortalAttendanceService.parse(att_html)
+                    if courses:
+                        mark_codes = {m.get("courseCode", "").strip().lower() for m in subjects}
+                        for c in courses:
+                            c_code = c.get("code", "").strip()
+                            if c_code.lower() not in mark_codes:
+                                subjects.append({
+                                    "courseCode": c_code,
+                                    "title": c.get("title", ""),
+                                    "type": "Internal",
+                                    "performance": "N/A",
+                                    "assessments": [],
+                                    "totalMarkGot": None,
+                                    "totalMaxMarks": None
+                                })
+            except Exception as ex:
+                print(f"  -> [PORTAL] Error merging attendance courses in marks: {ex}", flush=True)
+
             return subjects
         except Exception as e:
             print(f"  -> [PORTAL] Error fetching marks data: {e}", flush=True)

@@ -210,6 +210,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         EncryptionUtils.setSessionCookie();
         setUserData(data);
         localStorage.setItem("ratio_data", JSON.stringify(data));
+        window.dispatchEvent(new Event("ratio_refresh_completed"));
 
         return data;
       } catch (err: any) {
@@ -262,11 +263,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             if (portalData?.success && portalData.attendance?.length) {
               let next = { ...existingData, attendance: portalData.attendance };
               if (portalData.monthly) next.monthly = portalData.monthly;
+              if (portalData.marks) next.marks = portalData.marks;
               if (portalData.cookies) {
                 await EncryptionUtils.saveEncrypted("portal_cookies", portalData.cookies);
               }
               setUserData(next);
               localStorage.setItem("ratio_data", JSON.stringify(next));
+              window.dispatchEvent(new Event("ratio_refresh_completed"));
               return next;
             }
           } else if (portalRes.status === 401) {

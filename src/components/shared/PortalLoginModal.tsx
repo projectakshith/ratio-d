@@ -185,6 +185,7 @@ export default function PortalLoginModal({ open, onClose, onSuccess, captchaOnly
           ? { ...userData, attendance: data.attendance, isPortal: true }
           : { attendance: data.attendance, isPortal: true };
         if (data.monthly) (next as any).monthly = data.monthly;
+        if (data.marks) (next as any).marks = data.marks;
         (next as any).isPortal = true;
         setUserData({ ...next } as any);
         localStorage.setItem("ratio_data", JSON.stringify(next));
