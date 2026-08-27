@@ -60,12 +60,8 @@ export default function PortalLoginModal({ open, onClose, onSuccess, captchaOnly
         }
       } else if (acadCreds?.username) {
         setUsername(acadCreds.username.replace(/@srmist\.edu\.in$/i, ""));
-        if (acadCreds?.password) {
-          setPassword(acadCreds.password);
-          hasPass = true;
-        }
       }
-      fetchCaptcha(hasPass);
+      fetchCaptcha(captchaOnly && hasPass);
     })();
   }, [open]);
 
