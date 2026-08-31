@@ -118,6 +118,7 @@ export interface AcademiaData {
   effectiveSchedule?: ScheduleData;
   timetable?: ScheduleData;
   time_table?: ScheduleData;
+  isPortal?: boolean;
 }
 
 export interface CalendarSlot {

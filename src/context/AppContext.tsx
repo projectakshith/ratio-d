@@ -25,6 +25,7 @@ interface AppContextType {
   setBackendErrorMsg: (msg: string | null) => void;
   refreshData: (creds: any, existingData: any) => Promise<any>;
   performLogin: (creds: any) => Promise<any>;
+  performPortalLogin: (creds: any) => Promise<any>;
   loginPromise: Promise<any> | null;
   setLoginPromise: (promise: Promise<any> | null) => void;
   logout: () => Promise<void>;
@@ -235,6 +236,100 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return promise;
   }, []);
 
+  const performPortalLogin = useCallback(async (creds: any) => {
+    setIsBackendError(false);
+    setBackendErrorMsg(null);
+    const promise = (async () => {
+      try {
+        let digest = creds.cdigest;
+        if (!digest) {
+          const capRes = await fetchWithLoadBalancer("/portal/captcha", { method: "POST" });
+          const capData = await capRes.json().catch(() => ({}));
+          if (!capRes.ok || !capData.session) {
+            throw new Error(capData.detail || "Failed to load portal security check");
+          }
+          digest = capData.session;
+        }
+
+        const response = await fetchWithLoadBalancer("/portal/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            username: creds.username,
+            password: creds.password,
+            captcha: creds.captcha || undefined,
+            cdigest: digest,
+          }),
+        });
+
+        if (response.status === 503 || response.status === 429 || response.status === 502 || response.status === 504) {
+          setIsBackendError(true);
+          try {
+            const data = await response.json();
+            if (data.detail) setBackendErrorMsg(data.detail);
+          } catch {}
+          throw new Error("Backend error");
+        }
+
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.success) {
+          const isWrongCaptcha = data.detail === "wrong captcha, try the new one" || 
+            (typeof data.detail === "string" && data.detail.toLowerCase().includes("captcha"));
+          if (isWrongCaptcha) {
+            const freshCapRes = await fetchWithLoadBalancer("/portal/captcha", { method: "POST" });
+            const freshCapData = await freshCapRes.json().catch(() => ({}));
+            throw {
+              type: "CAPTCHA_REQUIRED",
+              image: freshCapData.image,
+              cdigest: freshCapData.session,
+              message: "Please enter the security check characters.",
+            };
+          }
+          if (typeof data.detail === "object" && data.detail !== null) {
+            throw data.detail;
+          }
+          throw new Error(data.detail || "Login failed");
+        }
+
+        if (data.cookies) {
+          await EncryptionUtils.saveEncrypted("portal_cookies", data.cookies);
+          delete data.cookies;
+        }
+
+        await EncryptionUtils.saveEncrypted("portal_credentials", {
+          username: creds.username,
+          password: creds.password,
+        });
+
+        EncryptionUtils.setSessionCookie();
+        data.isPortal = true;
+        setUserData(data);
+        localStorage.setItem("ratio_data", JSON.stringify(data));
+        window.dispatchEvent(new Event("ratio_refresh_completed"));
+
+        return data;
+      } catch (err: any) {
+        if (err.message === 'Backend error') {
+          setIsBackendError(true);
+        } else if (err.name === 'AbortError' || err.message === 'Failed to fetch') {
+          try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 1200);
+            await fetch("https://1.1.1.1", { method: "HEAD", mode: "no-cors", signal: controller.signal });
+            clearTimeout(timeoutId);
+            setIsBackendError(true);
+          } catch {
+            setIsOffline(true);
+          }
+        }
+        throw err;
+      }
+    })();
+
+    setLoginPromise(promise);
+    return promise;
+  }, []);
+
   const refreshData = useCallback(async (creds: any, existingData: any) => {
     if (updateInProgress.current) return existingData;
     updateInProgress.current = true;
@@ -244,11 +339,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     try {
       const savedCookies = await EncryptionUtils.loadDecrypted("academia_cookies");
       const portalCookies = await EncryptionUtils.loadDecrypted("portal_cookies") as Record<string, string> | null;
+      const portalCreds = await EncryptionUtils.loadDecrypted("portal_credentials") as any;
 
-      if (portalCookies) {
+      if (portalCookies || portalCreds) {
         setIsCheckingPortal(true);
         try {
-          const portalCreds = await EncryptionUtils.loadDecrypted("portal_credentials") as any;
           const portalRes = await fetchWithLoadBalancer("/portal/refresh", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -264,6 +359,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
               let next = { ...existingData, attendance: portalData.attendance };
               if (portalData.monthly) next.monthly = portalData.monthly;
               if (portalData.marks) next.marks = portalData.marks;
+              if (portalData.schedule) next.schedule = portalData.schedule;
+              if (portalData.courses) next.courses = portalData.courses;
+              if (portalData.profile) next.profile = portalData.profile;
+              next.isPortal = true;
               if (portalData.cookies) {
                 await EncryptionUtils.saveEncrypted("portal_cookies", portalData.cookies);
               }
@@ -272,8 +371,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
               window.dispatchEvent(new Event("ratio_refresh_completed"));
               return next;
             }
-          } else if (portalRes.status === 401) {
-            const portalCreds = await EncryptionUtils.loadDecrypted("portal_credentials") as any;
+          } else if (portalRes.status === 401 && !existingData?.isPortal) {
             const acadCreds = await EncryptionUtils.loadDecrypted("ratio_credentials") as any;
             if (portalCreds?.password || acadCreds?.password) {
               setPortalAuthMode("captcha_only");
@@ -284,6 +382,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         } finally {
           setIsCheckingPortal(false);
         }
+      }
+
+      if (!savedCookies && !creds?.username) {
+        return existingData;
       }
 
       const makeRefreshRequest = async (includePassword: boolean) => {
@@ -516,6 +618,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setBackendErrorMsg,
     refreshData,
     performLogin,
+    performPortalLogin,
     loginPromise,
     setLoginPromise,
     logout,
@@ -539,7 +642,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     portalAuthMode,
     setPortalAuthMode,
     isCheckingPortal,
-  }), [userData, customDisplayName, isUpdating, isOffline, isBackendError, backendErrorMsg, refreshData, performLogin, loginPromise, logout, latestDiff, updateHistory, isUpdateHistoryOpen, deferredPrompt, canInstall, showWelcome, profileSeed, calendarData, portalAuthOpen, portalAuthMode, isCheckingPortal]);
+  }), [userData, customDisplayName, isUpdating, isOffline, isBackendError, backendErrorMsg, refreshData, performLogin, performPortalLogin, loginPromise, logout, latestDiff, updateHistory, isUpdateHistoryOpen, deferredPrompt, canInstall, showWelcome, profileSeed, calendarData, portalAuthOpen, portalAuthMode, isCheckingPortal]);
 
   return (
     <AppContext.Provider value={value}>

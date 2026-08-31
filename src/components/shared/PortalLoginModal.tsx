@@ -188,12 +188,16 @@ export default function PortalLoginModal({ open, onClose, onSuccess, captchaOnly
         await EncryptionUtils.saveEncrypted("portal_credentials", { username, password });
         delete data.cookies;
       }
-      if (data.attendance?.length) {
+      if (data.attendance?.length || data.schedule) {
         const next = userData
-          ? { ...userData, attendance: data.attendance, isPortal: true }
-          : { attendance: data.attendance, isPortal: true };
+          ? { ...userData, isPortal: true }
+          : { isPortal: true };
+        if (data.attendance) (next as any).attendance = data.attendance;
         if (data.monthly) (next as any).monthly = data.monthly;
         if (data.marks) (next as any).marks = data.marks;
+        if (data.schedule) (next as any).schedule = data.schedule;
+        if (data.courses) (next as any).courses = data.courses;
+        if (data.profile) (next as any).profile = data.profile;
         (next as any).isPortal = true;
         setUserData({ ...next } as any);
         localStorage.setItem("ratio_data", JSON.stringify(next));
