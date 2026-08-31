@@ -14,6 +14,8 @@ HRD_URL = BASE_URL + "/students/template/HRDSystem.jsp"
 ATT_URL = BASE_URL + "/students/report/studentAttendanceDetails.jsp"
 MARKS_URL = BASE_URL + "/students/report/studentInternalMarkDetails.jsp"
 INNER_MARKS_URL = BASE_URL + "/students/report/studentInternalMarkDetailsInner.jsp"
+TIMETABLE_URL = BASE_URL + "/students/report/studentTimeTableDetails.jsp"
+PROFILE_URL = BASE_URL + "/students/report/studentPersonalDetails.jsp"
 LOGIN_SERVLET = BASE_URL + "/LoginServlet"
 FP_TOKEN_URL = BASE_URL + "/fpToken"
 
@@ -214,6 +216,30 @@ class PortalClient:
                 return r.text
         except Exception:
             pass
+        return None
+
+    async def get_timetable_html(self):
+        try:
+            payload = {
+                "iden": "10",
+                "filter": "",
+                "hdnFormDetails": "1",
+                "csrfPreventionSalt": ""
+            }
+            r = await self.client.post(TIMETABLE_URL, data=payload)
+            if r.status_code == 200 and "table" in r.text.lower() and "day 1" in r.text.lower():
+                return r.text
+        except Exception as e:
+            print(f"  -> [PORTAL] Network error fetching timetable: {e}", flush=True)
+        return None
+
+    async def get_profile_html(self):
+        try:
+            r = await self.client.get(PROFILE_URL)
+            if r.status_code == 200 and "student name" in r.text.lower():
+                return r.text
+        except Exception as e:
+            print(f"  -> [PORTAL] Network error fetching profile: {e}", flush=True)
         return None
 
     async def get_marks_data(self):

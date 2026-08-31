@@ -28,6 +28,8 @@ from services.attendance_service import AttendanceService
 from services.timetable_service import TimetableService
 from services.portal_attendance_service import PortalAttendanceService
 from services.portal_marks_service import PortalMarksService
+from services.portal_timetable_service import PortalTimetableService
+from services.portal_profile_service import PortalProfileService
 from dotenv import load_dotenv
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
@@ -506,13 +508,17 @@ async def portal_captcha(request: Request):
 async def portal_login(creds: PortalCredentials, request: Request):
     if creds.cookies:
         client = PortalClient(creds.cookies)
-        att_html, marks = await asyncio.gather(
+        att_html, marks, tt_html, prof_html = await asyncio.gather(
             client.get_attendance_html(),
-            client.get_marks_data()
+            client.get_marks_data(),
+            client.get_timetable_html(),
+            client.get_profile_html()
         )
         if att_html is None:
             raise HTTPException(status_code=401, detail={"type": "SESSION_EXPIRED"})
         courses, monthly = await asyncio.to_thread(PortalAttendanceService.parse, att_html)
+        schedule, course_map = PortalTimetableService.parse(tt_html) if tt_html else ({}, {})
+        profile = PortalProfileService.parse(prof_html) if prof_html else None
         res = {
             "success": True,
             "isPortal": True,
@@ -522,6 +528,12 @@ async def portal_login(creds: PortalCredentials, request: Request):
         }
         if marks:
             res["marks"] = marks
+        if schedule:
+            res["schedule"] = schedule
+        if course_map:
+            res["courses"] = course_map
+        if profile:
+            res["profile"] = profile
         return res
 
     session = _portal_captcha_sessions.pop(creds.cdigest, None) if creds.cdigest else None
@@ -536,17 +548,17 @@ async def portal_login(creds: PortalCredentials, request: Request):
 
     if not captcha_val:
         while ocr_attempts < 4:
-            if not hasattr(session, "captcha_bytes") or not session.captcha_bytes:
-                await session.load_captcha()
             ocr_attempts += 1
             print(f"  -> [OCR] Portal auto-solve attempt {ocr_attempts}/4", flush=True)
-            ok, solved, _ = await solve_captcha_ocr_bytes(session.captcha_bytes)
-            if not ok or not solved:
-                print("  -> [OCR] Portal OCR solver failed to predict captcha", flush=True)
-                break
-            print(f"  -> [OCR] Predicted: '{solved}'", flush=True)
-            await asyncio.sleep(2)  # Bypass timing trap
             try:
+                if not hasattr(session, "captcha_bytes") or not session.captcha_bytes:
+                    await session.load_captcha()
+                ok, solved, _ = await solve_captcha_ocr_bytes(session.captcha_bytes)
+                if not ok or not solved:
+                    print("  -> [OCR] Portal OCR solver failed to predict captcha", flush=True)
+                    break
+                print(f"  -> [OCR] Predicted: '{solved}'", flush=True)
+                await asyncio.sleep(2)
                 res = await session.login(netid, password, solved, telemetry=creds.telemetry)
                 if res.get("ok"):
                     print(f"  -> [OCR] Portal login successful on attempt {ocr_attempts}!", flush=True)
@@ -559,7 +571,7 @@ async def portal_login(creds: PortalCredentials, request: Request):
                 else:
                     login_res = res
                     break
-            except (httpx.ConnectTimeout, httpx.ConnectError, httpx.ReadTimeout, httpx.ReadError) as e:
+            except (httpx.HTTPError, httpx.RequestError) as e:
                 print(f"  -> [OCR] Portal connection error: {e}", flush=True)
                 raise HTTPException(status_code=503, detail="Student Portal is unreachable or timing out. Please try again later.")
             except Exception as e:
@@ -592,14 +604,18 @@ async def portal_login(creds: PortalCredentials, request: Request):
 
     client = PortalClient(login_res["cookies"])
     try:
-        att_html, marks = await asyncio.gather(
+        att_html, marks, tt_html, prof_html = await asyncio.gather(
             client.get_attendance_html(),
-            client.get_marks_data()
+            client.get_marks_data(),
+            client.get_timetable_html(),
+            client.get_profile_html()
         )
     except Exception as e:
         print(f"  -> [PORTAL] Connect error fetching details after login: {e}", flush=True)
-        att_html, marks = None, []
+        att_html, marks, tt_html, prof_html = None, [], None, None
     courses, monthly = await asyncio.to_thread(PortalAttendanceService.parse, att_html) if att_html else ([], [])
+    schedule, course_map = PortalTimetableService.parse(tt_html) if tt_html else ({}, {})
+    profile = PortalProfileService.parse(prof_html) if prof_html else None
     out = {
         "success": True,
         "isPortal": True,
@@ -609,6 +625,12 @@ async def portal_login(creds: PortalCredentials, request: Request):
     }
     if marks:
         out["marks"] = marks
+    if schedule:
+        out["schedule"] = schedule
+    if course_map:
+        out["courses"] = course_map
+    if profile:
+        out["profile"] = profile
     return out
 
 
@@ -632,16 +654,16 @@ async def portal_refresh(creds: PortalCredentials, request: Request):
             reauth_success = False
 
             while ocr_attempts < 4:
-                session = PortalSession()
-                await session.load_captcha()
                 ocr_attempts += 1
                 print(f"  -> [OCR] Portal background re-auth attempt {ocr_attempts}/4", flush=True)
-                ok, solved, _ = await solve_captcha_ocr_bytes(session.captcha_bytes)
-                if not ok or not solved:
-                    break
-                print(f"  -> [OCR] Predicted: '{solved}'", flush=True)
-                await asyncio.sleep(2)  # Bypass timing trap
                 try:
+                    session = PortalSession()
+                    await session.load_captcha()
+                    ok, solved, _ = await solve_captcha_ocr_bytes(session.captcha_bytes)
+                    if not ok or not solved:
+                        break
+                    print(f"  -> [OCR] Predicted: '{solved}'", flush=True)
+                    await asyncio.sleep(2)
                     res = await session.login(netid, password, solved)
                     if res.get("ok"):
                         print(f"  -> [OCR] Portal background re-auth successful!", flush=True)
@@ -656,7 +678,6 @@ async def portal_refresh(creds: PortalCredentials, request: Request):
                         print(f"  -> [OCR] Portal background re-auth attempt {ocr_attempts} failed. Reason: {res.get('reason')}", flush=True)
                 except Exception as e:
                     print(f"  -> [OCR] Background Portal re-auth error: {e}", flush=True)
-                    break
 
             if not reauth_success:
                 print("  -> [OCR] Background Portal re-auth failed after 4 attempts", flush=True)
