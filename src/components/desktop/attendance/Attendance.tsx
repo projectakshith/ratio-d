@@ -432,14 +432,16 @@ export default function DesktopAttendance() {
                     <p className="text-[9px] font-black uppercase tracking-[0.4em] mt-2" style={{ fontFamily: 'var(--font-montserrat)' }}>
                       waiting for the hamsters to wake up
                     </p>
-                    <button
-                      type="button"
-                      onClick={() => setPortalAuthOpen(true)}
-                      className="mt-4 px-5 py-2.5 rounded-xl bg-theme-highlight text-theme-bg font-black uppercase tracking-[0.2em] text-[10px] hover:opacity-90 active:scale-95 transition-all shadow-xl shadow-theme-highlight/20"
-                      style={{ fontFamily: 'var(--font-montserrat)' }}
-                    >
-                      try student portal
-                    </button>
+                    {!isPortalData && (
+                      <button
+                        type="button"
+                        onClick={() => setPortalAuthOpen(true)}
+                        className="mt-4 px-5 py-2.5 rounded-xl bg-theme-highlight text-theme-bg font-black uppercase tracking-[0.2em] text-[10px] hover:opacity-90 active:scale-95 transition-all shadow-xl shadow-theme-highlight/20"
+                        style={{ fontFamily: 'var(--font-montserrat)' }}
+                      >
+                        try student portal
+                      </button>
+                    )}
                   </div>
                 </div>
               ) : (

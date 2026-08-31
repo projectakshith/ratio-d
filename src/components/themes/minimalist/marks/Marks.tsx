@@ -498,7 +498,7 @@ export default function Marks({
                       );
                     })}
                     {Array.from({
-                      length: Math.max(0, sub.assessments.length < 3 ? 3 - sub.assessments.length : (3 - (sub.assessments.length % 3)) % 3),
+                      length: Math.max(0, sub.assessments.length < 6 ? 6 - sub.assessments.length : (3 - (sub.assessments.length % 3)) % 3),
                     }).map((_, idx) => (
                       <div
                         key={`fill-${idx}`}
@@ -631,7 +631,7 @@ export default function Marks({
                     );
                   })}
                   {Array.from({
-                    length: Math.max(0, sub.assessments.length < 3 ? 3 - sub.assessments.length : (3 - (sub.assessments.length % 3)) % 3),
+                    length: Math.max(0, sub.assessments.length < 6 ? 6 - sub.assessments.length : (3 - (sub.assessments.length % 3)) % 3),
                   }).map((_, idx) => (
                     <div
                       key={`fill-${idx}`}

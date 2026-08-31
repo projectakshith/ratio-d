@@ -7,7 +7,6 @@ import MinecraftParticles from "./MinecraftParticles";
 import MinecraftAmbience from "./MinecraftAmbience";
 import SyncStatusNotification from "./SyncStatusNotification";
 import UpdateHistory from "./UpdateHistory";
-import WhatsNew from "./WhatsNew";
 import PortalLoginModal from "./PortalLoginModal";
 import AnnouncementToast from "./AnnouncementToast";
 import { useTabFocus } from "@/hooks/useTabFocus";
@@ -17,7 +16,6 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
   const { isOffline, isBackendError, setIsBackendError, backendErrorMsg, setBackendErrorMsg, showWelcome, setShowWelcome, userData, isUpdateHistoryOpen, setIsUpdateHistoryOpen, isUpdating, portalAuthOpen, setPortalAuthOpen, portalAuthMode, isCheckingPortal } = useApp();
   const [showSplash, setShowSplash] = useState(false);
   const [isFirstSplash, setIsFirstSplash] = useState(false);
-  const [showAutoWhatsNew, setShowAutoWhatsNew] = useState(false);
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const [showSyncSuccess, setShowSyncSuccess] = useState(false);
   const wasUpdating = React.useRef(false);
@@ -92,25 +90,6 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
     if (typeof window !== "undefined") {
       window.location.reload();
     }
-  };
-
-  useEffect(() => {
-    const CURRENT_VERSION = "1.1.0";
-    const seenVersion = localStorage.getItem("ratio_seen_version");
-    const isOnboarded = localStorage.getItem("ratiod_onboarded") === "true";
-
-    if (isOnboarded && seenVersion !== CURRENT_VERSION && window.innerWidth < 768) {
-      const timer = setTimeout(() => {
-        setShowAutoWhatsNew(true);
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
-  }, []);
-
-  const handleCloseWhatsNew = () => {
-    const CURRENT_VERSION = "1.1.0";
-    localStorage.setItem("ratio_seen_version", CURRENT_VERSION);
-    setShowAutoWhatsNew(false);
   };
 
   useEffect(() => {
@@ -204,13 +183,15 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
                   {backendErrorMsg || "Backend Servers Down"}
                 </span>
               </div>
-              <button
-                onClick={() => setPortalAuthOpen(true)}
-                className="px-2.5 py-0.5 rounded-full bg-white/20 hover:bg-white/30 text-white text-[9px] font-black uppercase tracking-wider transition-colors"
-                style={{ fontFamily: 'var(--font-montserrat)' }}
-              >
-                try student portal
-              </button>
+              {!userData?.isPortal && (
+                <button
+                  onClick={() => setPortalAuthOpen(true)}
+                  className="px-2.5 py-0.5 rounded-full bg-white/20 hover:bg-white/30 text-white text-[9px] font-black uppercase tracking-wider transition-colors"
+                  style={{ fontFamily: 'var(--font-montserrat)' }}
+                >
+                  try student portal
+                </button>
+              )}
             </div>
           </motion.div>
         )}
@@ -278,7 +259,6 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
       <SyncStatusNotification />
       <AnnouncementToast />
       <UpdateHistory isOpen={isUpdateHistoryOpen} onClose={() => setIsUpdateHistoryOpen(false)} />
-      <WhatsNew isOpen={showAutoWhatsNew} onClose={handleCloseWhatsNew} />
       <PortalLoginModal
         open={portalAuthOpen}
         onClose={() => setPortalAuthOpen(false)}

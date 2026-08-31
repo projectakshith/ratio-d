@@ -16,7 +16,18 @@ export default function FeedbackPopup() {
   useEffect(() => {
     if (localStorage.getItem("ratiod_feedback_seen")) return;
     if (!localStorage.getItem("ratio_data")) return;
-    const t = setTimeout(() => setVisible(true), 4000);
+
+    const firstLoginTs = parseInt(localStorage.getItem("ratiod_first_login_ts") || "0");
+    if (!firstLoginTs) {
+      localStorage.setItem("ratiod_first_login_ts", String(Date.now()));
+      return;
+    }
+
+    const sessionCount = parseInt(localStorage.getItem("ratiod_session_count") || "1");
+    const daysSinceFirst = (Date.now() - firstLoginTs) / (1000 * 60 * 60 * 24);
+    if (sessionCount < 3 || daysSinceFirst < 2) return;
+
+    const t = setTimeout(() => setVisible(true), 15000);
     return () => clearTimeout(t);
   }, []);
 

@@ -310,14 +310,16 @@ export default function Attendance({
               >
                 ↓ pull down to search the dino's stomach ↓
               </span>
-              <button
-                type="button"
-                onClick={() => setPortalAuthOpen(true)}
-                className="mt-6 px-6 py-3.5 rounded-2xl bg-theme-highlight text-theme-bg font-black uppercase tracking-[0.2em] text-xs hover:opacity-90 active:scale-95 transition-all shadow-xl shadow-theme-highlight/20"
-                style={{ fontFamily: "var(--font-montserrat)" }}
-              >
-                try student portal
-              </button>
+              {!isPortalData && (
+                <button
+                  type="button"
+                  onClick={() => setPortalAuthOpen(true)}
+                  className="mt-6 px-6 py-3.5 rounded-2xl bg-theme-highlight text-theme-bg font-black uppercase tracking-[0.2em] text-xs hover:opacity-90 active:scale-95 transition-all shadow-xl shadow-theme-highlight/20"
+                  style={{ fontFamily: "var(--font-montserrat)" }}
+                >
+                  try student portal
+                </button>
+              )}
             </motion.div>
           ) : (
             <>
