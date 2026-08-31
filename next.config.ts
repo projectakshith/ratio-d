@@ -121,10 +121,14 @@ const nextConfig: NextConfig = {
       "https://srm-pyq-api.onrender.com",
       "https://va.vercel-scripts.com",
       "https://1.1.1.1",
+      "https://one.one.one.one",
       portalAuthUrl,
       workerUrl,
       ...backendUrls,
+      "http://localhost:*",
+      "http://127.0.0.1:*",
       "http://localhost:8000",
+      "http://localhost:8001",
       "ws://localhost:*"
     ].filter(Boolean).join(" ");
 

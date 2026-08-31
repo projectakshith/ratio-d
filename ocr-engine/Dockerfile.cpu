@@ -1,0 +1,40 @@
+# ---- build stage -----------------------------------------------------------
+FROM rust:1.97-slim AS build
+WORKDIR /src
+
+# Download ONNX runtime dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends libssl-dev ca-certificates g++
+
+COPY Cargo.toml Cargo.lock* ./
+COPY src ./src
+COPY benches ./benches
+COPY tests ./tests
+RUN cargo fetch
+COPY . .
+RUN cargo build --release
+
+# ---- runtime stage ---------------------------------------------------------
+FROM debian:trixie-slim
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends curl ca-certificates \
+ && rm -rf /var/lib/apt/lists/*
+
+RUN useradd --system --create-home --shell /usr/sbin/nologin tinyocr
+
+COPY --from=build /src/target/release/tinyocr /usr/local/bin/tinyocr
+COPY model/ /app/model/
+COPY configs/container.toml /app/configs/production.toml
+
+ENV TINYOCR_CONFIG=/app/configs/production.toml \
+    TINYOCR_HOST=0.0.0.0 \
+    TINYOCR_PORT=8080 \
+    RUST_LOG=info
+
+USER tinyocr
+WORKDIR /app
+EXPOSE 8080
+
+HEALTHCHECK --interval=10s --timeout=3s --start-period=30s --retries=3 \
+  CMD curl -sf http://localhost:8080/ready || exit 1
+
+ENTRYPOINT ["/usr/local/bin/tinyocr"]
