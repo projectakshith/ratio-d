@@ -76,20 +76,77 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
     }
   }, [isUpdating, isBackendError, isOffline]);
 
+  const waitingWorkerRef = React.useRef<ServiceWorker | null>(null);
+
   useEffect(() => {
-    if (typeof window !== "undefined" && "serviceWorker" in navigator) {
-      const wb = (window as any).workbox;
-      if (wb) {
-        wb.addEventListener("waiting", () => setUpdateAvailable(true));
-        wb.addEventListener("externalwaiting", () => setUpdateAvailable(true));
-      }
+    if (typeof window === "undefined" || !("serviceWorker" in navigator)) return;
+
+    const notifyUpdate = (worker?: ServiceWorker | null) => {
+      if (worker) waitingWorkerRef.current = worker;
+      const coreRoutes = ["/dashboard", "/attendance", "/marks", "/timetable", "/calendar", "/settings", "/login"];
+      Promise.allSettled(coreRoutes.map((r) => fetch(r, { cache: "reload" }))).finally(() => {
+        setUpdateAvailable(true);
+      });
+    };
+
+    const wb = (window as any).workbox;
+    if (wb) {
+      wb.addEventListener("waiting", (event: any) => notifyUpdate(event.sw));
+      wb.addEventListener("externalwaiting", (event: any) => notifyUpdate(event.sw));
     }
+
+    navigator.serviceWorker.getRegistration().then((reg) => {
+      if (!reg) return;
+      if (reg.waiting) {
+        notifyUpdate(reg.waiting);
+      }
+      reg.addEventListener("updatefound", () => {
+        const newWorker = reg.installing;
+        if (!newWorker) return;
+        newWorker.addEventListener("statechange", () => {
+          if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
+            notifyUpdate(newWorker);
+          }
+        });
+      });
+    });
+
+    const onFocus = () => {
+      navigator.serviceWorker.getRegistration().then((reg) => reg?.update().catch(() => {}));
+    };
+    window.addEventListener("focus", onFocus);
+
+    const handleChunkError = (event: ErrorEvent) => {
+      const msg = event.message || "";
+      if (msg.includes("Loading chunk") || msg.includes("ChunkLoadError") || msg.includes("Failed to fetch dynamically imported module")) {
+        window.location.reload();
+      }
+    };
+    window.addEventListener("error", handleChunkError);
+
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      window.removeEventListener("error", handleChunkError);
+    };
   }, []);
 
   const handleUpdate = () => {
-    if (typeof window !== "undefined") {
-      window.location.reload();
+    if (typeof window === "undefined") return;
+
+    const wb = (window as any).workbox;
+    if (wb && typeof wb.messageSkipWaiting === "function") {
+      wb.messageSkipWaiting();
+    } else if (waitingWorkerRef.current) {
+      waitingWorkerRef.current.postMessage({ type: "SKIP_WAITING" });
     }
+
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      window.location.reload();
+    }, { once: true });
+
+    setTimeout(() => {
+      window.location.reload();
+    }, 600);
   };
 
   useEffect(() => {
@@ -155,7 +212,8 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
             initial={{ y: -20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: -20, opacity: 0 }}
-            className="fixed top-4 left-0 right-0 z-[10001] flex justify-center pointer-events-none"
+            className="fixed left-0 right-0 z-[10001] flex justify-center pointer-events-none"
+            style={{ top: "max(1rem, calc(env(safe-area-inset-top, 0px) + 0.5rem))" }}
           >
             <div className="bg-[#FF4D4D] px-4 py-1.5 rounded-full shadow-lg flex items-center gap-2 border border-white/20 pointer-events-auto">
               <WifiOff size={12} className="text-white" />
@@ -171,7 +229,8 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
             initial={{ y: -20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: -20, opacity: 0 }}
-            className="fixed top-4 left-0 right-0 z-[10001] flex justify-center pointer-events-none"
+            className="fixed left-0 right-0 z-[10001] flex justify-center pointer-events-none"
+            style={{ top: "max(1rem, calc(env(safe-area-inset-top, 0px) + 0.5rem))" }}
           >
             <div 
               className="px-4 py-1.5 rounded-full shadow-lg flex items-center gap-3 border border-white/20 pointer-events-auto"
@@ -201,7 +260,8 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
             initial={{ y: -20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: -20, opacity: 0 }}
-            className="fixed top-4 left-0 right-0 z-[10001] flex justify-center pointer-events-none"
+            className="fixed left-0 right-0 z-[10001] flex justify-center pointer-events-none"
+            style={{ top: "max(1rem, calc(env(safe-area-inset-top, 0px) + 0.5rem))" }}
           >
             <div className={`px-4 py-1.5 rounded-full shadow-lg flex items-center gap-2.5 border backdrop-blur-md pointer-events-auto transition-all ${syncFailed ? "bg-[#FF4D4D] border-white/20 text-white" : "bg-theme-surface/90 border-theme-border text-theme-text"}`}>
               <RefreshCw size={12} className={`shrink-0 ${syncFailed ? "text-white" : "text-theme-highlight animate-spin"}`} />
@@ -230,7 +290,8 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
             initial={{ y: -20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: -20, opacity: 0 }}
-            className="fixed top-4 left-0 right-0 z-[10001] flex justify-center pointer-events-none"
+            className="fixed left-0 right-0 z-[10001] flex justify-center pointer-events-none"
+            style={{ top: "max(1rem, calc(env(safe-area-inset-top, 0px) + 0.5rem))" }}
           >
             <div className="bg-theme-emphasis px-4 py-1.5 rounded-full shadow-lg flex items-center gap-2 border border-theme-emphasis pointer-events-auto">
               <CheckCircle2 size={12} className="text-theme-bg" />
