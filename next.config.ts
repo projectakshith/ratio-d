@@ -5,25 +5,24 @@ const withPWA = withPWAInit({
   dest: "public",
   disable: process.env.NODE_ENV === "development",
   register: true,
-  cacheOnFrontEndNav: false,
-  aggressiveFrontEndNavCaching: false,
-  reloadOnOnline: true,
+  cacheOnFrontEndNav: true,
+  aggressiveFrontEndNavCaching: true,
+  reloadOnOnline: false,
   fallbacks: {
     image: "/icons/icon-192.png",
   },
   workboxOptions: {
-    skipWaiting: true,
+    skipWaiting: false,
     clientsClaim: true,
     runtimeCaching: [
       {
         urlPattern: ({ request }) => request.mode === 'navigate',
-        handler: "NetworkFirst",
+        handler: "StaleWhileRevalidate",
         options: {
           cacheName: "pages",
-          networkTimeoutSeconds: 3,
           expiration: {
             maxEntries: 32,
-            maxAgeSeconds: 60 * 60 * 24,
+            maxAgeSeconds: 60 * 60 * 24 * 7,
           },
         },
       },
@@ -52,6 +51,17 @@ const withPWA = withPWAInit({
           cacheName: "static-image-assets",
           expiration: {
             maxEntries: 128,
+            maxAgeSeconds: 60 * 60 * 24 * 30,
+          },
+        },
+      },
+      {
+        urlPattern: /\.(?:mp4|webm|ogg|mp3|wav|flac|aac)$/i,
+        handler: "CacheFirst",
+        options: {
+          cacheName: "static-media-assets",
+          expiration: {
+            maxEntries: 32,
             maxAgeSeconds: 60 * 60 * 24 * 30,
           },
         },
