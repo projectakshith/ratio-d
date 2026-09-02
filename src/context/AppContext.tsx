@@ -104,13 +104,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (!userData?.schedule) return;
 
     const checkClassNotifications = () => {
-      const todayDate = new Date().toLocaleDateString("en-GB", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      });
+      const now = new Date();
       const calendar = calendarDataJson as any[];
-      const todayEntry = calendar.find((item) => item.date === todayDate);
+      const todayEntry = calendar.find((item) => {
+        const d = new Date(item.date);
+        return (
+          d.getDate() === now.getDate() &&
+          d.getMonth() === now.getMonth() &&
+          d.getFullYear() === now.getFullYear()
+        );
+      });
       const effectiveDayOrder = (todayEntry?.order ?? userData?.dayOrder) as string | undefined;
 
       if (!effectiveDayOrder || !["1", "2", "3", "4", "5"].includes(effectiveDayOrder)) {
@@ -120,7 +123,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const status = getScheduleStatus(userData.schedule, effectiveDayOrder);
       if (!status.nextClass) return;
 
-      const now = new Date();
       const currentMins = now.getHours() * 60 + now.getMinutes();
       const diff = ((status.nextClass as any).startMinutes || 0) - currentMins;
       const nextClassName = (status.nextClass as any).course || "Class";
