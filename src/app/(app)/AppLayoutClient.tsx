@@ -14,6 +14,7 @@ import FeedbackPopup from "@/components/shared/FeedbackPopup";
 import CommunityPopup from "@/components/shared/CommunityPopup";
 import TimetableFeatureModal from "@/components/shared/TimetableFeatureModal";
 import PortalFeatureModal from "@/components/shared/PortalFeatureModal";
+import ThemeFeatureModal from "@/components/shared/ThemeFeatureModal";
 
 const BrutalistThemeLayout = dynamic(
   () => import("@/components/themes/brutalist/BrutalistTheme"),
@@ -74,6 +75,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <div className="fixed inset-0 bg-theme-bg overflow-hidden">
         <TimetableFeatureModal />
         <PortalFeatureModal />
+        <ThemeFeatureModal />
         <div className="md:hidden h-full w-full">
           {uiStyle === "brutalist" ? (
             <BrutalistThemeLayout {...sharedProps}>
