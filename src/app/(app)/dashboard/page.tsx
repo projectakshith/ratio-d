@@ -61,6 +61,8 @@ export default function DashboardPage() {
         recentMarks={(academia as any).recentMarks || []}
         onRefresh={handleRefresh}
         isRefreshing={isUpdating}
+        data={userData}
+        academia={academia}
       />
     );
   }
