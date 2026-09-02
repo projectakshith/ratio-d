@@ -12,8 +12,9 @@ import {
   calculateSemMarksNeeded,
   calculatePredictedGpa,
   isPracticalLogic,
+  getAcronym,
 } from "@/utils/marks/marksLogic";
-import BrutalistTarget from "./BrutalistTarget";
+import Target from "../../minimalist/marks/Target";
 import { AcademiaData } from "@/types";
 import { useAppLayout } from "@/context/AppLayoutContext";
 import { Haptics } from "@/utils/shared/haptics";
@@ -51,14 +52,15 @@ const ScoreCounter = ({ value }: any) => {
 const MarksPage = ({ data }: { data: AcademiaData }) => {
   const { profileSeed } = useApp();
   const { setIsSwipeDisabled } = useAppLayout();
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [predSubjectId, setPredSubjectId] = useState<number | null>(null);
   const [introMode, setIntroMode] = useState(true);
   const [predictMode, setPredictMode] = useState(false);
-  const [targetGrades, setTargetGrades] = useState<Record<string, number>>({});
-  const [expectedMarksMap, setExpectedMarksMap] = useState<Record<string, number>>({});
-  const [ignoredSubjectIds, setIgnoredSubjectIds] = useState<string[]>([]);
+  const [targetGrades, setTargetGrades] = useState<Record<number, number>>({});
+  const [expectedMarksMap, setExpectedMarksMap] = useState<Record<number, number>>({});
+  const [ignoredSubjectIds, setIgnoredSubjectIds] = useState<number[]>([]);
 
-  const toggleSubjectIgnore = (id: string) => {
+  const toggleSubjectIgnore = (id: number) => {
     setIgnoredSubjectIds(prev => 
       prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
     );
@@ -72,35 +74,45 @@ const MarksPage = ({ data }: { data: AcademiaData }) => {
   const itemRefs = useRef<any[]>([]);
   const scrollTimeout = useRef<any>(null);
 
-  const courseMap = useMemo(() => buildCourseMap(data), [data]);
-  const rawMarks = useMemo(() => Array.isArray(data?.marks) ? data.marks : [], [data?.marks]);
-
-  const sortedMarks = useMemo(() => {
-    const processed = processAndSortMarks(rawMarks, courseMap);
-    return processed.map((sub: any) => {
+  const subjects = useMemo(() => {
+    if (!data?.marks || data.marks.length === 0) return [];
+    const courseMap = buildCourseMap(data);
+    const sorted = processAndSortMarks(data.marks, courseMap);
+    
+    return sorted.map((sub: any) => {
       const sStr = sub.slot || "";
       const firstSlot = sStr.split(/[,\s+-]/)[0].trim().toUpperCase();
       let courseDetails = (data.courses as any)?.[firstSlot];
       if (!courseDetails) {
-        const normCode = (sub.code || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+        const normCode = (sub.code || "").toLowerCase().replace(/[^a-z0-9]/g, "").trim();
         courseDetails = Object.values(data.courses || {}).find((c: any) => 
-          (c.code || "").toLowerCase().replace(/[^a-z0-9]/g, "") === normCode ||
-          (c.courseCode || "").toLowerCase().replace(/[^a-z0-9]/g, "") === normCode
+          ((c.code || "").toLowerCase().replace(/[^a-z0-9]/g, "").trim() === normCode ||
+           (c.courseCode || "").toLowerCase().replace(/[^a-z0-9]/g, "").trim() === normCode) &&
+          ((c.type || "").toLowerCase().includes("lab") === sub.isPractical || 
+           (c.type || "").toLowerCase().includes("practical") === sub.isPractical)
         );
       }
+      const credits = courseDetails?.credits
+        ? parseFloat(courseDetails.credits)
+        : (sub.credits || 0);
+
       return { 
         ...sub, 
-        credits: courseDetails?.credits ? parseFloat(courseDetails.credits) : (sub.credits || 0),
+        credits,
+        displayCode: getAcronym(sub.title) || sub.code,
+        displayName: sub.title.toLowerCase(),
         isPractical: isPracticalLogic(sub)
       };
     });
-  }, [rawMarks, courseMap, data.courses]);
+  }, [data]);
 
   useEffect(() => {
-    if (sortedMarks.length > 0 && selectedId === null) {
-      setSelectedId((sortedMarks.find((s: any) => !s.isNA) || sortedMarks[0]).id);
+    if (subjects.length > 0 && selectedId === null) {
+      const firstActive = subjects.find((s: any) => !s.isNA) || subjects[0];
+      setSelectedId(firstActive.id);
+      setPredSubjectId(firstActive.id);
     }
-  }, [sortedMarks, selectedId]);
+  }, [subjects, selectedId]);
 
   useEffect(() => {
     const timer = setTimeout(() => setIntroMode(false), 800);
@@ -108,15 +120,15 @@ const MarksPage = ({ data }: { data: AcademiaData }) => {
   }, []);
 
   const overallPercentage = useMemo(() => {
-    const validMarks = sortedMarks.filter(m => !m.isNA);
+    const validMarks = subjects.filter(m => !m.isNA);
     if (validMarks.length === 0) return 0;
     const totalPct = validMarks.reduce((sum, m) => sum + m.percentage, 0);
     return Math.round(totalPct / validMarks.length);
-  }, [sortedMarks]);
+  }, [subjects]);
 
   const activeSubject: any = useMemo(() => 
-    sortedMarks.find((s: any) => s.id === selectedId) || sortedMarks[0] || {},
-    [sortedMarks, selectedId]
+    subjects.find((s: any) => s.id === selectedId) || subjects[0] || {},
+    [subjects, selectedId]
   );
 
   const currentRoast = useMemo(() => {
@@ -133,59 +145,75 @@ const MarksPage = ({ data }: { data: AcademiaData }) => {
   ], []);
 
   useEffect(() => {
-    if (sortedMarks.length > 0 && Object.keys(targetGrades).length === 0) {
-      const initial = getInitialTargetGrades(sortedMarks);
+    if (subjects.length > 0 && Object.keys(targetGrades).length === 0) {
+      const initial = getInitialTargetGrades(subjects);
       if (Object.keys(initial).length > 0) {
         setTargetGrades(initial);
       }
     }
-  }, [sortedMarks, targetGrades]);
+  }, [subjects, targetGrades]);
 
   const predictedGpa = useMemo(() => {
-    return calculatePredictedGpa(sortedMarks, targetGrades, ignoredSubjectIds);
-  }, [sortedMarks, targetGrades, ignoredSubjectIds]);
+    return calculatePredictedGpa(subjects, targetGrades, ignoredSubjectIds);
+  }, [subjects, targetGrades, ignoredSubjectIds]);
 
-  const currentTargetGrade = targetGrades[selectedId || ""] || 91;
-  const currentExpectedMarks = expectedMarksMap[selectedId || ""] || 0;
+  const activePredSub = useMemo(() => {
+    return subjects.find((s: any) => s.id === predSubjectId) ||
+      subjects[0] || {
+        displayCode: "--",
+        displayName: "no data",
+        totalGot: 0,
+        totalMax: 60,
+      };
+  }, [subjects, predSubjectId]);
 
-  const activeTm = activeSubject.totalMax || 0;
-  const activeIsInternalOnly = activeTm > 60;
+  const currentTargetGrade = targetGrades[predSubjectId ?? -1] ?? 91;
+  const currentExpectedMarks = expectedMarksMap[predSubjectId ?? -1] ?? 0;
+
+  const activeTotalMax = activePredSub.totalMax || 0;
+  const activeIsInternalOnly = activeTotalMax > 60;
   const activeRemainingMax = activeIsInternalOnly
-    ? Math.max(0, 100 - activeTm)
-    : Math.max(0, 60 - activeTm);
+    ? Math.max(0, 100 - activeTotalMax)
+    : Math.max(0, 60 - activeTotalMax);
 
   const { semRequiredOutOfMax, maxExternal, isCooked, isInternalOnly } = useMemo(() => {
     return calculateSemMarksNeeded(
       currentTargetGrade,
-      activeSubject.totalGot || 0,
+      activePredSub.totalGot || 0,
       currentExpectedMarks,
-      activeSubject.isPractical,
-      activeTm
+      activePredSub.isPractical ?? false,
+      activeTotalMax
     );
-  }, [currentTargetGrade, activeSubject, currentExpectedMarks, activeTm]);
+  }, [currentTargetGrade, activePredSub, currentExpectedMarks, activeTotalMax]);
 
-  const currentInternals = activeSubject.totalGot || 0;
+  const currentInternals = activePredSub.totalGot || 0;
   const maxPossibleExpected = activeRemainingMax;
 
   const handleExpectedChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!selectedId) return;
+    if (predSubjectId === null) return;
     let val = parseInt(e.target.value);
-    const safeVal = isNaN(val) ? 0 : Math.min(maxPossibleExpected, Math.max(0, val));
-    setExpectedMarksMap(prev => ({ ...prev, [selectedId]: safeVal }));
+    if (isNaN(val)) val = 0;
+    setExpectedMarksMap(prev => ({
+      ...prev,
+      [predSubjectId]: Math.min(activeRemainingMax, Math.max(0, val))
+    }));
   };
 
   const setExpectedMarks = (val: number | ((prev: number) => number)) => {
-    if (!selectedId) return;
+    if (predSubjectId === null) return;
     setExpectedMarksMap(prev => {
-      const currentVal = prev[selectedId] || 0;
+      const currentVal = prev[predSubjectId] || 0;
       const newVal = typeof val === "function" ? val(currentVal) : val;
-      return { ...prev, [selectedId]: Math.min(maxPossibleExpected, Math.max(0, newVal)) };
+      return {
+        ...prev,
+        [predSubjectId]: Math.min(activeRemainingMax, Math.max(0, newVal))
+      };
     });
   };
 
   const setTargetGrade = (val: number) => {
-    if (!selectedId) return;
-    setTargetGrades(prev => ({ ...prev, [selectedId]: val }));
+    if (predSubjectId === null) return;
+    setTargetGrades(prev => ({ ...prev, [predSubjectId]: val }));
   };
 
   const handleScroll = () => {
@@ -195,8 +223,8 @@ const MarksPage = ({ data }: { data: AcademiaData }) => {
       const container = listContainerRef.current;
       if (!container) return;
       if (container.scrollTop < 20) {
-        if (sortedMarks.length > 0 && selectedId !== sortedMarks[0].id) {
-          setSelectedId(sortedMarks[0].id);
+        if (subjects.length > 0 && selectedId !== subjects[0].id) {
+          setSelectedId(subjects[0].id);
           Haptics.vibe(2);
         }
         scrollTimeout.current = null;
@@ -208,7 +236,7 @@ const MarksPage = ({ data }: { data: AcademiaData }) => {
         if (!el) return;
         const rect = el.getBoundingClientRect();
         const dist = Math.abs(rect.top - triggerLine);
-        if (dist < minDistance) { minDistance = dist; closestId = sortedMarks[index].id; }
+        if (dist < minDistance) { minDistance = dist; closestId = subjects[index].id; }
       });
       if (closestId !== null && closestId !== selectedId) {
         setSelectedId(closestId);
@@ -233,7 +261,13 @@ const MarksPage = ({ data }: { data: AcademiaData }) => {
             <span className={`font-mono text-[10px] lowercase tracking-widest font-bold ${themeColorClass}`}>{activeSubject.type}</span>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={() => setPredictMode(true)} className="flex items-center gap-2 bg-white text-black px-4 py-2 rounded-full active:scale-95 transition-transform">
+            <button
+              onClick={() => {
+                setPredSubjectId(selectedId ?? subjects[0]?.id ?? 0);
+                setPredictMode(true);
+              }}
+              className="flex items-center gap-2 bg-white text-black px-4 py-2 rounded-full active:scale-95 transition-transform"
+            >
               <Calculator size={12} />
               <span className="font-mono text-[10px] lowercase tracking-widest font-bold">target</span>
             </button>
@@ -295,7 +329,7 @@ const MarksPage = ({ data }: { data: AcademiaData }) => {
       <div ref={listContainerRef} onScroll={handleScroll} className={`absolute bottom-0 w-full overflow-y-auto bg-[#f5f6fc] text-black no-scrollbar pb-32 h-[55%] rounded-t-[32px] shadow-[0_-10px_40px_rgba(0,0,0,0.3)] z-20 transition-transform duration-700 ease-in-out snap-y snap-mandatory ${introMode ? "translate-y-[60%]" : "translate-y-0"}`} style={{ WebkitOverflowScrolling: "touch" }}>
         <div className="px-6 flex flex-col gap-4 pt-4">
           <span className="font-mono text-[10px] lowercase tracking-widest text-[#050505]/40 mb-2 block sticky top-0 bg-[#f5f6fc] z-20 py-2">/// full records</span>
-          {sortedMarks.map((subject: any, index: number) => {
+          {subjects.map((subject: any, index: number) => {
             const isSelected = subject.id === selectedId;
             const statusColor = subject.status === "cooked" ? "text-[#ff003c]" : subject.status === "danger" ? "text-[#ffb800]" : "text-[#050505]";
             const pillColor = subject.status === "cooked" ? "bg-[#ff003c]" : subject.status === "danger" ? "bg-[#ffb800]" : "bg-[#ceff1c]";
@@ -349,10 +383,10 @@ const MarksPage = ({ data }: { data: AcademiaData }) => {
         )}
       </AnimatePresence>
 
-      <BrutalistTarget
+      <Target
         isOpen={predictMode}
         onClose={() => setPredictMode(false)}
-        activePredSub={activeSubject}
+        activePredSub={activePredSub}
         predictedGpa={predictedGpa}
         gpaColor={parseFloat(predictedGpa) >= 9.0 ? "text-[#ceff1c]" : parseFloat(predictedGpa) <= 7.0 ? "text-[#ff003c]" : "text-[#ffb800]"}
         semRequiredOutOfMax={semRequiredOutOfMax}
@@ -367,11 +401,12 @@ const MarksPage = ({ data }: { data: AcademiaData }) => {
         targetGrade={currentTargetGrade}
         setTargetGrade={setTargetGrade}
         grades={grades}
-        subjects={[...sortedMarks].sort((a: any, b: any) => b.credits - a.credits)}
-        predSubjectId={selectedId}
-        setPredSubjectId={setSelectedId}
+        subjects={subjects}
+        predSubjectId={predSubjectId}
+        setPredSubjectId={setPredSubjectId}
         ignoredSubjectIds={ignoredSubjectIds}
         toggleSubjectIgnore={toggleSubjectIgnore}
+        textClass="text-theme-text"
       />
     </div>
   );
