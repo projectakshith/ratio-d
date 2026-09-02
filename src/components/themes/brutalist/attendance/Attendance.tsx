@@ -15,7 +15,8 @@ import {
   getStatus,
   getRecoveryDate,
 } from "@/utils/attendance/attendanceLogic";
-import BrutalistPredict from "./BrutalistPredict";
+import calendarDataJson from "@/data/calendar_data.json";
+import Predict from "../../minimalist/attendance/Predict";
 
 import { AcademiaData } from "@/types";
 import { useAppLayout } from "@/context/AppLayoutContext";
@@ -67,6 +68,7 @@ const MobileAttendance = ({
   const [currentCalDate, setCurrentCalDate] = useState(new Date());
   const [isRangeMode, setIsRangeMode] = useState(false);
   const [rangeStart, setRangeStart] = useState<string | null>(null);
+  const [rangeEnd, setRangeEnd] = useState<string | null>(null);
 
   useEffect(() => {
     setIsSwipeDisabled(predictMode);
@@ -76,10 +78,21 @@ const MobileAttendance = ({
   const listContainerRef = useRef<HTMLDivElement>(null);
   const scrollTimeout = useRef<NodeJS.Timeout | null>(null);
 
-  const rawAttendance = useMemo(() => Array.isArray(data?.attendance) ? data.attendance : [], [data?.attendance]);
-  const baseAttendance = useMemo(() => getBaseAttendance(rawAttendance), [rawAttendance]);
+  const isPortalData = useMemo(
+    () => Boolean(
+      (data as any)?.isPortal ||
+      (data as any)?.portal_cookies ||
+      (data?.attendance || []).some((s: any) => s.isPortal)
+    ),
+    [data]
+  );
 
-  const calendarData = useMemo(() => academia?.calendarData || [], [academia?.calendarData]);
+  const rawAttendance = useMemo(() => Array.isArray(data?.attendance) ? data.attendance : [], [data?.attendance]);
+  const baseAttendance = useMemo(() => getBaseAttendance(rawAttendance, isPortalData), [rawAttendance, isPortalData]);
+
+  const calendarData = useMemo(() => {
+    return (academia?.calendarData?.length > 0) ? academia.calendarData : (calendarDataJson || []);
+  }, [academia?.calendarData]);
   const effectiveSchedule = useMemo(() => academia?.effectiveSchedule || data?.schedule || data?.timetable || {}, [academia?.effectiveSchedule, data?.schedule, data?.timetable]);
 
   const predictionImpact = useMemo(
@@ -455,7 +468,9 @@ const MobileAttendance = ({
                   />
                 </div>
                 <div className="flex justify-between items-center text-[10px] font-mono font-bold lowercase mt-1">
-                   <span className="text-white/50">impact result</span>
+                   <span className="text-white/50">
+                     {activeSubject.hasChanged ? `${Math.floor(parseFloat(activeSubject.percentage))}% → ${Math.floor(activePct)}%` : "impact result"}
+                   </span>
                    <span className={themeColorClass}>{Math.floor(activePct)}% predicted</span>
                 </div>
               </div>
@@ -469,7 +484,7 @@ const MobileAttendance = ({
         onScroll={handleScroll}
         className={`absolute bottom-0 w-full overflow-y-auto bg-[#f5f6fc] text-black no-scrollbar pb-32 rounded-t-[32px] shadow-[0_-10px_40px_rgba(0,0,0,0.3)] z-20 transition-transform duration-700 ease-in-out snap-y snap-mandatory ${
           introMode ? "translate-y-[60%]" : "translate-y-0"
-        } ${isPredicting ? "h-[45%]" : "h-[55%]"}`}
+        } h-[55%]`}
         style={{ WebkitOverflowScrolling: "touch" }}
       >
         <div className="px-6 flex flex-col gap-4 pt-4">
@@ -506,9 +521,21 @@ const MobileAttendance = ({
                     {subject.title?.toLowerCase()}
                   </h4>
                   <div className="flex flex-col items-end min-w-[80px]">
-                    <span className={`text-2xl font-black leading-none transition-colors duration-300 ${isSafe ? "text-[#050505]" : "text-[#ff003c]"}`} style={{ fontFamily: "Urbanosta" }}>
-                      {isPredicting ? predData.status.val : Math.floor(parseFloat(subject.percentage)) + "%"}
-                    </span>
+                    {isPredicting && subject.hasChanged ? (
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-sm font-bold text-black/30 font-mono" style={{ fontFamily: "Urbanosta" }}>
+                          {subject.originalVal}h
+                        </span>
+                        <span className="text-xs text-black/30">→</span>
+                        <span className={`text-2xl font-black leading-none ${isSafe ? "text-[#050505]" : "text-[#ff003c]"}`} style={{ fontFamily: "Urbanosta" }}>
+                          {predData.status.val}h
+                        </span>
+                      </div>
+                    ) : (
+                      <span className={`text-2xl font-black leading-none transition-colors duration-300 ${isSafe ? "text-[#050505]" : "text-[#ff003c]"}`} style={{ fontFamily: "Urbanosta" }}>
+                        {isPredicting ? predData.status.val + "h" : Math.floor(parseFloat(subject.percentage)) + "%"}
+                      </span>
+                    )}
                     {isPredicting && (
                       <div className="flex flex-col items-end mt-1">
                         <span className={`text-[10px] font-bold lowercase transition-colors duration-300 ${isSafe ? "text-[#050505]" : "text-[#ff003c]"}`}>
@@ -528,7 +555,11 @@ const MobileAttendance = ({
                     <div className={`w-1.5 h-1.5 rounded-full transition-colors duration-300 ${isSafe ? "bg-[#ceff1c]" : "bg-[#ff003c]"}`} />
                     <span>{subject.code?.toLowerCase()} ({subject.type?.toLowerCase()})</span>
                   </div>
-                  {isPredicting && <span className="font-bold flex items-center gap-1">{Math.floor(predData.pct)}%</span>}
+                  {isPredicting && (
+                    <span className="font-bold flex items-center gap-1 font-mono">
+                      {subject.hasChanged ? `${Math.floor(parseFloat(subject.percentage))}% → ${Math.floor(predData.pct)}%` : `${Math.floor(predData.pct)}%`}
+                    </span>
+                  )}
                 </div>
               </div>
             );
@@ -563,7 +594,7 @@ const MobileAttendance = ({
         )}
       </AnimatePresence>
 
-      <BrutalistPredict
+      <Predict
         isOpen={predictMode}
         onClose={() => setPredictMode(false)}
         predictAction={predType}
@@ -581,7 +612,7 @@ const MobileAttendance = ({
         setIsRangeMode={setIsRangeMode}
         rangeStart={rangeStart}
         setRangeStart={setRangeStart}
-        setRangeEnd={() => {}}
+        setRangeEnd={setRangeEnd}
         selectedDates={selectedDates}
         setSelectedDates={setSelectedDates}
         handleDateClick={handleDateClick}
