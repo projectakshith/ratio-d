@@ -1,18 +1,27 @@
 "use client";
 import React, { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MapPin, User, ArrowRight, Layers, Clock, Download } from "lucide-react";
+import { MapPin, User, Clock, Download, Plus, Trash2 } from "lucide-react";
 import {
   getDayOverview,
   processSchedule,
 } from "@/utils/dashboard/timetableLogic";
+import {
+  handleAddClassLogic,
+  handleDeleteCustomLogic,
+} from "@/utils/timetable/timetableLogic";
+import calendarDataJson from "@/data/calendar_data.json";
 import { flavorText } from "@/utils/shared/flavortext";
 import { useApp } from "@/context/AppContext";
 import { UserAvatar } from "@/components/shared/UserAvatar";
 import TimetablePreviewModal from "@/components/shared/TimetablePreviewModal";
+import CustomClass from "../../minimalist/timetable/CustomClass";
+import { Haptics } from "@/utils/shared/haptics";
+import { useAppLayout } from "@/context/AppLayoutContext";
 
-export default function Timetable({ schedule, dayOrder, data }) {
+export default function Timetable({ schedule, dayOrder, data, academia }: any) {
   const { profileSeed } = useApp();
+  const { setIsSwipeDisabled } = useAppLayout();
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeDayOrder, setActiveDayOrder] = useState(1);
   const [customClasses, setCustomClasses] = useState<Record<number, any[]>>({});
@@ -20,15 +29,55 @@ export default function Timetable({ schedule, dayOrder, data }) {
   const [introMode, setIntroMode] = useState(true);
   
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-  
+  const [isAddingClass, setIsAddingClass] = useState(false);
+
+  const [newSub, setNewSub] = useState("");
+  const [newRoom, setNewRoom] = useState("");
+  const [startTime, setStartTime] = useState("08:00");
+  const [endTime, setEndTime] = useState("08:50");
+  const [newType, setNewType] = useState<"theory" | "lab">("theory");
+  const [classDay, setClassDay] = useState<number>(1);
+
   const handleDownload = () => {
     setIsPreviewOpen(true);
   };
 
   useEffect(() => {
+    setIsSwipeDisabled(isAddingClass || isPreviewOpen);
+  }, [isAddingClass, isPreviewOpen, setIsSwipeDisabled]);
+
+  const nextWorkingDayOrder = useMemo(() => {
+    const calData = academia?.calendarData || calendarDataJson || [];
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+
+    const futureDays = calData
+      .filter((ev: any) => {
+        const evDate = new Date(ev.date);
+        evDate.setHours(0, 0, 0, 0);
+        return evDate > now;
+      })
+      .sort(
+        (a: any, b: any) =>
+          new Date(a.date).getTime() - new Date(b.date).getTime(),
+      );
+
+    for (const ev of futureDays) {
+      const dOrder = parseInt(ev.dayOrder || ev.day_order || ev.order);
+      if (!isNaN(dOrder) && dOrder >= 1 && dOrder <= 5) {
+        return dOrder;
+      }
+    }
+    return 1;
+  }, [academia]);
+
+  useEffect(() => {
     setMounted(true);
-    if (dayOrder && dayOrder !== "-") {
-      setActiveDayOrder(parseInt(dayOrder));
+    const parsedOrder = parseInt(String(dayOrder));
+    if (!isNaN(parsedOrder) && parsedOrder >= 1 && parsedOrder <= 5) {
+      setActiveDayOrder(parsedOrder);
+    } else {
+      setActiveDayOrder(nextWorkingDayOrder);
     }
     const fetchCustoms = () => {
       const stored = localStorage.getItem("ratio_custom_classes");
@@ -47,7 +96,7 @@ export default function Timetable({ schedule, dayOrder, data }) {
       window.removeEventListener("custom_classes_updated", fetchCustoms);
       clearTimeout(timer);
     };
-  }, [dayOrder]);
+  }, [dayOrder, nextWorkingDayOrder]);
 
   const currentRoast = useMemo(() => {
     const roasts = flavorText.timetable || [
@@ -87,15 +136,39 @@ export default function Timetable({ schedule, dayOrder, data }) {
     };
   }, []);
 
+  const effectiveScheduleData = useMemo(() => {
+    return schedule || academia?.effectiveSchedule || data?.timetable || data?.schedule || {};
+  }, [schedule, academia?.effectiveSchedule, data]);
+
   const currentSchedule = useMemo(() => {
     return processSchedule(
-      schedule,
+      effectiveScheduleData,
       customClasses,
       activeDayOrder,
-      parseInt(dayOrder) || 1,
+      parseInt(String(dayOrder)) || 1,
       courseMap,
     );
-  }, [schedule, customClasses, activeDayOrder, dayOrder, courseMap]);
+  }, [effectiveScheduleData, customClasses, activeDayOrder, dayOrder, courseMap]);
+
+  const handleAddClass = () => {
+    const success = handleAddClassLogic(
+      newSub,
+      newRoom,
+      startTime,
+      endTime,
+      newType,
+      classDay,
+    );
+    if (success) {
+      setNewSub("");
+      setNewRoom("");
+      setIsAddingClass(false);
+    }
+  };
+
+  const handleDeleteCustom = (day: number, timeStr: string) => {
+    handleDeleteCustomLogic(day, timeStr);
+  };
 
   if (!mounted) return null;
 
@@ -155,12 +228,22 @@ export default function Timetable({ schedule, dayOrder, data }) {
               <span className="text-[10px] font-black uppercase tracking-widest text-black/40">
                 Day Order
               </span>
-              <div className="flex items-center gap-3">
-                {parseInt(dayOrder) === activeDayOrder && (
+              <div className="flex items-center gap-2">
+                {parseInt(String(dayOrder)) === activeDayOrder && (
                   <span className="text-[9px] font-bold uppercase tracking-widest text-black bg-[#ceff1c] px-2 py-0.5 rounded-sm">
                     Today
                   </span>
                 )}
+                <button
+                  onClick={() => {
+                    Haptics.selection();
+                    setClassDay(activeDayOrder);
+                    setIsAddingClass(true);
+                  }}
+                  className="p-1.5 bg-black/5 rounded-md text-black hover:bg-black/10 active:scale-95 transition-all"
+                >
+                  <Plus size={14} strokeWidth={3} />
+                </button>
                 <button
                   onClick={handleDownload}
                   className="p-1.5 bg-black/5 rounded-md text-black hover:bg-black/10 active:scale-95 transition-all"
@@ -174,7 +257,10 @@ export default function Timetable({ schedule, dayOrder, data }) {
               {[1, 2, 3, 4, 5].map((num) => (
                 <button
                   key={num}
-                  onClick={() => setActiveDayOrder(num)}
+                  onClick={() => {
+                    Haptics.selection();
+                    setActiveDayOrder(num);
+                  }}
                   className={`flex-1 h-11 rounded-xl flex items-center justify-center text-lg font-bold transition-all
                     ${
                       activeDayOrder === num
@@ -243,8 +329,21 @@ export default function Timetable({ schedule, dayOrder, data }) {
                             </span>
                           </div>
                         </div>
-                        <div className="text-[9px] font-bold text-black/40 uppercase tracking-widest bg-black/5 px-2 py-1 rounded">
-                          {item.slot || (item.type === "lab" ? "PRAC" : "THRY")}
+                        <div className="flex items-center gap-2">
+                          <div className="text-[9px] font-bold text-black/40 uppercase tracking-widest bg-black/5 px-2 py-1 rounded">
+                            {item.slot || (item.type === "lab" ? "PRAC" : "THRY")}
+                          </div>
+                          {item.isCustom && (
+                            <button
+                              onClick={() => {
+                                Haptics.selection();
+                                handleDeleteCustom(activeDayOrder, item.time);
+                              }}
+                              className="p-1 rounded text-red-500 hover:bg-red-50 transition-colors"
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          )}
                         </div>
                       </div>
 
@@ -288,7 +387,7 @@ export default function Timetable({ schedule, dayOrder, data }) {
                 })
               ) : (
                 <div className="flex flex-col items-center justify-center py-20 opacity-30">
-                  <Layers size={48} className="mb-4" />
+                  <Clock size={48} className="mb-4" />
                   <h3 className="text-xl font-bold lowercase">free day</h3>
                   <p className="text-[10px] uppercase tracking-[0.2em]">
                     No classes scheduled
@@ -299,6 +398,24 @@ export default function Timetable({ schedule, dayOrder, data }) {
           </div>
         </div>
       </motion.div>
+
+      <CustomClass
+        isOpen={isAddingClass}
+        onClose={() => setIsAddingClass(false)}
+        newSub={newSub}
+        setNewSub={setNewSub}
+        newRoom={newRoom}
+        setNewRoom={setNewRoom}
+        startTime={startTime}
+        setStartTime={setStartTime}
+        endTime={endTime}
+        setEndTime={setEndTime}
+        newType={newType}
+        setNewType={setNewType}
+        classDay={classDay}
+        setClassDay={setClassDay}
+        handleAddClass={handleAddClass}
+      />
 
       <TimetablePreviewModal 
         isOpen={isPreviewOpen}

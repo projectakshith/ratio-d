@@ -37,6 +37,7 @@ export default function TimetablePage() {
         data={userData as any}
         schedule={academia.effectiveSchedule}
         dayOrder={academia.effectiveDayOrder}
+        academia={academia}
       />
     );
   }
