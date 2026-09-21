@@ -50,16 +50,20 @@ export const useAcademiaData = (data: AcademiaData | null) => {
   const recentMarks = useMemo(() => {
     return sortedMarks.filter(m => !m.isNA).slice(0, 2);
   }, [sortedMarks]);
-  const todayDate = new Date().toLocaleDateString("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
-  const todayEntry = calendarData.find((item) => item.date === todayDate);
-  const effectiveDayOrder =
-    todayEntry && todayEntry.order !== "-"
+  const effectiveDayOrder = useMemo(() => {
+    const now = new Date();
+    const todayEntry = calendarData.find((item) => {
+      const d = new Date(item.date);
+      return (
+        d.getDate() === now.getDate() &&
+        d.getMonth() === now.getMonth() &&
+        d.getFullYear() === now.getFullYear()
+      );
+    });
+    return todayEntry && todayEntry.order && todayEntry.order !== "-"
       ? todayEntry.order
       : data?.dayOrder || "1";
+  }, [calendarData, data?.dayOrder]);
 
   const mergeSchedule = useCallback(() => {
     try {

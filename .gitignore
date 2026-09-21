@@ -23,6 +23,7 @@
 # misc
 .DS_Store
 *.pem
+.vscode/
 
 # debug
 npm-debug.log*
@@ -58,3 +59,6 @@ src/app/test
 # Debugging scripts
 backend/debug_fetch.py
 backend/debug_*.html
+
+# Local batch startup scripts
+backend/run_ratiod.bat

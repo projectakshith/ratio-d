@@ -1,0 +1,99 @@
+seed: 21
+
+dataset:
+
+  data_dir: ..\data\student_portal
+
+  image:
+    height: 45
+    width: 175
+    channels: 1
+
+  vocab: 0123456789abcdefghijklmnopqrstuvwxyz
+
+  blank_idx: 0
+
+  num_classes: 37
+
+  label:
+
+    min_length: 4
+    max_length: 8
+
+  validation_split: 0.1
+
+dataloader:
+
+  batch_size: 32
+  pin_memory: true
+
+model:
+
+  name: TinyCRNN
+
+  parameters:
+    in_channels: 1
+    lstm_hidden: 128
+    lstm_layers: 1
+    bidirectional: true
+    dropout: 0.25
+
+  cnn:
+
+    architecture:
+    - in: 1
+      out: 32
+      stride:
+      - 1
+      - 1
+    - in: 32
+      out: 32
+      stride:
+      - 2
+      - 2
+    - in: 32
+      out: 64
+      stride:
+      - 1
+      - 1
+    - in: 64
+      out: 64
+      stride:
+      - 2
+      - 2
+    - in: 64
+      out: 96
+      stride:
+      - 1
+      - 1
+training:
+
+  epochs: 420
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  gradient_clip: 5.0
+  amp: false
+  optimizer: AdamW
+  scheduler: CosineAnnealingLR
+  scheduler_t_max: 420
+  loss: CTCLoss
+  ctc_blank_idx: 0
+
+decoding:
+
+  beam_width: 10
+  language_model:
+    enabled: true
+    type: character_bigram
+    smoothing_k: 0.05
+    alpha: 0.3
+    beta: 1.5
+
+checkpoint:
+
+  directory: ..\model
+  best: best_crnn.pth
+  final: baseline_crnn.pth
+  monitor: val_exact
+  mode: max
+device: cuda

@@ -11,7 +11,7 @@ export async function fetchWithLoadBalancer(endpoint: string, options: RequestIn
   const localBackend = urls.find(u => u.includes("localhost")) || "http://localhost:8000";
   const portalAuthHost = process.env.NEXT_PUBLIC_PORTAL_AUTH_URL;
 
-  const isPortalAuthEndpoint = endpoint === "/portal/captcha" || endpoint === "/portal/login";
+  const isPortalAuthEndpoint = endpoint.startsWith("/portal/") || endpoint === "/captcha/solve";
   let targetUrl = isDev
     ? localBackend
     : (isPortalAuthEndpoint && portalAuthHost)

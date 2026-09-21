@@ -1,0 +1,37 @@
+services:
+  ocr-engine:
+    build:
+      context: ./ocr-engine
+      dockerfile: Dockerfile.cpu
+    ports:
+      - "8080:8080"
+    environment:
+      - TINYOCR_HOST=0.0.0.0
+      - TINYOCR_PORT=8080
+    volumes:
+      - ./ocr-engine/configs/container.toml:/app/configs/production.toml
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+      - TINYOCR_URL=http://ocr-engine:8080
+      - DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN}
+      - DISCORD_CHANNEL_ID=${DISCORD_CHANNEL_ID}
+      - DISCORD_WEBHOOK=${DISCORD_WEBHOOK}
+    depends_on:
+      - ocr-engine
+    restart: unless-stopped
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    command: tunnel --no-autoupdate run
+    environment:
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN}
+    depends_on:
+      - backend
+    restart: unless-stopped

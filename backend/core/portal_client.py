@@ -5,19 +5,32 @@ import re
 import time
 
 import httpx
+import asyncio
+from services.portal_marks_service import PortalMarksService
 
 LOGIN_URL = "https://sp.srmist.edu.in/srmiststudentportal/students/loginManager/youLogin.jsp"
 BASE_URL = "https://sp.srmist.edu.in/srmiststudentportal"
 HRD_URL = BASE_URL + "/students/template/HRDSystem.jsp"
 ATT_URL = BASE_URL + "/students/report/studentAttendanceDetails.jsp"
 MARKS_URL = BASE_URL + "/students/report/studentInternalMarkDetails.jsp"
+INNER_MARKS_URL = BASE_URL + "/students/report/studentInternalMarkDetailsInner.jsp"
+TIMETABLE_URL = BASE_URL + "/students/report/studentTimeTableDetails.jsp"
+PROFILE_URL = BASE_URL + "/students/report/studentPersonalDetails.jsp"
 LOGIN_SERVLET = BASE_URL + "/LoginServlet"
 FP_TOKEN_URL = BASE_URL + "/fpToken"
 
 HEADERS = {
-    "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36",
-    "Referer": "https://sp.srmist.edu.in/",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+    "Referer": "https://sp.srmist.edu.in/srmiststudentportal/students/loginManager/youLogin.jsp",
+    "Origin": "https://sp.srmist.edu.in",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.9",
 }
+
+_shared_transport = httpx.AsyncHTTPTransport(
+    retries=1,
+    limits=httpx.Limits(max_keepalive_connections=50, max_connections=200)
+)
 
 
 def canvas_hash():
@@ -36,7 +49,7 @@ def telemetry_payload():
         "screenHeight": 768,
         "colorDepth": 24,
         "devicePixelRatio": 1,
-        "platform": "Linux x86_64",
+        "platform": "Win32",
         "userAgent": HEADERS["User-Agent"],
         "language": "en-US",
         "hardwareConcurrency": 8,
@@ -55,7 +68,7 @@ def telemetry_payload():
 
 class PortalSession:
     def __init__(self):
-        self.client = httpx.AsyncClient(headers=HEADERS, follow_redirects=True, timeout=30.0)
+        self.client = httpx.AsyncClient(transport=_shared_transport, headers=HEADERS, follow_redirects=True, timeout=30.0)
         self.nonce = None
         self.login_form_fields = {}
         self.captcha_page = None
@@ -103,6 +116,7 @@ class PortalSession:
             })
             if cr.status_code == 200:
                 img_b64 = base64.b64encode(cr.content).decode()
+                self.captcha_bytes = cr.content
         self.captcha_page = text
         self.load_ms = int(time.time() * 1000)
         return {
@@ -119,7 +133,8 @@ class PortalSession:
         if not self.captcha_page:
             await self.load_captcha()
         now_ms = int(time.time() * 1000)
-        elapsed_sec = max(0, int((now_ms - (self.load_ms or now_ms)) / 1000))
+        calc_elapsed = max(0, int((now_ms - (self.load_ms or now_ms)) / 1000))
+        elapsed_sec = max(random.randint(3, 5), calc_elapsed)
         dtoken = base64.b64encode("sp.srmist.edu.in"[::-1].encode()).decode()
         trap_payload = str(elapsed_sec) + (self.random_delimiter or "0000") + "3"
         cptoken = base64.b64encode(trap_payload.encode()).decode()
@@ -140,31 +155,72 @@ class PortalSession:
         fp_body[self.captcha_field_name] = cptoken
         resp = await self.client.post(LOGIN_SERVLET, data=fp_body)
         body = resp.text or ""
-        if "logout.jsp" in resp.url.path or "attendance" in resp.url.path.lower():
+        if "logout.jsp" in resp.url.path or "attendance" in resp.url.path.lower() or "hrdsystem" in resp.url.path.lower():
             html = body
         else:
             html = await self.get_attendance_html()
         if html is None:
-            reason = self.classify_failure(resp.url.path, body)
-            return {"ok": False, "reason": reason}
+            failure_info = self.classify_failure(resp.url.path, body)
+            return {
+                "ok": False,
+                "reason": failure_info.get("reason", "login_failed"),
+                "message": failure_info.get("message", "Login failed"),
+                "raw_body": body
+            }
         return {"ok": True, "cookies": {c.name: c.value for c in self.client.cookies.jar}}
 
     @staticmethod
     def classify_failure(path, body):
+        from bs4 import BeautifulSoup
+        soup = BeautifulSoup(body, "html.parser")
+        alert_el = soup.find(class_=lambda c: c and "alert-icon-content" in c) or soup.find(class_=lambda c: c and "alert-danger" in c)
+        
+        if alert_el:
+            alert_text = alert_el.get_text(separator=" ", strip=True)
+            if alert_text.lower().startswith("alert"):
+                alert_text = alert_text[5:].strip()
+            
+            blob = alert_text.lower()
+            if "invalid captcha" in blob or "captcha" in blob:
+                return {
+                    "reason": "wrong_captcha",
+                    "message": alert_text or "Invalid captcha.",
+                }
+            if "locked" in blob:
+                return {
+                    "reason": "account_locked",
+                    "message": alert_text,
+                }
+            if "invalid login credentials" in blob or "attempts remaining" in blob or "invalid" in blob or "unsuccessful" in blob or "user id or password" in blob:
+                return {
+                    "reason": "invalid_credentials",
+                    "message": alert_text,
+                }
+            return {
+                "reason": "login_failed",
+                "message": alert_text,
+            }
+
         blob = body.lower()
-        if "invalid captcha" in blob or "enter valid captcha" in blob or "valid captcha" in blob:
-            return "wrong_captcha"
-        if "invalid username" in blob or "invalid password" in blob or "invalid credentials" in blob or "username or password" in blob:
-            return "invalid_credentials"
         if "session" in blob and ("expire" in blob or "timeout" in blob):
-            return "session_expired"
-        return "login_failed"
+            return {"reason": "session_expired", "message": "Session expired, refresh and retry."}
+        return {"reason": "login_failed", "message": "Login failed"}
 
     async def get_attendance_html(self):
-        r = await self.client.get(ATT_URL)
-        if r.status_code != 200 or "login_form" in r.text or "theGR8LoginLoader" in r.text:
+        try:
+            r = await self.client.get(ATT_URL)
+            if (
+                r.status_code != 200 
+                or "youlogin" in str(r.url).lower() 
+                or "login" in str(r.url).lower() 
+                or "loginform" in r.text.lower() 
+                or "login_form" in r.text.lower() 
+                or "thegr8loginloader" in r.text.lower()
+            ):
+                return None
+            return r.text
+        except Exception:
             return None
-        return r.text
 
 
     async def get_marks_html(self):
@@ -172,13 +228,13 @@ class PortalSession:
             r = await self.client.get(MARKS_URL)
             if r.status_code == 200 and "table" in r.text.lower():
                 return r.text
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"  -> [PORTAL] Network error fetching marks: {e}", flush=True)
         return None
 
 class PortalClient:
     def __init__(self, cookies=None):
-        self.client = httpx.AsyncClient(headers=HEADERS, follow_redirects=True, timeout=30.0)
+        self.client = httpx.AsyncClient(transport=_shared_transport, headers=HEADERS, follow_redirects=True, timeout=30.0)
         if cookies:
             self.client.cookies.update(cookies)
 
@@ -189,10 +245,21 @@ class PortalClient:
             pass
 
     async def get_attendance_html(self):
-        r = await self.client.get(ATT_URL)
-        if r.status_code != 200 or "login_form" in r.text or "theGR8LoginLoader" in r.text:
+        try:
+            r = await self.client.get(ATT_URL)
+            if (
+                r.status_code != 200 
+                or "youlogin" in str(r.url).lower() 
+                or "login" in str(r.url).lower() 
+                or "loginform" in r.text.lower() 
+                or "login_form" in r.text.lower() 
+                or "thegr8loginloader" in r.text.lower()
+            ):
+                return None
+            return r.text
+        except Exception as e:
+            print(f"  -> [PORTAL] Network error fetching attendance: {e}", flush=True)
             return None
-        return r.text
 
     async def get_marks_html(self):
         try:
@@ -202,3 +269,84 @@ class PortalClient:
         except Exception:
             pass
         return None
+
+    async def get_timetable_html(self):
+        try:
+            payload = {
+                "iden": "10",
+                "filter": "",
+                "hdnFormDetails": "1",
+                "csrfPreventionSalt": ""
+            }
+            r = await self.client.post(TIMETABLE_URL, data=payload)
+            if r.status_code == 200 and "table" in r.text.lower() and "day 1" in r.text.lower():
+                return r.text
+        except Exception as e:
+            print(f"  -> [PORTAL] Network error fetching timetable: {e}", flush=True)
+        return None
+
+    async def get_profile_html(self):
+        try:
+            r = await self.client.get(PROFILE_URL)
+            if r.status_code == 200 and "student name" in r.text.lower():
+                return r.text
+        except Exception as e:
+            print(f"  -> [PORTAL] Network error fetching profile: {e}", flush=True)
+        return None
+
+    async def get_marks_data(self, att_html=None):
+        try:
+            r = await self.client.get(MARKS_URL)
+            if r.status_code != 200 or "table" not in r.text.lower():
+                return []
+            
+            subjects = PortalMarksService.parse_main(r.text)
+            if not subjects:
+                return []
+
+            async def fetch_inner(subj):
+                if not subj.get("subjectId"):
+                    return
+                payload = {
+                    "iden": "1",
+                    "hdnSubjectId": subj["subjectId"],
+                    "status": subj.get("status", "2")
+                }
+                try:
+                    r_inner = await self.client.post(INNER_MARKS_URL, data=payload)
+                    if r_inner.status_code == 200:
+                        subj["assessments"] = PortalMarksService.parse_inner(r_inner.text)
+                except Exception:
+                    pass
+
+            await asyncio.gather(*[fetch_inner(s) for s in subjects])
+
+            for s in subjects:
+                s.pop("subjectId", None)
+                s.pop("status", None)
+
+            try:
+                if att_html:
+                    from services.portal_attendance_service import PortalAttendanceService
+                    courses, _ = PortalAttendanceService.parse(att_html)
+                    if courses:
+                        mark_codes = {m.get("courseCode", "").strip().lower() for m in subjects}
+                        for c in courses:
+                            c_code = c.get("code", "").strip()
+                            if c_code.lower() not in mark_codes:
+                                subjects.append({
+                                    "courseCode": c_code,
+                                    "title": c.get("title", ""),
+                                    "type": "Internal",
+                                    "performance": "N/A",
+                                    "assessments": [],
+                                    "totalMarkGot": None,
+                                    "totalMaxMarks": None
+                                })
+            except Exception as ex:
+                print(f"  -> [PORTAL] Error merging attendance courses in marks: {ex}", flush=True)
+
+            return subjects
+        except Exception as e:
+            print(f"  -> [PORTAL] Error fetching marks data: {e}", flush=True)
+            return []

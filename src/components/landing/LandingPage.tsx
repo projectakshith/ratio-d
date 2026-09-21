@@ -346,7 +346,7 @@ export default function LandingPage() {
         className="absolute bottom-[-20vw] md:bottom-[-12vw] left-[-8%] md:left-[-9%] w-[90vw] md:w-[55vw] max-w-[900px] z-[5]"
       >
         <img
-          src="/mockup.png"
+          src="/mockup.webp"
           alt="ratio'd mockup"
           className="w-full h-auto object-contain drop-shadow-2xl"
         />

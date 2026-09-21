@@ -14,7 +14,6 @@ import { flavorText } from "@/utils/shared/flavortext";
 import { useApp } from "@/context/AppContext";
 import calendarDataJson from "@/data/calendar_data.json";
 import { DayPicker } from "react-day-picker";
-import { format } from "date-fns";
 import { AttendanceRecord, CalendarEvent } from "@/types";
 
 const SubjectCard = ({ code, title, percent, present, conducted, val, safe, type, recoveryDate, hasChanged, predConducted, predPresent }: {
@@ -266,7 +265,7 @@ export default function DesktopAttendance() {
   };
 
   const handleDayClick = (day: Date) => {
-    const dStr = format(day, "yyyy-MM-dd");
+    const dStr = `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, "0")}-${String(day.getDate()).padStart(2, "0")}`;
     setSelectedDates(prev => {
       const next = { ...prev };
       if (next[dStr]) delete next[dStr];
@@ -433,14 +432,16 @@ export default function DesktopAttendance() {
                     <p className="text-[9px] font-black uppercase tracking-[0.4em] mt-2" style={{ fontFamily: 'var(--font-montserrat)' }}>
                       waiting for the hamsters to wake up
                     </p>
-                    <button
-                      type="button"
-                      onClick={() => setPortalAuthOpen(true)}
-                      className="mt-4 px-5 py-2.5 rounded-xl bg-theme-highlight text-theme-bg font-black uppercase tracking-[0.2em] text-[10px] hover:opacity-90 active:scale-95 transition-all shadow-xl shadow-theme-highlight/20"
-                      style={{ fontFamily: 'var(--font-montserrat)' }}
-                    >
-                      try student portal
-                    </button>
+                    {!isPortalData && (
+                      <button
+                        type="button"
+                        onClick={() => setPortalAuthOpen(true)}
+                        className="mt-4 px-5 py-2.5 rounded-xl bg-theme-highlight text-theme-bg font-black uppercase tracking-[0.2em] text-[10px] hover:opacity-90 active:scale-95 transition-all shadow-xl shadow-theme-highlight/20"
+                        style={{ fontFamily: 'var(--font-montserrat)' }}
+                      >
+                        try student portal
+                      </button>
+                    )}
                   </div>
                 </div>
               ) : (

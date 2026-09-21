@@ -12,8 +12,9 @@ interface LoginPageProps {
 }
 
 const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
-  const { performLogin } = useApp();
+  const { performLogin, performPortalLogin } = useApp();
   const router = useRouter();
+  const [loginMode, setLoginMode] = useState<"academia" | "portal">("academia");
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [showPassword, setShowPassword] = useState<boolean>(false);
@@ -35,12 +36,15 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
     if (!username || !password) return;
 
     setError("");
-    const fullUsername = formatUsername(username);
+    const fullUsername = loginMode === "academia" ? formatUsername(username) : username.trim();
     const isOnboarded = localStorage.getItem("ratiod_onboarded") === "true";
 
     try {
       EncryptionUtils.cleanOldKeys();
-      const savedCookies = await EncryptionUtils.loadDecrypted("academia_cookies");
+      const savedCookies = loginMode === "academia"
+        ? await EncryptionUtils.loadDecrypted("academia_cookies")
+        : await EncryptionUtils.loadDecrypted("portal_cookies");
+
       const creds = {
         username: fullUsername,
         password: password,
@@ -50,41 +54,47 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
       };
 
       const isMobile = window.innerWidth < 768;
+      const loginFn = loginMode === "portal" ? performPortalLogin : performLogin;
+
       if (!isOnboarded && isMobile) {
         setIsExiting(true);
-        performLogin(creds).catch(() => {});
+        loginFn(creds).catch(() => {});
         setTimeout(() => {
           router.push("/onboarding");
         }, 300);
       } else {
         setLoading(true);
         try {
-          const data = await performLogin(creds);
+          const data = await loginFn(creds);
           onLogin(data);
         } catch (err: any) {
-          if (err?.type === "CAPTCHA_REQUIRED") {
-            setCaptchaImage(err.image);
-            setCdigest(err.cdigest);
-            setError(err.message || "Please enter the CAPTCHA.");
+          const isCaptchaError = err?.type === "CAPTCHA_REQUIRED" || err?.type === "WRONG_CAPTCHA" || !!err?.image || !!err?.captcha_image;
+          if (isCaptchaError) {
+            setCaptchaImage(err.image || err.captcha_image);
+            setCdigest(err.cdigest || err.session);
+            setError(err.message || "Please enter the security check.");
             setCaptchaInput("");
           } else {
             setCaptchaImage(null);
             setCdigest(null);
-            setError(err.message || "auth failed");
+            const msg = typeof err === "string" ? err : err?.message || err?.detail || "Authentication failed.";
+            setError(msg);
           }
           setLoading(false);
         }
       }
     } catch (err: any) {
-      if (err?.type === "CAPTCHA_REQUIRED") {
-        setCaptchaImage(err.image);
-        setCdigest(err.cdigest);
-        setError(err.message || "Please enter the CAPTCHA.");
+      const isCaptchaError = err?.type === "CAPTCHA_REQUIRED" || err?.type === "WRONG_CAPTCHA" || !!err?.image || !!err?.captcha_image;
+      if (isCaptchaError) {
+        setCaptchaImage(err.image || err.captcha_image);
+        setCdigest(err.cdigest || err.session);
+        setError(err.message || "Please enter the security check.");
         setCaptchaInput("");
       } else {
         setCaptchaImage(null);
         setCdigest(null);
-        setError(err.message || "auth failed");
+        const msg = typeof err === "string" ? err : err?.message || err?.detail || "Authentication failed.";
+        setError(msg);
       }
       setLoading(false);
     }
@@ -148,10 +158,48 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
         </motion.header>
 
         <motion.main variants={itemVariants} className="relative z-10 w-full max-w-xl mt-auto md:mt-0 pb-12 md:pb-0">
-          <form onSubmit={handleSubmit} className="flex flex-col gap-12 md:gap-12">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-10 md:gap-12">
+            <div className="flex items-center gap-4">
+              <button
+                type="button"
+                onClick={() => {
+                  setLoginMode("academia");
+                  setError("");
+                  setCaptchaImage(null);
+                  setCdigest(null);
+                  setCaptchaInput("");
+                }}
+                className={`text-[11px] font-mono uppercase tracking-[0.25em] transition-all pb-1 ${
+                  loginMode === "academia"
+                    ? "text-[#ceff1c] border-b-[1.5px] border-[#ceff1c]"
+                    : "text-white/40 hover:text-white/80"
+                }`}
+              >
+                academia
+              </button>
+              <span className="text-white/20 text-xs font-mono select-none">/</span>
+              <button
+                type="button"
+                onClick={() => {
+                  setLoginMode("portal");
+                  setError("");
+                  setCaptchaImage(null);
+                  setCdigest(null);
+                  setCaptchaInput("");
+                }}
+                className={`text-[11px] font-mono uppercase tracking-[0.25em] transition-all pb-1 ${
+                  loginMode === "portal"
+                    ? "text-[#ceff1c] border-b-[1.5px] border-[#ceff1c]"
+                    : "text-white/40 hover:text-white/80"
+                }`}
+              >
+                student portal
+              </button>
+            </div>
+
             <div className="group relative">
               <label className="text-[10px] font-mono uppercase tracking-[0.3em] text-white/60">
-                NetID
+                {loginMode === "portal" ? "NetID / Reg No" : "NetID"}
               </label>
               <div className="relative flex items-center border-b-[1.5px] border-white focus-within:border-[#ceff1c] transition-colors">
                 <input
@@ -162,7 +210,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
                   placeholder="ab1234"
                   style={{ fontFamily: "Aonic", color: 'white' }}
                 />
-                {!username.includes("@") && (
+                {loginMode === "academia" && !username.includes("@") && (
                   <span
                     className="text-xl md:text-3xl text-white/30 lowercase pointer-events-none pr-2 select-none whitespace-nowrap"
                     style={{ fontFamily: "Aonic" }}
@@ -233,9 +281,10 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0 }}
-                    className="absolute -top-8 left-0 text-red-400 font-mono text-xs uppercase flex items-center gap-2 whitespace-nowrap"
+                    className="mb-4 text-red-300 font-mono text-xs uppercase flex items-start gap-2 bg-red-950/50 border border-red-500/40 rounded-xl p-3"
                   >
-                    <AlertCircle size={14} /> {error}
+                    <AlertCircle size={15} className="shrink-0 mt-0.5 text-red-400" />
+                    <span className="leading-snug break-words">{error}</span>
                   </motion.div>
                 )}
               </AnimatePresence>

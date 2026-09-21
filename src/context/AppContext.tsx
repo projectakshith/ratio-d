@@ -25,6 +25,7 @@ interface AppContextType {
   setBackendErrorMsg: (msg: string | null) => void;
   refreshData: (creds: any, existingData: any) => Promise<any>;
   performLogin: (creds: any) => Promise<any>;
+  performPortalLogin: (creds: any) => Promise<any>;
   loginPromise: Promise<any> | null;
   setLoginPromise: (promise: Promise<any> | null) => void;
   logout: () => Promise<void>;
@@ -103,13 +104,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (!userData?.schedule) return;
 
     const checkClassNotifications = () => {
-      const todayDate = new Date().toLocaleDateString("en-GB", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      });
+      const now = new Date();
       const calendar = calendarDataJson as any[];
-      const todayEntry = calendar.find((item) => item.date === todayDate);
+      const todayEntry = calendar.find((item) => {
+        const d = new Date(item.date);
+        return (
+          d.getDate() === now.getDate() &&
+          d.getMonth() === now.getMonth() &&
+          d.getFullYear() === now.getFullYear()
+        );
+      });
       const effectiveDayOrder = (todayEntry?.order ?? userData?.dayOrder) as string | undefined;
 
       if (!effectiveDayOrder || !["1", "2", "3", "4", "5"].includes(effectiveDayOrder)) {
@@ -119,7 +123,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const status = getScheduleStatus(userData.schedule, effectiveDayOrder);
       if (!status.nextClass) return;
 
-      const now = new Date();
       const currentMins = now.getHours() * 60 + now.getMinutes();
       const diff = ((status.nextClass as any).startMinutes || 0) - currentMins;
       const nextClassName = (status.nextClass as any).course || "Class";
@@ -210,6 +213,121 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         EncryptionUtils.setSessionCookie();
         setUserData(data);
         localStorage.setItem("ratio_data", JSON.stringify(data));
+        window.dispatchEvent(new Event("ratio_refresh_completed"));
+
+        return data;
+      } catch (err: any) {
+        if (err.message === 'Backend error') {
+          setIsBackendError(true);
+        } else if (err.name === 'AbortError' || err.message === 'Failed to fetch') {
+          try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 1200);
+            await fetch("https://1.1.1.1", { method: "HEAD", mode: "no-cors", signal: controller.signal });
+            clearTimeout(timeoutId);
+            setIsBackendError(true);
+          } catch {
+            setIsOffline(true);
+          }
+        }
+        throw err;
+      }
+    })();
+
+    setLoginPromise(promise);
+    return promise;
+  }, []);
+
+  const performPortalLogin = useCallback(async (creds: any) => {
+    setIsBackendError(false);
+    setBackendErrorMsg(null);
+    const promise = (async () => {
+      try {
+        let digest = creds.cdigest;
+        if (!digest && creds.captcha) {
+          const capRes = await fetchWithLoadBalancer("/portal/captcha", { method: "POST" });
+          const capData = await capRes.json().catch(() => ({}));
+          if (!capRes.ok || !capData.session) {
+            throw new Error(capData.detail || "Failed to load portal security check");
+          }
+          digest = capData.session;
+        }
+
+        const response = await fetchWithLoadBalancer("/portal/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            username: creds.username,
+            password: creds.password,
+            captcha: creds.captcha || undefined,
+            cdigest: digest,
+          }),
+        });
+
+        if (response.status === 503 || response.status === 429 || response.status === 502 || response.status === 504) {
+          setIsBackendError(true);
+          try {
+            const data = await response.json();
+            if (data.detail) setBackendErrorMsg(data.detail);
+          } catch {}
+          throw new Error("Backend error");
+        }
+
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.success) {
+          const detail = data.detail;
+          if (typeof detail === "object" && detail !== null) {
+            if (detail.type === "WRONG_CAPTCHA" || detail.type === "CAPTCHA_REQUIRED") {
+              const freshImage = detail.captcha_image || detail.image;
+              const freshDigest = detail.cdigest || detail.session;
+              if (freshImage && freshDigest) {
+                throw {
+                  type: "CAPTCHA_REQUIRED",
+                  image: freshImage,
+                  cdigest: freshDigest,
+                  message: detail.message || "Invalid captcha. Please enter the new one.",
+                };
+              }
+              const freshCapRes = await fetchWithLoadBalancer("/portal/captcha", { method: "POST" });
+              const freshCapData = await freshCapRes.json().catch(() => ({}));
+              throw {
+                type: "CAPTCHA_REQUIRED",
+                image: freshCapData.captcha_image || freshCapData.image,
+                cdigest: freshCapData.session,
+                message: detail.message || "Invalid captcha. Please enter the new one.",
+              };
+            }
+            throw detail;
+          }
+          const isWrongCaptcha = typeof detail === "string" && (detail.toLowerCase().includes("captcha") || detail === "wrong captcha, try the new one");
+          if (isWrongCaptcha) {
+            const freshCapRes = await fetchWithLoadBalancer("/portal/captcha", { method: "POST" });
+            const freshCapData = await freshCapRes.json().catch(() => ({}));
+            throw {
+              type: "CAPTCHA_REQUIRED",
+              image: freshCapData.captcha_image || freshCapData.image,
+              cdigest: freshCapData.session,
+              message: "Invalid captcha. Please enter the security check characters.",
+            };
+          }
+          throw new Error(typeof detail === "string" ? detail : "Login failed");
+        }
+
+        if (data.cookies) {
+          await EncryptionUtils.saveEncrypted("portal_cookies", data.cookies);
+          delete data.cookies;
+        }
+
+        await EncryptionUtils.saveEncrypted("portal_credentials", {
+          username: creds.username,
+          password: creds.password,
+        });
+
+        EncryptionUtils.setSessionCookie();
+        data.isPortal = true;
+        setUserData(data);
+        localStorage.setItem("ratio_data", JSON.stringify(data));
+        window.dispatchEvent(new Event("ratio_refresh_completed"));
 
         return data;
       } catch (err: any) {
@@ -243,29 +361,39 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     try {
       const savedCookies = await EncryptionUtils.loadDecrypted("academia_cookies");
       const portalCookies = await EncryptionUtils.loadDecrypted("portal_cookies") as Record<string, string> | null;
+      const portalCreds = await EncryptionUtils.loadDecrypted("portal_credentials") as any;
 
-      if (portalCookies) {
+      if (portalCookies || portalCreds) {
         setIsCheckingPortal(true);
         try {
           const portalRes = await fetchWithLoadBalancer("/portal/refresh", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ cookies: portalCookies }),
+            body: JSON.stringify({
+              cookies: portalCookies,
+              username: portalCreds?.username,
+              password: portalCreds?.password,
+            }),
           });
           if (portalRes.ok) {
             const portalData = await portalRes.json();
             if (portalData?.success && portalData.attendance?.length) {
               let next = { ...existingData, attendance: portalData.attendance };
               if (portalData.monthly) next.monthly = portalData.monthly;
+              if (portalData.marks) next.marks = portalData.marks;
+              if (portalData.schedule) next.schedule = portalData.schedule;
+              if (portalData.courses) next.courses = portalData.courses;
+              if (portalData.profile) next.profile = portalData.profile;
+              next.isPortal = true;
               if (portalData.cookies) {
                 await EncryptionUtils.saveEncrypted("portal_cookies", portalData.cookies);
               }
               setUserData(next);
               localStorage.setItem("ratio_data", JSON.stringify(next));
+              window.dispatchEvent(new Event("ratio_refresh_completed"));
               return next;
             }
-          } else if (portalRes.status === 401) {
-            const portalCreds = await EncryptionUtils.loadDecrypted("portal_credentials") as any;
+          } else if (portalRes.status === 401 && !existingData?.isPortal) {
             const acadCreds = await EncryptionUtils.loadDecrypted("ratio_credentials") as any;
             if (portalCreds?.password || acadCreds?.password) {
               setPortalAuthMode("captcha_only");
@@ -276,6 +404,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         } finally {
           setIsCheckingPortal(false);
         }
+      }
+
+      if (!savedCookies && !creds?.username) {
+        return existingData;
       }
 
       const makeRefreshRequest = async (includePassword: boolean) => {
@@ -414,7 +546,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         setUserData(parsed);
 
         runMigration().then(async () => {
-          const creds = await EncryptionUtils.loadDecrypted("ratio_credentials");
+          const creds = (await EncryptionUtils.loadDecrypted("ratio_credentials")) ||
+                        (await EncryptionUtils.loadDecrypted("portal_credentials"));
           if (creds && !hasRefreshed.current) {
             hasRefreshed.current = true;
             refreshData(creds as any, parsed);
@@ -508,6 +641,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setBackendErrorMsg,
     refreshData,
     performLogin,
+    performPortalLogin,
     loginPromise,
     setLoginPromise,
     logout,
@@ -531,7 +665,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     portalAuthMode,
     setPortalAuthMode,
     isCheckingPortal,
-  }), [userData, customDisplayName, isUpdating, isOffline, isBackendError, backendErrorMsg, refreshData, performLogin, loginPromise, logout, latestDiff, updateHistory, isUpdateHistoryOpen, deferredPrompt, canInstall, showWelcome, profileSeed, calendarData, portalAuthOpen, portalAuthMode, isCheckingPortal]);
+  }), [userData, customDisplayName, isUpdating, isOffline, isBackendError, backendErrorMsg, refreshData, performLogin, performPortalLogin, loginPromise, logout, latestDiff, updateHistory, isUpdateHistoryOpen, deferredPrompt, canInstall, showWelcome, profileSeed, calendarData, portalAuthOpen, portalAuthMode, isCheckingPortal]);
 
   return (
     <AppContext.Provider value={value}>

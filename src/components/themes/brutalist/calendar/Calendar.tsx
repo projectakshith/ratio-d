@@ -1,13 +1,13 @@
 "use client";
-import React, { useState, useMemo, useEffect, memo, useCallback } from "react";
+import React, { useMemo, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, Target, Calendar } from "lucide-react";
-import { Haptics } from "@/utils/shared/haptics";
+import { useCalendarData } from "@/hooks/useCalendarData";
+import calendarDataJson from "@/data/calendar_data.json";
 
 const CalendarDay = memo(
   ({ item, onClick }: { item: any; onClick: (date: Date) => void }) => {
     let bg = "bg-transparent";
-    let text = "text-[#050505]";
     let dateColor = "text-black/30";
     let orderColor = "text-black/20";
     let scaleClass = "scale-100";
@@ -15,7 +15,6 @@ const CalendarDay = memo(
 
     if (item.isSelected) {
       bg = item.isDayExam ? "bg-[#8b5cf6]" : "bg-[#050505]";
-      text = "text-white";
       dateColor = "text-white";
       orderColor = "text-white/60";
       scaleClass = "scale-105";
@@ -42,7 +41,7 @@ const CalendarDay = memo(
     return (
       <motion.button
         whileTap={{ scale: 0.9 }}
-        onClick={() => onClick(item.dateObj)}
+        onClick={() => item.dateObj && onClick(item.dateObj)}
         className={`aspect-square w-full rounded-xl flex flex-col items-center justify-center relative ${bg} ${fadeClass} ${scaleClass} ${shadowClass}`}
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -79,200 +78,70 @@ const CalendarDay = memo(
       prev.item.isSelected === next.item.isSelected &&
       prev.item.isToday === next.item.isToday &&
       prev.item.dayOrder === next.item.dayOrder &&
-      prev.item.dateObj.getTime() === next.item.dateObj.getTime()
+      prev.item.dateObj?.getTime() === next.item.dateObj?.getTime()
     );
   },
 );
 CalendarDay.displayName = "CalendarDay";
 
 const CalendarPage = ({ calendarData, academia, data }: any) => {
-  const [viewMonth, setViewMonth] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const [introMode, setIntroMode] = useState(true);
+  const activeData = useMemo(() => {
+    return (academia?.calendarData?.length > 0)
+      ? academia.calendarData
+      : (calendarData || calendarDataJson || []);
+  }, [academia?.calendarData, calendarData]);
 
-  const activeData = calendarData || academia?.calendarData || [];
-
-  useEffect(() => {
-    const timer = setTimeout(() => setIntroMode(false), 800);
-    return () => clearTimeout(timer);
-  }, []);
-
-  const handleDateClick = useCallback((date: Date) => {
-    setSelectedDate(date);
-    Haptics.vibe(2);
-  }, []);
-
-  const eventsMap = useMemo(() => {
-    const map: any = {};
-    if (activeData) {
-      activeData.forEach((item: any) => {
-        const dateObj = new Date(item.date);
-        if (!isNaN(dateObj.getTime())) {
-          map[dateObj.toDateString()] = item;
-        }
-      });
-    }
-    return map;
-  }, [activeData]);
-
-  const getDaysInMonth = (year: number, month: number) =>
-    new Date(year, month + 1, 0).getDate();
-  const getFirstDayOfMonth = (year: number, month: number) => {
-    const day = new Date(year, month, 1).getDay();
-    return day === 0 ? 6 : day - 1;
-  };
-
-  const handlePrevMonth = () =>
-    setViewMonth(
-      new Date(viewMonth.getFullYear(), viewMonth.getMonth() - 1, 1),
-    );
-  const handleNextMonth = () =>
-    setViewMonth(
-      new Date(viewMonth.getFullYear(), viewMonth.getMonth() + 1, 1),
-    );
-
-  const goToToday = () => {
-    const now = new Date();
-    setViewMonth(now);
-    setSelectedDate(now);
-  };
-
-  const viewYear = viewMonth.getFullYear();
-  const viewMonthIndex = viewMonth.getMonth();
-  const todayZero = new Date();
-  todayZero.setHours(0, 0, 0, 0);
-
-  const currentEvent: any = useMemo(
-    () => eventsMap[selectedDate.toDateString()],
-    [selectedDate, eventsMap],
+  const profile = useMemo(() => data?.profile || {}, [data?.profile]);
+  const isTargetAudience = useMemo(
+    () =>
+      (profile.dept || "")
+        .toLowerCase()
+        .includes("computer science and engineering") &&
+      String(profile.semester) === "4",
+    [profile],
   );
 
-  const hasOrder =
-    currentEvent?.order &&
-    currentEvent.order !== "-" &&
-    currentEvent.order !== "";
-  const isExam = currentEvent?.type === "exam";
+  const {
+    introMode,
+    theme,
+    display,
+    monthTitle,
+    handlePrevMonth,
+    handleNextMonth,
+    goToToday,
+    gridData,
+    handleDateClick,
+  } = useCalendarData(activeData, isTargetAudience);
 
-  const dayOfWeek = selectedDate.getDay();
-  const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-  const isHoliday =
-    currentEvent?.description?.toLowerCase().includes("holiday") ||
-    (isWeekend && !hasOrder);
-
-  const theme = useMemo(() => {
-    if (isExam)
-      return { bg: "#8b5cf6", text: "text-white", accent: "bg-white" };
-    if (hasOrder)
-      return { bg: "#ceff1c", text: "text-[#050505]", accent: "bg-[#050505]" };
-    if (isHoliday)
-      return { bg: "#ff003c", text: "text-white", accent: "bg-white" };
-    return { bg: "#ffffff", text: "text-[#050505]", accent: "bg-[#050505]" };
-  }, [hasOrder, isHoliday, isExam]);
-
-  const display = useMemo(() => {
-    const dayNum = String(selectedDate.getDate()).padStart(2, "0");
-    const weekday = selectedDate
-      .toLocaleString("en-US", { weekday: "long" })
-      .toLowerCase();
-    const month = selectedDate
-      .toLocaleString("en-US", { month: "short" })
-      .toLowerCase();
-
-    if (isExam) {
-      return {
-        pill: weekday,
-        bigText: currentEvent.order
-          ? currentEvent.order.padStart(2, "0")
-          : dayNum,
-        label: "day order",
-        infoMain: `${month} ${dayNum}`,
-        infoSub: currentEvent.description || "Exam Day",
-      };
-    } else if (hasOrder) {
-      return {
-        pill: weekday,
-        bigText: currentEvent.order.padStart(2, "0"),
-        label: "day order",
-        infoMain: `${month} ${dayNum}`,
-        infoSub: "Regular Classes",
-      };
-    } else {
-      return {
-        pill: weekday,
-        bigText: dayNum,
-        label: "date",
-        infoMain: `${month}`,
-        infoSub: isHoliday ? "Holiday" : "No schedule",
-      };
+  const brutalistTheme = useMemo(() => {
+    if (display.label === "day order" && (display.infoSub?.toLowerCase().includes("exam") || display.infoMain?.toLowerCase().includes("exam"))) {
+      return { bg: "#8b5cf6", text: "text-white", pillBorder: "border-white/30", pillBg: "bg-white/20" };
     }
-  }, [selectedDate, hasOrder, isHoliday, isExam, currentEvent]);
-
-  const gridData = useMemo(() => {
-    const daysInMonth = getDaysInMonth(viewYear, viewMonthIndex);
-    const startOffset = getFirstDayOfMonth(viewYear, viewMonthIndex);
-    const slots: any[] = []; // Explicit type definition fixes the build error
-
-    for (let i = 0; i < startOffset; i++)
-      slots.push({ type: "padding", key: `prev-${i}` });
-
-    for (let d = 1; d <= daysInMonth; d++) {
-      const currentDayDate = new Date(viewYear, viewMonthIndex, d);
-      const event = eventsMap[currentDayDate.toDateString()];
-      const isSelected =
-        currentDayDate.toDateString() === selectedDate.toDateString();
-      const isToday =
-        currentDayDate.toDateString() === new Date().toDateString();
-      const isPast = currentDayDate < todayZero;
-      const dDayOfWeek = currentDayDate.getDay();
-      const dIsWeekend = dDayOfWeek === 0 || dDayOfWeek === 6;
-      const dayOrder = event?.order && event.order !== "-" ? event.order : null;
-      const isDayHoliday =
-        event?.description?.toLowerCase().includes("holiday") ||
-        (dIsWeekend && !dayOrder);
-      const isDayExam = event?.type === "exam";
-
-      slots.push({
-        type: "day",
-        day: d,
-        key: `day-${d}`,
-        dateObj: currentDayDate,
-        isSelected,
-        isToday,
-        isPast,
-        isDayHoliday,
-        dayOrder,
-        isDayExam,
-      });
+    if (display.label === "day order") {
+      return { bg: "#ceff1c", text: "text-[#050505]", pillBorder: "border-black/10", pillBg: "bg-black/10" };
     }
-    return slots;
-  }, [viewMonth, viewMonthIndex, viewYear, eventsMap, selectedDate, todayZero]);
-
-  const monthTitle = useMemo(() => {
-    const m = viewMonth.toLocaleString("default", { month: "long" });
-    return (
-      m.charAt(0).toUpperCase() + m.slice(1).toLowerCase() + " " + viewYear
-    );
-  }, [viewMonth, viewYear]);
+    if (display.label === "holiday") {
+      return { bg: "#ff003c", text: "text-white", pillBorder: "border-white/30", pillBg: "bg-white/20" };
+    }
+    return { bg: "#050505", text: "text-white", pillBorder: "border-white/30", pillBg: "bg-white/20" };
+  }, [display]);
 
   return (
     <div className="h-full w-full flex flex-col bg-[#f5f6fc] text-[#050505] font-sans relative overflow-hidden touch-pan-y">
-      {/* Background container */}
-
-      {/* DASHBOARD */}
       <motion.div
         className="w-full relative z-20 shadow-xl overflow-hidden flex flex-col shrink-0"
         initial={false}
-        animate={{ height: "28%", backgroundColor: theme.bg }}
+        animate={{ height: "28%", backgroundColor: brutalistTheme.bg }}
         transition={{ duration: 0.3 }}
       >
         <div className="flex flex-col h-full p-5 pb-1 relative z-20">
           <div className="self-start mb-auto pt-2">
             <div
-              className={`px-3 py-1 bg-white/20 backdrop-blur-md rounded-full border border-white/30 flex items-center gap-2 shadow-sm`}
+              className={`px-3 py-1 ${brutalistTheme.pillBg} backdrop-blur-md rounded-full border ${brutalistTheme.pillBorder} flex items-center gap-2 shadow-sm`}
             >
-              <Calendar size={12} className={theme.text} />
+              <Calendar size={12} className={brutalistTheme.text} />
               <span
-                className={`text-[11px] font-bold lowercase tracking-wide ${theme.text}`}
+                className={`text-[11px] font-bold lowercase tracking-wide ${brutalistTheme.text}`}
                 style={{ fontFamily: "Aonic" }}
               >
                 {display.pill}
@@ -283,14 +152,14 @@ const CalendarPage = ({ calendarData, academia, data }: any) => {
             <div className="flex flex-col shrink-0">
               <div className="mb-3">
                 <span
-                  className={`text-[13px] font-bold lowercase tracking-wide opacity-50 block ml-1 ${theme.text}`}
+                  className={`text-[13px] font-bold lowercase tracking-wide opacity-50 block ml-1 ${brutalistTheme.text}`}
                   style={{ fontFamily: "Aonic" }}
                 >
                   {display.label}
                 </span>
               </div>
               <span
-                className={`text-[7rem] leading-[0.8] font-black tracking-tighter ${theme.text}`}
+                className={`text-[7rem] leading-[0.8] font-black tracking-tighter ${brutalistTheme.text}`}
                 style={{ fontFamily: "Urbanosta" }}
               >
                 {display.bigText}
@@ -298,13 +167,13 @@ const CalendarPage = ({ calendarData, academia, data }: any) => {
             </div>
             <div className="flex flex-col justify-end pb-4 flex-1 min-w-0 pl-3">
               <span
-                className={`text-2xl font-bold lowercase leading-none mb-1 ${theme.text}`}
+                className={`text-2xl font-bold lowercase leading-none mb-1 ${brutalistTheme.text}`}
                 style={{ fontFamily: "Aonic" }}
               >
                 {display.infoMain}
               </span>
               <span
-                className={`text-lg font-bold leading-5 ${theme.text} opacity-90 break-words line-clamp-3`}
+                className={`text-lg font-bold leading-5 ${brutalistTheme.text} opacity-90 break-words line-clamp-3`}
                 style={{ fontFamily: "Aonic" }}
               >
                 {display.infoSub}
@@ -314,7 +183,6 @@ const CalendarPage = ({ calendarData, academia, data }: any) => {
         </div>
       </motion.div>
 
-      {/* CALENDAR GRID */}
       <div className="flex-1 flex flex-col pb-40 pt-6 px-4 z-10">
         <div className="flex justify-between items-center mb-6 px-1 relative">
           <div
@@ -356,7 +224,7 @@ const CalendarPage = ({ calendarData, academia, data }: any) => {
         </div>
         <div className="flex-1 overflow-y-auto custom-scrollbar">
           <div className="grid grid-cols-7 gap-2 gap-y-3 justify-items-center">
-            {gridData.map((item: any, i: number) => {
+            {gridData.map((item: any) => {
               if (item.type === "padding")
                 return <div key={item.key} className="w-full" />;
               return (
@@ -371,7 +239,6 @@ const CalendarPage = ({ calendarData, academia, data }: any) => {
         </div>
       </div>
 
-      {/* INTRO OVERLAY */}
       <AnimatePresence>
         {introMode && (
           <motion.div

@@ -14,6 +14,8 @@ import {
 import { BentoTile } from "../BentoTile";
 import { StudentProfile, AttendanceRecord } from "@/types";
 import { useDashboardAlerts } from "@/hooks/useDashboardAlerts";
+import { useDashboardCalendar } from "@/hooks/useDashboardCalendar";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { Haptics } from "@/utils/shared/haptics";
 import { useApp } from "@/context/AppContext";
 import { UserAvatar } from "@/components/shared/UserAvatar";
@@ -44,7 +46,6 @@ const ScoreCounter = ({ value }: any) => {
   return <span ref={nodeRef} />;
 };
 
-// ADD : any TO SILENCE VERCEL TS COMPILER
 const springTransition: any = {
   type: "spring",
   stiffness: 400,
@@ -52,7 +53,6 @@ const springTransition: any = {
   mass: 1,
 };
 
-// ADD : any TO SILENCE VERCEL TS COMPILER
 const accordionVariants: any = {
   hidden: {
     opacity: 0,
@@ -100,6 +100,8 @@ interface HomeDashboardProps {
   recentMarks?: any[];
   onRefresh?: () => Promise<void>;
   isRefreshing?: boolean;
+  data?: any;
+  academia?: any;
 }
 
 const HomeDashboard = ({
@@ -115,6 +117,8 @@ const HomeDashboard = ({
   recentMarks = [],
   onRefresh,
   isRefreshing: isParentRefreshing,
+  data,
+  academia,
 }: HomeDashboardProps) => {
   const { profileSeed } = useApp();
   const router = useRouter();
@@ -128,10 +132,18 @@ const HomeDashboard = ({
       .includes("computer science and engineering") &&
     String(profile?.semester) === "4";
 
-  const { allAlerts, currentAlertIndex } = useDashboardAlerts({ calendarData } as any, isTargetAudience);
-  
+  const { allAlerts, currentAlertIndex } = useDashboardAlerts(
+    (academia || { calendarData }) as any,
+    isTargetAudience,
+  );
+
+  const { isHoliday, isTomorrowHoliday } = useDashboardCalendar(
+    academia,
+    data,
+  );
+
   const upcomingAlerts = useMemo(() => {
-    const alerts = allAlerts.length > 0 ? allAlerts.map(a => ({ 
+    const alerts = allAlerts.length > 0 ? allAlerts.map((a: any) => ({ 
       description: a.desc, 
       date: a.date, 
       type: a.type,
@@ -140,19 +152,22 @@ const HomeDashboard = ({
     return alerts;
   }, [allAlerts, propAlerts]);
 
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [pullY, setPullY] = useState(0);
-  const [isLocalRefreshing, setIsLocalRefreshing] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
-  const startY = useRef(0);
-  const startX = useRef(0);
+  const {
+    pullY,
+    isRefreshing: isLocalRefreshing,
+    handleTouchStart,
+    handleTouchMove,
+    handleTouchEnd,
+  } = usePullToRefresh(isAlertExpanded || isMetricExpanded, onRefresh);
 
   const isRefreshing = isLocalRefreshing || isParentRefreshing;
 
   const studentName =
     displayName || (profile?.name ? profile.name.split(" ")[0] : "Student");
 
-  const nextSubject = timeStatus?.nextClass?.course || "no more classes";
+  const nextSubject = isHoliday
+    ? "holiday today"
+    : timeStatus?.nextClass?.course || "no more classes";
   const nextSubjectSplit = nextSubject.split(" ");
   const displayNext =
     nextSubjectSplit.length > 1
@@ -166,58 +181,6 @@ const HomeDashboard = ({
         }
       : { top: nextSubject, bottom: "" };
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    if (containerRef.current && containerRef.current.scrollTop <= 0) {
-      startY.current = e.touches[0].clientY;
-      startX.current = e.touches[0].clientX;
-      setIsDragging(true);
-    }
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isDragging) return;
-    const currentY = e.touches[0].clientY;
-    const currentX = e.touches[0].clientX;
-    const diffY = currentY - startY.current;
-    const diffX = currentX - startX.current;
-
-    if (Math.abs(diffX) > Math.abs(diffY)) return;
-
-    if (
-      containerRef.current &&
-      containerRef.current.scrollTop <= 0 &&
-      diffY > 0 &&
-      !isRefreshing
-    ) {
-      if (diffY < 200) {
-        if (e.cancelable) e.preventDefault();
-      }
-      setPullY(Math.pow(diffY, 0.8));
-    }
-  };
-
-  const handleTouchEnd = () => {
-    setIsDragging(false);
-    if (pullY > 80) {
-      setIsLocalRefreshing(true);
-      setPullY(80);
-      Haptics.heavy();
-
-      if (onRefresh) {
-        onRefresh().finally(() => {
-          setIsLocalRefreshing(false);
-          setPullY(0);
-        });
-      } else {
-        setTimeout(() => {
-          window.location.reload();
-        }, 800);
-      }
-    } else {
-      setPullY(0);
-    }
-  };
-
   return (
     <div className="h-full w-full bg-[#050505] relative overflow-hidden">
       <motion.div 
@@ -228,7 +191,7 @@ const HomeDashboard = ({
       />
 
       <div
-        className="absolute top-0 left-0 w-full flex justify-center pt-8 z-0 transition-opacity duration-300"
+        className="absolute top-0 left-0 w-full flex justify-center pt-8 z-0 transition-opacity duration-300 pointer-events-none"
         style={{
           opacity: Math.min(pullY / 60, 1),
           transform: `translateY(${pullY * 0.3}px)`,
@@ -244,7 +207,6 @@ const HomeDashboard = ({
       </div>
 
       <div
-        ref={containerRef}
         className="h-full w-full relative z-10 overflow-hidden overflow-x-hidden no-scrollbar flex flex-col"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
@@ -287,8 +249,9 @@ const HomeDashboard = ({
               <motion.div
                 className="flex flex-col relative z-10 mt-8"
               >
-                <motion.div                  layout="position"
-                  className="flex items-center gap-3 mb-10"
+                <motion.div
+                  layout="position"
+                  className="flex items-center gap-3 mb-8"
                 >
                   <h1
                     className="text-[24px] md:text-[28px] font-bold lowercase tracking-tight text-black/20 leading-none"
@@ -297,7 +260,10 @@ const HomeDashboard = ({
                     hello, <span className="text-black">{studentName}</span>
                   </h1>
                   <button
-                    onClick={onProfileClick}
+                    onClick={() => {
+                      Haptics.selection();
+                      onProfileClick();
+                    }}
                     className="w-9 h-9 rounded-full overflow-hidden border-2 border-black/5 active:scale-90 transition-transform shadow-sm flex items-center justify-center bg-white"
                   >
                     <UserAvatar seed={profileSeed} className="w-full h-full" />
@@ -315,7 +281,9 @@ const HomeDashboard = ({
                       className="text-[16px] md:text-[18px] font-bold lowercase tracking-tight text-black/40 leading-none"
                       style={{ fontFamily: "Aonic" }}
                     >
-                      {timeStatus?.nextClass
+                      {isHoliday
+                        ? "enjoy the holiday"
+                        : timeStatus?.nextClass
                         ? "your next class is"
                         : "you are all done"}
                     </span>
@@ -347,11 +315,13 @@ const HomeDashboard = ({
                       className="bg-black text-white px-3 py-2 rounded-xl text-[10px] md:text-[11px] font-bold lowercase border border-black/5 flex-shrink-0"
                       style={{ fontFamily: "Aonic" }}
                     >
-                      {timeStatus?.currentClass
+                      {isHoliday
+                        ? "🌴 holiday today"
+                        : timeStatus?.currentClass
                         ? `⭐ current: ${timeStatus.currentClass.course}${timeStatus.currentClass.type === "lab" ? " (P)" : ""}`
                         : "☕ currently free"}
                     </div>
-                    {timeStatus?.currentClass && (
+                    {!isHoliday && timeStatus?.currentClass && (
                       <div
                         className="bg-black/5 px-3 py-2 rounded-xl text-[10px] md:text-[11px] font-bold lowercase text-black/60 border border-black/5 flex-shrink-0"
                         style={{ fontFamily: "Aonic" }}
@@ -359,7 +329,7 @@ const HomeDashboard = ({
                         📍 {timeStatus.currentClass.room}
                       </div>
                     )}
-                    {timeStatus?.nextClass && (
+                    {!isHoliday && timeStatus?.nextClass && (
                       <div
                         className="bg-black/5 px-3 py-2 rounded-xl text-[10px] md:text-[11px] font-bold lowercase text-black/60 border border-black/5 flex-shrink-0"
                         style={{ fontFamily: "Aonic" }}
@@ -367,8 +337,19 @@ const HomeDashboard = ({
                         ⏰ {timeStatus.nextClass.time}{timeStatus.nextClass.type === "lab" ? " (P)" : ""}
                       </div>
                     )}
+                    {isTomorrowHoliday && (
+                      <div
+                        className="bg-[#ceff1c] text-black px-3 py-2 rounded-xl text-[10px] md:text-[11px] font-bold lowercase flex-shrink-0"
+                        style={{ fontFamily: "Aonic" }}
+                      >
+                        ✨ holiday tomorrow
+                      </div>
+                    )}
                     <button 
-                      onClick={() => router.push("/timetable")}
+                      onClick={() => {
+                        Haptics.selection();
+                        router.push("/timetable");
+                      }}
                       className="ml-auto w-10 h-10 bg-black rounded-full flex items-center justify-center text-white active:scale-90 transition-transform flex-shrink-0 shadow-lg"
                     >
                       <ArrowUpRight size={20} />
@@ -392,6 +373,7 @@ const HomeDashboard = ({
                 layout
                 transition={springTransition}
                 onClick={() => {
+                  Haptics.selection();
                   setIsAlertExpanded(!isAlertExpanded);
                   if (isMetricExpanded) setIsMetricExpanded(false);
                 }}
@@ -453,7 +435,7 @@ const HomeDashboard = ({
                       className="w-full relative z-10"
                     >
                       {upcomingAlerts.length > 0 ? (
-                        upcomingAlerts.slice(0, 2).map((alert, i) => (
+                        upcomingAlerts.slice(0, 2).map((alert: any, i: number) => (
                           <div
                             key={i}
                             className="bg-white p-3 rounded-xl flex flex-col gap-1 border border-black/5 shadow-sm mb-2 last:mb-0"
@@ -497,6 +479,7 @@ const HomeDashboard = ({
                 layout
                 transition={springTransition}
                 onClick={() => {
+                  Haptics.selection();
                   setIsMetricExpanded(!isMetricExpanded);
                   if (isAlertExpanded) setIsAlertExpanded(false);
                 }}
@@ -531,7 +514,10 @@ const HomeDashboard = ({
                     onClick={(e) => e.stopPropagation()}
                   >
                     <div
-                      onClick={() => setMetricMode("attendance")}
+                      onClick={() => {
+                        Haptics.selection();
+                        setMetricMode("attendance");
+                      }}
                       className={`px-4 py-2 rounded-full cursor-pointer transition-colors ${
                         metricMode === "attendance"
                           ? "bg-[#ceff1c] text-black shadow-sm"
@@ -541,7 +527,10 @@ const HomeDashboard = ({
                       attendance
                     </div>
                     <div
-                      onClick={() => setMetricMode("marks")}
+                      onClick={() => {
+                        Haptics.selection();
+                        setMetricMode("marks");
+                      }}
                       className={`px-4 py-2 rounded-full cursor-pointer transition-colors ${
                         metricMode === "marks"
                           ? "bg-[#ceff1c] text-black shadow-sm"
@@ -576,7 +565,7 @@ const HomeDashboard = ({
                         </div>
                         {metricMode === "attendance" ? (
                           criticalAttendance.length > 0 ? (
-                            criticalAttendance.map((subj, i) => (
+                            criticalAttendance.map((subj: any, i: number) => (
                               <div
                                 key={i}
                                 className="bg-black/10 p-4 rounded-2xl flex items-center justify-between w-full"

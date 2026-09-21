@@ -7,6 +7,7 @@ import { UpdateHistoryItem } from "@/types";
 
 export default function UpdateHistory({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const { updateHistory } = useApp();
+  const [canDragClose, setCanDragClose] = React.useState(true);
 
   const grouped = updateHistory.reduce((acc, item) => {
     const date = new Date(item.timestamp);
@@ -33,12 +34,13 @@ export default function UpdateHistory({ isOpen, onClose }: { isOpen: boolean; on
           animate={{ x: 0 }}
           exit={{ y: "100%" }}
           transition={{ type: "spring", damping: 30, stiffness: 250 }}
-          drag="y"
+          drag={canDragClose ? "y" : false}
           dragConstraints={{ top: 0, bottom: 0 }}
           dragElastic={0.6}
           onDragEnd={(e, info) => {
             if (info.offset.y > 150 || info.velocity.y > 600) onClose();
           }}
+          data-lenis-prevent
           className="fixed inset-0 z-[10001] bg-theme-bg flex flex-col pointer-events-auto overflow-hidden"
         >
           <div className="flex items-center justify-between p-8 pt-10 shrink-0">
@@ -54,7 +56,11 @@ export default function UpdateHistory({ isOpen, onClose }: { isOpen: boolean; on
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto no-scrollbar px-8 pb-32">
+          <div 
+            data-lenis-prevent
+            onScroll={(e) => setCanDragClose(e.currentTarget.scrollTop <= 0)}
+            className="flex-1 overflow-y-auto overscroll-contain touch-pan-y no-scrollbar px-8 pb-32"
+          >
             <div className="mb-12">
               <h1 className="text-[5rem] font-black tracking-tighter text-theme-text leading-[0.8] lowercase" style={{ fontFamily: "var(--font-montserrat)" }}>
                 updates<br/>log

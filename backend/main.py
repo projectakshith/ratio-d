@@ -1,3 +1,4 @@
+import base64
 import time
 import asyncio
 import os
@@ -7,6 +8,7 @@ import hashlib
 import secrets
 import logging
 from datetime import datetime
+from contextlib import asynccontextmanager
 import httpx
 import uvicorn
 
@@ -17,6 +19,7 @@ from core.portal_client import PortalClient, PortalSession
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse, PlainTextResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from models.schemas import Credentials, LoginCredentials, PortalCredentials
 from services.marks_service import MarksService
 from services.profile_service import ProfileService
@@ -25,6 +28,8 @@ from services.attendance_service import AttendanceService
 from services.timetable_service import TimetableService
 from services.portal_attendance_service import PortalAttendanceService
 from services.portal_marks_service import PortalMarksService
+from services.portal_timetable_service import PortalTimetableService
+from services.portal_profile_service import PortalProfileService
 from dotenv import load_dotenv
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
@@ -33,6 +38,73 @@ from slowapi.errors import RateLimitExceeded
 load_dotenv()
 load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env.local'))
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    app.state.http_client = httpx.AsyncClient(timeout=10.0)
+    yield
+    await app.state.http_client.aclose()
+
+
+# ── tinyocr captcha auto-solver ──────────────────────────────
+TINYOCR_URL = os.getenv("TINYOCR_URL", "http://127.0.0.1:8080")
+TINYOCR_API_KEY = os.getenv("TINYOCR_API_KEY", "")
+MAX_OCR_ATTEMPTS = 4  # portal locks at 5 wrong captchas; keep 1 for manual
+
+_ocr_client: httpx.AsyncClient | None = None
+
+
+async def _get_ocr_client() -> httpx.AsyncClient:
+    global _ocr_client
+    if _ocr_client is None or _ocr_client.is_closed:
+        headers = {}
+        if TINYOCR_API_KEY:
+            headers["x-api-key"] = TINYOCR_API_KEY
+        _ocr_client = httpx.AsyncClient(
+            base_url=TINYOCR_URL, headers=headers, timeout=3.0
+        )
+    return _ocr_client
+
+
+async def solve_captcha_ocr_bytes(image_bytes: bytes) -> tuple[bool, str, int]:
+    """Send raw image bytes to TinyOCR /predict and return (ok, text_or_error, status_code)."""
+    try:
+        ocr = await _get_ocr_client()
+        resp = await ocr.post(
+            "/predict",
+            content=image_bytes,
+            headers={"content-type": "image/png"},
+        )
+        if resp.status_code == 200:
+            data = resp.json()
+            return True, data.get("text", ""), 200
+        else:
+            err_detail = ""
+            try:
+                err_detail = resp.json().get("error", resp.text)
+            except Exception:
+                err_detail = resp.text
+            return False, f"TinyOCR error ({resp.status_code}): {err_detail}", resp.status_code
+    except Exception as e:
+        return False, f"TinyOCR request failed: {str(e)}", 503
+
+
+async def solve_captcha_ocr(image_url: str) -> str | None:
+    """Download captcha image from academia and send to TinyOCR /predict."""
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as dl:
+            img_resp = await dl.get(image_url)
+            if img_resp.status_code != 200:
+                print(f"  -> [OCR] Failed to download captcha image (HTTP {img_resp.status_code})", flush=True)
+                return None
+            image_bytes = img_resp.content
+        ok, text, _ = await solve_captcha_ocr_bytes(image_bytes)
+        return text if ok else None
+    except Exception as e:
+        print(f"  -> [OCR] TinyOCR error: {e}", flush=True)
+        return None
+
+
 def get_rate_limit_key(request: Request):
     return (
         request.headers.get("CF-Connecting-IP") or
@@ -40,7 +112,14 @@ def get_rate_limit_key(request: Request):
     )
 
 limiter = Limiter(key_func=get_rate_limit_key)
-app = FastAPI()
+
+_docs_enabled = os.getenv("ENV") == "development"
+app = FastAPI(
+    lifespan=lifespan,
+    docs_url="/docs" if _docs_enabled else None,
+    redoc_url="/redoc" if _docs_enabled else None,
+    openapi_url="/openapi.json" if _docs_enabled else None,
+)
 app.state.limiter = limiter
 
 @app.exception_handler(RateLimitExceeded)
@@ -50,7 +129,7 @@ async def custom_rate_limit_exceeded_handler(request: Request, exc: RateLimitExc
         content={"detail": "stop spamming blud"}
     )
 
-_dev_origins = ["http://localhost:3000", "http://localhost:9002", "http://localhost:9001", "http://localhost:9000"]
+_dev_origins = ["http://localhost:3000", "http://localhost:3001", "http://localhost:9002", "http://localhost:9001", "http://localhost:9000"]
 
 app.add_middleware(
     CORSMiddleware,
@@ -65,6 +144,8 @@ app.add_middleware(
     allow_headers=["*"],
     max_age=86400,
 )
+
+app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 HMAC_SECRET = os.getenv("HMAC_SECRET", "")
 
@@ -127,6 +208,67 @@ async def submit_feedback(request: Request):
 @app.get("/version")
 async def get_version():
     return {"version": "2.0.0"}
+
+@app.post("/captcha/solve")
+@limiter.limit("15/minute")
+async def solve_captcha_endpoint(request: Request):
+    """
+    Debug and integration endpoint for TinyOCR captcha prediction.
+    Accepts:
+      - JSON: { "image": "data:image/png;base64,..." } or { "image_b64": "..." } or { "image_url": "..." }
+      - Raw body: image bytes
+    Returns:
+      { "success": true, "text": "...", "image": "data:image/png;base64,..." }
+    """
+    image_bytes = None
+    content_type = request.headers.get("content-type", "")
+
+    if "application/json" in content_type:
+        try:
+            body = await request.json()
+        except Exception:
+            raise HTTPException(status_code=400, detail="Invalid JSON body")
+        raw_img = body.get("image") or body.get("image_b64")
+        img_url = body.get("image_url")
+
+        if raw_img:
+            if "," in raw_img:
+                raw_img = raw_img.split(",", 1)[1]
+            try:
+                image_bytes = base64.b64decode(raw_img)
+            except Exception as e:
+                raise HTTPException(status_code=400, detail=f"Invalid base64 image: {e}")
+        elif img_url:
+            async with httpx.AsyncClient(timeout=5.0) as dl:
+                img_resp = await dl.get(img_url)
+                if img_resp.status_code != 200:
+                    raise HTTPException(status_code=400, detail=f"Failed to fetch image from URL (HTTP {img_resp.status_code})")
+                image_bytes = img_resp.content
+    else:
+        image_bytes = await request.body()
+
+    if not image_bytes:
+        raise HTTPException(status_code=400, detail="No image provided. Pass { image: 'data:image/png;base64,...' } or raw bytes.")
+
+    ok, text, code = await solve_captcha_ocr_bytes(image_bytes)
+    img_b64_out = f"data:image/png;base64,{base64.b64encode(image_bytes).decode()}"
+
+    if not ok:
+        return JSONResponse(
+            status_code=code if code in [400, 413, 429, 503, 504] else 500,
+            content={
+                "success": False,
+                "error": text,
+                "image": img_b64_out,
+                "text": ""
+            }
+        )
+
+    return {
+        "success": True,
+        "text": text,
+        "image": img_b64_out
+    }
 
 @app.get("/pyq-proxy")
 async def pyq_proxy(path: str, q: str = None, limit: int = None, cursor: str = None):
@@ -346,7 +488,7 @@ _portal_captcha_sessions = {}
 
 
 @app.post("/portal/captcha")
-@limiter.limit("5/minute")
+@limiter.limit("15/minute")
 async def portal_captcha(request: Request):
     session = PortalSession()
     try:
@@ -356,24 +498,40 @@ async def portal_captcha(request: Request):
         raise HTTPException(status_code=503, detail="Portal unavailable right now.")
     sid = secrets.token_hex(8)
     _portal_captcha_sessions[sid] = session
-    if len(_portal_captcha_sessions) > 20:
-        _portal_captcha_sessions.clear()
-    return {"session": sid, **info}
+    if len(_portal_captcha_sessions) > 50:
+        keys_to_remove = list(_portal_captcha_sessions.keys())[:15]
+        for k in keys_to_remove:
+            old_sess = _portal_captcha_sessions.pop(k, None)
+            if old_sess and hasattr(old_sess, "client"):
+                try:
+                    asyncio.create_task(old_sess.client.aclose())
+                except Exception:
+                    pass
+    return {
+        "session": sid,
+        "cdigest": sid,
+        "image": info.get("captcha_image"),
+        "captcha_image": info.get("captcha_image"),
+        **info
+    }
 
 
 @app.post("/portal/login")
-@limiter.limit("8/minute")
+@limiter.limit("15/minute")
 async def portal_login(creds: PortalCredentials, request: Request):
     if creds.cookies:
         client = PortalClient(creds.cookies)
-        att_html, marks_html = await asyncio.gather(
+        att_html, marks, tt_html, prof_html = await asyncio.gather(
             client.get_attendance_html(),
-            client.get_marks_html()
+            client.get_marks_data(),
+            client.get_timetable_html(),
+            client.get_profile_html()
         )
         if att_html is None:
             raise HTTPException(status_code=401, detail={"type": "SESSION_EXPIRED"})
-        courses, monthly = PortalAttendanceService.parse(att_html)
-        marks = PortalMarksService.parse(marks_html) if marks_html else []
+        courses, monthly = await asyncio.to_thread(PortalAttendanceService.parse, att_html)
+        schedule, course_map = PortalTimetableService.parse(tt_html) if tt_html else ({}, {})
+        profile = PortalProfileService.parse(prof_html) if prof_html else None
         res = {
             "success": True,
             "isPortal": True,
@@ -383,37 +541,145 @@ async def portal_login(creds: PortalCredentials, request: Request):
         }
         if marks:
             res["marks"] = marks
+        if schedule:
+            res["schedule"] = schedule
+        if course_map:
+            res["courses"] = course_map
+        if profile:
+            res["profile"] = profile
         return res
 
     session = _portal_captcha_sessions.pop(creds.cdigest, None) if creds.cdigest else None
     if not session:
-        raise HTTPException(status_code=401, detail="captcha required")
-    if not creds.captcha:
-        _portal_captcha_sessions[creds.cdigest] = session
-        raise HTTPException(status_code=401, detail="captcha required")
+        session = PortalSession()
+        try:
+            await session.load_captcha()
+        except Exception:
+            raise HTTPException(status_code=503, detail="Portal unavailable right now.")
 
+    netid = (creds.username or "").strip().split("@")[0]
+    password = creds.password or ""
+    captcha_val = creds.captcha
+    ocr_attempts = 0
+    login_res = None
+
+    if not captcha_val:
+        while ocr_attempts < 4:
+            ocr_attempts += 1
+            print(f"  -> [OCR] Portal auto-solve attempt {ocr_attempts}/4", flush=True)
+            try:
+                if not hasattr(session, "captcha_bytes") or not session.captcha_bytes:
+                    await session.load_captcha()
+                ok, solved, _ = await solve_captcha_ocr_bytes(session.captcha_bytes)
+                if not ok or not solved:
+                    print("  -> [OCR] Portal OCR solver failed to predict captcha", flush=True)
+                    break
+                print(f"  -> [OCR] Predicted: '{solved}'", flush=True)
+                res = await session.login(netid, password, solved, telemetry=creds.telemetry)
+                if res.get("ok"):
+                    print(f"  -> [OCR] Portal login successful on attempt {ocr_attempts}!", flush=True)
+                    captcha_val = solved
+                    login_res = res
+                    break
+                
+                if res.get("reason") in ["invalid_credentials", "account_locked"]:
+                    print(f"  -> [OCR] Credential error on portal. Halting retries immediately: {res.get('message')}", flush=True)
+                    login_res = res
+                    break
+                elif res.get("reason") == "wrong_captcha":
+                    session = PortalSession()
+                    await session.load_captcha()
+                else:
+                    login_res = res
+                    break
+            except (httpx.HTTPError, httpx.RequestError) as e:
+                print(f"  -> [OCR] Portal connection error: {e}", flush=True)
+                raise HTTPException(status_code=503, detail="Student Portal is unreachable or timing out. Please try again later.")
+            except Exception as e:
+                print(f"  -> [OCR] Portal login error: {e}", flush=True)
+                break
+
+    if not login_res and captcha_val:
+        try:
+            login_res = await session.login(netid, password, captcha_val, telemetry=creds.telemetry)
+        except (httpx.ConnectTimeout, httpx.ConnectError, httpx.ReadTimeout, httpx.ReadError) as e:
+            print(f"{get_now()}\n  -> [API] Portal connection error in /portal/login: {e}", flush=True)
+            raise HTTPException(status_code=503, detail="Student Portal is unreachable or timing out. Please try again later.")
+        except Exception as e:
+            print(f"{get_now()}\n  -> [API] ERROR in /portal/login: {e}", flush=True)
+            raise HTTPException(status_code=401, detail={"type": "INVALID_CREDENTIALS", "message": "Invalid credentials"})
+
+    if not login_res or not login_res.get("ok"):
+        reason = login_res.get("reason", "wrong_captcha") if login_res else "wrong_captcha"
+        msg = login_res.get("message") if login_res else None
+
+        fresh_session = PortalSession()
+        fresh_info = {}
+        try:
+            fresh_info = await fresh_session.load_captcha()
+        except Exception:
+            pass
+        new_sid = secrets.token_hex(8)
+        _portal_captcha_sessions[new_sid] = fresh_session
+
+        if reason == "wrong_captcha":
+            raise HTTPException(status_code=401, detail={
+                "type": "WRONG_CAPTCHA",
+                "message": msg or "Invalid captcha. Please enter the new one.",
+                "cdigest": new_sid,
+                "image": fresh_info.get("captcha_image"),
+                "captcha_image": fresh_info.get("captcha_image")
+            })
+        elif reason == "account_locked":
+            raise HTTPException(status_code=401, detail={
+                "type": "ACCOUNT_LOCKED",
+                "message": msg or "Your Student Portal account has been locked due to too many failed attempts.",
+            })
+        elif reason == "invalid_credentials":
+            raise HTTPException(status_code=401, detail={
+                "type": "INVALID_CREDENTIALS",
+                "message": msg or "Invalid login credentials. Make sure you are using your Student Portal password!",
+                "cdigest": new_sid,
+                "image": fresh_info.get("captcha_image"),
+                "captcha_image": fresh_info.get("captcha_image")
+            })
+        else:
+            raise HTTPException(status_code=401, detail={
+                "type": reason.upper(),
+                "message": msg or "Login failed.",
+                "cdigest": new_sid,
+                "image": fresh_info.get("captcha_image"),
+                "captcha_image": fresh_info.get("captcha_image")
+            })
+
+    client = PortalClient(login_res["cookies"])
     try:
-        netid = (creds.username or "").strip().split("@")[0]
-        res = await session.login(netid, creds.password or "", creds.captcha, telemetry=creds.telemetry)
+        att_html, marks, tt_html, prof_html = await asyncio.gather(
+            client.get_attendance_html(),
+            client.get_marks_data(),
+            client.get_timetable_html(),
+            client.get_profile_html()
+        )
     except Exception as e:
-        print(f"{get_now()}\n  -> [API] ERROR in /portal/login: {e}", flush=True)
-        raise HTTPException(status_code=401, detail="Invalid credentials")
-    if not res.get("ok"):
-        reason = res.get("reason", "login_failed")
-        msg = {
-            "wrong_captcha": "wrong captcha, try the new one",
-            "invalid_credentials": "invalid credentials, check your netid/password",
-            "session_expired": "session expired, refresh the captcha and retry",
-        }.get(reason, "login failed")
-        raise HTTPException(status_code=401, detail=msg)
-
-    client = PortalClient(res["cookies"])
-    att_html, marks_html = await asyncio.gather(
-        client.get_attendance_html(),
-        client.get_marks_html()
-    )
-    courses, monthly = PortalAttendanceService.parse(att_html) if att_html else ([], [])
-    marks = PortalMarksService.parse(marks_html) if marks_html else []
+        print(f"  -> [PORTAL] Connect error fetching details after login: {e}", flush=True)
+        att_html, marks, tt_html, prof_html = None, [], None, None
+    courses, monthly = await asyncio.to_thread(PortalAttendanceService.parse, att_html) if att_html else ([], [])
+    if courses and marks:
+        mark_codes = {m.get("courseCode", "").strip().lower() for m in marks}
+        for c in courses:
+            c_code = c.get("code", "").strip()
+            if c_code.lower() not in mark_codes:
+                marks.append({
+                    "courseCode": c_code,
+                    "title": c.get("title", ""),
+                    "type": "Internal",
+                    "performance": "N/A",
+                    "assessments": [],
+                    "totalMarkGot": None,
+                    "totalMaxMarks": None
+                })
+    schedule, course_map = PortalTimetableService.parse(tt_html) if tt_html else ({}, {})
+    profile = PortalProfileService.parse(prof_html) if prof_html else None
     out = {
         "success": True,
         "isPortal": True,
@@ -423,24 +689,96 @@ async def portal_login(creds: PortalCredentials, request: Request):
     }
     if marks:
         out["marks"] = marks
+    if schedule:
+        out["schedule"] = schedule
+    if course_map:
+        out["courses"] = course_map
+    if profile:
+        out["profile"] = profile
     return out
 
 
 @app.post("/portal/refresh")
-@limiter.limit("8/minute")
+@limiter.limit("60/minute")
 async def portal_refresh(creds: PortalCredentials, request: Request):
     if not creds.cookies:
         raise HTTPException(status_code=401, detail={"type": "SESSION_EXPIRED"})
     client = PortalClient(creds.cookies)
-    await client.keepalive()
-    att_html, marks_html = await asyncio.gather(
+    att_html, marks = await asyncio.gather(
         client.get_attendance_html(),
-        client.get_marks_html()
+        client.get_marks_data()
     )
     if att_html is None:
+        if creds.username and creds.password:
+            print("  -> [OCR] Portal session expired. Running background re-auth...", flush=True)
+            netid = (creds.username or "").strip().split("@")[0]
+            password = creds.password or ""
+            ocr_attempts = 0
+            reauth_success = False
+
+            while ocr_attempts < 4:
+                ocr_attempts += 1
+                print(f"  -> [OCR] Portal background re-auth attempt {ocr_attempts}/4", flush=True)
+                session = PortalSession()
+                try:
+                    await session.load_captcha()
+                    ok, solved, _ = await solve_captcha_ocr_bytes(session.captcha_bytes)
+                    if not ok or not solved:
+                        await session.client.aclose()
+                        break
+                    print(f"  -> [OCR] Predicted: '{solved}'", flush=True)
+                    res = await session.login(netid, password, solved)
+                    if res.get("ok"):
+                        print(f"  -> [OCR] Portal background re-auth successful!", flush=True)
+                        reauth_success = True
+                        client = PortalClient(res["cookies"])
+                        att_html, marks = await asyncio.gather(
+                            client.get_attendance_html(),
+                            client.get_marks_data()
+                        )
+                        await session.client.aclose()
+                        break
+                    elif res.get("reason") in ["invalid_credentials", "account_locked"]:
+                        print(f"  -> [OCR] Aborting background re-auth to protect account from lockout: {res.get('message')}", flush=True)
+                        await session.client.aclose()
+                        break
+                    else:
+                        print(f"  -> [OCR] Portal background re-auth attempt {ocr_attempts} failed. Reason: {res.get('reason')}", flush=True)
+                        await session.client.aclose()
+                except (httpx.ConnectError, httpx.ConnectTimeout, httpx.NetworkError) as e:
+                    print(f"  -> [PORTAL] Connection error during re-auth ({e}). Aborting retries.", flush=True)
+                    try:
+                        await session.client.aclose()
+                    except Exception:
+                        pass
+                    break
+                except Exception as e:
+                    print(f"  -> [OCR] Background Portal re-auth error: {e}", flush=True)
+                    try:
+                        await session.client.aclose()
+                    except Exception:
+                        pass
+
+            if not reauth_success:
+                print("  -> [OCR] Background Portal re-auth failed after 4 attempts", flush=True)
+
+    if att_html is None:
         raise HTTPException(status_code=401, detail={"type": "SESSION_EXPIRED"})
-    courses, monthly = PortalAttendanceService.parse(att_html)
-    marks = PortalMarksService.parse(marks_html) if marks_html else []
+    courses, monthly = await asyncio.to_thread(PortalAttendanceService.parse, att_html)
+    if courses and marks:
+        mark_codes = {m.get("courseCode", "").strip().lower() for m in marks}
+        for c in courses:
+            c_code = c.get("code", "").strip()
+            if c_code.lower() not in mark_codes:
+                marks.append({
+                    "courseCode": c_code,
+                    "title": c.get("title", ""),
+                    "type": "Internal",
+                    "performance": "N/A",
+                    "assessments": [],
+                    "totalMarkGot": None,
+                    "totalMaxMarks": None
+                })
     res = {
         "success": True,
         "isPortal": True,
@@ -451,3 +789,58 @@ async def portal_refresh(creds: PortalCredentials, request: Request):
     if marks:
         res["marks"] = marks
     return res
+
+
+_announcements_history = {
+    "latest": {"id": None, "text": "", "image_url": None, "files": [], "created_at": None},
+    "history": [],
+    "last_fetched": 0
+}
+
+@app.get("/api/announcements")
+async def get_announcements():
+    now = time.time()
+    if now - _announcements_history["last_fetched"] < 30 and _announcements_history["latest"]["id"] is not None:
+        return _announcements_history
+
+    bot_token = os.getenv("DISCORD_BOT_TOKEN", "")
+    channel_id = os.getenv("DISCORD_CHANNEL_ID", "")
+    if not bot_token or not channel_id:
+        return _announcements_history
+
+    headers = {"Authorization": f"Bot {bot_token}"}
+    url = f"https://discord.com/api/v10/channels/{channel_id}/messages?limit=10"
+    try:
+        async with httpx.AsyncClient() as client:
+            res = await client.get(url, headers=headers, timeout=5.0)
+            if res.status_code == 200:
+                msgs = res.json()
+                if msgs and isinstance(msgs, list) and len(msgs) > 0:
+                    history = []
+                    for msg in msgs:
+                        content = msg.get("content", "")
+                        attachments = msg.get("attachments", [])
+                        image_url = None
+                        files = []
+                        for att in attachments:
+                            att_url = att.get("url", "")
+                            content_type = att.get("content_type", "")
+                            if content_type and "image" in content_type:
+                                image_url = att_url
+                            else:
+                                files.append({"name": att.get("filename", "file"), "url": att_url})
+                        history.append({
+                            "id": msg.get("id"),
+                            "text": content,
+                            "image_url": image_url,
+                            "files": files,
+                            "created_at": msg.get("timestamp")
+                        })
+                    _announcements_history["latest"] = history[0]
+                    _announcements_history["history"] = history
+                    _announcements_history["last_fetched"] = now
+    except Exception:
+        pass
+
+    return _announcements_history
+

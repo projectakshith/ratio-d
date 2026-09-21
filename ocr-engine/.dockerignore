@@ -1,0 +1,9 @@
+target/
+.git/
+.vscode/
+data/
+notebooks/
+experiments/
+docs/
+benchmark_results.csv
+.env

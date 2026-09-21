@@ -1,5 +1,5 @@
 import re
-from bs4 import BeautifulSoup
+from selectolax.parser import HTMLParser
 from utils.text import TextUtils
 
 class MarksService:
@@ -8,25 +8,25 @@ class MarksService:
         performance_data = []
         if not html_content:
             return performance_data
-        soup = BeautifulSoup(html_content, 'lxml')
-        rows = soup.find_all("tr")
-        for row in rows:
-            cols = row.find_all("td")
+        parser = HTMLParser(html_content)
+        for row in parser.css("tr"):
+            cols = row.css("td")
             if len(cols) < 3:
                 continue
-            c_code = TextUtils.clean(cols[0].get_text())
+            c_code = TextUtils.clean(cols[0].text())
             if not re.match(r"^[A-Z0-9]{8,12}$", c_code):
                 continue
-            c_type = TextUtils.clean(cols[1].get_text())
+            c_type = TextUtils.clean(cols[1].text())
             perf_cell = cols[2]
             assessments = []
             total_got = 0.0
             total_marks = 0.0
             has_valid_marks = False
-            nested_table = perf_cell.find("table")
+            
+            nested_table = perf_cell.css_first("table")
             if nested_table:
-                for td in nested_table.find_all("td"):
-                    parts = list(td.stripped_strings)
+                for td in nested_table.css("td"):
+                    parts = [s.strip() for s in td.text(deep=True).split("\n") if s.strip()]
                     if len(parts) >= 2:
                         header = parts[0]
                         got_val = parts[1]

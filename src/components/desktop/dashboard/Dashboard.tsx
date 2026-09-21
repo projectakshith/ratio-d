@@ -75,9 +75,10 @@ export default function DesktopDashboard() {
   }, []);
 
   const handleRefresh = useCallback(async () => {
-    const creds = await EncryptionUtils.loadDecrypted("ratio_credentials");
+    const creds = (await EncryptionUtils.loadDecrypted("ratio_credentials")) ||
+                  (await EncryptionUtils.loadDecrypted("portal_credentials"));
     if (creds && userData) {
-      await refreshData(creds, userData);
+      await refreshData(creds as any, userData);
     }
   }, [userData, refreshData]);
 

@@ -267,7 +267,7 @@ export default function Predict({
                     onClose();
                   }
                 }}
-                className="bg-theme-highlight text-theme-text px-6 py-4 rounded-[16px] flex items-center gap-2 active:scale-95 shadow-xl transition-all"
+                className="bg-theme-highlight text-theme-bg px-6 py-4 rounded-[16px] flex items-center gap-2 active:scale-95 shadow-xl transition-all"
               >
                 <span
                   className="text-[14px] font-black uppercase"

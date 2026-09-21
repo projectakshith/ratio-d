@@ -6,15 +6,21 @@ import { useApp } from "@/context/AppContext";
 
 export default function PortalFeatureModal() {
   const [isOpen, setIsOpen] = useState(false);
-  const { setPortalAuthOpen } = useApp();
+  const { setPortalAuthOpen, userData } = useApp();
 
   useEffect(() => {
+    if (userData?.isPortal) {
+      localStorage.setItem("ratiod_seen_portal_feature_v1", "true");
+      return;
+    }
     const hasSeen = localStorage.getItem("ratiod_seen_portal_feature_v1");
     if (!hasSeen) {
       const t = setTimeout(() => setIsOpen(true), 1200);
       return () => clearTimeout(t);
     }
-  }, []);
+  }, [userData?.isPortal]);
+
+  if (userData?.isPortal) return null;
 
   const handleClose = () => {
     setIsOpen(false);

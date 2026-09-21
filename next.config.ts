@@ -5,14 +5,14 @@ const withPWA = withPWAInit({
   dest: "public",
   disable: process.env.NODE_ENV === "development",
   register: true,
-  cacheOnFrontEndNav: false,
-  aggressiveFrontEndNavCaching: false,
-  reloadOnOnline: true,
+  cacheOnFrontEndNav: true,
+  aggressiveFrontEndNavCaching: true,
+  reloadOnOnline: false,
   fallbacks: {
     image: "/icons/icon-192.png",
   },
   workboxOptions: {
-    skipWaiting: true,
+    skipWaiting: false,
     clientsClaim: true,
     runtimeCaching: [
       {
@@ -22,7 +22,7 @@ const withPWA = withPWAInit({
           cacheName: "pages",
           expiration: {
             maxEntries: 32,
-            maxAgeSeconds: 60 * 60 * 24,
+            maxAgeSeconds: 60 * 60 * 24 * 7,
           },
         },
       },
@@ -51,6 +51,17 @@ const withPWA = withPWAInit({
           cacheName: "static-image-assets",
           expiration: {
             maxEntries: 128,
+            maxAgeSeconds: 60 * 60 * 24 * 30,
+          },
+        },
+      },
+      {
+        urlPattern: /\.(?:mp4|webm|ogg|mp3|wav|flac|aac)$/i,
+        handler: "CacheFirst",
+        options: {
+          cacheName: "static-media-assets",
+          expiration: {
+            maxEntries: 32,
             maxAgeSeconds: 60 * 60 * 24 * 30,
           },
         },
@@ -89,7 +100,7 @@ const withPWA = withPWAInit({
         },
       },
       {
-        urlPattern: /.*/i,
+        urlPattern: ({ url }) => url.origin === self.origin,
         handler: "StaleWhileRevalidate",
         options: {
           cacheName: "others",
@@ -119,10 +130,15 @@ const nextConfig: NextConfig = {
       "https://sp.srmist.edu.in",
       "https://srm-pyq-api.onrender.com",
       "https://va.vercel-scripts.com",
+      "https://1.1.1.1",
+      "https://one.one.one.one",
       portalAuthUrl,
       workerUrl,
       ...backendUrls,
+      "http://localhost:*",
+      "http://127.0.0.1:*",
       "http://localhost:8000",
+      "http://localhost:8001",
       "ws://localhost:*"
     ].filter(Boolean).join(" ");
 
@@ -139,7 +155,7 @@ const nextConfig: NextConfig = {
               "default-src 'self'",
               "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com",
               "style-src 'self' 'unsafe-inline'",
-              "img-src 'self' data: https://academia.srmist.edu.in",
+              "img-src 'self' data: https://academia.srmist.edu.in https://cdn.discordapp.com https://media.discordapp.net",
               `connect-src ${connectSrc}`,
               "font-src 'self'",
               "frame-src 'self' https: blob: data:",
