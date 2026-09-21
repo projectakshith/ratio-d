@@ -5,6 +5,8 @@ import { useApp } from "@/context/AppContext";
 import { WifiOff, ServerCrash, RefreshCw, CheckCircle2 } from "lucide-react";
 import MinecraftParticles from "./MinecraftParticles";
 import MinecraftAmbience from "./MinecraftAmbience";
+import Rdr2Ambience from "./Rdr2Ambience";
+import Rdr2InteractionEffects from "./Rdr2InteractionEffects";
 import SyncStatusNotification from "./SyncStatusNotification";
 import UpdateHistory from "./UpdateHistory";
 import WhatsNew from "./WhatsNew";
@@ -274,6 +276,8 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
 
       <MinecraftParticles />
       <MinecraftAmbience />
+      <Rdr2Ambience />
+      <Rdr2InteractionEffects />
       <SyncStatusNotification />
       <UpdateHistory isOpen={isUpdateHistoryOpen} onClose={() => setIsUpdateHistoryOpen(false)} />
       <WhatsNew isOpen={showAutoWhatsNew} onClose={handleCloseWhatsNew} />

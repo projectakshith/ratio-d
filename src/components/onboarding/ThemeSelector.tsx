@@ -31,11 +31,11 @@ export default function ThemeSelector({ onComplete }: ThemeSelectorProps) {
   );
 
   const otherPresets = COLOR_THEMES.filter((t) =>
-    ["brutalist", "steve"].includes(t.id),
+    ["brutalist", "steve", "rdr2"].includes(t.id),
   );
   
   const namedPallets = COLOR_THEMES.filter((t) =>
-    !["default", "minimalist-dark", "brutalist", "steve"].includes(t.id),
+    !["default", "minimalist-dark", "brutalist", "steve", "rdr2"].includes(t.id),
   );
 
   const renderThemeButton = (t: any) => {

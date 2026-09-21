@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import SettingsPage from "@/components/shared/SettingsPage";
 import { useApp } from "@/context/AppContext";
 import { useTheme } from "@/context/ThemeContext";
@@ -14,6 +14,7 @@ import FeedbackPopup from "@/components/shared/FeedbackPopup";
 import CommunityPopup from "@/components/shared/CommunityPopup";
 import TimetableFeatureModal from "@/components/shared/TimetableFeatureModal";
 import PortalFeatureModal from "@/components/shared/PortalFeatureModal";
+import Rdr2PageTransition from "@/components/shared/Rdr2PageTransition";
 
 const BrutalistThemeLayout = dynamic(
   () => import("@/components/themes/brutalist/BrutalistTheme"),
@@ -26,6 +27,7 @@ const MinimalistThemeLayout = dynamic(
 );
 
 import { AppLayoutContext } from "@/context/AppLayoutContext";
+import { DEV_SKIP_AUTH } from "@/utils/devPreview";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { userData, logout, customDisplayName, setCustomDisplayName, isUpdating, setIsUpdateHistoryOpen } = useApp();
@@ -34,8 +36,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [isSwipeDisabled, setIsSwipeDisabled] = useState(false);
   const academia = useAcademiaData(userData as any);
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
+    if (DEV_SKIP_AUTH) return;
+
     const hasSession = document.cookie.includes("ratio_session=");
     const isOnboarded = localStorage.getItem("ratiod_onboarded") === "true";
     const isMobile = window.innerWidth < 768;
@@ -87,12 +92,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
 
         <div 
+          data-rdr2-chrome="frame"
           className="hidden md:flex h-screen w-full flex-row overflow-hidden p-1.5 gap-1.5"
           style={{ backgroundColor: 'color-mix(in srgb, var(--theme-bg), black 12%)' }}
         >
           <div className="flex-1 h-full bg-theme-bg rounded-[24px] overflow-hidden border border-theme-border shadow-2xl">
             <SmoothScroll>
+              <Rdr2PageTransition pathname={pathname}>
                 {children}
+              </Rdr2PageTransition>
             </SmoothScroll>
           </div>
           <CommandPalette />

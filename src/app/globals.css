@@ -9,6 +9,8 @@
   --font-akira:     var(--font-akira), sans-serif;
   --font-aonic:     var(--font-aonic), sans-serif;
   --font-minecraft: var(--font-minecraft), monospace;
+  --font-rdr2-display: var(--font-rdr2-display), serif;
+  --font-courier-prime: var(--font-courier-prime), "Courier New", monospace;
   --transition-default: 0.3s ease;
   --transition-spring:  cubic-bezier(0.4, 0, 0.2, 1);
 
@@ -204,6 +206,323 @@ html, body {
   text-transform: lowercase;
   letter-spacing: 0.02em;
   line-height: 1.1;
+}
+
+/* RDR2 — satchel / pause-menu inspired: ink on parchment, blood + gold accents */
+[data-theme="rdr2"] {
+  /* Blood for text/status accents — gold fails WCAG on parchment (~2.2:1) */
+  --theme-primary:   #7a1e1e;
+  --theme-secondary: #7a1e1e;
+  --theme-accent:    #7a1e1e;
+  --theme-bg:        #e8dcc4;
+  --theme-text:      #2b2018;
+  --theme-highlight: #7a1e1e;
+  /* Decorative only — borders, icons on leather, large display headers */
+  --theme-gold:      #b8933f;
+  --font-montserrat: var(--font-rdr2-display) !important;
+  --font-afacad: var(--font-courier-prime) !important;
+}
+
+[data-theme="rdr2"] body {
+  font-family: var(--font-courier-prime), "Courier New", monospace !important;
+  letter-spacing: 0.01em;
+  line-height: 1.35;
+}
+
+[data-theme="rdr2"] h1,
+[data-theme="rdr2"] h2,
+[data-theme="rdr2"] h3,
+[data-theme="rdr2"] h4,
+[data-theme="rdr2"] h5,
+[data-theme="rdr2"] h6 {
+  font-family: var(--font-rdr2-display), serif !important;
+  letter-spacing: 0.04em;
+  line-height: 1.15;
+  color: #2b2018;
+}
+
+[data-theme="rdr2"] h1 {
+  color: var(--theme-gold);
+}
+
+/* Worn parchment panels — paper grain + edge vignette, sharp corners, thin gold border */
+[data-theme="rdr2"] .bg-theme-card,
+[data-theme="rdr2"] .bg-theme-surface {
+  background-color: #d9c9a3 !important;
+  background-image:
+    radial-gradient(ellipse at center, transparent 45%, rgba(26, 20, 16, 0.14) 100%),
+    repeating-linear-gradient(
+      -12deg,
+      transparent,
+      transparent 3px,
+      rgba(43, 32, 24, 0.035) 3px,
+      rgba(43, 32, 24, 0.035) 4px
+    ) !important;
+  border-radius: 2px !important;
+  border: 1px solid color-mix(in srgb, var(--theme-gold) 55%, transparent) !important;
+  box-shadow: inset 0 0 28px rgba(26, 20, 16, 0.12);
+}
+
+[data-theme="rdr2"] .border-theme-border,
+[data-theme="rdr2"] .border-theme-subtle {
+  border-color: color-mix(in srgb, #7a1e1e 35%, transparent) !important;
+}
+
+[data-theme="rdr2"] .border-theme-primary,
+[data-theme="rdr2"] .border-theme-accent {
+  border-color: var(--theme-gold) !important;
+}
+
+/* Guard: never paint small/body copy in gold on parchment */
+[data-theme="rdr2"] .text-theme-primary,
+[data-theme="rdr2"] .text-theme-accent {
+  color: #7a1e1e !important;
+}
+
+/* Dark leather chrome — nav / sidebar / desktop frame only */
+[data-theme="rdr2"] [data-rdr2-chrome] {
+  background-color: #1a1410 !important;
+  background-image: none !important;
+  border-color: #7a1e1e !important;
+  border-radius: 2px !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
+/* Desktop outer frame: leather gap only — do NOT restyle nested content text */
+[data-theme="rdr2"] [data-rdr2-chrome="frame"] {
+  border: none !important;
+  color: inherit;
+}
+
+/* Nav strip + sidebar: gold text/icons, blood edge */
+[data-theme="rdr2"] [data-rdr2-chrome]:not([data-rdr2-chrome="frame"]) {
+  color: var(--theme-gold);
+  border-bottom: 1px solid #7a1e1e !important;
+}
+
+[data-theme="rdr2"] [data-rdr2-chrome="nav"],
+[data-theme="rdr2"] nav[data-rdr2-chrome] {
+  border-bottom: none !important;
+  border-top: 1px solid #7a1e1e !important;
+}
+
+[data-theme="rdr2"] [data-rdr2-chrome]:not([data-rdr2-chrome="frame"]) .text-theme-text,
+[data-theme="rdr2"] [data-rdr2-chrome]:not([data-rdr2-chrome="frame"]) .text-theme-muted {
+  color: var(--theme-gold) !important;
+}
+
+[data-theme="rdr2"] [data-rdr2-chrome]:not([data-rdr2-chrome="frame"]) .text-theme-subtle {
+  color: color-mix(in srgb, var(--theme-gold) 40%, transparent) !important;
+}
+
+[data-theme="rdr2"] [data-rdr2-chrome]:not([data-rdr2-chrome="frame"]) .bg-theme-emphasis {
+  background-color: #7a1e1e !important;
+}
+
+[data-theme="rdr2"] [data-rdr2-chrome]:not([data-rdr2-chrome="frame"]) .text-theme-bg {
+  color: #ede1c8 !important;
+}
+
+/* RDR2 global chrome polish */
+[data-theme="rdr2"] ::selection {
+  background: #7a1e1e;
+  color: #ede1c8;
+}
+
+[data-theme="rdr2"] .bg-theme-highlight,
+[data-theme="rdr2"] .bg-theme-emphasis {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--theme-gold) 40%, transparent);
+}
+
+@keyframes rdr2-grain-shift {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(-2%, 1%); }
+  50% { transform: translate(1%, -1%); }
+  75% { transform: translate(-1%, -2%); }
+  100% { transform: translate(0, 0); }
+}
+
+.rdr2-film-grain {
+  background-image:
+    repeating-radial-gradient(
+      circle at 20% 30%,
+      rgba(43, 32, 24, 0.12) 0 0.5px,
+      transparent 0.5px 3px
+    ),
+    repeating-linear-gradient(
+      105deg,
+      transparent,
+      transparent 2px,
+      rgba(26, 20, 16, 0.04) 2px,
+      rgba(26, 20, 16, 0.04) 3px
+    );
+  animation: rdr2-grain-shift 0.45s steps(2) infinite;
+}
+
+.rdr2-vignette {
+  mix-blend-mode: multiply;
+}
+
+/* ─── RDR2 Smoke Drift ─── */
+@keyframes rdr2-smoke-drift {
+  0%   { transform: translateX(-120%) translateY(0) scale(1); opacity: 0; }
+  10%  { opacity: 0.14; }
+  50%  { transform: translateX(20%) translateY(-15px) scale(1.15); opacity: 0.10; }
+  90%  { opacity: 0.04; }
+  100% { transform: translateX(120%) translateY(5px) scale(1.05); opacity: 0; }
+}
+
+/* ─── RDR2 Ember Rise ─── */
+@keyframes rdr2-ember-rise {
+  0%   { transform: translateY(0) translateX(0) scale(1); opacity: 0; }
+  10%  { opacity: 0.9; }
+  50%  { transform: translateY(-40vh) translateX(15px) scale(0.8); opacity: 0.7; }
+  80%  { opacity: 0.3; }
+  100% { transform: translateY(-85vh) translateX(-10px) scale(0.3); opacity: 0; }
+}
+
+/* ─── RDR2 Muzzle Flash ─── */
+@keyframes rdr2-muzzle-flash {
+  0%   { transform: scale(0.3); opacity: 0.7; }
+  40%  { transform: scale(1.8); opacity: 0.35; }
+  100% { transform: scale(2.5); opacity: 0; }
+}
+
+/* ─── RDR2 Bullet Impact ─── */
+@keyframes rdr2-bullet-impact {
+  0%   { transform: scale(0); opacity: 0; }
+  30%  { transform: scale(1.3); opacity: 1; }
+  50%  { transform: scale(0.95); opacity: 0.9; }
+  100% { transform: scale(1); opacity: 0.7; }
+}
+
+/* ─── RDR2 Letterbox Bars ─── */
+@keyframes rdr2-letterbox-in {
+  0%   { transform: scaleY(0); }
+  100% { transform: scaleY(1); }
+}
+@keyframes rdr2-letterbox-out {
+  0%   { transform: scaleY(1); }
+  100% { transform: scaleY(0); }
+}
+
+/* ─── RDR2 Tumbleweed Roll ─── */
+@keyframes rdr2-tumbleweed-roll {
+  0%   { transform: translateX(-80px) rotate(0deg); }
+  100% { transform: translateX(calc(100vw + 80px)) rotate(1080deg); }
+}
+@keyframes rdr2-tumbleweed-roll-reverse {
+  0%   { transform: translateX(calc(100vw + 80px)) rotate(0deg); }
+  100% { transform: translateX(-80px) rotate(-1080deg); }
+}
+
+/* ─── RDR2 Tumbleweed Bounce ─── */
+@keyframes rdr2-tumbleweed-bounce {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-12px); }
+}
+
+/* ─── RDR2 Rope Draw (Lasso hover) ─── */
+@keyframes rdr2-rope-draw {
+  0%   { stroke-dashoffset: 1000; }
+  100% { stroke-dashoffset: 0; }
+}
+
+/* ─── RDR2 Wanted Flash ─── */
+@keyframes rdr2-wanted-flash {
+  0%   { opacity: 0; transform: scale(0.9) rotate(-2deg); }
+  15%  { opacity: 1; transform: scale(1) rotate(0deg); }
+  75%  { opacity: 1; transform: scale(1) rotate(0deg); }
+  100% { opacity: 0; transform: scale(0.95) rotate(1deg); }
+}
+
+/* ─── RDR2 Heat Shimmer ─── */
+@keyframes rdr2-heat-shimmer {
+  0%   { transform: translateX(0) scaleY(1); }
+  25%  { transform: translateX(2px) scaleY(1.01); }
+  50%  { transform: translateX(-1px) scaleY(0.99); }
+  75%  { transform: translateX(1px) scaleY(1.005); }
+  100% { transform: translateX(0) scaleY(1); }
+}
+
+/* ─── RDR2 Button Styles — Weathered Wood ─── */
+[data-theme="rdr2"] button,
+[data-theme="rdr2"] a[role="button"],
+[data-theme="rdr2"] .bg-theme-emphasis {
+  position: relative;
+  border-radius: 2px !important;
+  transition: all 0.2s ease;
+}
+
+[data-theme="rdr2"] button:active,
+[data-theme="rdr2"] a[role="button"]:active {
+  transform: scale(0.97);
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Gold emboss on emphasis buttons */
+[data-theme="rdr2"] .bg-theme-emphasis {
+  box-shadow:
+    inset 0 1px 0 rgba(184, 147, 63, 0.35),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.25),
+    0 1px 3px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* ─── RDR2 Scrollbar — Leather ─── */
+[data-theme="rdr2"] ::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+[data-theme="rdr2"] ::-webkit-scrollbar-track {
+  background: #c4b48a;
+  border-radius: 0;
+}
+[data-theme="rdr2"] ::-webkit-scrollbar-thumb {
+  background: #7a5a3a;
+  border: 1px solid #b8933f;
+  border-radius: 1px;
+}
+[data-theme="rdr2"] ::-webkit-scrollbar-thumb:hover {
+  background: #5e3f22;
+}
+
+/* ─── RDR2 Card Hover — Aged Paper Lift ─── */
+[data-theme="rdr2"] .bg-theme-card:hover,
+[data-theme="rdr2"] .bg-theme-surface:hover {
+  box-shadow:
+    inset 0 0 28px rgba(26, 20, 16, 0.12),
+    0 4px 16px rgba(26, 20, 16, 0.18),
+    0 1px 4px rgba(26, 20, 16, 0.1) !important;
+  transform: translateY(-1px);
+  transition: all 0.3s ease;
+}
+
+/* ─── RDR2 Lasso Hover Border ─── */
+[data-theme="rdr2"] .bg-theme-card {
+  transition: all 0.3s ease, box-shadow 0.3s ease;
+}
+[data-theme="rdr2"] .bg-theme-card:hover {
+  border-color: var(--theme-gold) !important;
+}
+
+/* ─── RDR2 Link Styling ─── */
+[data-theme="rdr2"] a:not([role="button"]):not(nav a) {
+  text-decoration-style: wavy;
+  text-underline-offset: 3px;
+}
+
+/* ─── RDR2 Input Fields — Parchment ─── */
+[data-theme="rdr2"] input,
+[data-theme="rdr2"] textarea {
+  border-radius: 2px !important;
+  border: 1px solid color-mix(in srgb, var(--theme-gold) 40%, transparent) !important;
+  background-color: #ede1c8 !important;
+}
+[data-theme="rdr2"] input:focus,
+[data-theme="rdr2"] textarea:focus {
+  border-color: var(--theme-gold) !important;
+  box-shadow: 0 0 0 2px rgba(184, 147, 63, 0.2) !important;
 }
 
 h1, h2, h3, h4, h5, h6 {

@@ -16,6 +16,7 @@ export default function Navbar() {
 
   return (
     <nav
+      data-rdr2-chrome="nav"
       className="px-6 py-8 flex justify-between items-center bg-theme-bg border-t border-theme-border"
     >
       {tabs.map((tab) => {

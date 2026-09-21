@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono, Afacad, Montserrat } from "next/font/google";
+import { Geist, Geist_Mono, Afacad, Montserrat, Courier_Prime, Rye } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
 import { AppProvider } from "@/context/AppContext";
@@ -24,6 +24,19 @@ const urbanosta = localFont({
 const minecraft = localFont({
   src: "../../public/fonts/Minecraft.ttf",
   variable: "--font-minecraft",
+});
+
+/** Western display face for RDR2 theme headers (Google Fonts — no local TTF). */
+const rye = Rye({
+  variable: "--font-rdr2-display",
+  subsets: ["latin"],
+  weight: "400",
+});
+
+const courierPrime = Courier_Prime({
+  variable: "--font-courier-prime",
+  subsets: ["latin"],
+  weight: ["400", "700"],
 });
 
 const geistSans = Geist({
@@ -116,6 +129,8 @@ export default function RootLayout({
           ${aonic.variable}
           ${urbanosta.variable}
           ${minecraft.variable}
+          ${rye.variable}
+          ${courierPrime.variable}
         `}
       >
         <AppProvider>

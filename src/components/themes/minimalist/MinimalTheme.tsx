@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import Navbar from "./Navbar";
 import { usePathname, useRouter } from "next/navigation";
 import { Haptics } from "@/utils/shared/haptics";
+import Rdr2PageTransition from "@/components/shared/Rdr2PageTransition";
 
 interface MinimalThemeProps {
   children: React.ReactNode;
@@ -84,7 +85,9 @@ export default function MinimalTheme({ children, isSwipeDisabled }: MinimalTheme
       style={{ transform: "translateZ(0)", touchAction: "pan-y" }}
     >
       <div className="flex-1 relative">
-        {children}
+        <Rdr2PageTransition pathname={pathname}>
+          {children}
+        </Rdr2PageTransition>
       </div>
 
       <AnimatePresence>
@@ -94,6 +97,7 @@ export default function MinimalTheme({ children, isSwipeDisabled }: MinimalTheme
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: "100%", opacity: 0 }}
             transition={{ duration: 0.6, ease: BEZIER }}
+            data-rdr2-chrome="nav"
             className="absolute bottom-0 left-0 w-full z-50 bg-theme-bg"
           >
             <Navbar />

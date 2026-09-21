@@ -14,7 +14,8 @@ export type ColorTheme =
   | "yam"
   | "gojo"
   | "eren"
-  | "steve";
+  | "steve"
+  | "rdr2";
 
 export type UiStyle = "minimalist" | "brutalist";
 
@@ -155,6 +156,14 @@ export const COLOR_THEMES: ThemeMeta[] = [
     description: "Minecraft aesthetics with Ghast",
     isDark: false,
     swatches: ["#35801C", "#5D4037", "#F7F7F7"],
+  },
+  {
+    id: "rdr2",
+    name: "RDR2",
+    deity: "The Outlaw",
+    description: "Satchel UI — parchment, blood, gold & dust",
+    isDark: false,
+    swatches: ["#e8dcc4", "#7a1e1e", "#b8933f"],
   },
 ];
 

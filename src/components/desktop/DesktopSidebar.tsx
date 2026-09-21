@@ -151,6 +151,7 @@ export default function DesktopSidebar() {
         width: isHovered ? 200 : 56,
       }}
       transition={{ duration: 0.5, ease: BEZIER }}
+      data-rdr2-chrome="sidebar"
       className="h-full relative shrink-0 z-[60] flex flex-col items-center py-6 justify-between overflow-visible rounded-[24px] border border-theme-border backdrop-blur-xl"
       style={{ 
         backgroundColor: 'color-mix(in srgb, var(--theme-bg), transparent 40%)'

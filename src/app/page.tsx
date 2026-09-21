@@ -2,12 +2,18 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import LandingPage from "@/components/landing/LandingPage";
+import { DEV_SKIP_AUTH } from "@/utils/devPreview";
 
 export default function Page() {
   const router = useRouter();
   const [showLanding, setShowLanding] = useState(false);
 
   useEffect(() => {
+    if (DEV_SKIP_AUTH) {
+      router.replace("/dashboard");
+      return;
+    }
+
     const hasSession = document.cookie.includes("ratio_session=");
     const isOnboarded = localStorage.getItem("ratiod_onboarded") === "true";
     
