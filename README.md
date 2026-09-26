@@ -46,6 +46,7 @@ built by students. used by students. no data stored on our end.
 | **live alerts** | class reminders, attendance dips, new marks — all as push notifications |
 | **private notes** | per subject notes, stored locally, never synced anywhere |
 | **session recovery** | auto handles expired sessions and concurrent login conflicts |
+| **sarvam ai assistant** | voice-first Indic AI with 3D animated orb powered by Sarvam 105B ([setup](SARVAM_SETUP.md)) |
 
 ---
 
