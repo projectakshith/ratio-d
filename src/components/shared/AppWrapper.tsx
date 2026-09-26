@@ -9,6 +9,7 @@ import SyncStatusNotification from "./SyncStatusNotification";
 import UpdateHistory from "./UpdateHistory";
 import PortalLoginModal from "./PortalLoginModal";
 import AnnouncementToast from "./AnnouncementToast";
+import SarvamPopup from "./SarvamPopup";
 import { useTabFocus } from "@/hooks/useTabFocus";
 
 export default function AppWrapper({ children }: { children: React.ReactNode }) {
@@ -468,6 +469,7 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
           </>
         )}
       </AnimatePresence>
+      <SarvamPopup />
     </main>
   );
 }

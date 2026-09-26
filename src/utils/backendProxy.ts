@@ -8,7 +8,7 @@ export async function fetchWithLoadBalancer(endpoint: string, options: RequestIn
 
   const urls = (process.env.NEXT_PUBLIC_BACKEND_URLS || "").split(",").filter(Boolean);
 
-  const localBackend = urls.find(u => u.includes("localhost")) || "http://localhost:8000";
+  const localBackend = urls[0] || "https://api.getratiod.lol";
   const portalAuthHost = process.env.NEXT_PUBLIC_PORTAL_AUTH_URL;
 
   const isPortalAuthEndpoint = endpoint.startsWith("/portal/") || endpoint === "/captcha/solve";
