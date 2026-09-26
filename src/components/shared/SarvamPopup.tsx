@@ -498,7 +498,8 @@ export default function SarvamPopup() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-0 sm:p-4"
+            data-lenis-prevent
+            className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-0 sm:p-4 overscroll-contain"
             style={{
               backgroundColor: "rgba(0,0,0,0.65)",
               backdropFilter: "blur(10px)",
@@ -513,7 +514,8 @@ export default function SarvamPopup() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 40, scale: 0.95 }}
               transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-              className="w-full sm:max-w-[490px] h-[88vh] sm:h-[670px] rounded-t-[32px] sm:rounded-[32px] border border-theme-border shadow-2xl flex flex-col overflow-hidden"
+              data-lenis-prevent
+              className="w-full sm:max-w-[490px] h-[88vh] sm:h-[670px] rounded-t-[32px] sm:rounded-[32px] border border-theme-border shadow-2xl flex flex-col overflow-hidden overscroll-contain"
               style={{ backgroundColor: "var(--theme-bg)" }}
               onClick={(e) => e.stopPropagation()}
             >
@@ -630,7 +632,7 @@ export default function SarvamPopup() {
 
               {/* Tab 1: Orb & Voice Mode */}
               {activeTab === "orb" && (
-                <div className="flex-1 flex flex-col items-center justify-between p-4 overflow-y-auto scrollbar-none">
+                <div data-lenis-prevent className="flex-1 flex flex-col items-center justify-between p-4 overflow-y-auto scrollbar-none overscroll-contain touch-pan-y">
                   {/* Status Indicator */}
                   <div className="text-center mt-0.5">
                     <span
@@ -688,7 +690,8 @@ export default function SarvamPopup() {
                   {/* AI Insight Card - Clean Plain Text & Scrollable */}
                   <div className="w-full space-y-2.5 shrink-0">
                     <div
-                      className="p-4 rounded-2xl bg-theme-card/70 border border-theme-border text-left shadow-inner max-h-44 sm:max-h-52 overflow-y-auto scrollbar-thin"
+                      data-lenis-prevent
+                      className="p-4 rounded-2xl bg-theme-card/70 border border-theme-border text-left shadow-inner max-h-44 sm:max-h-52 overflow-y-auto scrollbar-thin overscroll-contain touch-pan-y"
                       style={{ fontFamily: "var(--font-afacad)" }}
                     >
                       <div className="flex items-center justify-between mb-1.5">
@@ -726,7 +729,7 @@ export default function SarvamPopup() {
 
               {/* Tab 2: Full Chat Log View */}
               {activeTab === "chat" && (
-                <div className="flex-1 overflow-y-auto p-4 space-y-3.5 scrollbar-thin">
+                <div data-lenis-prevent className="flex-1 overflow-y-auto p-4 space-y-3.5 scrollbar-thin overscroll-contain touch-pan-y">
                   {messages.map((m, idx) => {
                     const isUser = m.role === "user";
                     return (
