@@ -33,6 +33,29 @@ function formatPlainText(raw: string): string {
     .trim();
 }
 
+// Resample audio samples down to 16kHz
+function downsampleTo16k(input: Float32Array, inputSampleRate: number): Float32Array {
+  if (inputSampleRate === 16000) return input;
+  const ratio = inputSampleRate / 16000;
+  const newLength = Math.round(input.length / ratio);
+  const result = new Float32Array(newLength);
+  let offsetResult = 0;
+  let offsetInput = 0;
+  while (offsetResult < result.length) {
+    const nextOffsetInput = Math.round((offsetResult + 1) * ratio);
+    let accum = 0;
+    let count = 0;
+    for (let i = offsetInput; i < nextOffsetInput && i < input.length; i++) {
+      accum += input[i];
+      count++;
+    }
+    result[offsetResult] = count > 0 ? accum / count : 0;
+    offsetResult++;
+    offsetInput = nextOffsetInput;
+  }
+  return result;
+}
+
 // 16kHz mono WAV audio encoder
 function encodeWAV(samples: Float32Array, sampleRate: number = 16000): Blob {
   const buffer = new ArrayBuffer(44 + samples.length * 2);
@@ -260,10 +283,19 @@ export default function SarvamPopup() {
     [input, messages, audioEnabled, speakText, stopAudio, getStudentData]
   );
 
+  const autoStopTimerRef = useRef<any>(null);
+
   // Stop 16kHz WAV Recording and transcribe with Sarvam saaras:v4
   const stopRecording = useCallback(
     async (shouldSend: boolean = true) => {
+      if (autoStopTimerRef.current) {
+        clearTimeout(autoStopTimerRef.current);
+        autoStopTimerRef.current = null;
+      }
+
       setIsVoiceActive(false);
+
+      const actualRate = audioContextRef.current?.sampleRate || 48000;
 
       // Clean up audio nodes
       if (processorNodeRef.current) {
@@ -306,8 +338,9 @@ export default function SarvamPopup() {
         offset += chunk.length;
       }
 
-      // Encode into pristine 16kHz mono WAV
-      const wavBlob = encodeWAV(combined, 16000);
+      // Accurately downsample hardware rate (44.1k/48k) to 16kHz
+      const downsampled = downsampleTo16k(combined, actualRate);
+      const wavBlob = encodeWAV(downsampled, 16000);
 
       try {
         const formData = new FormData();
@@ -320,7 +353,14 @@ export default function SarvamPopup() {
 
         if (!res.ok) {
           const errData = await res.json().catch(() => ({}));
-          throw new Error(errData?.error || "STT failed");
+          const rawErr = typeof errData?.error === "string" ? errData.error : JSON.stringify(errData?.error || "");
+          setOrbState("idle");
+          if (rawErr.includes("30 seconds") || rawErr.includes("exceeds")) {
+            setCurrentInsight("Recording was longer than 30s. Please keep voice queries under 25 seconds.");
+          } else {
+            setCurrentInsight("Couldn't transcribe audio. You can also type your question below.");
+          }
+          return;
         }
 
         const data = await res.json();
@@ -333,8 +373,7 @@ export default function SarvamPopup() {
           setOrbState("idle");
           setCurrentInsight("No clear speech detected in audio. Tap the orb to try again.");
         }
-      } catch (err: any) {
-        console.error("STT error:", err);
+      } catch {
         setOrbState("idle");
         setCurrentInsight("Couldn't process audio. You can also type your question below.");
       }
@@ -366,11 +405,11 @@ export default function SarvamPopup() {
       recordingStartTimeRef.current = Date.now();
 
       const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
-      const audioCtx = new AudioCtx({ sampleRate: 16000 });
+      const audioCtx = new AudioCtx();
       audioContextRef.current = audioCtx;
 
       const source = audioCtx.createMediaStreamSource(stream);
-      // Buffer size 4096 gives ~0.25s chunks at 16kHz
+      // Buffer size 4096
       const processor = audioCtx.createScriptProcessor(4096, 1, 1);
       processorNodeRef.current = processor;
 
@@ -382,6 +421,12 @@ export default function SarvamPopup() {
       source.connect(processor);
       processor.connect(audioCtx.destination);
 
+      // Auto-stop at 25 seconds to stay safely within Sarvam's 30s REST limit
+      if (autoStopTimerRef.current) clearTimeout(autoStopTimerRef.current);
+      autoStopTimerRef.current = setTimeout(() => {
+        stopRecording(true);
+      }, 25000);
+
       setIsVoiceActive(true);
       setOrbState("listening");
       setLiveTranscript("");
@@ -391,7 +436,7 @@ export default function SarvamPopup() {
       setOrbState("idle");
       setCurrentInsight("Microphone access denied. Please allow mic permissions in your browser.");
     }
-  }, [stopAudio]);
+  }, [stopAudio, stopRecording]);
 
   const handleOrbClick = () => {
     if (isVoiceActive) {
