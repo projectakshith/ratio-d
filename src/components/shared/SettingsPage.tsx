@@ -23,7 +23,9 @@ import {
   Megaphone,
   Download,
   ExternalLink,
+  Sparkles,
 } from "lucide-react";
+
 import { requestNotificationPermission, getNotifPreference, setNotifPreference } from "@/utils/shared/notifs";
 import { StudentProfile } from "@/types";
 import { useApp } from "@/context/AppContext";

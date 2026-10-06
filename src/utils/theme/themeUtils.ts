@@ -14,7 +14,8 @@ export type ColorTheme =
   | "yam"
   | "gojo"
   | "eren"
-  | "steve";
+  | "steve"
+  | "hogwarts";
 
 export type UiStyle = "minimalist" | "brutalist";
 
@@ -156,6 +157,14 @@ export const COLOR_THEMES: ThemeMeta[] = [
     isDark: false,
     swatches: ["#35801C", "#5D4037", "#F7F7F7"],
   },
+  {
+    id: "hogwarts",
+    name: "Hogwarts",
+    deity: "Hogwarts",
+    description: "Wizarding world aesthetics",
+    isDark: true,
+    swatches: ["#1A0F0F", "#D4A838", "#1A5C2A"],
+  },
 ];
 
 export const DARK_COLOR_THEMES = new Set<ColorTheme>([
@@ -167,6 +176,7 @@ export const DARK_COLOR_THEMES = new Set<ColorTheme>([
   "brutalist",
   "gojo",
   "eren",
+  "hogwarts"
 ]);
 
 export function parseTheme(fullTheme: string): {

@@ -14,7 +14,9 @@ export interface StudentProfile {
   photo?: string;
   cgpa?: string;
   dayOrder?: string | number;
-}
+  hogwarts_house?: "gryffindor" | "slytherin" | "ravenclaw" | "hufflepuff" | null;
+  hogwarts_intro_seen?: boolean;
+  hogwarts_token?: string;}
 
 export interface AttendanceRecord {
   code: string;

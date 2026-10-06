@@ -20,7 +20,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse, PlainTextResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
-from models.schemas import Credentials, LoginCredentials, PortalCredentials
+from models.schemas import Credentials, LoginCredentials, PortalCredentials, HogwartsPayload
 from services.marks_service import MarksService
 from services.profile_service import ProfileService
 from services.course_service import CourseService
@@ -34,6 +34,8 @@ from dotenv import load_dotenv
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
+import db
+import random
 
 load_dotenv()
 load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env.local'))
@@ -42,6 +44,7 @@ load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env.local'))
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     app.state.http_client = httpx.AsyncClient(timeout=10.0)
+    db.init_db()
     yield
     await app.state.http_client.aclose()
 
@@ -165,6 +168,32 @@ def verify_request(sig_header: str, body: bytes) -> bool:
     except Exception:
         return False
 
+def sign_regno(regNo: str) -> str:
+    if not HMAC_SECRET:
+        if os.getenv("ENV") == "development":
+            return f"{regNo}.dev"
+        return ""
+    message = f"hogwarts:{regNo}".encode()
+    sig = hmac.new(HMAC_SECRET.encode(), message, hashlib.sha256).hexdigest()
+    return f"{regNo}.{sig}"
+
+def verify_signed_regno(token: str) -> str | None:
+    if not token:
+        return None
+    if not HMAC_SECRET:
+        if os.getenv("ENV") == "development" and token.endswith(".dev"):
+            return token.split(".")[0]
+        return None
+    try:
+        regNo, sig = token.split(".")
+        message = f"hogwarts:{regNo}".encode()
+        expected = hmac.new(HMAC_SECRET.encode(), message, hashlib.sha256).hexdigest()
+        if hmac.compare_digest(sig, expected):
+            return regNo
+    except Exception:
+        pass
+    return None
+
 @app.middleware("http")
 async def security_middleware(request: Request, call_next):
     if request.method == "OPTIONS":
@@ -208,6 +237,33 @@ async def submit_feedback(request: Request):
 @app.get("/version")
 async def get_version():
     return {"version": "2.0.0"}
+
+@app.post("/hogwarts/assign")
+@limiter.limit("5/minute")
+async def assign_hogwarts(payload: HogwartsPayload, request: Request):
+    regNo = verify_signed_regno(payload.token)
+    if not regNo:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    prefs = await db.get_user_preferences(regNo)
+    if prefs and prefs["hogwarts_house"]:
+        return {"hogwarts_house": prefs["hogwarts_house"]}
+
+    houses = ["gryffindor", "slytherin", "ravenclaw", "hufflepuff"]
+    chosen_house = random.choice(houses)
+    actual_house = await db.set_hogwarts_house(regNo, chosen_house)
+
+    return {"hogwarts_house": actual_house}
+
+@app.post("/hogwarts/intro")
+@limiter.limit("5/minute")
+async def mark_intro_seen(payload: HogwartsPayload, request: Request):
+    regNo = verify_signed_regno(payload.token)
+    if not regNo:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    await db.set_hogwarts_intro_seen(regNo)
+    return {"success": True}
 
 @app.post("/captcha/solve")
 @limiter.limit("15/minute")
@@ -353,6 +409,17 @@ async def refresh_data(creds: Credentials, request: Request):
         profile = ProfileService.parse_student_profile(profile_html) if profile_html else None
         courses = CourseService.get_course_map(profile_html) if profile_html else None
 
+        if profile and profile.get("regNo"):
+            regNo = profile["regNo"]
+            profile["hogwarts_token"] = sign_regno(regNo)
+            prefs = await db.get_user_preferences(regNo)
+            if prefs:
+                profile["hogwarts_house"] = prefs["hogwarts_house"]
+                profile["hogwarts_intro_seen"] = bool(prefs["hogwarts_intro_seen"])
+            else:
+                profile["hogwarts_house"] = None
+                profile["hogwarts_intro_seen"] = False
+
         schedule = None
         if profile and courses:
             raw_batch = str(profile.get("batch", "1")).strip()
@@ -441,6 +508,17 @@ async def login(creds: LoginCredentials, request: Request):
 
         profile = ProfileService.parse_student_profile(profile_html)
         course_map = CourseService.get_course_map(profile_html)
+
+        if profile and profile.get("regNo"):
+            regNo = profile["regNo"]
+            profile["hogwarts_token"] = sign_regno(regNo)
+            prefs = await db.get_user_preferences(regNo)
+            if prefs:
+                profile["hogwarts_house"] = prefs["hogwarts_house"]
+                profile["hogwarts_intro_seen"] = bool(prefs["hogwarts_intro_seen"])
+            else:
+                profile["hogwarts_house"] = None
+                profile["hogwarts_intro_seen"] = False
         
         raw_batch = str(profile.get("batch", "1")).strip()
         actual_batch = raw_batch.split("/")[-1].strip() if "/" in raw_batch else raw_batch
@@ -680,6 +758,17 @@ async def portal_login(creds: PortalCredentials, request: Request):
                 })
     schedule, course_map = PortalTimetableService.parse(tt_html) if tt_html else ({}, {})
     profile = PortalProfileService.parse(prof_html) if prof_html else None
+
+    if profile and profile.get("regNo"):
+        regNo = profile["regNo"]
+        profile["hogwarts_token"] = sign_regno(regNo)
+        prefs = await db.get_user_preferences(regNo)
+        if prefs:
+            profile["hogwarts_house"] = prefs["hogwarts_house"]
+            profile["hogwarts_intro_seen"] = bool(prefs["hogwarts_intro_seen"])
+        else:
+            profile["hogwarts_house"] = None
+            profile["hogwarts_intro_seen"] = False
     out = {
         "success": True,
         "isPortal": True,

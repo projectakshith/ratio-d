@@ -10,6 +10,7 @@ import { useAcademiaData } from "@/hooks/useAcademiaData";
 import CommandPalette from "@/components/desktop/CommandPalette";
 import SmoothScroll from "@/components/desktop/SmoothScroll";
 import DesktopSidebar from "@/components/desktop/DesktopSidebar";
+import HogwartsIntro from "@/components/shared/HogwartsIntro";
 import FeedbackPopup from "@/components/shared/FeedbackPopup";
 import CommunityPopup from "@/components/shared/CommunityPopup";
 import TimetableFeatureModal from "@/components/shared/TimetableFeatureModal";
@@ -73,6 +74,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       setIsSwipeDisabled
     }}>
       <div className="fixed inset-0 bg-theme-bg overflow-hidden">
+        <HogwartsIntro />
         <TimetableFeatureModal />
         <PortalFeatureModal />
         <ThemeFeatureModal />

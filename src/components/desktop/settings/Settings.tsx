@@ -6,11 +6,12 @@ import {
   Pencil, Bell, Palette, Lock, Cloud, LogOut, Check, X,
   User, BookOpen, RefreshCw, PartyPopper, Clock, ChevronRight,
   UserCircle2, BarChart3, Calendar, CheckCircle2, ServerOff,
-  Database, MapPin, ArrowRight, MessageSquare, Star,
+  Database, MapPin, ArrowRight, MessageSquare, Star, Sparkles,
 } from "lucide-react";
 import { requestNotificationPermission, getNotifPreference, setNotifPreference } from "@/utils/shared/notifs";
 import { useApp } from "@/context/AppContext";
 import { useTheme } from "@/context/ThemeContext";
+import { useHogwarts, HOUSE_CONFIG } from "@/context/HogwartsContext";
 import {
   COLOR_THEMES, parseTheme, buildTheme, getThemeDisplayName,
   type UiStyle, type ColorTheme,

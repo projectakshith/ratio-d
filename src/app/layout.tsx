@@ -1,9 +1,10 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono, Afacad, Montserrat } from "next/font/google";
+import { Geist, Geist_Mono, Afacad, Montserrat, Crimson_Text } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
 import { AppProvider } from "@/context/AppContext";
 import { ThemeProvider } from "@/context/ThemeContext";
+import { HogwartsProvider } from "@/context/HogwartsContext";
 import AppWrapper from "@/components/shared/AppWrapper";
 
 const akira = localFont({
@@ -46,6 +47,13 @@ const montserrat = Montserrat({
   variable: "--font-montserrat",
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700", "800", "900"],
+});
+
+const crimsonText = Crimson_Text({
+  variable: "--font-crimson",
+  subsets: ["latin"],
+  weight: ["400", "600", "700"],
+  style: ["normal", "italic"],
 });
 
 export const viewport: Viewport = {
@@ -116,13 +124,16 @@ export default function RootLayout({
           ${aonic.variable}
           ${urbanosta.variable}
           ${minecraft.variable}
+          ${crimsonText.variable}
         `}
       >
         <AppProvider>
           <ThemeProvider>
-            <AppWrapper>
-              {children}
-            </AppWrapper>
+            <HogwartsProvider>
+              <AppWrapper>
+                {children}
+              </AppWrapper>
+            </HogwartsProvider>
           </ThemeProvider>
         </AppProvider>
       </body>

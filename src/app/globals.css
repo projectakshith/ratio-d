@@ -374,3 +374,61 @@ html.lenis, html.lenis body {
     linear-gradient(to right, rgba(255, 255, 255, 0.09) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(255, 255, 255, 0.09) 1px, transparent 1px);
 }
+
+/* ═══════════════════════════════════════════════════
+   HOGWARTS HOUSE THEMES
+   ═══════════════════════════════════════════════════ */
+
+[data-theme="hogwarts-gryffindor"] {
+  --theme-primary:   #8B1A1A;
+  --theme-secondary: #D4A838;
+  --theme-accent:    #D4A838;
+  --theme-bg:        #1A0F0F;
+  --theme-text:      #E8D5B5;
+  --theme-highlight: #D4A838;
+}
+
+[data-theme="hogwarts-slytherin"] {
+  --theme-primary:   #1A5C2A;
+  --theme-secondary: #A8A8A8;
+  --theme-accent:    #A8A8A8;
+  --theme-bg:        #0F1A12;
+  --theme-text:      #C8D5CC;
+  --theme-highlight: #A8A8A8;
+}
+
+[data-theme="hogwarts-ravenclaw"] {
+  --theme-primary:   #1A3A6B;
+  --theme-secondary: #CD8032;
+  --theme-accent:    #CD8032;
+  --theme-bg:        #0F1220;
+  --theme-text:      #C5CDE0;
+  --theme-highlight: #CD8032;
+}
+
+[data-theme="hogwarts-hufflepuff"] {
+  --theme-primary:   #C5960C;
+  --theme-secondary: #2C2C2C;
+  --theme-accent:    #2C2C2C;
+  --theme-bg:        #1A1508;
+  --theme-text:      #E8DCC5;
+  --theme-highlight: #DEAD2F;
+}
+
+/* Shared Hogwarts visual overrides */
+[data-theme^="hogwarts"] {
+  --font-hogwarts-serif: var(--font-crimson), Georgia, 'Times New Roman', serif;
+}
+
+[data-theme^="hogwarts"] h1,
+[data-theme^="hogwarts"] h2,
+[data-theme^="hogwarts"] h3 {
+  font-family: var(--font-hogwarts-serif) !important;
+  letter-spacing: 0.01em;
+}
+
+[data-theme^="hogwarts"] body {
+  background-image:
+    radial-gradient(ellipse at 20% 50%, color-mix(in srgb, var(--theme-primary) 8%, transparent) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 20%, color-mix(in srgb, var(--theme-highlight) 5%, transparent) 0%, transparent 50%);
+}
