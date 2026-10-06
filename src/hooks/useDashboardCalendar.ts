@@ -1,6 +1,7 @@
 import { useMemo, useState, useEffect, useRef } from "react";
 import { parseTimeValues } from "@/utils/academia/academiaLogic";
 import { useApp } from "@/context/AppContext";
+import { getDashboardDisplayedDate } from "@/utils/dashboard/dashboardDisplayedDate";
 
 export function useDashboardCalendar(academia: any, data: any) {
   const { calendarData: contextCalendarData } = useApp();
@@ -29,6 +30,9 @@ export function useDashboardCalendar(academia: any, data: any) {
     currentDayOrder === 0;
 
   const [selectedDay, setSelectedDay] = useState(1);
+  const selectedDayDate = useMemo(() => {
+    return getDashboardDisplayedDate(contextCalendarData, selectedDay, currentDayOrder, isHoliday);
+  }, [contextCalendarData, currentDayOrder, isHoliday, selectedDay]);
   const [mounted, setMounted] = useState(false);
   const hasInitialized = useRef(false);
 
@@ -148,6 +152,7 @@ export function useDashboardCalendar(academia: any, data: any) {
     currentDayOrder,
     isHoliday,
     selectedDay,
+    selectedDayDate,
     nextWorkingDayOrder,
     isTomorrowHoliday,
     handleDaySwitch,

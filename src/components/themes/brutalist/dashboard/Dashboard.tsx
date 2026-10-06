@@ -19,6 +19,8 @@ import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { Haptics } from "@/utils/shared/haptics";
 import { useApp } from "@/context/AppContext";
 import { UserAvatar } from "@/components/shared/UserAvatar";
+import { useClassCancellations } from "@/hooks/useClassCancellations";
+import { isClassCancelled } from "@/utils/timetable/classCancellations";
 
 const ScoreCounter = ({ value }: any) => {
   const nodeRef = useRef<any>(null);
@@ -119,6 +121,7 @@ const HomeDashboard = ({
   academia,
 }: HomeDashboardProps) => {
   const { profileSeed } = useApp();
+  const { cancelledClasses } = useClassCancellations();
   const router = useRouter();
   const [isAlertExpanded, setIsAlertExpanded] = useState(false);
   const [isMetricExpanded, setIsMetricExpanded] = useState(false);
@@ -166,6 +169,18 @@ const HomeDashboard = ({
   const nextSubject = isHoliday
     ? "holiday today"
     : timeStatus?.nextClass?.course || "no more classes";
+  const nextClassCancelled = !isHoliday && !!timeStatus?.nextClass && isClassCancelled(
+    cancelledClasses,
+    timeStatus.nextClass,
+    academia?.effectiveDayOrder,
+    new Date(),
+  );
+  const currentClassCancelled = !isHoliday && !!timeStatus?.currentClass && isClassCancelled(
+    cancelledClasses,
+    timeStatus.currentClass,
+    academia?.effectiveDayOrder,
+    new Date(),
+  );
   const nextSubjectSplit = nextSubject.split(" ");
   const displayNext =
     nextSubjectSplit.length > 1
@@ -318,6 +333,12 @@ const HomeDashboard = ({
                         : timeStatus?.currentClass
                         ? `⭐ current: ${timeStatus.currentClass.course}${timeStatus.currentClass.type === "lab" ? " (P)" : ""}`
                         : "☕ currently free"}
+                      {currentClassCancelled && (
+                        <>
+                          <span className="mt-1 block text-center">{timeStatus.currentClass.time}</span>
+                          <span aria-label="Cancelled" className="mt-1 block text-center">(cancelled)</span>
+                        </>
+                      )}
                     </div>
                     {!isHoliday && timeStatus?.currentClass && (
                       <div
@@ -333,6 +354,7 @@ const HomeDashboard = ({
                         style={{ fontFamily: "Aonic" }}
                       >
                         ⏰ {timeStatus.nextClass.time}{timeStatus.nextClass.type === "lab" ? " (P)" : ""}
+                        {nextClassCancelled && <span aria-label="Cancelled" className="mt-1 block text-center">(cancelled)</span>}
                       </div>
                     )}
                     {isTomorrowHoliday && (
