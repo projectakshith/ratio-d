@@ -150,7 +150,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (typeof window !== "undefined" && "caches" in window && !hasPrecached.current) {
       hasPrecached.current = true;
-      const coreRoutes = ["/dashboard", "/attendance", "/marks", "/timetable", "/calendar"];
+      const coreRoutes = ["/dashboard", "/attendance", "/marks", "/timetable", "/calendar", "/mess"];
       coreRoutes.forEach(route => {
         router.prefetch(route);
       });
@@ -216,6 +216,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         if (data.cookies) {
           await EncryptionUtils.saveEncrypted("academia_cookies", data.cookies);
           delete data.cookies;
+        }
+        if (data.access_token) {
+          localStorage.setItem("ratio_jwt", data.access_token);
+          delete data.access_token;
         }
 
         await EncryptionUtils.saveEncrypted("ratio_credentials", {
@@ -322,6 +326,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           await EncryptionUtils.saveEncrypted("portal_cookies", data.cookies);
           delete data.cookies;
         }
+        if (data.access_token) {
+          localStorage.setItem("ratio_jwt", data.access_token);
+          delete data.access_token;
+        }
 
         await EncryptionUtils.saveEncrypted("portal_credentials", {
           username: creds.username,
@@ -394,6 +402,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
               await EncryptionUtils.saveEncrypted("portal_cookies", data.cookies);
               delete data.cookies;
             }
+            if (data.access_token) {
+              localStorage.setItem("ratio_jwt", data.access_token);
+              delete data.access_token;
+            }
             return data;
           }
           if (res.status === 401 && portalCreds?.password) {
@@ -445,6 +457,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           if (data.cookies) {
             await EncryptionUtils.saveEncrypted("academia_cookies", data.cookies);
             delete data.cookies;
+          }
+          if (data.access_token) {
+            localStorage.setItem("ratio_jwt", data.access_token);
+            delete data.access_token;
           }
           return data;
         } catch (err) {

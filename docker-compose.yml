@@ -23,6 +23,8 @@ services:
       - DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN}
       - DISCORD_CHANNEL_ID=${DISCORD_CHANNEL_ID}
       - DISCORD_WEBHOOK=${DISCORD_WEBHOOK}
+    volumes:
+      - ./data:/app/data
     depends_on:
       - ocr-engine
     restart: unless-stopped
