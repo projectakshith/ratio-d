@@ -7,3 +7,5 @@ pydantic
 python-dotenv
 slowapi
 selectolax<1.0
+aiosqlite==0.19.0
+PyJWT==2.8.0

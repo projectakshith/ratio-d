@@ -12,6 +12,7 @@ export default function Navbar() {
     { id: "home", label: "home", path: "/dashboard" },
     { id: "timetable", label: "time", path: "/timetable" },
     { id: "calendar", label: "cal", path: "/calendar" },
+    { id: "mess", label: "mess", path: "/mess" },
   ];
 
   return (
