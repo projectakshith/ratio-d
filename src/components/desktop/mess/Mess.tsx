@@ -87,16 +87,19 @@ export function MessContent({ onClose, isModal = false }: MessContentProps) {
   return (
     <div className={`flex flex-col h-full w-full bg-theme-bg ${isModal ? "p-4 sm:p-6" : "p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto"}`}>
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-5 shrink-0">
         <div>
           <div className="flex items-center gap-2">
-            <UtensilsCrossed size={22} className="text-theme-text" />
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-theme-text tracking-tight lowercase">
+            <UtensilsCrossed size={22} strokeWidth={2.5} className="text-theme-text" />
+            <h1
+              className="text-2xl sm:text-3xl font-black text-theme-text tracking-tight uppercase"
+              style={{ fontFamily: "var(--font-montserrat)" }}
+            >
               mess menu
             </h1>
           </div>
-          <p className="text-xs text-theme-muted font-medium mt-0.5" style={{ fontFamily: "var(--font-afacad)" }}>
-            srm ist ktr campus weekly schedule
+          <p className="text-xs text-theme-muted font-bold mt-0.5 lowercase tracking-wider" style={{ fontFamily: "var(--font-afacad)" }}>
+            srm ist ktr campus • weekly circular
           </p>
         </div>
 
@@ -106,16 +109,16 @@ export function MessContent({ onClose, isModal = false }: MessContentProps) {
               Haptics.light();
               onClose();
             }}
-            className="w-9 h-9 rounded-full bg-theme-surface border border-theme-border flex items-center justify-center text-theme-muted hover:text-theme-text transition-colors"
+            className="w-9 h-9 rounded-full bg-theme-surface border-[1.5px] border-theme-text flex items-center justify-center text-theme-text active:scale-95 transition-all shadow-sm"
             aria-label="Close"
           >
-            <X size={18} />
+            <X size={18} strokeWidth={2.5} />
           </button>
         )}
       </div>
 
       {/* Navigation Section */}
-      <div className="space-y-3 mb-5 shrink-0">
+      <div className="space-y-3 mb-4 shrink-0">
         {/* Day Selector */}
         <div className="flex space-x-1.5 overflow-x-auto pb-1 scrollbar-hide -mx-2 px-2 sm:mx-0 sm:px-0">
           {DAYS.map((day) => {
@@ -128,23 +131,23 @@ export function MessContent({ onClose, isModal = false }: MessContentProps) {
                   Haptics.light();
                   setSelectedDay(day);
                 }}
-                className={`min-w-[48px] h-9 px-3.5 flex items-center justify-center rounded-full font-bold transition-all text-xs tracking-wider uppercase shrink-0
+                className={`min-w-[48px] h-9 px-3.5 flex items-center justify-center rounded-full font-black transition-all text-xs tracking-wider uppercase shrink-0 border-[1.5px]
                   ${isSelected
-                    ? "bg-theme-text text-theme-bg shadow-sm scale-105"
-                    : "bg-theme-surface text-theme-muted hover:text-theme-text border border-theme-border/60"
+                    ? "bg-theme-text text-theme-bg border-theme-text shadow-sm scale-105"
+                    : "bg-theme-surface text-theme-text border-theme-text/30 hover:border-theme-text"
                   }
                 `}
                 style={{ fontFamily: "var(--font-montserrat)" }}
               >
                 {day.substring(0, 3)}
-                {isToday && <span className="ml-1 w-1.5 h-1.5 rounded-full bg-theme-highlight shrink-0" />}
+                {isToday && <span className={`ml-1 w-1.5 h-1.5 rounded-full shrink-0 ${isSelected ? "bg-theme-bg" : "bg-theme-highlight"}`} />}
               </button>
             );
           })}
         </div>
 
         {/* Meal Selector */}
-        <div className="flex bg-theme-surface border border-theme-border/60 rounded-xl p-1 shadow-sm gap-1">
+        <div className="flex bg-theme-surface border-[1.5px] border-theme-text rounded-2xl p-1 gap-1 shadow-sm">
           {MEALS.map((meal) => {
             const isSelected = selectedMeal === meal.id;
             const Icon = meal.icon;
@@ -155,15 +158,15 @@ export function MessContent({ onClose, isModal = false }: MessContentProps) {
                   Haptics.light();
                   setSelectedMeal(meal.id);
                 }}
-                className={`flex-1 py-2 rounded-lg font-semibold text-xs sm:text-sm transition-all flex items-center justify-center gap-1.5
+                className={`flex-1 py-2 rounded-xl font-black text-xs sm:text-sm transition-all flex items-center justify-center gap-1.5 uppercase tracking-wider
                   ${isSelected
                     ? "bg-theme-text text-theme-bg shadow-sm"
-                    : "text-theme-muted hover:text-theme-text hover:bg-theme-bg"
+                    : "text-theme-text hover:bg-theme-bg/60"
                   }
                 `}
-                style={{ fontFamily: "var(--font-afacad)" }}
+                style={{ fontFamily: "var(--font-montserrat)" }}
               >
-                <Icon size={14} className={isSelected ? "text-theme-bg" : "opacity-70"} />
+                <Icon size={14} strokeWidth={2.5} className={isSelected ? "text-theme-bg" : "text-theme-text"} />
                 <span className="capitalize">{meal.label}</span>
               </button>
             );
@@ -173,26 +176,29 @@ export function MessContent({ onClose, isModal = false }: MessContentProps) {
 
       {/* Meal Timing Pill */}
       <div className="flex items-center justify-between px-1 mb-3 shrink-0">
-        <span className="text-sm font-bold text-theme-text capitalize tracking-wide" style={{ fontFamily: "var(--font-montserrat)" }}>
+        <span className="text-sm font-black text-theme-text lowercase tracking-wider" style={{ fontFamily: "var(--font-montserrat)" }}>
           {selectedDay} • {selectedMeal}
         </span>
-        <span className="text-xs font-semibold text-theme-muted bg-theme-surface px-2.5 py-1 rounded-full border border-theme-border/50" style={{ fontFamily: "var(--font-afacad)" }}>
+        <span className="text-xs font-bold text-theme-text bg-theme-surface px-3 py-1 rounded-full border-[1.5px] border-theme-text" style={{ fontFamily: "var(--font-afacad)" }}>
           ⏰ {timing?.label || `${timing?.start} – ${timing?.end}`}
         </span>
       </div>
 
       {/* Food List */}
-      <div className="flex-1 overflow-y-auto no-scrollbar rounded-2xl border border-theme-border/60 bg-theme-surface shadow-sm">
-        <ul className="divide-y divide-theme-border/40">
+      <div className="flex-1 overflow-y-auto no-scrollbar rounded-[24px] border-[1.5px] border-theme-text bg-theme-card shadow-sm">
+        <ul className="divide-y-[1.5px] divide-theme-text/15">
           {currentItems.map((item, idx) => (
             <li
               key={`${selectedDay}-${selectedMeal}-${idx}`}
-              className="flex items-center py-3.5 px-4 hover:bg-theme-card/30 transition-colors gap-3.5"
+              className="flex items-center py-3.5 px-4 hover:bg-theme-text/5 transition-colors gap-3.5"
             >
               <span className="text-2xl leading-none select-none shrink-0">
                 {getFoodEmoji(item)}
               </span>
-              <span className="text-theme-text font-semibold text-[15px] sm:text-base tracking-tight leading-snug">
+              <span
+                className="text-theme-text font-bold text-[15px] sm:text-base tracking-tight leading-snug lowercase"
+                style={{ fontFamily: "var(--font-montserrat)" }}
+              >
                 {item}
               </span>
             </li>
@@ -235,8 +241,19 @@ export function MessModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: "100%", opacity: 0 }}
           transition={{ type: "spring", damping: 28, stiffness: 300 }}
-          className="relative w-full sm:max-w-xl h-[85vh] sm:h-[75vh] bg-theme-bg rounded-t-[28px] sm:rounded-[28px] border border-theme-border shadow-2xl overflow-hidden flex flex-col z-10"
+          drag="y"
+          dragDirectionLock
+          dragConstraints={{ top: 0, bottom: 400 }}
+          dragElastic={{ top: 0, bottom: 0.5 }}
+          onDragEnd={(_e, info) => {
+            if (info.offset.y > 100 || info.velocity.y > 500) {
+              Haptics.medium();
+              onClose();
+            }
+          }}
+          className="relative w-full sm:max-w-xl h-[85vh] sm:h-[75vh] bg-theme-bg rounded-t-[32px] sm:rounded-[32px] border-t-[2px] sm:border-[2px] border-theme-text shadow-2xl overflow-hidden flex flex-col z-10"
         >
+          <div className="w-12 h-1.5 bg-theme-text/25 rounded-full mx-auto mt-3 shrink-0 sm:hidden" />
           <MessContent onClose={onClose} isModal />
         </motion.div>
       </div>

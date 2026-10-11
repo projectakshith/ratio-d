@@ -705,80 +705,85 @@ export default function Dashboard({
                 />
               </div>
 
-              <div
-                onClick={() => {
-                  Haptics.medium();
-                  router.push("/marks");
-                }}
-                className="w-full bg-theme-card border-theme-subtle border-[1.5px] rounded-[24px] p-2 pr-5 flex items-center gap-4 shadow-sm transition-transform cursor-pointer"
-              >
+              <div className="grid grid-cols-2 gap-3 w-full">
+                {/* Recent Marks */}
                 <div
-                  className="w-[50px] h-[50px] rounded-[18px] bg-theme-surface flex items-center justify-center shrink-0"
+                  onClick={() => {
+                    Haptics.medium();
+                    router.push("/marks");
+                  }}
+                  className="bg-theme-card border-[1.5px] border-theme-text rounded-[24px] p-3.5 flex flex-col justify-between shadow-sm hover:scale-[1.01] active:scale-[0.98] transition-transform cursor-pointer min-w-0 min-h-[120px]"
                 >
-                  <GraduationCap
-                    size={20}
-                    strokeWidth={2.5}
-                    className={textClass}
-                  />
+                  <div className="flex items-center justify-between w-full">
+                    <div className="w-[38px] h-[38px] rounded-[14px] bg-theme-surface border-[1.5px] border-theme-text flex items-center justify-center shrink-0">
+                      <GraduationCap
+                        size={18}
+                        strokeWidth={2.5}
+                        className={textClass}
+                      />
+                    </div>
+                    <ChevronRight
+                      size={18}
+                      strokeWidth={2}
+                      className="text-theme-muted shrink-0"
+                    />
+                  </div>
+                  <div className="flex flex-col min-w-0 mt-3">
+                    <span
+                      className={`text-[13px] font-black lowercase leading-tight ${textClass} truncate`}
+                      style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
+                    >
+                      recent marks
+                    </span>
+                    <span
+                      className={`text-[12px] font-semibold lowercase ${subTextClass} truncate mt-0.5`}
+                      style={{ fontFamily: "var(--font-afacad), sans-serif" }}
+                    >
+                      {latestMark
+                        ? `${getAcronym(latestMark.title || latestMark.courseTitle || latestMark.code || "")} • ${latestMark.displayScore}/${latestMark.max}`
+                        : "no recent tests"}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex-1 flex flex-col justify-center min-w-0 py-0.5">
-                  <span
-                    className={`text-[15px] font-bold lowercase leading-tight ${textClass} truncate mb-0.5`}
-                    style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
-                  >
-                    recent marks
-                  </span>
-                  <span
-                    className={`text-[13px] font-medium lowercase ${subTextClass} truncate`}
-                    style={{ fontFamily: "var(--font-afacad), sans-serif" }}
-                  >
-                    {latestMark
-                      ? `${getAcronym(latestMark.title || latestMark.courseTitle || latestMark.code || "")} • ${latestMark.displayScore}/${latestMark.max}`
-                      : "no recent tests"}
-                  </span>
-                </div>
-                <ChevronRight
-                  size={22}
-                  strokeWidth={2}
-                  className="text-theme-subtle shrink-0"
-                />
-              </div>
 
-              <div
-                onClick={() => {
-                  Haptics.medium();
-                  setIsMessOpen(true);
-                }}
-                className="w-full bg-theme-card border-theme-subtle border-[1.5px] rounded-[24px] p-2 pr-5 flex items-center gap-4 shadow-sm transition-transform cursor-pointer"
-              >
+                {/* Mess Menu */}
                 <div
-                  className="w-[50px] h-[50px] rounded-[18px] bg-theme-surface flex items-center justify-center shrink-0"
+                  onClick={() => {
+                    Haptics.medium();
+                    setIsMessOpen(true);
+                  }}
+                  className="bg-theme-card border-[1.5px] border-theme-text rounded-[24px] p-3.5 flex flex-col justify-between shadow-sm hover:scale-[1.01] active:scale-[0.98] transition-transform cursor-pointer min-w-0 min-h-[120px]"
                 >
-                  <UtensilsCrossed
-                    size={20}
-                    strokeWidth={2.5}
-                    className={textClass}
-                  />
+                  <div className="flex items-center justify-between w-full">
+                    <div className="w-[38px] h-[38px] rounded-[14px] bg-theme-surface border-[1.5px] border-theme-text flex items-center justify-center shrink-0">
+                      <UtensilsCrossed
+                        size={18}
+                        strokeWidth={2.5}
+                        className={textClass}
+                      />
+                    </div>
+                    <span
+                      className="text-[9px] font-black uppercase tracking-wider text-theme-text bg-theme-surface border-[1.5px] border-theme-text px-2 py-0.5 rounded-full shrink-0"
+                      style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
+                    >
+                      {messSummary.meal}
+                    </span>
+                  </div>
+                  <div className="flex flex-col min-w-0 mt-3">
+                    <span
+                      className={`text-[13px] font-black lowercase leading-tight ${textClass} truncate`}
+                      style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
+                    >
+                      mess menu
+                    </span>
+                    <span
+                      className={`text-[12px] font-semibold lowercase ${subTextClass} truncate mt-0.5`}
+                      style={{ fontFamily: "var(--font-afacad), sans-serif" }}
+                    >
+                      {messSummary.preview || "view menu"}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex-1 flex flex-col justify-center min-w-0 py-0.5">
-                  <span
-                    className={`text-[15px] font-bold lowercase leading-tight ${textClass} truncate mb-0.5`}
-                    style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
-                  >
-                    mess menu • {messSummary.meal}
-                  </span>
-                  <span
-                    className={`text-[13px] font-medium lowercase ${subTextClass} truncate`}
-                    style={{ fontFamily: "var(--font-afacad), sans-serif" }}
-                  >
-                    {messSummary.preview || "view menu"}
-                  </span>
-                </div>
-                <ChevronRight
-                  size={22}
-                  strokeWidth={2}
-                  className="text-theme-subtle shrink-0"
-                />
               </div>
             </motion.div>
           </motion.div>

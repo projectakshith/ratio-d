@@ -382,7 +382,7 @@ const HomeDashboard = ({
                         Haptics.selection();
                         setIsMessOpen(true);
                       }}
-                      className="bg-black/5 hover:bg-black/10 px-3 py-2 rounded-xl text-[10px] md:text-[11px] font-bold lowercase text-black/80 border border-black/5 flex-shrink-0 flex items-center gap-1 active:scale-95 transition-transform"
+                      className="bg-black text-white hover:bg-black/85 px-3 py-2 rounded-xl text-[10px] md:text-[11px] font-black lowercase flex-shrink-0 flex items-center gap-1.5 active:scale-95 transition-all border border-black shadow-sm"
                       style={{ fontFamily: "Aonic" }}
                     >
                       <span>🍴</span>
