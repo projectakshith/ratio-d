@@ -38,9 +38,11 @@ import {
 import { ScheduleSlot, StudentProfile } from "@/types";
 import { UserAvatar } from "@/components/shared/UserAvatar";
 import { Haptics } from "@/utils/shared/haptics";
+import { useClassCancellations } from "@/hooks/useClassCancellations";
 
 export default function DesktopDashboard() {
   const router = useRouter();
+  const { cancelledClasses } = useClassCancellations();
   const { userData, customDisplayName, profileSeed, refreshData, isUpdating } =
     useApp();
   const { onOpenSettings } = useAppLayout();
@@ -50,6 +52,7 @@ export default function DesktopDashboard() {
     currentDayOrder,
     isHoliday,
     selectedDay,
+    selectedDayDate,
     nextWorkingDayOrder,
     isTomorrowHoliday,
     handleDaySwitch,
@@ -425,6 +428,8 @@ export default function DesktopDashboard() {
                   selectedDay={selectedDay}
                   currentDayOrder={currentDayOrder}
                   isHoliday={isHoliday}
+                  cancelledClasses={cancelledClasses}
+                  cancellationDate={selectedDayDate}
                   cols={row1.length}
                   isExpanded={showExtraSlots}
                 />
@@ -440,6 +445,8 @@ export default function DesktopDashboard() {
                   selectedDay={selectedDay}
                   currentDayOrder={currentDayOrder}
                   isHoliday={isHoliday}
+                  cancelledClasses={cancelledClasses}
+                  cancellationDate={selectedDayDate}
                   cols={row2.length}
                   isExpanded={showExtraSlots}
                 />

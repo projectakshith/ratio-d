@@ -31,6 +31,7 @@ import { useDashboardAlerts } from "@/hooks/useDashboardAlerts";
 import { useApp } from "@/context/AppContext";
 import { UserAvatar } from "@/components/shared/UserAvatar";
 import { Haptics } from "@/utils/shared/haptics";
+import { useClassCancellations } from "@/hooks/useClassCancellations";
 
 const BEZIER = [0.34, 0.15, 0.16, 0.96] as const;
 
@@ -89,6 +90,7 @@ export default function Dashboard({
   isRefreshing?: boolean;
 }) {
   const router = useRouter();
+  const { cancelledClasses } = useClassCancellations();
   const { customDisplayName, profileSeed } = useApp();
   const {
     pullY,
@@ -105,6 +107,7 @@ export default function Dashboard({
     currentDayOrder,
     isHoliday,
     selectedDay,
+    selectedDayDate,
     nextWorkingDayOrder,
     isTomorrowHoliday,
     handleDaySwitch,
@@ -497,6 +500,8 @@ export default function Dashboard({
                 selectedDay={selectedDay}
                 currentDayOrder={currentDayOrder}
                 isHoliday={isHoliday}
+                cancelledClasses={cancelledClasses}
+                cancellationDate={selectedDayDate}
               />
             </motion.div>
 

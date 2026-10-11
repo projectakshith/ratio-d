@@ -79,6 +79,7 @@ const CalendarDay = memo(
   },
   (prev, next) => {
     return (
+      prev.onClick === next.onClick &&
       prev.item.isSelected === next.item.isSelected &&
       prev.item.isToday === next.item.isToday &&
       prev.item.dayOrder === next.item.dayOrder &&

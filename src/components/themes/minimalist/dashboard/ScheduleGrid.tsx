@@ -1,6 +1,8 @@
 "use client";
 import React from "react";
 import { motion } from "framer-motion";
+import { isClassCancelled } from "@/utils/timetable/classCancellations";
+import type { ClassCancellationMap } from "@/utils/timetable/classCancellations";
 
 interface ScheduleGridProps {
   displayGrid: any[];
@@ -9,6 +11,8 @@ interface ScheduleGridProps {
   isHoliday: boolean;
   cols?: number;
   isExpanded?: boolean;
+  cancelledClasses?: ClassCancellationMap;
+  cancellationDate?: Date | string | null;
 }
 
 const BEZIER = [0.34, 0.15, 0.16, 0.96] as const;
@@ -44,6 +48,8 @@ export default function ScheduleGrid({
   isHoliday,
   cols = 5,
   isExpanded = false,
+  cancelledClasses = {},
+  cancellationDate,
 }: ScheduleGridProps) {
   const renderSlot = (slot: any, index: number) => {
     if (!slot.active) {
@@ -69,8 +75,14 @@ export default function ScheduleGrid({
       slot.isCurrent &&
       String(selectedDay) === String(currentDayOrder) &&
       !isHoliday;
+    const isCancelled = isClassCancelled(
+      cancelledClasses,
+      slot,
+      selectedDay,
+      cancellationDate,
+    );
 
-    if (isActuallyCurrent) {
+    if (isActuallyCurrent && !isCancelled) {
       boxClass = "status-boxbg-safe status-border-safe shadow-md scale-105 z-10 opacity-100 backdrop-blur-sm";
       topText = "status-text-safe opacity-70";
       midText = "status-text-safe font-black";
@@ -111,6 +123,15 @@ export default function ScheduleGrid({
         >
           {slot.time}
         </span>
+        {isCancelled && (
+          <span
+            aria-label="Cancelled"
+            className="mt-0.5 w-full text-center text-[7px] min-[380px]:text-[8px] font-medium leading-none text-theme-text opacity-75"
+            style={{ fontFamily: "var(--font-afacad), sans-serif" }}
+          >
+            (cancelled)
+          </span>
+        )}
       </motion.div>
     );
   };
