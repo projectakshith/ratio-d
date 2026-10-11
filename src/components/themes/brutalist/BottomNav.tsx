@@ -8,7 +8,6 @@ import {
   Home,
   Calendar,
   GraduationCap,
-  UtensilsCrossed,
 } from "lucide-react";
 
 export const BottomNav = memo(() => {
@@ -28,7 +27,6 @@ export const BottomNav = memo(() => {
     { id: "home", icon: Home, path: "/dashboard" },
     { id: "timetable", icon: LayoutGrid, path: "/timetable" },
     { id: "calendar", icon: Calendar, path: "/calendar" },
-    { id: "mess", icon: UtensilsCrossed, path: "/mess" },
   ];
 
   return (

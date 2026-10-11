@@ -9,7 +9,10 @@ import {
   CheckCircle,
   GraduationCap,
   Loader,
+  UtensilsCrossed,
 } from "lucide-react";
+import { MessModal, getCurrentMealAndDay } from "@/components/desktop/mess/Mess";
+import { WEEKLY_MENU } from "@/data/messMenu";
 import {
   calculateOverallAttendance,
   getCriticalAttendance,
@@ -120,7 +123,17 @@ export default function Dashboard({
   }, [isAlertsOpen, setIsSwipeDisabled]);
 
   const [showExtraSlots, setShowExtraSlots] = useState(false);
+  const [isMessOpen, setIsMessOpen] = useState(false);
   const [customClasses, setCustomClasses] = useState<Record<number, any[]>>({});
+
+  const messSummary = useMemo(() => {
+    const { currentDay, currentMeal } = getCurrentMealAndDay();
+    const items = WEEKLY_MENU[currentDay]?.meals[currentMeal] || [];
+    return {
+      meal: currentMeal,
+      preview: items.slice(0, 3).join(", ").toLowerCase(),
+    };
+  }, []);
 
   useEffect(() => {
     const fetchCustoms = () => {
@@ -730,6 +743,43 @@ export default function Dashboard({
                   className="text-theme-subtle shrink-0"
                 />
               </div>
+
+              <div
+                onClick={() => {
+                  Haptics.medium();
+                  setIsMessOpen(true);
+                }}
+                className="w-full bg-theme-card border-theme-subtle border-[1.5px] rounded-[24px] p-2 pr-5 flex items-center gap-4 shadow-sm transition-transform cursor-pointer"
+              >
+                <div
+                  className="w-[50px] h-[50px] rounded-[18px] bg-theme-surface flex items-center justify-center shrink-0"
+                >
+                  <UtensilsCrossed
+                    size={20}
+                    strokeWidth={2.5}
+                    className={textClass}
+                  />
+                </div>
+                <div className="flex-1 flex flex-col justify-center min-w-0 py-0.5">
+                  <span
+                    className={`text-[15px] font-bold lowercase leading-tight ${textClass} truncate mb-0.5`}
+                    style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
+                  >
+                    mess menu • {messSummary.meal}
+                  </span>
+                  <span
+                    className={`text-[13px] font-medium lowercase ${subTextClass} truncate`}
+                    style={{ fontFamily: "var(--font-afacad), sans-serif" }}
+                  >
+                    {messSummary.preview || "view menu"}
+                  </span>
+                </div>
+                <ChevronRight
+                  size={22}
+                  strokeWidth={2}
+                  className="text-theme-subtle shrink-0"
+                />
+              </div>
             </motion.div>
           </motion.div>
         </motion.div>
@@ -740,6 +790,11 @@ export default function Dashboard({
         onClose={() => setIsAlertsOpen(false)}
         exams={exams}
         upcomingBreaks={upcomingBreaks}
+      />
+
+      <MessModal
+        isOpen={isMessOpen}
+        onClose={() => setIsMessOpen(false)}
       />
     </div>
   );

@@ -21,6 +21,8 @@ import { useApp } from "@/context/AppContext";
 import { UserAvatar } from "@/components/shared/UserAvatar";
 import { useClassCancellations } from "@/hooks/useClassCancellations";
 import { isClassCancelled } from "@/utils/timetable/classCancellations";
+import { MessModal, getCurrentMealAndDay } from "@/components/desktop/mess/Mess";
+import { WEEKLY_MENU } from "@/data/messMenu";
 
 const ScoreCounter = ({ value }: any) => {
   const nodeRef = useRef<any>(null);
@@ -125,7 +127,17 @@ const HomeDashboard = ({
   const router = useRouter();
   const [isAlertExpanded, setIsAlertExpanded] = useState(false);
   const [isMetricExpanded, setIsMetricExpanded] = useState(false);
+  const [isMessOpen, setIsMessOpen] = useState(false);
   const [metricMode, setMetricMode] = useState("attendance");
+
+  const messSummary = useMemo(() => {
+    const { currentDay, currentMeal } = getCurrentMealAndDay();
+    const items = WEEKLY_MENU[currentDay]?.meals[currentMeal] || [];
+    return {
+      meal: currentMeal,
+      preview: items.slice(0, 2).join(", ").toLowerCase(),
+    };
+  }, []);
 
   const isTargetAudience =
     (profile?.dept || "")
@@ -365,6 +377,17 @@ const HomeDashboard = ({
                         ✨ holiday tomorrow
                       </div>
                     )}
+                    <button
+                      onClick={() => {
+                        Haptics.selection();
+                        setIsMessOpen(true);
+                      }}
+                      className="bg-black/5 hover:bg-black/10 px-3 py-2 rounded-xl text-[10px] md:text-[11px] font-bold lowercase text-black/80 border border-black/5 flex-shrink-0 flex items-center gap-1 active:scale-95 transition-transform"
+                      style={{ fontFamily: "Aonic" }}
+                    >
+                      <span>🍴</span>
+                      <span>mess: {messSummary.meal}</span>
+                    </button>
                     <button 
                       onClick={() => {
                         Haptics.selection();
@@ -720,6 +743,10 @@ const HomeDashboard = ({
           </LayoutGroup>
         </motion.div>
       </div>
+      <MessModal
+        isOpen={isMessOpen}
+        onClose={() => setIsMessOpen(false)}
+      />
     </div>
   );
 };

@@ -58,6 +58,9 @@ src/app/test
 **/.venv/
 *.pyc
 
+# Android probe local build output
+android-probe/
+
 # Debugging scripts
 backend/debug_fetch.py
 backend/debug_*.html

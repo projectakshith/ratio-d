@@ -10,7 +10,10 @@ import {
   GraduationCap,
   Loader,
   RefreshCw,
+  UtensilsCrossed,
 } from "lucide-react";
+import { MessModal, getCurrentMealAndDay } from "@/components/desktop/mess/Mess";
+import { WEEKLY_MENU } from "@/data/messMenu";
 import { useApp } from "@/context/AppContext";
 import { useTheme } from "@/context/ThemeContext";
 import { useAcademiaData } from "@/hooks/useAcademiaData";
@@ -59,7 +62,18 @@ export default function DesktopDashboard() {
   } = useDashboardCalendar(academia, userData);
 
   const [showExtraSlots, setShowExtraSlots] = useState(false);
+  const [isMessOpen, setIsMessOpen] = useState(false);
   const [customClasses, setCustomClasses] = useState<Record<number, any[]>>({});
+
+  const messSummary = useMemo(() => {
+    const { currentDay, currentMeal } = getCurrentMealAndDay();
+    const items = WEEKLY_MENU[currentDay]?.meals[currentMeal] || [];
+    return {
+      meal: currentMeal,
+      title: items[0] || "mess menu",
+      preview: items.slice(1, 4).join(", ").toLowerCase() || "view full menu",
+    };
+  }, []);
 
   useEffect(() => {
     const fetchCustoms = () => {
@@ -636,7 +650,7 @@ export default function DesktopDashboard() {
               <ChevronRight size={20} className={attStyles.text} />
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-3 gap-3">
               <div
                 onClick={() => router.push("/marks")}
                 className="bg-theme-card border border-theme-border rounded-[24px] p-5 min-h-[155px] flex flex-col justify-between shadow-sm hover:scale-[1.01] active:scale-98 transition-all cursor-pointer min-w-0 overflow-hidden"
@@ -708,10 +722,43 @@ export default function DesktopDashboard() {
                   </p>
                 </div>
               </div>
+
+              <div
+                onClick={() => setIsMessOpen(true)}
+                className="bg-theme-card border border-theme-border rounded-[24px] p-5 min-h-[155px] flex flex-col justify-between shadow-sm hover:scale-[1.01] active:scale-98 transition-all cursor-pointer min-w-0 overflow-hidden"
+              >
+                <div className="w-10 h-10 rounded-xl bg-theme-surface flex items-center justify-center">
+                  <UtensilsCrossed size={18} strokeWidth={2.5} className="text-theme-text" />
+                </div>
+                <div className="min-w-0">
+                  <p
+                    className="text-theme-muted text-[8px] font-bold uppercase tracking-[0.3em] mb-0.5"
+                    style={{ fontFamily: "var(--font-afacad)" }}
+                  >
+                    mess • {messSummary.meal}
+                  </p>
+                  <h3
+                    className="text-theme-text text-[16px] font-black lowercase tracking-tight truncate"
+                    style={{ fontFamily: "var(--font-montserrat)" }}
+                  >
+                    {messSummary.title}
+                  </h3>
+                  <p
+                    className="text-[10px] font-medium text-theme-muted lowercase truncate"
+                    style={{ fontFamily: "var(--font-afacad)" }}
+                  >
+                    {messSummary.preview}
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
+      <MessModal
+        isOpen={isMessOpen}
+        onClose={() => setIsMessOpen(false)}
+      />
     </>
   );
 }
