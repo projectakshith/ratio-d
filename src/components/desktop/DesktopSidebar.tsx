@@ -8,7 +8,8 @@ import {
   BookOpen,
   Clock,
   Calendar,
-  FileText
+  FileText,
+  UtensilsCrossed
 } from "lucide-react";
 import { Haptics } from "@/utils/shared/haptics";
 import { useApp } from "@/context/AppContext";
@@ -134,6 +135,7 @@ export default function DesktopSidebar() {
     { icon: Clock, path: "/timetable", label: "timetable" },
     { icon: Calendar, path: "/calendar", label: "calendar" },
     { icon: FileText, path: "/pyqs", label: "pyqs" },
+    { icon: UtensilsCrossed, path: "/mess", label: "mess" },
   ];
 
   const handleNav = (path: string) => {

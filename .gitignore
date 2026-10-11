@@ -64,3 +64,5 @@ backend/debug_*.html
 
 # Local batch startup scripts
 backend/run_ratiod.bat
+
+backend/mess_votes.db

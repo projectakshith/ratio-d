@@ -133,3 +133,5 @@ export interface CalendarSlot {
   dayOrder?: string | null;
   isDayExam?: boolean;
 }
+
+export * from "./mess";

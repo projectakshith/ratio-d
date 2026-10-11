@@ -20,7 +20,10 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse, PlainTextResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi import Depends
 from models.schemas import Credentials, LoginCredentials, PortalCredentials
+from core.security import create_access_token, verify_token
 from services.marks_service import MarksService
 from services.profile_service import ProfileService
 from services.course_service import CourseService
@@ -34,6 +37,10 @@ from dotenv import load_dotenv
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
+from pydantic import BaseModel
+from core.database import init_db
+from models.food_vote import upsert_vote, delete_vote, get_ratings_for_date, get_user_votes_for_date
+from services.mess_menu import is_valid_item
 
 load_dotenv()
 load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env.local'))
@@ -42,6 +49,7 @@ load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env.local'))
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     app.state.http_client = httpx.AsyncClient(timeout=10.0)
+    await init_db()
     yield
     await app.state.http_client.aclose()
 
@@ -209,6 +217,62 @@ async def submit_feedback(request: Request):
 async def get_version():
     return {"version": "2.0.0"}
 
+class VotePayload(BaseModel):
+    date: str
+    day: str
+    meal: str
+    item_id: str
+    vote: str
+
+class DeleteVotePayload(BaseModel):
+    date: str
+    meal: str
+    item_id: str
+
+security = HTTPBearer()
+
+def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    token = credentials.credentials
+    payload = verify_token(token)
+    if not payload or not payload.get("sub"):
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+    return payload.get("sub")
+
+@app.get("/api/mess/ratings")
+async def get_mess_ratings(date: str, day: str, request: Request):
+    auth_header = request.headers.get("Authorization")
+    regNo = None
+    if auth_header and auth_header.startswith("Bearer "):
+        token = auth_header.split(" ")[1]
+        payload = verify_token(token)
+        if payload and payload.get("sub"):
+            regNo = payload.get("sub")
+
+    ratings = await get_ratings_for_date(date)
+    user_votes = []
+    if regNo:
+        user_votes = await get_user_votes_for_date(regNo, date)
+    return {
+        "ratings": ratings,
+        "user_votes": user_votes
+    }
+
+@app.post("/api/mess/vote")
+@limiter.limit("30/minute")
+async def vote_mess_item(payload: VotePayload, request: Request, regNo: str = Depends(get_current_user)):
+    if not is_valid_item(payload.day, payload.meal, payload.item_id):
+        raise HTTPException(status_code=400, detail="Invalid item ID")
+    if payload.vote not in ('like', 'dislike'):
+        raise HTTPException(status_code=400, detail="Invalid vote")
+    await upsert_vote(regNo, payload.date, payload.day, payload.meal, payload.item_id, payload.vote)
+    return {"success": True}
+
+@app.delete("/api/mess/vote")
+@limiter.limit("30/minute")
+async def remove_mess_vote(payload: DeleteVotePayload, request: Request, regNo: str = Depends(get_current_user)):
+    await delete_vote(regNo, payload.date, payload.meal, payload.item_id)
+    return {"success": True}
+
 @app.post("/captcha/solve")
 @limiter.limit("15/minute")
 async def solve_captcha_endpoint(request: Request):
@@ -372,6 +436,8 @@ async def refresh_data(creds: Credentials, request: Request):
         }
         if profile:
             res_data["profile"] = profile
+            if profile.get("regNo"):
+                res_data["access_token"] = create_access_token({"sub": profile["regNo"]})
         if courses:
             res_data["courses"] = courses
         if schedule:
@@ -457,7 +523,7 @@ async def login(creds: LoginCredentials, request: Request):
             
         current_cookies = {c.name: c.value for c in client.session_handler.client.cookies.jar}
         print(f"[API] Login completed in {time.time() - start_total:.2f}s", flush=True)
-        return {
+        res_data = {
             "success": True,
             "profile": profile,
             "attendance": attendance,
@@ -466,6 +532,9 @@ async def login(creds: LoginCredentials, request: Request):
             "courses": course_map,
             "cookies": current_cookies,
         }
+        if profile and profile.get("regNo"):
+            res_data["access_token"] = create_access_token({"sub": profile["regNo"]})
+        return res_data
     except (httpx.NetworkError, httpx.TimeoutException) as e:
         err_msg = str(e)
         print(f"{get_now()}\n  -> [API] NETWORK ERROR in /login: {err_msg}", flush=True)
@@ -547,6 +616,8 @@ async def portal_login(creds: PortalCredentials, request: Request):
             res["courses"] = course_map
         if profile:
             res["profile"] = profile
+            if profile.get("regNo"):
+                res["access_token"] = create_access_token({"sub": profile["regNo"]})
         return res
 
     session = _portal_captcha_sessions.pop(creds.cdigest, None) if creds.cdigest else None
@@ -695,6 +766,8 @@ async def portal_login(creds: PortalCredentials, request: Request):
         out["courses"] = course_map
     if profile:
         out["profile"] = profile
+        if profile.get("regNo"):
+            out["access_token"] = create_access_token({"sub": profile["regNo"]})
     return out
 
 
