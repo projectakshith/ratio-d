@@ -85,125 +85,145 @@ export function MessContent({ onClose, isModal = false }: MessContentProps) {
   const timing = MEAL_TIMINGS[selectedMeal];
 
   return (
-    <div className={`flex flex-col h-full w-full bg-theme-bg ${isModal ? "p-4 sm:p-6" : "p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto"}`}>
+    <div className={`flex flex-col h-full w-full bg-theme-bg ${isModal ? "overflow-hidden" : "max-w-2xl mx-auto px-6 pt-10 pb-6"}`}>
       {/* Header */}
-      <div className="flex items-center justify-between mb-5 shrink-0">
-        <div>
-          <div className="flex items-center gap-2">
-            <UtensilsCrossed size={22} strokeWidth={2.5} className="text-theme-text" />
-            <h1
-              className="text-2xl sm:text-3xl font-black text-theme-text tracking-tight uppercase"
-              style={{ fontFamily: "var(--font-montserrat)" }}
-            >
-              mess menu
-            </h1>
-          </div>
-          <p className="text-xs text-theme-muted font-bold mt-0.5 lowercase tracking-wider" style={{ fontFamily: "var(--font-afacad)" }}>
-            srm ist ktr campus • weekly circular
-          </p>
+      <div className="flex justify-between items-start w-full shrink-0 mb-6">
+        <div className="flex flex-col">
+          <span
+            className="text-[32px] leading-[1] font-black uppercase tracking-[0.15em] text-theme-text"
+            style={{ fontFamily: "'Montserrat', sans-serif" }}
+          >
+            MESS MENU
+          </span>
+          <span
+            className="text-[10px] font-bold lowercase tracking-[0.2em] text-theme-highlight mt-1.5"
+            style={{ fontFamily: "'Afacad', sans-serif" }}
+          >
+            srm ist ktr campus • weekly schedule
+          </span>
         </div>
 
         {onClose && (
           <button
             onClick={() => {
-              Haptics.light();
+              Haptics.selection();
               onClose();
             }}
-            className="w-9 h-9 rounded-full bg-theme-surface border-[1.5px] border-theme-text flex items-center justify-center text-theme-text active:scale-95 transition-all shadow-sm"
+            className="w-10 h-10 rounded-full bg-theme-surface flex items-center justify-center text-theme-text transition-all shrink-0 active:scale-95"
             aria-label="Close"
           >
-            <X size={18} strokeWidth={2.5} />
+            <X size={20} strokeWidth={2.5} />
           </button>
         )}
       </div>
 
-      {/* Navigation Section */}
-      <div className="space-y-3 mb-4 shrink-0">
-        {/* Day Selector */}
-        <div className="flex space-x-1.5 overflow-x-auto pb-1 scrollbar-hide -mx-2 px-2 sm:mx-0 sm:px-0">
-          {DAYS.map((day) => {
-            const isSelected = selectedDay === day;
-            const isToday = day === initial.currentDay;
-            return (
-              <button
-                key={day}
-                onClick={() => {
-                  Haptics.light();
-                  setSelectedDay(day);
-                }}
-                className={`min-w-[48px] h-9 px-3.5 flex items-center justify-center rounded-full font-black transition-all text-xs tracking-wider uppercase shrink-0 border-[1.5px]
-                  ${isSelected
-                    ? "bg-theme-text text-theme-bg border-theme-text shadow-sm scale-105"
-                    : "bg-theme-surface text-theme-text border-theme-text/30 hover:border-theme-text"
-                  }
-                `}
-                style={{ fontFamily: "var(--font-montserrat)" }}
-              >
+      {/* Day Selector */}
+      <div className="grid grid-cols-7 gap-1.5 w-full shrink-0 mb-3">
+        {DAYS.map((day) => {
+          const isSelected = selectedDay === day;
+          const isToday = day === initial.currentDay;
+          return (
+            <button
+              key={day}
+              type="button"
+              onClick={() => {
+                Haptics.selection();
+                setSelectedDay(day);
+              }}
+              className={`py-2.5 rounded-[16px] flex flex-col items-center justify-center transition-all ${
+                isSelected
+                  ? "bg-theme-emphasis text-theme-bg shadow-sm"
+                  : "bg-theme-surface text-theme-muted hover:text-theme-text border border-theme-subtle"
+              }`}
+              style={{ fontFamily: "'Montserrat', sans-serif" }}
+            >
+              <span className={`text-[12px] font-black uppercase ${isSelected ? "text-theme-bg" : "text-theme-text"}`}>
                 {day.substring(0, 3)}
-                {isToday && <span className={`ml-1 w-1.5 h-1.5 rounded-full shrink-0 ${isSelected ? "bg-theme-bg" : "bg-theme-highlight"}`} />}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Meal Selector */}
-        <div className="flex bg-theme-surface border-[1.5px] border-theme-text rounded-2xl p-1 gap-1 shadow-sm">
-          {MEALS.map((meal) => {
-            const isSelected = selectedMeal === meal.id;
-            const Icon = meal.icon;
-            return (
-              <button
-                key={meal.id}
-                onClick={() => {
-                  Haptics.light();
-                  setSelectedMeal(meal.id);
-                }}
-                className={`flex-1 py-2 rounded-xl font-black text-xs sm:text-sm transition-all flex items-center justify-center gap-1.5 uppercase tracking-wider
-                  ${isSelected
-                    ? "bg-theme-text text-theme-bg shadow-sm"
-                    : "text-theme-text hover:bg-theme-bg/60"
-                  }
-                `}
-                style={{ fontFamily: "var(--font-montserrat)" }}
+              </span>
+              <span
+                className={`text-[8px] font-bold uppercase tracking-wider mt-0.5 ${
+                  isSelected ? "text-theme-bg opacity-75" : isToday ? "text-theme-highlight font-black" : "text-theme-muted opacity-60"
+                }`}
+                style={{ fontFamily: "'Afacad', sans-serif" }}
               >
-                <Icon size={14} strokeWidth={2.5} className={isSelected ? "text-theme-bg" : "text-theme-text"} />
-                <span className="capitalize">{meal.label}</span>
-              </button>
-            );
-          })}
-        </div>
+                {isToday ? "today" : "day"}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
-      {/* Meal Timing Pill */}
-      <div className="flex items-center justify-between px-1 mb-3 shrink-0">
-        <span className="text-sm font-black text-theme-text lowercase tracking-wider" style={{ fontFamily: "var(--font-montserrat)" }}>
+      {/* Meal Selector */}
+      <div className="grid grid-cols-4 gap-2 w-full shrink-0 mb-4">
+        {MEALS.map((meal) => {
+          const isSelected = selectedMeal === meal.id;
+          const Icon = meal.icon;
+          return (
+            <button
+              key={meal.id}
+              type="button"
+              onClick={() => {
+                Haptics.selection();
+                setSelectedMeal(meal.id);
+              }}
+              className={`py-3 rounded-[16px] flex flex-col items-center justify-center gap-1 transition-all ${
+                isSelected
+                  ? "bg-theme-emphasis text-theme-bg shadow-sm"
+                  : "bg-theme-surface text-theme-muted hover:text-theme-text border border-theme-subtle"
+              }`}
+              style={{ fontFamily: "'Montserrat', sans-serif" }}
+            >
+              <Icon
+                size={16}
+                strokeWidth={2.5}
+                className={isSelected ? "text-theme-bg" : "text-theme-muted"}
+              />
+              <span className={`text-[11px] font-black uppercase tracking-wider ${isSelected ? "text-theme-bg" : "text-theme-text"}`}>
+                {meal.label}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Section Divider / Timings */}
+      <div className="flex items-center gap-3 w-full shrink-0 mb-3 px-1">
+        <span
+          className="text-[11px] font-bold lowercase tracking-[0.2em] text-theme-highlight whitespace-nowrap"
+          style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
+        >
           {selectedDay} • {selectedMeal}
         </span>
-        <span className="text-xs font-bold text-theme-text bg-theme-surface px-3 py-1 rounded-full border-[1.5px] border-theme-text" style={{ fontFamily: "var(--font-afacad)" }}>
+        <div
+          className="flex-1 h-[1.5px] rounded-full"
+          style={{ backgroundColor: "color-mix(in srgb, var(--theme-text) 10%, transparent)" }}
+        />
+        <span
+          className="text-[11px] font-bold text-theme-muted whitespace-nowrap"
+          style={{ fontFamily: "var(--font-afacad), sans-serif" }}
+        >
           ⏰ {timing?.label || `${timing?.start} – ${timing?.end}`}
         </span>
       </div>
 
       {/* Food List */}
-      <div className="flex-1 overflow-y-auto no-scrollbar rounded-[24px] border-[1.5px] border-theme-text bg-theme-card shadow-sm">
-        <ul className="divide-y-[1.5px] divide-theme-text/15">
-          {currentItems.map((item, idx) => (
-            <li
-              key={`${selectedDay}-${selectedMeal}-${idx}`}
-              className="flex items-center py-3.5 px-4 hover:bg-theme-text/5 transition-colors gap-3.5"
+      <div className="flex-1 overflow-y-auto no-scrollbar flex flex-col gap-2.5 pb-6">
+        {currentItems.map((item, idx) => (
+          <div
+            key={`${selectedDay}-${selectedMeal}-${idx}`}
+            className="w-full bg-theme-card border-theme-subtle border-[1.5px] rounded-[20px] p-3.5 px-4 flex items-center gap-4 shadow-sm"
+          >
+            <div className="w-[42px] h-[42px] rounded-[14px] bg-theme-surface flex items-center justify-center shrink-0 text-xl select-none">
+              {getFoodEmoji(item)}
+            </div>
+            <span
+              className="text-[15px] font-bold text-theme-text lowercase leading-snug truncate"
+              style={{ fontFamily: "var(--font-afacad), sans-serif" }}
             >
-              <span className="text-2xl leading-none select-none shrink-0">
-                {getFoodEmoji(item)}
-              </span>
-              <span
-                className="text-theme-text font-bold text-[15px] sm:text-base tracking-tight leading-snug lowercase"
-                style={{ fontFamily: "var(--font-montserrat)" }}
-              >
-                {item}
-              </span>
-            </li>
-          ))}
-        </ul>
+              {item}
+            </span>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -222,41 +242,25 @@ export function MessModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-[110] flex items-end sm:items-center justify-center p-0 sm:p-4">
-        {/* Backdrop */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onClick={() => {
-            Haptics.light();
+      <motion.div
+        initial={{ y: "100%" }}
+        animate={{ y: 0 }}
+        exit={{ y: "100%" }}
+        transition={{ type: "spring", damping: 25, stiffness: 200 }}
+        drag="y"
+        dragConstraints={{ top: 0, bottom: 0 }}
+        dragElastic={0.6}
+        onDragEnd={(_e, info) => {
+          if (info.offset.y > 150 || info.velocity.y > 500) {
+            Haptics.medium();
             onClose();
-          }}
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm"
-        />
-
-        {/* Modal Sheet */}
-        <motion.div
-          initial={{ y: "100%", opacity: 0.8 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: "100%", opacity: 0 }}
-          transition={{ type: "spring", damping: 28, stiffness: 300 }}
-          drag="y"
-          dragDirectionLock
-          dragConstraints={{ top: 0, bottom: 400 }}
-          dragElastic={{ top: 0, bottom: 0.5 }}
-          onDragEnd={(_e, info) => {
-            if (info.offset.y > 100 || info.velocity.y > 500) {
-              Haptics.medium();
-              onClose();
-            }
-          }}
-          className="relative w-full sm:max-w-xl h-[85vh] sm:h-[75vh] bg-theme-bg rounded-t-[32px] sm:rounded-[32px] border-t-[2px] sm:border-[2px] border-theme-text shadow-2xl overflow-hidden flex flex-col z-10"
-        >
-          <div className="w-12 h-1.5 bg-theme-text/25 rounded-full mx-auto mt-3 shrink-0 sm:hidden" />
-          <MessContent onClose={onClose} isModal />
-        </motion.div>
-      </div>
+          }
+        }}
+        className="fixed inset-0 bg-theme-bg z-[60] flex flex-col overflow-hidden px-6 pt-10 pb-6"
+      >
+        <div className="w-12 h-1.5 bg-theme-text-10 rounded-full mx-auto mb-6 shrink-0" />
+        <MessContent onClose={onClose} isModal />
+      </motion.div>
     </AnimatePresence>
   );
 }

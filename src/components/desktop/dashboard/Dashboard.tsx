@@ -725,7 +725,7 @@ export default function DesktopDashboard() {
 
               <div
                 onClick={() => setIsMessOpen(true)}
-                className="bg-theme-card border-[1.5px] border-theme-text rounded-[24px] p-5 min-h-[155px] flex flex-col justify-between shadow-sm hover:scale-[1.01] active:scale-98 transition-all cursor-pointer min-w-0 overflow-hidden"
+                className="bg-theme-card border border-theme-border rounded-[24px] p-5 min-h-[155px] flex flex-col justify-between shadow-sm hover:scale-[1.01] active:scale-98 transition-all cursor-pointer min-w-0 overflow-hidden"
               >
                 <div className="w-10 h-10 rounded-xl bg-theme-surface flex items-center justify-center">
                   <UtensilsCrossed size={18} strokeWidth={2.5} className="text-theme-text" />

@@ -712,31 +712,31 @@ export default function Dashboard({
                     Haptics.medium();
                     router.push("/marks");
                   }}
-                  className="bg-theme-card border-[1.5px] border-theme-text rounded-[24px] p-3.5 flex flex-col justify-between shadow-sm hover:scale-[1.01] active:scale-[0.98] transition-transform cursor-pointer min-w-0 min-h-[120px]"
+                  className="bg-theme-card border-theme-subtle border-[1.5px] rounded-[24px] p-4 flex flex-col justify-between shadow-sm transition-transform cursor-pointer min-w-0 min-h-[135px]"
                 >
                   <div className="flex items-center justify-between w-full">
-                    <div className="w-[38px] h-[38px] rounded-[14px] bg-theme-surface border-[1.5px] border-theme-text flex items-center justify-center shrink-0">
+                    <div className="w-[44px] h-[44px] rounded-[16px] bg-theme-surface flex items-center justify-center shrink-0">
                       <GraduationCap
-                        size={18}
+                        size={20}
                         strokeWidth={2.5}
                         className={textClass}
                       />
                     </div>
                     <ChevronRight
-                      size={18}
+                      size={20}
                       strokeWidth={2}
-                      className="text-theme-muted shrink-0"
+                      className="text-theme-subtle shrink-0"
                     />
                   </div>
                   <div className="flex flex-col min-w-0 mt-3">
                     <span
-                      className={`text-[13px] font-black lowercase leading-tight ${textClass} truncate`}
+                      className={`text-[15px] font-bold lowercase leading-tight ${textClass} truncate mb-0.5`}
                       style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
                     >
                       recent marks
                     </span>
                     <span
-                      className={`text-[12px] font-semibold lowercase ${subTextClass} truncate mt-0.5`}
+                      className={`text-[13px] font-medium lowercase ${subTextClass} truncate`}
                       style={{ fontFamily: "var(--font-afacad), sans-serif" }}
                     >
                       {latestMark
@@ -752,32 +752,32 @@ export default function Dashboard({
                     Haptics.medium();
                     setIsMessOpen(true);
                   }}
-                  className="bg-theme-card border-[1.5px] border-theme-text rounded-[24px] p-3.5 flex flex-col justify-between shadow-sm hover:scale-[1.01] active:scale-[0.98] transition-transform cursor-pointer min-w-0 min-h-[120px]"
+                  className="bg-theme-card border-theme-subtle border-[1.5px] rounded-[24px] p-4 flex flex-col justify-between shadow-sm transition-transform cursor-pointer min-w-0 min-h-[135px]"
                 >
                   <div className="flex items-center justify-between w-full">
-                    <div className="w-[38px] h-[38px] rounded-[14px] bg-theme-surface border-[1.5px] border-theme-text flex items-center justify-center shrink-0">
+                    <div className="w-[44px] h-[44px] rounded-[16px] bg-theme-surface flex items-center justify-center shrink-0">
                       <UtensilsCrossed
-                        size={18}
+                        size={20}
                         strokeWidth={2.5}
                         className={textClass}
                       />
                     </div>
                     <span
-                      className="text-[9px] font-black uppercase tracking-wider text-theme-text bg-theme-surface border-[1.5px] border-theme-text px-2 py-0.5 rounded-full shrink-0"
-                      style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
+                      className="text-[10px] font-bold uppercase tracking-wider text-theme-muted bg-theme-surface px-2.5 py-1 rounded-full border border-theme-subtle shrink-0"
+                      style={{ fontFamily: "var(--font-afacad), sans-serif" }}
                     >
                       {messSummary.meal}
                     </span>
                   </div>
                   <div className="flex flex-col min-w-0 mt-3">
                     <span
-                      className={`text-[13px] font-black lowercase leading-tight ${textClass} truncate`}
+                      className={`text-[15px] font-bold lowercase leading-tight ${textClass} truncate mb-0.5`}
                       style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
                     >
                       mess menu
                     </span>
                     <span
-                      className={`text-[12px] font-semibold lowercase ${subTextClass} truncate mt-0.5`}
+                      className={`text-[13px] font-medium lowercase ${subTextClass} truncate`}
                       style={{ fontFamily: "var(--font-afacad), sans-serif" }}
                     >
                       {messSummary.preview || "view menu"}
