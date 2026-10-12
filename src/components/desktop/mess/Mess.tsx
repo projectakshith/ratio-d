@@ -243,8 +243,8 @@ export function MessContent({ onClose, isModal = false }: MessContentProps) {
           {selectedDay} • {selectedMeal}
         </span>
         <div
-          className="flex-1 h-[1.5px] rounded-full"
-          style={{ backgroundColor: "color-mix(in srgb, var(--theme-text) 10%, transparent)" }}
+          className="flex-1 h-[1.5px] rounded-full opacity-20"
+          style={{ backgroundColor: "var(--theme-text)" }}
         />
         <span
           className="text-[11px] font-bold text-theme-muted whitespace-nowrap"
@@ -269,11 +269,8 @@ export function MessContent({ onClose, isModal = false }: MessContentProps) {
                     {CATEGORY_CONFIG[category].label}
                   </span>
                   <div
-                    className="flex-1 h-[1.5px] rounded-full"
-                    style={{
-                      backgroundColor:
-                        "color-mix(in srgb, var(--theme-text) 8%, transparent)",
-                    }}
+                    className="flex-1 h-[1.5px] rounded-full opacity-20"
+                    style={{ backgroundColor: "var(--theme-text)" }}
                   />
                   <span
                     className="text-[10px] font-bold text-theme-muted whitespace-nowrap"
@@ -284,11 +281,20 @@ export function MessContent({ onClose, isModal = false }: MessContentProps) {
                 </div>
 
                 {/* Items Card */}
-                <div className="w-full bg-theme-card border-theme-subtle border-[1.5px] rounded-[20px] overflow-hidden shadow-sm divide-y divide-theme-subtle">
+                <div className="w-full bg-theme-card border-theme-subtle border-[1.5px] rounded-[20px] overflow-hidden shadow-sm">
                   {items.map((item, idx) => (
                     <div
                       key={`${selectedDay}-${selectedMeal}-${category}-${idx}`}
                       className="flex items-center px-4 py-3 gap-3.5 hover:bg-theme-surface/40 transition-colors"
+                      style={
+                        idx > 0
+                          ? {
+                              borderTop: "1px solid var(--theme-text)",
+                              borderTopColor: "var(--theme-text)",
+                              opacity: 1,
+                            }
+                          : undefined
+                      }
                     >
                       <span className="text-xl leading-none select-none shrink-0">
                         {getFoodEmoji(item)}
@@ -316,7 +322,7 @@ export function MessContent({ onClose, isModal = false }: MessContentProps) {
       <div
         className="shrink-0 pt-3.5 pb-2 flex flex-col gap-2.5 w-full mt-auto"
         style={{
-          borderTop: "1.5px solid color-mix(in srgb, var(--theme-text) 10%, transparent)",
+          borderTop: "1.5px solid var(--theme-text)",
         }}
       >
         {/* Meal Selector - Segmented Pills */}
