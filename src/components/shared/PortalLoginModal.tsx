@@ -136,7 +136,7 @@ export default function PortalLoginModal({ open, onClose, onSuccess, captchaOnly
           captcha: captchaVal,
           cdigest: digest,
         }),
-      });
+      }, 60000);
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         const detail = data.detail;

@@ -83,10 +83,7 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
 
     const notifyUpdate = (worker?: ServiceWorker | null) => {
       if (worker) waitingWorkerRef.current = worker;
-      const coreRoutes = ["/dashboard", "/attendance", "/marks", "/timetable", "/calendar", "/settings", "/login"];
-      Promise.allSettled(coreRoutes.map((r) => fetch(r, { cache: "reload" }))).finally(() => {
-        setUpdateAvailable(true);
-      });
+      setUpdateAvailable(true);
     };
 
     const wb = (window as any).workbox;
