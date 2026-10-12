@@ -15,6 +15,7 @@ import CommunityPopup from "@/components/shared/CommunityPopup";
 import TimetableFeatureModal from "@/components/shared/TimetableFeatureModal";
 import PortalFeatureModal from "@/components/shared/PortalFeatureModal";
 import ThemeFeatureModal from "@/components/shared/ThemeFeatureModal";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const BrutalistThemeLayout = dynamic(
   () => import("@/components/themes/brutalist/BrutalistTheme"),
@@ -33,6 +34,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { theme, setTheme, uiStyle, isDark } = useTheme();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isSwipeDisabled, setIsSwipeDisabled] = useState(false);
+  const isMobile = useIsMobile();
   const academia = useAcademiaData(userData as any);
   const router = useRouter();
 
@@ -76,30 +78,30 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <TimetableFeatureModal />
         <PortalFeatureModal />
         <ThemeFeatureModal />
-        <div className="md:hidden h-full w-full">
-          {uiStyle === "brutalist" ? (
-            <BrutalistThemeLayout {...sharedProps}>
-              {children}
-            </BrutalistThemeLayout>
-          ) : (
-            <MinimalistThemeLayout {...sharedProps}>
-              {children}
-            </MinimalistThemeLayout>
-          )}
-        </div>
-
-        <div 
-          className="hidden md:flex h-screen w-full flex-row overflow-hidden p-1.5 gap-1.5"
-          style={{ backgroundColor: 'color-mix(in srgb, var(--theme-bg), black 12%)' }}
-        >
-          <div className="flex-1 h-full bg-theme-bg rounded-[24px] overflow-hidden border border-theme-border shadow-2xl">
-            <SmoothScroll>
-                {children}
-            </SmoothScroll>
+        {isMobile === false ? (
+          <div
+            className="h-screen w-full flex flex-row overflow-hidden p-1.5 gap-1.5"
+            style={{ backgroundColor: 'color-mix(in srgb, var(--theme-bg), black 12%)' }}
+          >
+            <div className="flex-1 h-full bg-theme-bg rounded-[24px] overflow-hidden border border-theme-border shadow-2xl">
+              <SmoothScroll>{children}</SmoothScroll>
+            </div>
+            <CommandPalette />
+            <DesktopSidebar />
           </div>
-          <CommandPalette />
-          <DesktopSidebar />
-        </div>
+        ) : (
+          <div className="h-full w-full">
+            {uiStyle === "brutalist" ? (
+              <BrutalistThemeLayout {...sharedProps}>
+                {children}
+              </BrutalistThemeLayout>
+            ) : (
+              <MinimalistThemeLayout {...sharedProps}>
+                {children}
+              </MinimalistThemeLayout>
+            )}
+          </div>
+        )}
 
         <FeedbackPopup />
         <CommunityPopup />
