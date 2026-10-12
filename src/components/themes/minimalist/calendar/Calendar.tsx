@@ -345,7 +345,7 @@ const Calendar = ({ data, academia }: any) => {
           variants={itemVariants}
           initial="hidden"
           animate="show"
-          className="absolute bottom-0 left-0 right-0 px-6 pb-[30px] z-30 flex justify-between items-end pointer-events-none"
+          className="absolute bottom-0 left-0 right-0 px-6 pb-[85px] z-30 flex justify-between items-end pointer-events-none"
         >
           {"calendar".split("").map((char, i) => (
             <span

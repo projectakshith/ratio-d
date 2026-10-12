@@ -88,12 +88,12 @@ export default function MinimalTheme({ children, isSwipeDisabled }: MinimalTheme
       </div>
 
       <AnimatePresence>
-        {activeTab === "home" && !isAlertsOpen && (
+        {!isAlertsOpen && (
           <motion.div
             initial={{ y: "100%", opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: "100%", opacity: 0 }}
-            transition={{ duration: 0.6, ease: BEZIER }}
+            transition={{ duration: 0.4, ease: BEZIER }}
             className="absolute bottom-0 left-0 w-full z-50 bg-theme-bg"
           >
             <Navbar />

@@ -168,12 +168,31 @@ export function getCurrentMealAndDay(): { currentDay: DayOfWeek; currentMeal: Me
   return { currentDay, currentMeal };
 }
 
+export function getSegmentedMeals(items: string[]) {
+  const groups: Record<FoodCategory, string[]> = {
+    mains: [],
+    gravies: [],
+    specials: [],
+    extras: [],
+  };
+  for (const item of items) {
+    groups[categorizeItem(item)].push(item);
+  }
+  const order: FoodCategory[] = ["mains", "gravies", "specials", "extras"];
+  return order
+    .filter((cat) => groups[cat].length > 0)
+    .map((cat) => ({
+      category: cat,
+      items: groups[cat],
+    }));
+}
+
 interface MessContentProps {
   onClose?: () => void;
   isModal?: boolean;
 }
 
-export function MessContent({ onClose, isModal = false }: MessContentProps) {
+export function MessMobileView({ onClose, isModal = false }: MessContentProps) {
   const initial = useMemo(() => getCurrentMealAndDay(), []);
   const [selectedDay, setSelectedDay] = useState<DayOfWeek>(initial.currentDay);
   const [selectedMeal, setSelectedMeal] = useState<MealType>(initial.currentMeal);
@@ -181,25 +200,7 @@ export function MessContent({ onClose, isModal = false }: MessContentProps) {
   const meals = WEEKLY_MENU[selectedDay]?.meals || {};
   const currentItems = meals[selectedMeal] || [];
   const timing = MEAL_TIMINGS[selectedMeal];
-
-  const segmentedMeals = useMemo(() => {
-    const groups: Record<FoodCategory, string[]> = {
-      mains: [],
-      gravies: [],
-      specials: [],
-      extras: [],
-    };
-    for (const item of currentItems) {
-      groups[categorizeItem(item)].push(item);
-    }
-    const order: FoodCategory[] = ["mains", "gravies", "specials", "extras"];
-    return order
-      .filter((cat) => groups[cat].length > 0)
-      .map((cat) => ({
-        category: cat,
-        items: groups[cat],
-      }));
-  }, [currentItems]);
+  const segmentedMeals = useMemo(() => getSegmentedMeals(currentItems), [currentItems]);
 
   return (
     <div className={`flex flex-col h-full w-full bg-theme-bg ${isModal ? "overflow-hidden" : "max-w-2xl mx-auto px-6 pt-10 pb-8"}`}>
@@ -402,6 +403,202 @@ export function MessContent({ onClose, isModal = false }: MessContentProps) {
   );
 }
 
+export function MessDesktopView({ onClose, isModal = false }: MessContentProps) {
+  const initial = useMemo(() => getCurrentMealAndDay(), []);
+  const [selectedDay, setSelectedDay] = useState<DayOfWeek>(initial.currentDay);
+
+  return (
+    <div className={`flex flex-col h-full w-full bg-theme-bg ${isModal ? "" : "max-w-6xl mx-auto px-8 py-8"}`}>
+      {/* Desktop Header: Title + Day Selector Tabs + Close */}
+      <div className="flex items-center justify-between w-full shrink-0 gap-6 pb-4 border-b border-theme-subtle">
+        <div className="flex flex-col">
+          <span
+            className="text-[26px] leading-[1] font-black uppercase tracking-[0.15em] text-theme-text"
+            style={{ fontFamily: "'Montserrat', sans-serif" }}
+          >
+            MESS MENU
+          </span>
+          <span
+            className="text-[10px] font-bold lowercase tracking-[0.2em] text-theme-highlight mt-1.5"
+            style={{ fontFamily: "'Afacad', sans-serif" }}
+          >
+            srm ist ktr campus • weekly schedule
+          </span>
+        </div>
+
+        {/* Day Selector Pill Tabs */}
+        <div className="flex items-center gap-1.5 p-1 bg-theme-surface border border-theme-subtle rounded-2xl">
+          {DAYS.map((day) => {
+            const isSelected = selectedDay === day;
+            const isToday = day === initial.currentDay;
+            return (
+              <button
+                key={day}
+                type="button"
+                onClick={() => {
+                  Haptics.selection();
+                  setSelectedDay(day);
+                }}
+                className={`px-3.5 py-1.5 rounded-xl text-[12px] font-bold lowercase transition-all flex items-center gap-1.5 ${
+                  isSelected
+                    ? "bg-theme-emphasis text-theme-bg shadow-sm"
+                    : "text-theme-muted hover:text-theme-text"
+                }`}
+                style={{ fontFamily: "'Montserrat', sans-serif" }}
+              >
+                <span>{day.substring(0, 3)}</span>
+                {isToday && (
+                  <span
+                    className={`w-1.5 h-1.5 rounded-full ${
+                      isSelected ? "bg-theme-bg" : "bg-theme-highlight"
+                    }`}
+                  />
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {onClose && (
+          <button
+            onClick={() => {
+              Haptics.selection();
+              onClose();
+            }}
+            className="w-10 h-10 rounded-full bg-theme-surface flex items-center justify-center text-theme-text hover:bg-theme-surface/80 active:scale-95 transition-all shrink-0"
+            aria-label="Close"
+          >
+            <X size={20} strokeWidth={2.5} />
+          </button>
+        )}
+      </div>
+
+      {/* Desktop 4-Column Meal Overview */}
+      <div className="grid grid-cols-4 gap-4 flex-1 min-h-0 mt-5">
+        {MEALS.map((meal) => {
+          const isCurrent =
+            selectedDay === initial.currentDay && initial.currentMeal === meal.id;
+          const mealItems = WEEKLY_MENU[selectedDay]?.meals[meal.id] || [];
+          const timing = MEAL_TIMINGS[meal.id];
+          const segments = getSegmentedMeals(mealItems);
+
+          return (
+            <div
+              key={meal.id}
+              className={`bg-theme-card border-[1.5px] rounded-[24px] p-4 flex flex-col h-full min-h-0 overflow-hidden transition-all ${
+                isCurrent
+                  ? "border-theme-highlight shadow-sm"
+                  : "border-theme-subtle"
+              }`}
+            >
+              {/* Column Header */}
+              <div className="flex flex-col pb-3 border-b border-theme-subtle shrink-0">
+                <div className="flex items-center justify-between mb-1">
+                  <span
+                    className={`text-[15px] font-black lowercase ${
+                      isCurrent ? "text-theme-highlight" : "text-theme-text"
+                    }`}
+                    style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
+                  >
+                    {meal.label}
+                  </span>
+                  {isCurrent && (
+                    <span
+                      className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-theme-emphasis text-theme-bg"
+                      style={{ fontFamily: "var(--font-afacad), sans-serif" }}
+                    >
+                      now
+                    </span>
+                  )}
+                </div>
+                <span
+                  className="text-[11px] font-bold text-theme-muted"
+                  style={{ fontFamily: "var(--font-afacad), sans-serif" }}
+                >
+                  ⏰ {timing?.label || `${timing?.start} – ${timing?.end}`}
+                </span>
+              </div>
+
+              {/* Column Content: Scrollable Food Categories */}
+              <div className="flex-1 overflow-y-auto no-scrollbar pt-3 flex flex-col gap-3.5 min-h-0">
+                {segments.length > 0 ? (
+                  segments.map(({ category, items }) => (
+                    <div key={category} className="flex flex-col">
+                      {/* Category Header */}
+                      <div className="flex items-center gap-2 mb-1.5 px-0.5">
+                        <span
+                          className="text-[9px] font-black uppercase tracking-[0.2em] text-theme-highlight whitespace-nowrap"
+                          style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
+                        >
+                          {CATEGORY_CONFIG[category].label}
+                        </span>
+                        <div
+                          className="flex-1 h-[1px] rounded-full"
+                          style={{
+                            backgroundColor:
+                              "color-mix(in srgb, var(--theme-text) 8%, transparent)",
+                          }}
+                        />
+                      </div>
+
+                      {/* Items List */}
+                      <div className="flex flex-col">
+                        {items.map((item, idx) => (
+                          <div
+                            key={idx}
+                            className={`flex items-center py-2 px-1 gap-2.5 hover:bg-theme-surface/40 rounded-lg transition-colors ${
+                              idx > 0 ? "border-t" : ""
+                            }`}
+                            style={
+                              idx > 0
+                                ? {
+                                    borderTop:
+                                      "1px solid color-mix(in srgb, var(--theme-text) 6%, transparent)",
+                                  }
+                                : undefined
+                            }
+                          >
+                            <span className="text-base leading-none select-none shrink-0">
+                              {getFoodEmoji(item)}
+                            </span>
+                            <span
+                              className="text-[13px] font-bold text-theme-text lowercase truncate"
+                              style={{ fontFamily: "var(--font-afacad), sans-serif" }}
+                            >
+                              {item}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="py-8 text-center text-theme-muted text-xs font-medium">
+                    no menu items
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+export function MessContent({ onClose, isModal = false }: MessContentProps) {
+  return (
+    <div className="h-full w-full">
+      <div className="hidden md:flex h-full w-full">
+        <MessDesktopView onClose={onClose} isModal={isModal} />
+      </div>
+      <div className="flex md:hidden h-full w-full">
+        <MessMobileView onClose={onClose} isModal={isModal} />
+      </div>
+    </div>
+  );
+}
+
 export default function Mess() {
   return (
     <ReactLenis options={{ orientation: "vertical", smoothWheel: true }} className="h-full w-full overflow-y-auto no-scrollbar">
@@ -415,7 +612,9 @@ export function MessModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
 
   return (
     <AnimatePresence>
+      {/* Mobile Slide-up Drawer (<md) */}
       <motion.div
+        key="mess-mobile-drawer"
         initial={{ y: "100%" }}
         animate={{ y: 0 }}
         exit={{ y: "100%" }}
@@ -429,11 +628,34 @@ export function MessModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
             onClose();
           }
         }}
-        className="fixed inset-0 bg-theme-bg z-[60] flex flex-col overflow-hidden px-6 pt-10 pb-8"
+        className="md:hidden fixed inset-0 bg-theme-bg z-[60] flex flex-col overflow-hidden px-6 pt-10 pb-8"
       >
         <div className="w-12 h-1.5 bg-theme-text-10 rounded-full mx-auto mb-6 shrink-0" />
-        <MessContent onClose={onClose} isModal />
+        <MessMobileView onClose={onClose} isModal />
       </motion.div>
+
+      {/* Desktop Centered Modal Dialog (md+) */}
+      <div
+        key="mess-desktop-dialog"
+        className="hidden md:flex fixed inset-0 z-[60] items-center justify-center p-6 lg:p-8"
+      >
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={onClose}
+          className="fixed inset-0 bg-black/70 backdrop-blur-md"
+        />
+        <motion.div
+          initial={{ opacity: 0, scale: 0.96, y: 14 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.96, y: 14 }}
+          transition={{ duration: 0.25, ease: "easeOut" }}
+          className="relative w-full max-w-6xl h-[86vh] bg-theme-bg border-[1.5px] border-theme-subtle rounded-[32px] p-6 lg:p-8 shadow-2xl z-10 flex flex-col overflow-hidden"
+        >
+          <MessDesktopView onClose={onClose} isModal />
+        </motion.div>
+      </div>
     </AnimatePresence>
   );
 }
