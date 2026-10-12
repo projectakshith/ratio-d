@@ -3,7 +3,7 @@
 import React, { useState, useMemo } from "react";
 import { MEAL_TIMINGS, WEEKLY_MENU } from "@/data/messMenu";
 import { DayOfWeek, MealType } from "@/types/mess";
-import { Coffee, Utensils, CupSoda, ChefHat, X, UtensilsCrossed } from "lucide-react";
+import { X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ReactLenis } from "lenis/react";
 import { Haptics } from "@/utils/shared/haptics";
@@ -18,11 +18,11 @@ export const DAYS: DayOfWeek[] = [
   "sunday",
 ];
 
-export const MEALS = [
-  { id: "breakfast" as MealType, label: "Breakfast", icon: Coffee },
-  { id: "lunch" as MealType, label: "Lunch", icon: Utensils },
-  { id: "snacks" as MealType, label: "Snacks", icon: CupSoda },
-  { id: "dinner" as MealType, label: "Dinner", icon: ChefHat },
+export const MEALS: { id: MealType; label: string }[] = [
+  { id: "breakfast", label: "breakfast" },
+  { id: "lunch", label: "lunch" },
+  { id: "snacks", label: "snacks" },
+  { id: "dinner", label: "dinner" },
 ];
 
 export const getFoodEmoji = (name: string) => {
@@ -85,9 +85,9 @@ export function MessContent({ onClose, isModal = false }: MessContentProps) {
   const timing = MEAL_TIMINGS[selectedMeal];
 
   return (
-    <div className={`flex flex-col h-full w-full bg-theme-bg ${isModal ? "overflow-hidden" : "max-w-2xl mx-auto px-6 pt-10 pb-6"}`}>
+    <div className={`flex flex-col h-full w-full bg-theme-bg ${isModal ? "overflow-hidden" : "max-w-2xl mx-auto px-6 pt-10 pb-8"}`}>
       {/* Top Header */}
-      <div className="flex justify-between items-start w-full shrink-0 mb-4">
+      <div className="flex justify-between items-start w-full shrink-0 mb-8">
         <div className="flex flex-col">
           <span
             className="text-[32px] leading-[1] font-black uppercase tracking-[0.15em] text-theme-text"
@@ -96,7 +96,7 @@ export function MessContent({ onClose, isModal = false }: MessContentProps) {
             MESS MENU
           </span>
           <span
-            className="text-[10px] font-bold lowercase tracking-[0.2em] text-theme-highlight mt-1.5"
+            className="text-[10px] font-bold lowercase tracking-[0.2em] text-theme-highlight mt-2"
             style={{ fontFamily: "'Afacad', sans-serif" }}
           >
             srm ist ktr campus • weekly schedule
@@ -118,7 +118,7 @@ export function MessContent({ onClose, isModal = false }: MessContentProps) {
       </div>
 
       {/* Active Day & Meal Info Banner */}
-      <div className="flex items-center gap-3 w-full shrink-0 mb-3 px-1">
+      <div className="flex items-center gap-3 w-full shrink-0 mb-4 px-1">
         <span
           className="text-[12px] font-bold lowercase tracking-[0.2em] text-theme-highlight whitespace-nowrap"
           style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
@@ -138,8 +138,8 @@ export function MessContent({ onClose, isModal = false }: MessContentProps) {
       </div>
 
       {/* Center: Scrollable Food Menu Card */}
-      <div className="flex-1 overflow-y-auto no-scrollbar pb-3 min-h-0">
-        <div className="w-full bg-theme-card border-theme-subtle border-[1.5px] rounded-[24px] overflow-hidden shadow-sm divide-y divide-theme-border/20">
+      <div className="flex-1 overflow-y-auto no-scrollbar pb-4 min-h-0">
+        <div className="w-full bg-theme-card border-theme-subtle border-[1.5px] rounded-[24px] overflow-hidden shadow-sm divide-y divide-theme-subtle">
           {currentItems.length > 0 ? (
             currentItems.map((item, idx) => (
               <div
@@ -166,12 +166,16 @@ export function MessContent({ onClose, isModal = false }: MessContentProps) {
       </div>
 
       {/* Bottom Thumb Zone: Meal & Day Selectors */}
-      <div className="shrink-0 pt-2 pb-1 flex flex-col gap-2.5 w-full border-t border-theme-border/20 mt-auto">
+      <div
+        className="shrink-0 pt-3.5 pb-2 flex flex-col gap-2.5 w-full mt-auto"
+        style={{
+          borderTop: "1.5px solid color-mix(in srgb, var(--theme-text) 10%, transparent)",
+        }}
+      >
         {/* Meal Selector - Segmented Pills */}
-        <div className="grid grid-cols-4 gap-1.5 p-1 bg-theme-surface border border-theme-subtle rounded-2xl w-full">
+        <div className="grid grid-cols-4 gap-1 p-1 bg-theme-surface border border-theme-subtle rounded-2xl w-full">
           {MEALS.map((meal) => {
             const isSelected = selectedMeal === meal.id;
-            const Icon = meal.icon;
             return (
               <button
                 key={meal.id}
@@ -180,19 +184,18 @@ export function MessContent({ onClose, isModal = false }: MessContentProps) {
                   Haptics.selection();
                   setSelectedMeal(meal.id);
                 }}
-                className={`py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-all ${
+                className={`py-2 px-1 rounded-xl flex items-center justify-center transition-all ${
                   isSelected
                     ? "bg-theme-emphasis text-theme-bg shadow-sm"
                     : "text-theme-muted hover:text-theme-text"
                 }`}
                 style={{ fontFamily: "'Montserrat', sans-serif" }}
               >
-                <Icon
-                  size={14}
-                  strokeWidth={2.5}
-                  className={isSelected ? "text-theme-bg" : "text-theme-muted"}
-                />
-                <span className={`text-[10px] font-black uppercase tracking-wider ${isSelected ? "text-theme-bg" : "text-theme-text"}`}>
+                <span
+                  className={`text-[11px] font-bold lowercase tracking-wider ${
+                    isSelected ? "text-theme-bg" : "text-theme-text"
+                  }`}
+                >
                   {meal.label}
                 </span>
               </button>
@@ -200,8 +203,8 @@ export function MessContent({ onClose, isModal = false }: MessContentProps) {
           })}
         </div>
 
-        {/* Day Selector - Horizontal Scroll with Breathing Room */}
-        <div className="flex space-x-2 overflow-x-auto no-scrollbar py-1 w-full -mx-1 px-1">
+        {/* Day Selector - Clean 7-Day Grid */}
+        <div className="grid grid-cols-7 gap-1.5 w-full">
           {DAYS.map((day) => {
             const isSelected = selectedDay === day;
             const isToday = day === initial.currentDay;
@@ -213,28 +216,27 @@ export function MessContent({ onClose, isModal = false }: MessContentProps) {
                   Haptics.selection();
                   setSelectedDay(day);
                 }}
-                className={`min-w-[62px] py-2 px-3 rounded-2xl flex flex-col items-center justify-center transition-all shrink-0 ${
+                className={`py-2 rounded-xl flex flex-col items-center justify-center transition-all ${
                   isSelected
-                    ? "bg-theme-emphasis text-theme-bg shadow-sm scale-[1.02]"
+                    ? "bg-theme-emphasis text-theme-bg shadow-sm"
                     : "bg-theme-surface text-theme-muted hover:text-theme-text border border-theme-subtle"
                 }`}
                 style={{ fontFamily: "'Montserrat', sans-serif" }}
               >
-                <span className={`text-[12px] font-black uppercase ${isSelected ? "text-theme-bg" : "text-theme-text"}`}>
+                <span
+                  className={`text-[11px] font-bold lowercase leading-tight ${
+                    isSelected ? "text-theme-bg" : "text-theme-text"
+                  }`}
+                >
                   {day.substring(0, 3)}
                 </span>
-                <span
-                  className={`text-[8px] font-bold uppercase tracking-wider mt-0.5 ${
-                    isSelected
-                      ? "text-theme-bg opacity-75"
-                      : isToday
-                        ? "text-theme-highlight font-black"
-                        : "text-theme-muted opacity-60"
-                  }`}
-                  style={{ fontFamily: "'Afacad', sans-serif" }}
-                >
-                  {isToday ? "today" : "day"}
-                </span>
+                {isToday && (
+                  <span
+                    className={`w-1 h-1 rounded-full mt-0.5 ${
+                      isSelected ? "bg-theme-bg" : "bg-theme-highlight"
+                    }`}
+                  />
+                )}
               </button>
             );
           })}
@@ -271,7 +273,7 @@ export function MessModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
             onClose();
           }
         }}
-        className="fixed inset-0 bg-theme-bg z-[60] flex flex-col overflow-hidden px-6 pt-10 pb-6"
+        className="fixed inset-0 bg-theme-bg z-[60] flex flex-col overflow-hidden px-6 pt-10 pb-8"
       >
         <div className="w-12 h-1.5 bg-theme-text-10 rounded-full mx-auto mb-6 shrink-0" />
         <MessContent onClose={onClose} isModal />
