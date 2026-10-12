@@ -243,8 +243,10 @@ export function MessContent({ onClose, isModal = false }: MessContentProps) {
           {selectedDay} • {selectedMeal}
         </span>
         <div
-          className="flex-1 h-[1.5px] rounded-full opacity-20"
-          style={{ backgroundColor: "var(--theme-text)" }}
+          className="flex-1 h-[1px] rounded-full"
+          style={{
+            backgroundColor: "color-mix(in srgb, var(--theme-text) 10%, transparent)",
+          }}
         />
         <span
           className="text-[11px] font-bold text-theme-muted whitespace-nowrap"
@@ -254,47 +256,48 @@ export function MessContent({ onClose, isModal = false }: MessContentProps) {
         </span>
       </div>
 
-      {/* Center: Scrollable Food Menu Card with Categorized Segments */}
-      <div className="flex-1 overflow-y-auto no-scrollbar pb-4 min-h-0">
+      {/* Center: Scrollable Food Menu in a Single Spacious Card */}
+      <div className="flex-1 overflow-y-auto no-scrollbar pb-6 min-h-0">
         {segmentedMeals.length > 0 ? (
-          <div className="flex flex-col gap-4">
-            {segmentedMeals.map(({ category, items }) => (
+          <div className="w-full bg-theme-card border-theme-subtle border-[1.5px] rounded-[24px] overflow-hidden shadow-sm">
+            {segmentedMeals.map(({ category, items }, catIdx) => (
               <div key={category} className="flex flex-col">
                 {/* Segment Header */}
-                <div className="flex items-center gap-2.5 w-full mb-2 px-1">
+                <div
+                  className={`flex items-center justify-between px-5 py-3.5 ${
+                    catIdx > 0 ? "border-t" : ""
+                  } bg-theme-surface/60`}
+                  style={
+                    catIdx > 0
+                      ? {
+                          borderTop: "1px solid color-mix(in srgb, var(--theme-text) 10%, transparent)",
+                        }
+                      : undefined
+                  }
+                >
                   <span
-                    className="text-[10px] font-black uppercase tracking-[0.2em] text-theme-highlight whitespace-nowrap"
+                    className="text-[11px] font-black uppercase tracking-[0.2em] text-theme-highlight"
                     style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
                   >
                     {CATEGORY_CONFIG[category].label}
                   </span>
-                  <div
-                    className="flex-1 h-[1.5px] rounded-full opacity-20"
-                    style={{ backgroundColor: "var(--theme-text)" }}
-                  />
                   <span
-                    className="text-[10px] font-bold text-theme-muted whitespace-nowrap"
+                    className="text-[10px] font-bold text-theme-muted uppercase tracking-wider"
                     style={{ fontFamily: "var(--font-afacad), sans-serif" }}
                   >
                     {items.length} {items.length === 1 ? "item" : "items"}
                   </span>
                 </div>
 
-                {/* Items Card */}
-                <div className="w-full bg-theme-card border-theme-subtle border-[1.5px] rounded-[20px] overflow-hidden shadow-sm">
+                {/* Items */}
+                <div className="flex flex-col">
                   {items.map((item, idx) => (
                     <div
                       key={`${selectedDay}-${selectedMeal}-${category}-${idx}`}
-                      className="flex items-center px-4 py-3 gap-3.5 hover:bg-theme-surface/40 transition-colors"
-                      style={
-                        idx > 0
-                          ? {
-                              borderTop: "1px solid var(--theme-text)",
-                              borderTopColor: "var(--theme-text)",
-                              opacity: 1,
-                            }
-                          : undefined
-                      }
+                      className="flex items-center px-5 py-3.5 gap-4 hover:bg-theme-surface/40 transition-colors border-t"
+                      style={{
+                        borderTop: "1px solid color-mix(in srgb, var(--theme-text) 6%, transparent)",
+                      }}
                     >
                       <span className="text-xl leading-none select-none shrink-0">
                         {getFoodEmoji(item)}
@@ -312,7 +315,7 @@ export function MessContent({ onClose, isModal = false }: MessContentProps) {
             ))}
           </div>
         ) : (
-          <div className="w-full bg-theme-card border-theme-subtle border-[1.5px] rounded-[20px] py-8 text-center text-theme-muted text-sm font-medium">
+          <div className="w-full bg-theme-card border-theme-subtle border-[1.5px] rounded-[24px] py-10 text-center text-theme-muted text-sm font-medium">
             no menu items listed
           </div>
         )}
@@ -322,7 +325,7 @@ export function MessContent({ onClose, isModal = false }: MessContentProps) {
       <div
         className="shrink-0 pt-3.5 pb-2 flex flex-col gap-2.5 w-full mt-auto"
         style={{
-          borderTop: "1.5px solid var(--theme-text)",
+          borderTop: "1px solid color-mix(in srgb, var(--theme-text) 10%, transparent)",
         }}
       >
         {/* Meal Selector - Segmented Pills */}
