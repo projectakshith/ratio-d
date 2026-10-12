@@ -25,6 +25,103 @@ export const MEALS: { id: MealType; label: string }[] = [
   { id: "dinner", label: "dinner" },
 ];
 
+export type FoodCategory = "mains" | "gravies" | "specials" | "extras";
+
+export const CATEGORY_CONFIG: Record<
+  FoodCategory,
+  { label: string; priority: number }
+> = {
+  mains: { label: "mains", priority: 1 },
+  gravies: { label: "gravies & curries", priority: 2 },
+  specials: { label: "specials", priority: 3 },
+  extras: { label: "sides & drinks", priority: 4 },
+};
+
+export function categorizeItem(item: string): FoodCategory {
+  const l = item.toLowerCase();
+
+  // Specials (Non-veg, eggs, paneer)
+  if (
+    l.includes("chicken") ||
+    l.includes("mutton") ||
+    l.includes("fish") ||
+    l.includes("egg") ||
+    l.includes("omlet") ||
+    l.includes("paneer")
+  ) {
+    return "specials";
+  }
+
+  // Staples / Mains (Rice, Breads, Tiffin, Snacks)
+  if (
+    l.includes("rice") ||
+    l.includes("pulao") ||
+    l.includes("pulav") ||
+    l.includes("briyani") ||
+    l.includes("bath") ||
+    l.includes("poori") ||
+    l.includes("chapathi") ||
+    l.includes("paratha") ||
+    l.includes("bhatura") ||
+    l.includes("luchi") ||
+    l.includes("idly") ||
+    l.includes("dosa") ||
+    l.includes("uthappam") ||
+    l.includes("pongal") ||
+    l.includes("upma") ||
+    l.includes("kichadi") ||
+    l.includes("poha") ||
+    l.includes("sevai") ||
+    l.includes("noodles") ||
+    l.includes("pastha") ||
+    l.includes("vadai") ||
+    l.includes("vada") ||
+    l.includes("pav bhaji") ||
+    l.includes("puff") ||
+    l.includes("bun") ||
+    l.includes("sundal") ||
+    l.includes("bonda") ||
+    l.includes("cake") ||
+    l.includes("brownie") ||
+    l.includes("muffin") ||
+    l.includes("bajji")
+  ) {
+    return "mains";
+  }
+
+  // Beverages, Desserts, Condiments, Extras
+  if (
+    l.includes("tea") ||
+    l.includes("coffee") ||
+    l.includes("milk") ||
+    l.includes("juice") ||
+    l.includes("kanji") ||
+    l.includes("sweet") ||
+    l.includes("payasam") ||
+    l.includes("halwa") ||
+    l.includes("jamun") ||
+    l.includes("ice cream") ||
+    l.includes("fruit") ||
+    l.includes("banana") ||
+    l.includes("bread") ||
+    l.includes("butter") ||
+    l.includes("jam") ||
+    l.includes("pickle") ||
+    l.includes("fryum") ||
+    l.includes("chips") ||
+    l.includes("french fry") ||
+    l.includes("salad") ||
+    l.includes("curd") ||
+    l.includes("raitha") ||
+    l.includes("podi") ||
+    l.includes("oil")
+  ) {
+    return "extras";
+  }
+
+  return "gravies";
+}
+
 export const getFoodEmoji = (name: string) => {
   const n = name.toLowerCase();
   if (n.includes("bread") || n.includes("pav")) return "🍞";
@@ -35,6 +132,7 @@ export const getFoodEmoji = (name: string) => {
   if (n.includes("chicken")) return "🍗";
   if (n.includes("mutton") || n.includes("meat")) return "🍖";
   if (n.includes("fish")) return "🐟";
+  if (n.includes("paneer")) return "🧀";
   if (n.includes("rice") || n.includes("pulao") || n.includes("briyani") || n.includes("pulav") || n.includes("bath")) return "🍚";
   if (n.includes("dosa") || n.includes("idly") || n.includes("pongal") || n.includes("uthappam")) return "🥞";
   if (n.includes("chapathi") || n.includes("paratha") || n.includes("poori") || n.includes("luchi") || n.includes("bhatura")) return "🫓";
@@ -83,6 +181,25 @@ export function MessContent({ onClose, isModal = false }: MessContentProps) {
   const meals = WEEKLY_MENU[selectedDay]?.meals || {};
   const currentItems = meals[selectedMeal] || [];
   const timing = MEAL_TIMINGS[selectedMeal];
+
+  const segmentedMeals = useMemo(() => {
+    const groups: Record<FoodCategory, string[]> = {
+      mains: [],
+      gravies: [],
+      specials: [],
+      extras: [],
+    };
+    for (const item of currentItems) {
+      groups[categorizeItem(item)].push(item);
+    }
+    const order: FoodCategory[] = ["mains", "gravies", "specials", "extras"];
+    return order
+      .filter((cat) => groups[cat].length > 0)
+      .map((cat) => ({
+        category: cat,
+        items: groups[cat],
+      }));
+  }, [currentItems]);
 
   return (
     <div className={`flex flex-col h-full w-full bg-theme-bg ${isModal ? "overflow-hidden" : "max-w-2xl mx-auto px-6 pt-10 pb-8"}`}>
@@ -137,32 +254,62 @@ export function MessContent({ onClose, isModal = false }: MessContentProps) {
         </span>
       </div>
 
-      {/* Center: Scrollable Food Menu Card */}
+      {/* Center: Scrollable Food Menu Card with Categorized Segments */}
       <div className="flex-1 overflow-y-auto no-scrollbar pb-4 min-h-0">
-        <div className="w-full bg-theme-card border-theme-subtle border-[1.5px] rounded-[24px] overflow-hidden shadow-sm divide-y divide-theme-subtle">
-          {currentItems.length > 0 ? (
-            currentItems.map((item, idx) => (
-              <div
-                key={`${selectedDay}-${selectedMeal}-${idx}`}
-                className="flex items-center px-4 py-3.5 gap-3.5 hover:bg-theme-surface/40 transition-colors"
-              >
-                <span className="text-xl leading-none select-none shrink-0">
-                  {getFoodEmoji(item)}
-                </span>
-                <span
-                  className="text-[15px] font-bold text-theme-text lowercase leading-snug truncate"
-                  style={{ fontFamily: "var(--font-afacad), sans-serif" }}
-                >
-                  {item}
-                </span>
+        {segmentedMeals.length > 0 ? (
+          <div className="flex flex-col gap-4">
+            {segmentedMeals.map(({ category, items }) => (
+              <div key={category} className="flex flex-col">
+                {/* Segment Header */}
+                <div className="flex items-center gap-2.5 w-full mb-2 px-1">
+                  <span
+                    className="text-[10px] font-black uppercase tracking-[0.2em] text-theme-highlight whitespace-nowrap"
+                    style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
+                  >
+                    {CATEGORY_CONFIG[category].label}
+                  </span>
+                  <div
+                    className="flex-1 h-[1.5px] rounded-full"
+                    style={{
+                      backgroundColor:
+                        "color-mix(in srgb, var(--theme-text) 8%, transparent)",
+                    }}
+                  />
+                  <span
+                    className="text-[10px] font-bold text-theme-muted whitespace-nowrap"
+                    style={{ fontFamily: "var(--font-afacad), sans-serif" }}
+                  >
+                    {items.length} {items.length === 1 ? "item" : "items"}
+                  </span>
+                </div>
+
+                {/* Items Card */}
+                <div className="w-full bg-theme-card border-theme-subtle border-[1.5px] rounded-[20px] overflow-hidden shadow-sm divide-y divide-theme-subtle">
+                  {items.map((item, idx) => (
+                    <div
+                      key={`${selectedDay}-${selectedMeal}-${category}-${idx}`}
+                      className="flex items-center px-4 py-3 gap-3.5 hover:bg-theme-surface/40 transition-colors"
+                    >
+                      <span className="text-xl leading-none select-none shrink-0">
+                        {getFoodEmoji(item)}
+                      </span>
+                      <span
+                        className="text-[15px] font-bold text-theme-text lowercase leading-snug truncate"
+                        style={{ fontFamily: "var(--font-afacad), sans-serif" }}
+                      >
+                        {item}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
-            ))
-          ) : (
-            <div className="py-8 text-center text-theme-muted text-sm font-medium">
-              no menu items listed
-            </div>
-          )}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <div className="w-full bg-theme-card border-theme-subtle border-[1.5px] rounded-[20px] py-8 text-center text-theme-muted text-sm font-medium">
+            no menu items listed
+          </div>
+        )}
       </div>
 
       {/* Bottom Thumb Zone: Meal & Day Selectors */}
