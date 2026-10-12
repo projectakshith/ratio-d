@@ -658,91 +658,46 @@ export default function Dashboard({
                 />
               </div>
 
-              <div
-                onClick={() => {
-                  Haptics.medium();
-                  setIsAlertsOpen(true);
-                }}
-                className="w-full bg-theme-emphasis text-theme-bg border-[1.5px] border-black/5 rounded-[24px] p-2 pr-5 flex items-center gap-4 shadow-sm transition-transform cursor-pointer"
-              >
-                <div
-                  className="w-[50px] h-[50px] rounded-[18px] bg-theme-bg-alpha flex items-center justify-center shrink-0"
-                >
-                  <Bell
-                    size={20}
-                    strokeWidth={2.5}
-                    className="text-theme-bg"
-                  />
-                </div>
-                <div className="flex-1 flex flex-col justify-center min-w-0 py-0.5">
-                  <span
-                    className="text-[15px] font-bold lowercase leading-tight truncate mb-0.5 text-theme-bg"
-                    style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
-                  >
-                    academic alerts
-                  </span>
-                  <AnimatePresence mode="wait">
-                    <motion.span
-                      key={currentAlertIndex}
-                      initial={{ opacity: 0, x: 5 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -5 }}
-                      className="text-[13px] font-medium lowercase text-theme-bg-70 truncate"
-                      style={{ fontFamily: "var(--font-afacad), sans-serif" }}
-                    >
-                      {allAlerts[currentAlertIndex]
-                        ? `${allAlerts[currentAlertIndex].title}: ${allAlerts[currentAlertIndex].desc.split(" / ")[0].substring(0, 20)}...`
-                        : overallPct < 75
-                          ? "attendance might be cooked."
-                          : "stats looking solid."}
-                    </motion.span>
-                  </AnimatePresence>
-                </div>
-                <ChevronRight
-                  size={22}
-                  strokeWidth={2}
-                  className="text-theme-bg-30 shrink-0"
-                />
-              </div>
-
+              {/* Row 2: Academic Alerts (50%) & Mess Menu (50%) - Same ~66px height */}
               <div className="grid grid-cols-2 gap-3 w-full">
-                {/* Recent Marks */}
+                {/* Academic Alerts */}
                 <div
                   onClick={() => {
                     Haptics.medium();
-                    router.push("/marks");
+                    setIsAlertsOpen(true);
                   }}
-                  className="bg-theme-card border-theme-subtle border-[1.5px] rounded-[24px] p-4 flex flex-col justify-between shadow-sm transition-transform cursor-pointer min-w-0 min-h-[135px]"
+                  className="bg-theme-emphasis text-theme-bg border-[1.5px] border-black/5 rounded-[24px] p-2 pr-3.5 flex items-center gap-3 shadow-sm transition-transform cursor-pointer min-w-0 h-[66px]"
                 >
-                  <div className="flex items-center justify-between w-full">
-                    <div className="w-[44px] h-[44px] rounded-[16px] bg-theme-surface flex items-center justify-center shrink-0">
-                      <GraduationCap
-                        size={20}
-                        strokeWidth={2.5}
-                        className={textClass}
-                      />
-                    </div>
-                    <ChevronRight
+                  <div className="w-[50px] h-[50px] rounded-[18px] bg-theme-bg-alpha flex items-center justify-center shrink-0">
+                    <Bell
                       size={20}
-                      strokeWidth={2}
-                      className="text-theme-subtle shrink-0"
+                      strokeWidth={2.5}
+                      className="text-theme-bg"
                     />
                   </div>
-                  <div className="flex flex-col min-w-0 mt-3">
+                  <div className="flex-1 flex flex-col justify-center min-w-0 py-0.5">
                     <span
-                      className={`text-[15px] font-bold lowercase leading-tight ${textClass} truncate mb-0.5`}
+                      className="text-[14px] font-bold lowercase leading-tight truncate mb-0.5 text-theme-bg"
                       style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
                     >
-                      recent marks
+                      alerts
                     </span>
-                    <span
-                      className={`text-[13px] font-medium lowercase ${subTextClass} truncate`}
-                      style={{ fontFamily: "var(--font-afacad), sans-serif" }}
-                    >
-                      {latestMark
-                        ? `${getAcronym(latestMark.title || latestMark.courseTitle || latestMark.code || "")} • ${latestMark.displayScore}/${latestMark.max}`
-                        : "no recent tests"}
-                    </span>
+                    <AnimatePresence mode="wait">
+                      <motion.span
+                        key={currentAlertIndex}
+                        initial={{ opacity: 0, x: 5 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -5 }}
+                        className="text-[12px] font-medium lowercase text-theme-bg-70 truncate"
+                        style={{ fontFamily: "var(--font-afacad), sans-serif" }}
+                      >
+                        {allAlerts[currentAlertIndex]
+                          ? allAlerts[currentAlertIndex].title.toLowerCase()
+                          : overallPct < 75
+                            ? "attendance cooked"
+                            : "all clear"}
+                      </motion.span>
+                    </AnimatePresence>
                   </div>
                 </div>
 
@@ -752,38 +707,68 @@ export default function Dashboard({
                     Haptics.medium();
                     setIsMessOpen(true);
                   }}
-                  className="bg-theme-card border-theme-subtle border-[1.5px] rounded-[24px] p-4 flex flex-col justify-between shadow-sm transition-transform cursor-pointer min-w-0 min-h-[135px]"
+                  className="bg-theme-card border-theme-subtle border-[1.5px] rounded-[24px] p-2 pr-3.5 flex items-center gap-3 shadow-sm transition-transform cursor-pointer min-w-0 h-[66px]"
                 >
-                  <div className="flex items-center justify-between w-full">
-                    <div className="w-[44px] h-[44px] rounded-[16px] bg-theme-surface flex items-center justify-center shrink-0">
-                      <UtensilsCrossed
-                        size={20}
-                        strokeWidth={2.5}
-                        className={textClass}
-                      />
-                    </div>
-                    <span
-                      className="text-[10px] font-bold uppercase tracking-wider text-theme-muted bg-theme-surface px-2.5 py-1 rounded-full border border-theme-subtle shrink-0"
-                      style={{ fontFamily: "var(--font-afacad), sans-serif" }}
-                    >
-                      {messSummary.meal}
-                    </span>
+                  <div className="w-[50px] h-[50px] rounded-[18px] bg-theme-surface flex items-center justify-center shrink-0">
+                    <UtensilsCrossed
+                      size={20}
+                      strokeWidth={2.5}
+                      className={textClass}
+                    />
                   </div>
-                  <div className="flex flex-col min-w-0 mt-3">
+                  <div className="flex-1 flex flex-col justify-center min-w-0 py-0.5">
                     <span
-                      className={`text-[15px] font-bold lowercase leading-tight ${textClass} truncate mb-0.5`}
+                      className={`text-[14px] font-bold lowercase leading-tight ${textClass} truncate mb-0.5`}
                       style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
                     >
-                      mess menu
+                      mess • {messSummary.meal}
                     </span>
                     <span
-                      className={`text-[13px] font-medium lowercase ${subTextClass} truncate`}
+                      className={`text-[12px] font-medium lowercase ${subTextClass} truncate`}
                       style={{ fontFamily: "var(--font-afacad), sans-serif" }}
                     >
                       {messSummary.preview || "view menu"}
                     </span>
                   </div>
                 </div>
+              </div>
+
+              {/* Row 3: Recent Marks - Full Width (~66px height) */}
+              <div
+                onClick={() => {
+                  Haptics.medium();
+                  router.push("/marks");
+                }}
+                className="w-full bg-theme-card border-theme-subtle border-[1.5px] rounded-[24px] p-2 pr-5 flex items-center gap-4 shadow-sm transition-transform cursor-pointer h-[66px]"
+              >
+                <div className="w-[50px] h-[50px] rounded-[18px] bg-theme-surface flex items-center justify-center shrink-0">
+                  <GraduationCap
+                    size={20}
+                    strokeWidth={2.5}
+                    className={textClass}
+                  />
+                </div>
+                <div className="flex-1 flex flex-col justify-center min-w-0 py-0.5">
+                  <span
+                    className={`text-[15px] font-bold lowercase leading-tight ${textClass} truncate mb-0.5`}
+                    style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
+                  >
+                    recent marks
+                  </span>
+                  <span
+                    className={`text-[13px] font-medium lowercase ${subTextClass} truncate`}
+                    style={{ fontFamily: "var(--font-afacad), sans-serif" }}
+                  >
+                    {latestMark
+                      ? `${getAcronym(latestMark.title || latestMark.courseTitle || latestMark.code || "")} • ${latestMark.displayScore}/${latestMark.max}`
+                      : "no recent tests"}
+                  </span>
+                </div>
+                <ChevronRight
+                  size={22}
+                  strokeWidth={2}
+                  className="text-theme-subtle shrink-0"
+                />
               </div>
             </motion.div>
           </motion.div>
