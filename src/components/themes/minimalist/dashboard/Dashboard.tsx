@@ -658,7 +658,45 @@ export default function Dashboard({
                 />
               </div>
 
-              {/* Row 2: Academic Alerts (50%) & Mess Menu (50%) - Same ~66px height */}
+              {/* Row 2: Recent Marks - Full Width (~66px height) */}
+              <div
+                onClick={() => {
+                  Haptics.medium();
+                  router.push("/marks");
+                }}
+                className="w-full bg-theme-card border-theme-subtle border-[1.5px] rounded-[24px] p-2 pr-5 flex items-center gap-4 shadow-sm transition-transform cursor-pointer h-[66px]"
+              >
+                <div className="w-[50px] h-[50px] rounded-[18px] bg-theme-surface flex items-center justify-center shrink-0">
+                  <GraduationCap
+                    size={20}
+                    strokeWidth={2.5}
+                    className={textClass}
+                  />
+                </div>
+                <div className="flex-1 flex flex-col justify-center min-w-0 py-0.5">
+                  <span
+                    className={`text-[15px] font-bold lowercase leading-tight ${textClass} truncate mb-0.5`}
+                    style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
+                  >
+                    recent marks
+                  </span>
+                  <span
+                    className={`text-[13px] font-medium lowercase ${subTextClass} truncate`}
+                    style={{ fontFamily: "var(--font-afacad), sans-serif" }}
+                  >
+                    {latestMark
+                      ? `${getAcronym(latestMark.title || latestMark.courseTitle || latestMark.code || "")} • ${latestMark.displayScore}/${latestMark.max}`
+                      : "no recent tests"}
+                  </span>
+                </div>
+                <ChevronRight
+                  size={22}
+                  strokeWidth={2}
+                  className="text-theme-subtle shrink-0"
+                />
+              </div>
+
+              {/* Row 3: Academic Alerts (50%) & Mess Menu (50%) - Same ~66px height */}
               <div className="grid grid-cols-2 gap-3 w-full">
                 {/* Academic Alerts */}
                 <div
@@ -731,44 +769,6 @@ export default function Dashboard({
                     </span>
                   </div>
                 </div>
-              </div>
-
-              {/* Row 3: Recent Marks - Full Width (~66px height) */}
-              <div
-                onClick={() => {
-                  Haptics.medium();
-                  router.push("/marks");
-                }}
-                className="w-full bg-theme-card border-theme-subtle border-[1.5px] rounded-[24px] p-2 pr-5 flex items-center gap-4 shadow-sm transition-transform cursor-pointer h-[66px]"
-              >
-                <div className="w-[50px] h-[50px] rounded-[18px] bg-theme-surface flex items-center justify-center shrink-0">
-                  <GraduationCap
-                    size={20}
-                    strokeWidth={2.5}
-                    className={textClass}
-                  />
-                </div>
-                <div className="flex-1 flex flex-col justify-center min-w-0 py-0.5">
-                  <span
-                    className={`text-[15px] font-bold lowercase leading-tight ${textClass} truncate mb-0.5`}
-                    style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
-                  >
-                    recent marks
-                  </span>
-                  <span
-                    className={`text-[13px] font-medium lowercase ${subTextClass} truncate`}
-                    style={{ fontFamily: "var(--font-afacad), sans-serif" }}
-                  >
-                    {latestMark
-                      ? `${getAcronym(latestMark.title || latestMark.courseTitle || latestMark.code || "")} • ${latestMark.displayScore}/${latestMark.max}`
-                      : "no recent tests"}
-                  </span>
-                </div>
-                <ChevronRight
-                  size={22}
-                  strokeWidth={2}
-                  className="text-theme-subtle shrink-0"
-                />
               </div>
             </motion.div>
           </motion.div>

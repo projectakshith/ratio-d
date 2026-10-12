@@ -86,8 +86,8 @@ export function MessContent({ onClose, isModal = false }: MessContentProps) {
 
   return (
     <div className={`flex flex-col h-full w-full bg-theme-bg ${isModal ? "overflow-hidden" : "max-w-2xl mx-auto px-6 pt-10 pb-6"}`}>
-      {/* Header */}
-      <div className="flex justify-between items-start w-full shrink-0 mb-6">
+      {/* Top Header */}
+      <div className="flex justify-between items-start w-full shrink-0 mb-4">
         <div className="flex flex-col">
           <span
             className="text-[32px] leading-[1] font-black uppercase tracking-[0.15em] text-theme-text"
@@ -117,79 +117,10 @@ export function MessContent({ onClose, isModal = false }: MessContentProps) {
         )}
       </div>
 
-      {/* Day Selector */}
-      <div className="grid grid-cols-7 gap-1.5 w-full shrink-0 mb-3">
-        {DAYS.map((day) => {
-          const isSelected = selectedDay === day;
-          const isToday = day === initial.currentDay;
-          return (
-            <button
-              key={day}
-              type="button"
-              onClick={() => {
-                Haptics.selection();
-                setSelectedDay(day);
-              }}
-              className={`py-2.5 rounded-[16px] flex flex-col items-center justify-center transition-all ${
-                isSelected
-                  ? "bg-theme-emphasis text-theme-bg shadow-sm"
-                  : "bg-theme-surface text-theme-muted hover:text-theme-text border border-theme-subtle"
-              }`}
-              style={{ fontFamily: "'Montserrat', sans-serif" }}
-            >
-              <span className={`text-[12px] font-black uppercase ${isSelected ? "text-theme-bg" : "text-theme-text"}`}>
-                {day.substring(0, 3)}
-              </span>
-              <span
-                className={`text-[8px] font-bold uppercase tracking-wider mt-0.5 ${
-                  isSelected ? "text-theme-bg opacity-75" : isToday ? "text-theme-highlight font-black" : "text-theme-muted opacity-60"
-                }`}
-                style={{ fontFamily: "'Afacad', sans-serif" }}
-              >
-                {isToday ? "today" : "day"}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Meal Selector */}
-      <div className="grid grid-cols-4 gap-2 w-full shrink-0 mb-4">
-        {MEALS.map((meal) => {
-          const isSelected = selectedMeal === meal.id;
-          const Icon = meal.icon;
-          return (
-            <button
-              key={meal.id}
-              type="button"
-              onClick={() => {
-                Haptics.selection();
-                setSelectedMeal(meal.id);
-              }}
-              className={`py-3 rounded-[16px] flex flex-col items-center justify-center gap-1 transition-all ${
-                isSelected
-                  ? "bg-theme-emphasis text-theme-bg shadow-sm"
-                  : "bg-theme-surface text-theme-muted hover:text-theme-text border border-theme-subtle"
-              }`}
-              style={{ fontFamily: "'Montserrat', sans-serif" }}
-            >
-              <Icon
-                size={16}
-                strokeWidth={2.5}
-                className={isSelected ? "text-theme-bg" : "text-theme-muted"}
-              />
-              <span className={`text-[11px] font-black uppercase tracking-wider ${isSelected ? "text-theme-bg" : "text-theme-text"}`}>
-                {meal.label}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Section Divider / Timings */}
+      {/* Active Day & Meal Info Banner */}
       <div className="flex items-center gap-3 w-full shrink-0 mb-3 px-1">
         <span
-          className="text-[11px] font-bold lowercase tracking-[0.2em] text-theme-highlight whitespace-nowrap"
+          className="text-[12px] font-bold lowercase tracking-[0.2em] text-theme-highlight whitespace-nowrap"
           style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
         >
           {selectedDay} • {selectedMeal}
@@ -206,24 +137,108 @@ export function MessContent({ onClose, isModal = false }: MessContentProps) {
         </span>
       </div>
 
-      {/* Food List */}
-      <div className="flex-1 overflow-y-auto no-scrollbar flex flex-col gap-2.5 pb-6">
-        {currentItems.map((item, idx) => (
-          <div
-            key={`${selectedDay}-${selectedMeal}-${idx}`}
-            className="w-full bg-theme-card border-theme-subtle border-[1.5px] rounded-[20px] p-3.5 px-4 flex items-center gap-4 shadow-sm"
-          >
-            <div className="w-[42px] h-[42px] rounded-[14px] bg-theme-surface flex items-center justify-center shrink-0 text-xl select-none">
-              {getFoodEmoji(item)}
+      {/* Center: Scrollable Food Menu Card */}
+      <div className="flex-1 overflow-y-auto no-scrollbar pb-3 min-h-0">
+        <div className="w-full bg-theme-card border-theme-subtle border-[1.5px] rounded-[24px] overflow-hidden shadow-sm divide-y divide-theme-border/20">
+          {currentItems.length > 0 ? (
+            currentItems.map((item, idx) => (
+              <div
+                key={`${selectedDay}-${selectedMeal}-${idx}`}
+                className="flex items-center px-4 py-3.5 gap-3.5 hover:bg-theme-surface/40 transition-colors"
+              >
+                <span className="text-xl leading-none select-none shrink-0">
+                  {getFoodEmoji(item)}
+                </span>
+                <span
+                  className="text-[15px] font-bold text-theme-text lowercase leading-snug truncate"
+                  style={{ fontFamily: "var(--font-afacad), sans-serif" }}
+                >
+                  {item}
+                </span>
+              </div>
+            ))
+          ) : (
+            <div className="py-8 text-center text-theme-muted text-sm font-medium">
+              no menu items listed
             </div>
-            <span
-              className="text-[15px] font-bold text-theme-text lowercase leading-snug truncate"
-              style={{ fontFamily: "var(--font-afacad), sans-serif" }}
-            >
-              {item}
-            </span>
-          </div>
-        ))}
+          )}
+        </div>
+      </div>
+
+      {/* Bottom Thumb Zone: Meal & Day Selectors */}
+      <div className="shrink-0 pt-2 pb-1 flex flex-col gap-2.5 w-full border-t border-theme-border/20 mt-auto">
+        {/* Meal Selector - Segmented Pills */}
+        <div className="grid grid-cols-4 gap-1.5 p-1 bg-theme-surface border border-theme-subtle rounded-2xl w-full">
+          {MEALS.map((meal) => {
+            const isSelected = selectedMeal === meal.id;
+            const Icon = meal.icon;
+            return (
+              <button
+                key={meal.id}
+                type="button"
+                onClick={() => {
+                  Haptics.selection();
+                  setSelectedMeal(meal.id);
+                }}
+                className={`py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-all ${
+                  isSelected
+                    ? "bg-theme-emphasis text-theme-bg shadow-sm"
+                    : "text-theme-muted hover:text-theme-text"
+                }`}
+                style={{ fontFamily: "'Montserrat', sans-serif" }}
+              >
+                <Icon
+                  size={14}
+                  strokeWidth={2.5}
+                  className={isSelected ? "text-theme-bg" : "text-theme-muted"}
+                />
+                <span className={`text-[10px] font-black uppercase tracking-wider ${isSelected ? "text-theme-bg" : "text-theme-text"}`}>
+                  {meal.label}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Day Selector - Horizontal Scroll with Breathing Room */}
+        <div className="flex space-x-2 overflow-x-auto no-scrollbar py-1 w-full -mx-1 px-1">
+          {DAYS.map((day) => {
+            const isSelected = selectedDay === day;
+            const isToday = day === initial.currentDay;
+            return (
+              <button
+                key={day}
+                type="button"
+                onClick={() => {
+                  Haptics.selection();
+                  setSelectedDay(day);
+                }}
+                className={`min-w-[62px] py-2 px-3 rounded-2xl flex flex-col items-center justify-center transition-all shrink-0 ${
+                  isSelected
+                    ? "bg-theme-emphasis text-theme-bg shadow-sm scale-[1.02]"
+                    : "bg-theme-surface text-theme-muted hover:text-theme-text border border-theme-subtle"
+                }`}
+                style={{ fontFamily: "'Montserrat', sans-serif" }}
+              >
+                <span className={`text-[12px] font-black uppercase ${isSelected ? "text-theme-bg" : "text-theme-text"}`}>
+                  {day.substring(0, 3)}
+                </span>
+                <span
+                  className={`text-[8px] font-bold uppercase tracking-wider mt-0.5 ${
+                    isSelected
+                      ? "text-theme-bg opacity-75"
+                      : isToday
+                        ? "text-theme-highlight font-black"
+                        : "text-theme-muted opacity-60"
+                  }`}
+                  style={{ fontFamily: "'Afacad', sans-serif" }}
+                >
+                  {isToday ? "today" : "day"}
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
