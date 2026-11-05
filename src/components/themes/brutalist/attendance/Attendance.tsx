@@ -231,6 +231,20 @@ const MobileAttendance = ({
     return map;
   }, [calendarData]);
 
+  const dayOrderMap = useMemo(() => {
+    const map = new Map();
+    calendarData.forEach((ev: any) => {
+      if (!ev.date) return;
+      const d = new Date(ev.date);
+      if (isNaN(d.getTime())) return;
+      const normDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      const rawOrder = ev.dayOrder || ev.day_order || ev.order;
+      if (rawOrder && rawOrder !== "-" && rawOrder !== "0")
+        map.set(normDate, String(rawOrder));
+    });
+    return map;
+  }, [calendarData]);
+
   const handleDateClick = (day: number) => {
     const dStr = formatDate(currentCalDate.getFullYear(), currentCalDate.getMonth(), day);
     const now = new Date();
@@ -611,6 +625,7 @@ const MobileAttendance = ({
         formatDate={formatDate}
         isWeekendStr={isWeekendStr}
         holidayMap={holidayMap}
+        dayOrderMap={dayOrderMap}
         isRangeMode={isRangeMode}
         setIsRangeMode={setIsRangeMode}
         rangeStart={rangeStart}

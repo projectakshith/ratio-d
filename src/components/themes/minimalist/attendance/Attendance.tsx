@@ -207,6 +207,24 @@ export default function Attendance({
     return map;
   }, [academia]);
 
+  const dayOrderMap = useMemo(() => {
+    const calDataToUse =
+      academia?.calendarData?.length > 0
+        ? academia.calendarData
+        : calendarDataJson || [];
+    const map = new Map();
+    calDataToUse.forEach((ev: any) => {
+      if (!ev.date) return;
+      const d = new Date(ev.date);
+      if (isNaN(d.getTime())) return;
+      const normDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      const rawOrder = ev.dayOrder || ev.day_order || ev.order;
+      if (rawOrder && rawOrder !== "-" && rawOrder !== "0")
+        map.set(normDate, String(rawOrder));
+    });
+    return map;
+  }, [academia]);
+
   const handleDateClick = (day: number) => {
     const dStr = formatDate(calYear, calMonth, day);
     if (isWeekendStr(dStr) || holidayMap.has(dStr)) return;
@@ -774,6 +792,7 @@ export default function Attendance({
         formatDate={formatDate}
         isWeekendStr={isWeekendStr}
         holidayMap={holidayMap}
+        dayOrderMap={dayOrderMap}
         isRangeMode={isRangeMode}
         setIsRangeMode={setIsRangeMode}
         rangeStart={rangeStart}

@@ -5,6 +5,8 @@ import { useApp } from "@/context/AppContext";
 import { WifiOff, ServerCrash, RefreshCw, CheckCircle2 } from "lucide-react";
 import MinecraftParticles from "./MinecraftParticles";
 import MinecraftAmbience from "./MinecraftAmbience";
+import IsraelParticles from "./IsraelParticles";
+import IsraelWelcome from "./IsraelWelcome";
 import SyncStatusNotification from "./SyncStatusNotification";
 import UpdateHistory from "./UpdateHistory";
 import PortalLoginModal from "./PortalLoginModal";
@@ -314,6 +316,8 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
 
       <MinecraftParticles />
       <MinecraftAmbience />
+      <IsraelParticles />
+      <IsraelWelcome />
       <SyncStatusNotification />
       <AnnouncementToast />
       <UpdateHistory isOpen={isUpdateHistoryOpen} onClose={() => setIsUpdateHistoryOpen(false)} />

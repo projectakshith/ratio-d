@@ -18,6 +18,7 @@ import {
   getCriticalAttendance,
 } from "@/utils/academia/academiaLogic";
 import { getBaseAttendance, getStatus, matchAttendance } from "@/utils/attendance/attendanceLogic";
+import { useTheme } from "@/context/ThemeContext";
 import { processAndSortMarks, buildCourseMap } from "@/utils/marks/marksLogic";
 import { getAcronym } from "@/utils/dashboard/timetableLogic";
 import calendarDataJson from "@/data/calendar_data.json";
@@ -95,6 +96,8 @@ export default function Dashboard({
   const router = useRouter();
   const { cancelledClasses } = useClassCancellations();
   const { customDisplayName, profileSeed } = useApp();
+  const { theme } = useTheme();
+  const isIsrael = theme?.includes("israel");
   const {
     pullY,
     isRefreshing: isLocalRefreshing,
@@ -529,6 +532,21 @@ export default function Dashboard({
                 >
                   {focusLabel}
                 </span>
+                {isIsrael && (
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="var(--theme-highlight)"
+                    strokeWidth="2.2"
+                    className="shrink-0"
+                    style={{ transform: "rotate(9deg)", opacity: 0.9 }}
+                  >
+                    <polygon points="12,2 21.5,18.5 2.5,18.5" />
+                    <polygon points="12,22 2.5,5.5 21.5,5.5" />
+                  </svg>
+                )}
                 <div
                   className="flex-1 h-[1.5px] rounded-full"
                   style={{ backgroundColor: "color-mix(in srgb, var(--theme-text) 10%, transparent)" }}

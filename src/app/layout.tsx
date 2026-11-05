@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono, Afacad, Montserrat } from "next/font/google";
+import { Geist, Geist_Mono, Afacad, Montserrat, Frank_Ruhl_Libre } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
 import { AppProvider } from "@/context/AppContext";
@@ -24,6 +24,12 @@ const urbanosta = localFont({
 const minecraft = localFont({
   src: "../../public/fonts/Minecraft.ttf",
   variable: "--font-minecraft",
+});
+
+const frankRuhl = Frank_Ruhl_Libre({
+  variable: "--font-frankruhl",
+  subsets: ["latin", "hebrew"],
+  weight: ["300", "400", "500", "600", "700", "800", "900"],
 });
 
 const geistSans = Geist({
@@ -116,6 +122,7 @@ export default function RootLayout({
           ${aonic.variable}
           ${urbanosta.variable}
           ${minecraft.variable}
+          ${frankRuhl.variable}
         `}
       >
         <AppProvider>
