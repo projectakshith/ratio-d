@@ -15,6 +15,12 @@ const TICKER_LINES = [
   "after the holidays. the national deadline for never",
   "leaves. pink things. dwarfs. that was the code for the gifts",
   "neither bloc has 61. the beach is open. the coffee is mud",
+  "your attendance fell faster than the shekel",
+  "87% attendance, 0% guilty verdicts",
+  "day order dropped. knesset dissolved.",
+  "trial adjourned. again.",
+  "the ice cream budget is classified",
+  "epstein didn't kill himself",
 ];
 
 const EPSTEIN_TAP_LINES = [
