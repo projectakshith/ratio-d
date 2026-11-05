@@ -403,7 +403,7 @@ export default function Dashboard({
                   className="text-[16px] font-semibold lowercase tracking-widest text-theme-muted mb-[-4px]"
                   style={{ fontFamily: "var(--font-afacad), sans-serif" }}
                 >
-                  sup!
+                  {isIsrael ? "shalom," : "sup!"}
                 </span>
                 <span
                   className={`text-[25px] leading-none font-medium lowercase tracking-tight ${textClass}`}

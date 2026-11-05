@@ -77,8 +77,17 @@ export default function IsraelParticles() {
   const [stars, setStars] = useState<Star[]>([]);
   const [floater, setFloater] = useState<Floater | null>(null);
   const [ticker, setTicker] = useState<string | null>(null);
+  const [videoLive, setVideoLive] = useState(false);
   const starCounter = useRef(0);
+  const floaterTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isIsrael = theme?.includes("israel");
+
+  // the tel-aviv welcome's video takes over the screen — stand down while it plays
+  useEffect(() => {
+    const onVideo = (e: Event) => setVideoLive(Boolean((e as CustomEvent).detail));
+    window.addEventListener("israel:video", onVideo);
+    return () => window.removeEventListener("israel:video", onVideo);
+  }, []);
   const tickerTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const spawnStarsAt = useCallback((x: number, y: number) => {
@@ -189,7 +198,8 @@ export default function IsraelParticles() {
           fromLeft: Math.random() > 0.5,
           duration: 11000 + Math.random() * 3000,
         });
-        setTimeout(() => setFloater(null), 15000);
+        if (floaterTimeoutRef.current) clearTimeout(floaterTimeoutRef.current);
+        floaterTimeoutRef.current = setTimeout(() => setFloater(null), 15000);
       }
     };
     const floaterInterval = setInterval(spawnFloater, 45000);
@@ -206,14 +216,15 @@ export default function IsraelParticles() {
       clearInterval(tickerInterval);
       clearTimeout(firstTicker);
       if (tickerTimeoutRef.current) clearTimeout(tickerTimeoutRef.current);
+      if (floaterTimeoutRef.current) clearTimeout(floaterTimeoutRef.current);
     };
   }, [isIsrael, showTicker]);
 
-  if (!isIsrael) return null;
+  if (!isIsrael || videoLive) return null;
 
   return (
     <>
-      <div className="fixed inset-0 pointer-events-none z-[9998] overflow-hidden">
+      <div className="fixed inset-0 pointer-events-none z-[75] overflow-hidden">
         {stars.map((p) => (
           <div
             key={p.id}
@@ -272,11 +283,7 @@ export default function IsraelParticles() {
                 animate={{ x: 0, opacity: 1 }}
                 exit={{ x: "60vw", opacity: 0 }}
                 transition={{ type: "spring", damping: 24, stiffness: 170 }}
-                className="block w-max max-w-full text-[11px] font-bold lowercase tracking-widest bg-theme-surface/90 border border-theme-subtle text-theme-muted px-4 py-2.5 rounded-2xl text-center backdrop-blur-sm"
-                style={{
-                  WebkitTextStroke: "1px #000",
-                  paintOrder: "stroke fill",
-                }}
+                className="block w-max max-w-full text-[11px] font-bold lowercase tracking-widest bg-theme-surface-90 border border-theme-subtle text-theme-muted px-4 py-2.5 rounded-2xl text-center backdrop-blur-sm"
               >
                 {ticker}
               </motion.span>

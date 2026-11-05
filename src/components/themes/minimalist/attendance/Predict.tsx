@@ -216,7 +216,7 @@ export default function Predict({
                         className={`w-full h-full rounded-[12px] flex items-center justify-center text-[15px] font-black transition-all ${cellStyleToUse}`}
                         style={{ fontFamily: "'Montserrat', sans-serif" }}
                       >
-                        {showDayOrder ? (dayOrderMap.get(dStr) ?? day) : day}
+                        {showDayOrder ? (dayOrderMap.get(dStr) ?? "–") : day}
                       </button>
                       {isToday && !isSelected && (
                         <div className="absolute -top-1 right-1 w-1.5 h-1.5 rounded-full bg-[#0EA5E9]" />
