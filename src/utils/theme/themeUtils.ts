@@ -14,7 +14,8 @@ export type ColorTheme =
   | "yam"
   | "gojo"
   | "eren"
-  | "steve";
+  | "steve"
+  | "israel";
 
 export type UiStyle = "minimalist" | "brutalist";
 
@@ -156,6 +157,14 @@ export const COLOR_THEMES: ThemeMeta[] = [
     isDark: false,
     swatches: ["#35801C", "#5D4037", "#F7F7F7"],
   },
+  {
+    id: "israel",
+    name: "Israel",
+    deity: "The Coalition",
+    description: "Jerusalem stone, tekhelet & gold",
+    isDark: true,
+    swatches: ["#0A1428", "#0038B8", "#4DA3FF"],
+  },
 ];
 
 export const DARK_COLOR_THEMES = new Set<ColorTheme>([
@@ -167,6 +176,7 @@ export const DARK_COLOR_THEMES = new Set<ColorTheme>([
   "brutalist",
   "gojo",
   "eren",
+  "israel",
 ]);
 
 export function parseTheme(fullTheme: string): {

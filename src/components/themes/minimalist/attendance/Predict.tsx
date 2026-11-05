@@ -18,6 +18,7 @@ interface PredictProps {
   formatDate: (y: number, m: number, d: number) => string;
   isWeekendStr: (dateStr: string) => boolean;
   holidayMap: Map<string, boolean>;
+  dayOrderMap: Map<string, string>;
   isRangeMode: boolean;
   setIsRangeMode: (val: boolean) => void;
   rangeStart: string | null;
@@ -43,6 +44,7 @@ export default function Predict({
   formatDate,
   isWeekendStr,
   holidayMap,
+  dayOrderMap,
   isRangeMode,
   setIsRangeMode,
   rangeStart,
@@ -53,6 +55,7 @@ export default function Predict({
   handleDateClick,
   setIsPredicting,
 }: PredictProps) {
+  const [showDayOrder, setShowDayOrder] = React.useState(false);
 
   return (
     <AnimatePresence>
@@ -145,6 +148,30 @@ export default function Predict({
             <div
               className="w-full flex flex-col bg-theme-surface border border-theme-subtle rounded-[24px] p-5 mb-4 shrink-0"
             >
+              <div className="flex items-center justify-between mb-3">
+                <span
+                  className="text-[10px] font-bold uppercase tracking-widest text-theme-muted"
+                  style={{ fontFamily: "'Montserrat', sans-serif" }}
+                >
+                  select dates
+                </span>
+                <div className="flex items-center bg-theme-bg p-0.5 rounded-[10px]">
+                  <button
+                    onClick={() => { Haptics.selection(); setShowDayOrder(false); }}
+                    className={`px-2.5 py-1 rounded-[8px] text-[9px] font-bold uppercase tracking-widest transition-all ${!showDayOrder ? "bg-theme-text-20 text-theme-text" : "text-theme-muted"}`}
+                    style={{ fontFamily: "'Montserrat', sans-serif" }}
+                  >
+                    dates
+                  </button>
+                  <button
+                    onClick={() => { Haptics.selection(); setShowDayOrder(true); }}
+                    className={`px-2.5 py-1 rounded-[8px] text-[9px] font-bold uppercase tracking-widest transition-all ${showDayOrder ? "bg-theme-text-20 text-theme-text" : "text-theme-muted"}`}
+                    style={{ fontFamily: "'Montserrat', sans-serif" }}
+                  >
+                    day order
+                  </button>
+                </div>
+              </div>
               <div className="grid grid-cols-7 gap-2 mb-3">
                 {["s", "m", "t", "w", "t", "f", "s"].map((d, i) => (
                   <div
@@ -189,7 +216,7 @@ export default function Predict({
                         className={`w-full h-full rounded-[12px] flex items-center justify-center text-[15px] font-black transition-all ${cellStyleToUse}`}
                         style={{ fontFamily: "'Montserrat', sans-serif" }}
                       >
-                        {day}
+                        {showDayOrder ? (dayOrderMap.get(dStr) ?? "–") : day}
                       </button>
                       {isToday && !isSelected && (
                         <div className="absolute -top-1 right-1 w-1.5 h-1.5 rounded-full bg-[#0EA5E9]" />

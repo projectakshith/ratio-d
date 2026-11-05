@@ -207,6 +207,44 @@ html, body {
   line-height: 1.1;
 }
 
+[data-theme="israel"] {
+  --theme-primary:   #0038B8;
+  --theme-secondary: #FF4D4D;
+  --theme-accent:    #4DA3FF;
+  --theme-bg:        #0A1428;
+  --theme-text:      #EAF2FF;
+  --theme-highlight: #4DA3FF;
+  --font-montserrat: var(--font-frankruhl), serif !important;
+  --font-afacad: var(--font-frankruhl), serif !important;
+}
+
+[data-theme="israel"] body,
+[data-theme="israel"] span,
+[data-theme="israel"] div,
+[data-theme="israel"] p,
+[data-theme="israel"] h1,
+[data-theme="israel"] h2,
+[data-theme="israel"] h3,
+[data-theme="israel"] h4,
+[data-theme="israel"] h5,
+[data-theme="israel"] h6,
+[data-theme="israel"] button,
+[data-theme="israel"] label,
+[data-theme="israel"] input,
+[data-theme="israel"] textarea,
+[data-theme="israel"] a {
+  font-family: var(--font-frankruhl), serif !important;
+}
+
+/* the login screen scopes its own gojo palette — let its display fonts through */
+[data-theme="israel"] [data-theme="gojo"] :is(span, div, p, h1, h2, h3, h4, h5, h6) {
+  font-family: revert !important;
+}
+
+.bg-theme-surface-90 {
+  background-color: color-mix(in srgb, var(--theme-text) 10%, color-mix(in srgb, var(--theme-bg) 90%, transparent));
+}
+
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-montserrat), sans-serif;
 }
