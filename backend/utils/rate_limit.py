@@ -1,3 +1,4 @@
+from __future__ import annotations
 import json
 from fastapi import Request
 from slowapi import Limiter
