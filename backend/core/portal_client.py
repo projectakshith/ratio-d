@@ -95,11 +95,20 @@ class PortalSession:
         self.captcha_field_name = cf.group(1) if cf else "cptoken_x"
         m = re.search(r'"captchaText"\s*:\s*"([^"]+)"', text) or re.search(r"captchaText\s*=\s*'([^']+)'", text)
         self.exposed_captcha_text = m.group(1) if m else ""
-        m = re.search(r"randomDelimiter\s*=\s*'([^']+)'", text)
+        m = re.search(r'randomDelimiter\s*=\s*[\'"]([^\'"]+)[\'"]', text)
         self.random_delimiter = m.group(1) if m else "0000"
         fields = {}
-        for inp in re.finditer(r"<input[^>]*name=['\"]([^'\"]+)['\"][^>]*>", text):
-            fields[inp.group(1)] = ""
+        from bs4 import BeautifulSoup
+        soup = BeautifulSoup(text, "html.parser")
+        form = soup.find("form", id="login_form")
+        if form:
+            for inp in form.find_all("input"):
+                name = inp.get("name")
+                if name:
+                    fields[name] = inp.get("value", "")
+        else:
+            for inp in re.finditer(r"<input[^>]*name=['\"]([^'\"]+)['\"][^>]*>", text):
+                fields[inp.group(1)] = ""
         self.login_form_fields = fields
         m = re.search(r"SCaptchaServlet[^'\" ]*", text)
         captcha_url = None
