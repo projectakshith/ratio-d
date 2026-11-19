@@ -6,16 +6,12 @@ import json
 import hmac
 import hashlib
 import secrets
-import logging
-from datetime import datetime
 from contextlib import asynccontextmanager
 import httpx
 import uvicorn
-
-logging.getLogger("httpx").setLevel(logging.WARNING)
-logging.getLogger("httpcore").setLevel(logging.WARNING)
 from core.academia_client import AcademiaClient
 from core.portal_client import PortalClient, PortalSession
+from core.deduplicator import portal_flight, academia_flight
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse, PlainTextResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -31,28 +27,64 @@ from services.portal_marks_service import PortalMarksService
 from services.portal_timetable_service import PortalTimetableService
 from services.portal_profile_service import PortalProfileService
 from dotenv import load_dotenv
-from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
+from utils.logging_config import (
+    setup_logging,
+    set_request_context,
+    api_logger,
+    portal_logger,
+    ocr_logger,
+    auth_logger,
+)
+from utils.rate_limit import limiter, extract_user_id
+from utils.stats import metrics
 
 load_dotenv()
-load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env.local'))
+load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env.local"))
 
+setup_logging()
+
+TINYOCR_URL = os.getenv("TINYOCR_URL", "http://127.0.0.1:8080")
+TINYOCR_API_KEY = os.getenv("TINYOCR_API_KEY", "")
+MAX_OCR_ATTEMPTS = 4
+
+def print_banner(server_url: str, ocr_url: str):
+    width = 38
+    lines = [
+        "ratio'd",
+        f"server: {server_url}",
+        f"ocr:    {ocr_url}",
+        "",
+        "endpoints:",
+        "  /portal/refresh",
+        "  /portal/login",
+        "  /portal/captcha",
+        "  /refresh",
+        "  /login",
+        "  /captcha/solve",
+        "  /stats",
+    ]
+    border_top = f"\033[90m┌{'─' * (width + 4)}┐\033[0m"
+    border_bot = f"\033[90m└{'─' * (width + 4)}┘\033[0m"
+    print(border_top)
+    for l in lines:
+        if l == "ratio'd":
+            pad = width - len(l)
+            print(f"\033[90m│\033[0m  \033[36m{l}\033[0m{' ' * pad}  \033[90m│\033[0m")
+        else:
+            pad = width - len(l)
+            print(f"\033[90m│\033[0m  {l}{' ' * pad}  \033[90m│\033[0m")
+    print(border_bot)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     app.state.http_client = httpx.AsyncClient(timeout=10.0)
+    server_url = f"http://{os.getenv('HOST', '127.0.0.1')}:{os.getenv('PORT', '8000')}"
+    print_banner(server_url, TINYOCR_URL)
     yield
     await app.state.http_client.aclose()
 
-
-# ── tinyocr captcha auto-solver ──────────────────────────────
-TINYOCR_URL = os.getenv("TINYOCR_URL", "http://127.0.0.1:8080")
-TINYOCR_API_KEY = os.getenv("TINYOCR_API_KEY", "")
-MAX_OCR_ATTEMPTS = 4  # portal locks at 5 wrong captchas; keep 1 for manual
-
 _ocr_client: httpx.AsyncClient | None = None
-
 
 async def _get_ocr_client() -> httpx.AsyncClient:
     global _ocr_client
@@ -65,9 +97,7 @@ async def _get_ocr_client() -> httpx.AsyncClient:
         )
     return _ocr_client
 
-
 async def solve_captcha_ocr_bytes(image_bytes: bytes) -> tuple[bool, str, int]:
-    """Send raw image bytes to TinyOCR /predict and return (ok, text_or_error, status_code)."""
     try:
         ocr = await _get_ocr_client()
         resp = await ocr.post(
@@ -77,8 +107,10 @@ async def solve_captcha_ocr_bytes(image_bytes: bytes) -> tuple[bool, str, int]:
         )
         if resp.status_code == 200:
             data = resp.json()
+            metrics.record_ocr(True)
             return True, data.get("text", ""), 200
         else:
+            metrics.record_ocr(False)
             err_detail = ""
             try:
                 err_detail = resp.json().get("error", resp.text)
@@ -88,30 +120,19 @@ async def solve_captcha_ocr_bytes(image_bytes: bytes) -> tuple[bool, str, int]:
     except Exception as e:
         return False, f"TinyOCR request failed: {str(e)}", 503
 
-
 async def solve_captcha_ocr(image_url: str) -> str | None:
-    """Download captcha image from academia and send to TinyOCR /predict."""
     try:
         async with httpx.AsyncClient(timeout=5.0) as dl:
             img_resp = await dl.get(image_url)
             if img_resp.status_code != 200:
-                print(f"  -> [OCR] Failed to download captcha image (HTTP {img_resp.status_code})", flush=True)
+                ocr_logger.warning(f"Failed to download captcha image (HTTP {img_resp.status_code})")
                 return None
             image_bytes = img_resp.content
         ok, text, _ = await solve_captcha_ocr_bytes(image_bytes)
         return text if ok else None
     except Exception as e:
-        print(f"  -> [OCR] TinyOCR error: {e}", flush=True)
+        ocr_logger.error(f"TinyOCR error: {e}")
         return None
-
-
-def get_rate_limit_key(request: Request):
-    return (
-        request.headers.get("CF-Connecting-IP") or
-        get_remote_address(request)
-    )
-
-limiter = Limiter(key_func=get_rate_limit_key)
 
 _docs_enabled = os.getenv("ENV") == "development"
 app = FastAPI(
@@ -166,31 +187,47 @@ def verify_request(sig_header: str, body: bytes) -> bool:
         return False
 
 @app.middleware("http")
-async def security_middleware(request: Request, call_next):
+async def context_and_security_middleware(request: Request, call_next):
     if request.method == "OPTIONS":
         return await call_next(request)
 
-    if os.getenv("ENV") == "development":
-        return await call_next(request)
-
-    if request.url.path == "/feedback":
-        return await call_next(request)
+    req_id = secrets.token_hex(4)
+    request.state.request_id = req_id
 
     body = await request.body()
-
     async def receive():
         return {"type": "http.request", "body": body}
-
     request._receive = receive
 
-    sig = request.headers.get("X-Ratio-Sig", "")
-    if not verify_request(sig, body):
-        return PlainTextResponse(status_code=403, content="forbidden")
+    user_id = extract_user_id(body) or "anon"
+    request.state.user_id = user_id
+    client_ip = request.headers.get("CF-Connecting-IP") or (request.client.host if request.client else "-")
+    set_request_context(user_id, client_ip, req_id)
 
-    return await call_next(request)
+    if os.getenv("ENV") != "development" and request.url.path != "/feedback":
+        sig = request.headers.get("X-Ratio-Sig", "")
+        if not verify_request(sig, body):
+            api_logger.warning(f"Forbidden request to {request.url.path}")
+            return PlainTextResponse(status_code=403, content="forbidden")
 
-def get_now():
-    return datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3] + " IST"
+    start = time.perf_counter()
+    metrics.start_request()
+    try:
+        response = await call_next(request)
+        duration_s = time.perf_counter() - start
+        metrics.record_request(user_id, response.status_code, duration_s * 1000.0)
+        api_logger.info(f"{request.method} {request.url.path} {response.status_code} ({duration_s:.1f}s)")
+        response.headers["X-Request-ID"] = req_id
+        return response
+    except Exception as e:
+        duration_s = time.perf_counter() - start
+        metrics.record_request(user_id, 500, duration_s * 1000.0)
+        api_logger.error(f"{request.method} {request.url.path} 500 error ({duration_s:.1f}s): {e}")
+        raise
+
+@app.get("/stats")
+async def get_stats():
+    return metrics.get_summary()
 
 @app.post("/feedback")
 @limiter.limit("3/minute")
@@ -212,14 +249,6 @@ async def get_version():
 @app.post("/captcha/solve")
 @limiter.limit("15/minute")
 async def solve_captcha_endpoint(request: Request):
-    """
-    Debug and integration endpoint for TinyOCR captcha prediction.
-    Accepts:
-      - JSON: { "image": "data:image/png;base64,..." } or { "image_b64": "..." } or { "image_url": "..." }
-      - Raw body: image bytes
-    Returns:
-      { "success": true, "text": "...", "image": "data:image/png;base64,..." }
-    """
     image_bytes = None
     content_type = request.headers.get("content-type", "")
 
@@ -271,35 +300,20 @@ async def solve_captcha_endpoint(request: Request):
     }
 
 @app.get("/pyq-proxy")
-async def pyq_proxy(path: str, q: str = None, limit: int = None, cursor: str = None):
-    """
-    Proxy requests to the SRM PYQ API to bypass CORS.
-    Example: /pyq-proxy?path=/v1/courses/21CSE253T/papers
-    """
-    target_base = "https://srm-pyq-api.onrender.com"
-    target_url = f"{target_base}{path}"
-    
-    params = {}
-    if q: params["q"] = q
-    if limit: params["limit"] = limit
-    if cursor: params["cursor"] = cursor
-
-    async with httpx.AsyncClient() as client:
+async def pyq_proxy(course_code: str = ""):
+    if not course_code:
+        raise HTTPException(status_code=400, detail="Missing course_code")
+    clean_code = course_code.strip().upper()
+    url = f"https://api.clueless.am/search?query={clean_code}"
+    async with httpx.AsyncClient(timeout=8.0) as client:
         try:
-            response = await client.get(target_url, params=params, timeout=10.0)
-            return JSONResponse(
-                status_code=response.status_code,
-                content=response.json()
-            )
+            res = await client.get(url)
+            return JSONResponse(status_code=res.status_code, content=res.json())
         except Exception as e:
-            print(f"[API] PYQ Proxy Error: {str(e)}")
+            api_logger.error(f"PYQ Proxy Error: {e}")
             raise HTTPException(status_code=500, detail="Failed to fetch from PYQ API")
 
-@app.post("/refresh")
-@limiter.limit("3/minute")
-async def refresh_data(creds: Credentials, request: Request):
-    start_total = time.time()
-    print(f"[API] Incoming REFRESH request for: {creds.username}", flush=True)
+async def _execute_academia_refresh(creds: Credentials):
     try:
         if not creds.cookies and not creds.password:
             raise HTTPException(status_code=401, detail={"type": "SESSION_EXPIRED"})
@@ -322,7 +336,7 @@ async def refresh_data(creds: Credentials, request: Request):
         session_dead = (profile_html is None or profile_html == "CONCURRENT_ERROR") and (att_html is None or att_html == "CONCURRENT_ERROR")
 
         if session_dead and creds.password:
-            print(f"{get_now()}\n  -> [AUTH] Session invalid or site glitch. Attempting re-auth...", flush=True)
+            auth_logger.info("Session invalid, re-authenticating...")
             try:
                 await client.authenticate(creds.captcha, creds.cdigest)
                 res_prof, res_g1, res_g2, res_att = await asyncio.gather(
@@ -345,7 +359,7 @@ async def refresh_data(creds: Credentials, request: Request):
         if session_dead:
             if not creds.password:
                 raise HTTPException(status_code=401, detail={"type": "SESSION_EXPIRED"})
-            print(f"{get_now()}\n  -> [AUTH] FAILED: Site returned no data after re-auth.", flush=True)
+            auth_logger.error("Site returned no data after re-auth")
             raise HTTPException(status_code=503, detail="Academia returned no data. Site might be down.")
 
         attendance = AttendanceService.parse_attendance(att_html)
@@ -363,7 +377,6 @@ async def refresh_data(creds: Credentials, request: Request):
                 schedule = TimetableService.parse_unified_grid(grid_html, courses)
 
         current_cookies = {c.name: c.value for c in client.session_handler.client.cookies.jar}
-        print(f"[API] Refresh completed in {time.time() - start_total:.2f}s", flush=True)
         res_data = {
             "success": True,
             "attendance": attendance,
@@ -378,18 +391,15 @@ async def refresh_data(creds: Credentials, request: Request):
             res_data["schedule"] = schedule
         return res_data
 
-
-
-
     except (httpx.NetworkError, httpx.TimeoutException) as e:
         err_msg = str(e)
-        print(f"{get_now()}\n  -> [API] NETWORK ERROR in /refresh: {err_msg}", flush=True)
+        api_logger.error(f"Network error in /refresh: {err_msg}")
         raise HTTPException(status_code=503, detail="Academia server is unreachable. Please try again later.")
     except HTTPException as e:
         raise e
     except Exception as e:
         err_msg = str(e)
-        print(f"{get_now()}\n  -> [API] ERROR in /refresh: {err_msg}", flush=True)
+        api_logger.error(f"Error in /refresh: {err_msg}")
         try:
             err_data = json.loads(err_msg)
             if isinstance(err_data, dict) and err_data.get("type") == "CAPTCHA_REQUIRED":
@@ -398,11 +408,17 @@ async def refresh_data(creds: Credentials, request: Request):
             pass
         raise HTTPException(status_code=500, detail="Something went wrong while fetching data.")
 
+@app.post("/refresh")
+@limiter.limit("10/minute")
+async def refresh_data(creds: Credentials, request: Request):
+    if creds.username:
+        key = f"academia:{creds.username.split('@')[0].strip().lower()}"
+        return await academia_flight.execute(key, _execute_academia_refresh, creds)
+    return await _execute_academia_refresh(creds)
+
 @app.post("/login")
 @limiter.limit("5/minute")
 async def login(creds: LoginCredentials, request: Request):
-    start_total = time.time()
-    print(f"[API] Incoming login request for: {creds.username}", flush=True)
     try:
         client = AcademiaClient(creds.username, creds.password, creds.cookies)
         if not creds.cookies:
@@ -422,7 +438,7 @@ async def login(creds: LoginCredentials, request: Request):
         session_dead = (profile_html is None or profile_html == "CONCURRENT_ERROR")
 
         if session_dead:
-            print(f"{get_now()}\n  -> [AUTH] Re-authenticating...", flush=True)
+            auth_logger.info("Re-authenticating...")
             await client.authenticate(creds.captcha, creds.cdigest)
             res_prof, res_g1, res_g2, res_att = await asyncio.gather(
                 client.get_profile_html(),
@@ -436,7 +452,7 @@ async def login(creds: LoginCredentials, request: Request):
             att_html = res_att if isinstance(res_att, str) else None
 
         if not profile_html:
-            print(f"{get_now()}\n  -> [ACADEMIA] INFO: Authenticated successfully, but profile page is not yet operational.", flush=True)
+            api_logger.info("Authenticated successfully, profile not yet ready")
             raise HTTPException(status_code=503, detail="Academia is not fully operational yet.")
 
         profile = ProfileService.parse_student_profile(profile_html)
@@ -456,7 +472,6 @@ async def login(creds: LoginCredentials, request: Request):
             schedule = TimetableService.parse_unified_grid(grid_html, course_map)
             
         current_cookies = {c.name: c.value for c in client.session_handler.client.cookies.jar}
-        print(f"[API] Login completed in {time.time() - start_total:.2f}s", flush=True)
         return {
             "success": True,
             "profile": profile,
@@ -468,13 +483,13 @@ async def login(creds: LoginCredentials, request: Request):
         }
     except (httpx.NetworkError, httpx.TimeoutException) as e:
         err_msg = str(e)
-        print(f"{get_now()}\n  -> [API] NETWORK ERROR in /login: {err_msg}", flush=True)
+        api_logger.error(f"Network error in /login: {err_msg}")
         raise HTTPException(status_code=503, detail="Academia server is unreachable. Please try again later.")
     except HTTPException as e:
         raise e
     except Exception as e:
         err_msg = str(e)
-        print(f"{get_now()}\n  -> [API] ERROR in /login: {err_msg}", flush=True)
+        api_logger.error(f"Error in /login: {err_msg}")
         try:
             err_data = json.loads(err_msg)
             if isinstance(err_data, dict) and err_data.get("type") == "CAPTCHA_REQUIRED":
@@ -483,9 +498,7 @@ async def login(creds: LoginCredentials, request: Request):
             pass
         raise HTTPException(status_code=401, detail="Invalid Credentials")
 
-
 _portal_captcha_sessions = {}
-
 
 @app.post("/portal/captcha")
 @limiter.limit("15/minute")
@@ -494,7 +507,7 @@ async def portal_captcha(request: Request):
     try:
         info = await session.load_captcha()
     except Exception as e:
-        print(f"{get_now()}\n  -> [API] ERROR loading portal captcha: {e}", flush=True)
+        portal_logger.error(f"Error loading captcha: {e}")
         raise HTTPException(status_code=503, detail="Portal unavailable right now.")
     sid = secrets.token_hex(8)
     _portal_captcha_sessions[sid] = session
@@ -515,9 +528,8 @@ async def portal_captcha(request: Request):
         **info
     }
 
-
 @app.post("/portal/login")
-@limiter.limit("15/minute")
+@limiter.limit("5/minute")
 async def portal_login(creds: PortalCredentials, request: Request):
     if creds.cookies:
         client = PortalClient(creds.cookies)
@@ -572,47 +584,47 @@ async def portal_login(creds: PortalCredentials, request: Request):
     if not captcha_val:
         while ocr_attempts < 4:
             ocr_attempts += 1
-            print(f"  -> [OCR] Portal auto-solve attempt {ocr_attempts}/4", flush=True)
             try:
                 if not hasattr(session, "captcha_bytes") or not session.captcha_bytes:
                     await session.load_captcha()
                 ok, solved, _ = await solve_captcha_ocr_bytes(session.captcha_bytes)
                 if not ok or not solved:
-                    print("  -> [OCR] Portal OCR solver failed to predict captcha", flush=True)
+                    ocr_logger.warning("OCR failed to predict captcha")
                     break
-                print(f"  -> [OCR] Predicted: '{solved}'", flush=True)
+                ocr_logger.info(f"predicted: '{solved}'")
                 res = await session.login(netid, password, solved, telemetry=creds.telemetry)
                 if res.get("ok"):
-                    print(f"  -> [OCR] Portal login successful on attempt {ocr_attempts}!", flush=True)
+                    portal_logger.info(f"Login successful ('{solved}')")
                     captcha_val = solved
                     login_res = res
                     break
                 
                 if res.get("reason") in ["invalid_credentials", "account_locked"]:
-                    print(f"  -> [OCR] Credential error on portal. Halting retries immediately: {res.get('message')}", flush=True)
+                    portal_logger.warning(f"Login failed: {res.get('message')}")
                     login_res = res
                     break
                 elif res.get("reason") == "wrong_captcha":
+                    ocr_logger.warning(f"Attempt {ocr_attempts}/4 wrong captcha ('{solved}')")
                     session = PortalSession()
                     await session.load_captcha()
                 else:
                     login_res = res
                     break
             except (httpx.HTTPError, httpx.RequestError) as e:
-                print(f"  -> [OCR] Portal connection error: {e}", flush=True)
+                portal_logger.error(f"Portal connection error: {e}")
                 raise HTTPException(status_code=503, detail="Student Portal is unreachable or timing out. Please try again later.")
             except Exception as e:
-                print(f"  -> [OCR] Portal login error: {e}", flush=True)
+                portal_logger.error(f"Portal login error: {e}")
                 break
 
     if not login_res and captcha_val:
         try:
             login_res = await session.login(netid, password, captcha_val, telemetry=creds.telemetry)
         except (httpx.ConnectTimeout, httpx.ConnectError, httpx.ReadTimeout, httpx.ReadError) as e:
-            print(f"{get_now()}\n  -> [API] Portal connection error in /portal/login: {e}", flush=True)
+            portal_logger.error(f"Connection error in /portal/login: {e}")
             raise HTTPException(status_code=503, detail="Student Portal is unreachable or timing out. Please try again later.")
         except Exception as e:
-            print(f"{get_now()}\n  -> [API] ERROR in /portal/login: {e}", flush=True)
+            portal_logger.error(f"Error in /portal/login: {e}")
             raise HTTPException(status_code=401, detail={"type": "INVALID_CREDENTIALS", "message": "Invalid credentials"})
 
     if not login_res or not login_res.get("ok"):
@@ -672,7 +684,7 @@ async def portal_login(creds: PortalCredentials, request: Request):
         tt_html = results[2] if not isinstance(results[2], Exception) else None
         prof_html = results[3] if not isinstance(results[3], Exception) else None
     except Exception as e:
-        print(f"  -> [PORTAL] Connect error fetching details after login: {e}", flush=True)
+        portal_logger.error(f"Error fetching details after login: {e}")
         att_html, marks, tt_html, prof_html = None, [], None, None
     courses, monthly = await asyncio.to_thread(PortalAttendanceService.parse, att_html) if att_html else ([], [])
     if courses and marks:
@@ -708,10 +720,7 @@ async def portal_login(creds: PortalCredentials, request: Request):
         out["profile"] = profile
     return out
 
-
-@app.post("/portal/refresh")
-@limiter.limit("60/minute")
-async def portal_refresh(creds: PortalCredentials, request: Request):
+async def _execute_portal_refresh(creds: PortalCredentials):
     if not creds.cookies and not (creds.username and creds.password):
         raise HTTPException(status_code=401, detail={"type": "SESSION_EXPIRED"})
     client = PortalClient(creds.cookies)
@@ -728,7 +737,7 @@ async def portal_refresh(creds: PortalCredentials, request: Request):
         tt_html = results[2] if not isinstance(results[2], Exception) else None
     if att_html is None:
         if creds.username and creds.password:
-            print("  -> [OCR] Portal session expired. Running background re-auth...", flush=True)
+            portal_logger.info("Session expired, re-authenticating...")
             netid = (creds.username or "").strip().split("@")[0]
             password = creds.password or ""
             ocr_attempts = 0
@@ -736,7 +745,6 @@ async def portal_refresh(creds: PortalCredentials, request: Request):
 
             while ocr_attempts < 4:
                 ocr_attempts += 1
-                print(f"  -> [OCR] Portal background re-auth attempt {ocr_attempts}/4", flush=True)
                 session = PortalSession()
                 try:
                     await session.load_captcha()
@@ -744,10 +752,10 @@ async def portal_refresh(creds: PortalCredentials, request: Request):
                     if not ok or not solved:
                         await session.client.aclose()
                         break
-                    print(f"  -> [OCR] Predicted: '{solved}'", flush=True)
+                    ocr_logger.info(f"predicted: '{solved}'")
                     res = await session.login(netid, password, solved)
                     if res.get("ok"):
-                        print(f"  -> [OCR] Portal background re-auth successful!", flush=True)
+                        portal_logger.info(f"Re-auth successful ('{solved}')")
                         reauth_success = True
                         client = PortalClient(res["cookies"])
                         results = await asyncio.gather(
@@ -762,14 +770,14 @@ async def portal_refresh(creds: PortalCredentials, request: Request):
                         await session.client.aclose()
                         break
                     elif res.get("reason") in ["invalid_credentials", "account_locked"]:
-                        print(f"  -> [OCR] Aborting background re-auth to protect account from lockout: {res.get('message')}", flush=True)
+                        portal_logger.warning(f"Re-auth aborted: {res.get('message')}")
                         await session.client.aclose()
                         break
                     else:
-                        print(f"  -> [OCR] Portal background re-auth attempt {ocr_attempts} failed. Reason: {res.get('reason')}", flush=True)
+                        ocr_logger.warning(f"Re-auth attempt {ocr_attempts}/4 wrong captcha ('{solved}')")
                         await session.client.aclose()
                 except (httpx.ConnectError, httpx.ConnectTimeout, httpx.NetworkError, httpx.RemoteProtocolError) as e:
-                    print(f"  -> [PORTAL] Connection drop during re-auth ({e}). Retrying attempt...", flush=True)
+                    portal_logger.warning(f"Connection dropped ({e}), retrying attempt...")
                     try:
                         await session.client.aclose()
                     except Exception:
@@ -777,14 +785,14 @@ async def portal_refresh(creds: PortalCredentials, request: Request):
                     await asyncio.sleep(0.3)
                     continue
                 except Exception as e:
-                    print(f"  -> [OCR] Background Portal re-auth error: {e}", flush=True)
+                    portal_logger.error(f"Re-auth error: {e}")
                     try:
                         await session.client.aclose()
                     except Exception:
                         pass
 
             if not reauth_success:
-                print("  -> [OCR] Background Portal re-auth failed after 4 attempts", flush=True)
+                portal_logger.error("Re-auth failed after 4 attempts")
 
     if att_html is None:
         raise HTTPException(status_code=401, detail={"type": "SESSION_EXPIRED"})
@@ -819,6 +827,13 @@ async def portal_refresh(creds: PortalCredentials, request: Request):
         res["courses"] = course_map
     return res
 
+@app.post("/portal/refresh")
+@limiter.limit("15/minute")
+async def portal_refresh(creds: PortalCredentials, request: Request):
+    if creds.username:
+        key = f"portal:{creds.username.split('@')[0].strip().lower()}"
+        return await portal_flight.execute(key, _execute_portal_refresh, creds)
+    return await _execute_portal_refresh(creds)
 
 _announcements_history = {
     "latest": {"id": None, "text": "", "image_url": None, "files": [], "created_at": None},
@@ -872,4 +887,3 @@ async def get_announcements():
         pass
 
     return _announcements_history
-

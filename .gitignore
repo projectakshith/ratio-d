@@ -75,3 +75,4 @@ SSH-ACCESS.md
 /ratiod-ssh-key.key
 /ratiod-ssh-key.pub
 /start-dev.sh
+backend/logs/

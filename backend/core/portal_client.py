@@ -7,6 +7,7 @@ import time
 import httpx
 import asyncio
 from services.portal_marks_service import PortalMarksService
+from utils.logging_config import portal_logger
 
 LOGIN_URL = "https://sp.srmist.edu.in/srmiststudentportal/students/loginManager/youLogin.jsp"
 BASE_URL = "https://sp.srmist.edu.in/srmiststudentportal"
@@ -249,7 +250,7 @@ class PortalSession:
             if r.status_code == 200 and "table" in r.text.lower():
                 return r.text
         except Exception as e:
-            print(f"  -> [PORTAL] Network error fetching marks: {e}", flush=True)
+            portal_logger.warning(f"Network error fetching marks: {e}")
         return None
 
 class PortalClient:
@@ -278,7 +279,7 @@ class PortalClient:
                 return None
             return r.text
         except Exception as e:
-            print(f"  -> [PORTAL] Network error fetching attendance: {e}", flush=True)
+            portal_logger.warning(f"Network error fetching attendance: {e}")
             return None
 
     async def get_marks_html(self):
@@ -306,7 +307,7 @@ class PortalClient:
                 if "table" in text_low and "day 1" in text_low:
                     return r.text
         except Exception as e:
-            print(f"  -> [PORTAL] Network error fetching timetable: {e}", flush=True)
+            portal_logger.warning(f"Network error fetching timetable: {e}")
         return None
 
     async def get_profile_html(self):
@@ -315,7 +316,7 @@ class PortalClient:
             if r.status_code == 200 and "student name" in r.text.lower():
                 return r.text
         except Exception as e:
-            print(f"  -> [PORTAL] Network error fetching profile: {e}", flush=True)
+            portal_logger.warning(f"Network error fetching profile: {e}")
         return None
 
     async def get_marks_data(self, att_html=None):
@@ -371,9 +372,9 @@ class PortalClient:
                                     "totalMaxMarks": None
                                 })
             except Exception as ex:
-                print(f"  -> [PORTAL] Error merging attendance courses in marks: {ex}", flush=True)
+                portal_logger.warning(f"Error merging attendance courses in marks: {ex}")
 
             return subjects
         except Exception as e:
-            print(f"  -> [PORTAL] Error fetching marks data: {e}", flush=True)
+            portal_logger.warning(f"Error fetching marks data: {e}")
             return []
