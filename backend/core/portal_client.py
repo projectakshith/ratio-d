@@ -28,9 +28,20 @@ HEADERS = {
 }
 
 _shared_transport = httpx.AsyncHTTPTransport(
-    retries=1,
-    limits=httpx.Limits(max_keepalive_connections=50, max_connections=200)
+    retries=2,
+    limits=httpx.Limits(max_keepalive_connections=20, max_connections=100, keepalive_expiry=2.0)
 )
+
+
+async def safe_request(client: httpx.AsyncClient, method: str, url: str, **kwargs) -> httpx.Response:
+    """Send an HTTP request with automatic retry on dead keep-alive or dropped connections."""
+    for attempt in range(2):
+        try:
+            return await client.request(method, url, **kwargs)
+        except (httpx.RemoteProtocolError, httpx.ConnectError, httpx.ReadError):
+            if attempt == 1:
+                raise
+            await asyncio.sleep(0.15)
 
 
 def canvas_hash():
@@ -79,7 +90,7 @@ class PortalSession:
         self.load_ms = None
 
     async def load_captcha(self):
-        r = await self.client.get(LOGIN_URL)
+        r = await safe_request(self.client, "GET", LOGIN_URL)
         text = r.text
         m = re.search(r"window\.SECURE_CONFIG\s*=\s*\{[^}]*?nonce\s*:\s*'([^']+)'", text)
         self.nonce = m.group(1) if m else None
@@ -118,7 +129,7 @@ class PortalSession:
         img_b64 = None
         if captcha_url:
             proof = base64.b64encode(f"{self.nonce}:sp.srmist.edu.in".encode()).decode()
-            cr = await self.client.get(captcha_url, headers={
+            cr = await safe_request(self.client, "GET", captcha_url, headers={
                 "X-Domain-Proof": proof,
                 "Accept": "image/png, image/jpeg, image/svg+xml, image/*",
                 "Referer": "https://sp.srmist.edu.in/srmiststudentportal/students/loginManager/youLogin.jsp",
@@ -135,7 +146,7 @@ class PortalSession:
         }
 
     async def get_login_page(self):
-        r = await self.client.get(LOGIN_URL)
+        r = await safe_request(self.client, "GET", LOGIN_URL)
         return r.text if r.status_code == 200 else None
 
     async def login(self, username, password, captcha, telemetry=None):
@@ -162,7 +173,7 @@ class PortalSession:
         })
         fp_body[self.domain_field_name] = dtoken
         fp_body[self.captcha_field_name] = cptoken
-        resp = await self.client.post(LOGIN_SERVLET, data=fp_body)
+        resp = await safe_request(self.client, "POST", LOGIN_SERVLET, data=fp_body)
         body = resp.text or ""
         if "logout.jsp" in resp.url.path or "attendance" in resp.url.path.lower() or "hrdsystem" in resp.url.path.lower():
             html = body
@@ -217,7 +228,7 @@ class PortalSession:
 
     async def get_attendance_html(self):
         try:
-            r = await self.client.get(ATT_URL)
+            r = await safe_request(self.client, "GET", ATT_URL)
             if (
                 r.status_code != 200 
                 or "youlogin" in str(r.url).lower() 
@@ -234,7 +245,7 @@ class PortalSession:
 
     async def get_marks_html(self):
         try:
-            r = await self.client.get(MARKS_URL)
+            r = await safe_request(self.client, "GET", MARKS_URL)
             if r.status_code == 200 and "table" in r.text.lower():
                 return r.text
         except Exception as e:
@@ -249,13 +260,13 @@ class PortalClient:
 
     async def keepalive(self):
         try:
-            await self.client.get(HRD_URL)
-        except httpx.HTTPError:
+            await safe_request(self.client, "GET", HRD_URL)
+        except Exception:
             pass
 
     async def get_attendance_html(self):
         try:
-            r = await self.client.get(ATT_URL)
+            r = await safe_request(self.client, "GET", ATT_URL)
             if (
                 r.status_code != 200 
                 or "youlogin" in str(r.url).lower() 
@@ -272,7 +283,7 @@ class PortalClient:
 
     async def get_marks_html(self):
         try:
-            r = await self.client.get(MARKS_URL)
+            r = await safe_request(self.client, "GET", MARKS_URL)
             if r.status_code == 200 and "table" in r.text.lower():
                 return r.text
         except Exception:
@@ -287,16 +298,20 @@ class PortalClient:
                 "hdnFormDetails": "1",
                 "csrfPreventionSalt": ""
             }
-            r = await self.client.post(TIMETABLE_URL, data=payload)
-            if r.status_code == 200 and "table" in r.text.lower() and "day 1" in r.text.lower():
-                return r.text
+            r = await safe_request(self.client, "POST", TIMETABLE_URL, data=payload)
+            if r.status_code == 200:
+                text_low = r.text.lower()
+                if "no time table found" in text_low:
+                    return None
+                if "table" in text_low and "day 1" in text_low:
+                    return r.text
         except Exception as e:
             print(f"  -> [PORTAL] Network error fetching timetable: {e}", flush=True)
         return None
 
     async def get_profile_html(self):
         try:
-            r = await self.client.get(PROFILE_URL)
+            r = await safe_request(self.client, "GET", PROFILE_URL)
             if r.status_code == 200 and "student name" in r.text.lower():
                 return r.text
         except Exception as e:
@@ -305,13 +320,15 @@ class PortalClient:
 
     async def get_marks_data(self, att_html=None):
         try:
-            r = await self.client.get(MARKS_URL)
+            r = await safe_request(self.client, "GET", MARKS_URL)
             if r.status_code != 200 or "table" not in r.text.lower():
                 return []
             
             subjects = PortalMarksService.parse_main(r.text)
             if not subjects:
                 return []
+
+            sem = asyncio.Semaphore(3)
 
             async def fetch_inner(subj):
                 if not subj.get("subjectId"):
@@ -321,14 +338,15 @@ class PortalClient:
                     "hdnSubjectId": subj["subjectId"],
                     "status": subj.get("status", "2")
                 }
-                try:
-                    r_inner = await self.client.post(INNER_MARKS_URL, data=payload)
-                    if r_inner.status_code == 200:
-                        subj["assessments"] = PortalMarksService.parse_inner(r_inner.text)
-                except Exception:
-                    pass
+                async with sem:
+                    try:
+                        r_inner = await safe_request(self.client, "POST", INNER_MARKS_URL, data=payload)
+                        if r_inner.status_code == 200:
+                            subj["assessments"] = PortalMarksService.parse_inner(r_inner.text)
+                    except Exception:
+                        pass
 
-            await asyncio.gather(*[fetch_inner(s) for s in subjects])
+            await asyncio.gather(*[fetch_inner(s) for s in subjects], return_exceptions=True)
 
             for s in subjects:
                 s.pop("subjectId", None)

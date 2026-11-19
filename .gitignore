@@ -69,3 +69,9 @@ backend/debug_*.html
 backend/run_ratiod.bat
 
 backend/mess_votes.db
+
+# Local SSH access and development helpers
+SSH-ACCESS.md
+/ratiod-ssh-key.key
+/ratiod-ssh-key.pub
+/start-dev.sh

@@ -521,12 +521,18 @@ async def portal_captcha(request: Request):
 async def portal_login(creds: PortalCredentials, request: Request):
     if creds.cookies:
         client = PortalClient(creds.cookies)
-        att_html, marks, tt_html, prof_html = await asyncio.gather(
+        results = await asyncio.gather(
             client.get_attendance_html(),
             client.get_marks_data(),
             client.get_timetable_html(),
-            client.get_profile_html()
+            client.get_profile_html(),
+            return_exceptions=True
         )
+        att_html = results[0] if not isinstance(results[0], Exception) else None
+        marks = results[1] if not isinstance(results[1], Exception) else []
+        tt_html = results[2] if not isinstance(results[2], Exception) else None
+        prof_html = results[3] if not isinstance(results[3], Exception) else None
+
         if att_html is None:
             raise HTTPException(status_code=401, detail={"type": "SESSION_EXPIRED"})
         courses, monthly = await asyncio.to_thread(PortalAttendanceService.parse, att_html)
@@ -654,12 +660,17 @@ async def portal_login(creds: PortalCredentials, request: Request):
 
     client = PortalClient(login_res["cookies"])
     try:
-        att_html, marks, tt_html, prof_html = await asyncio.gather(
+        results = await asyncio.gather(
             client.get_attendance_html(),
             client.get_marks_data(),
             client.get_timetable_html(),
-            client.get_profile_html()
+            client.get_profile_html(),
+            return_exceptions=True
         )
+        att_html = results[0] if not isinstance(results[0], Exception) else None
+        marks = results[1] if not isinstance(results[1], Exception) else []
+        tt_html = results[2] if not isinstance(results[2], Exception) else None
+        prof_html = results[3] if not isinstance(results[3], Exception) else None
     except Exception as e:
         print(f"  -> [PORTAL] Connect error fetching details after login: {e}", flush=True)
         att_html, marks, tt_html, prof_html = None, [], None, None
@@ -706,11 +717,15 @@ async def portal_refresh(creds: PortalCredentials, request: Request):
     client = PortalClient(creds.cookies)
     att_html, marks, tt_html = None, [], None
     if creds.cookies:
-        att_html, marks, tt_html = await asyncio.gather(
+        results = await asyncio.gather(
             client.get_attendance_html(),
             client.get_marks_data(),
-            client.get_timetable_html()
+            client.get_timetable_html(),
+            return_exceptions=True
         )
+        att_html = results[0] if not isinstance(results[0], Exception) else None
+        marks = results[1] if not isinstance(results[1], Exception) else []
+        tt_html = results[2] if not isinstance(results[2], Exception) else None
     if att_html is None:
         if creds.username and creds.password:
             print("  -> [OCR] Portal session expired. Running background re-auth...", flush=True)
@@ -735,11 +750,15 @@ async def portal_refresh(creds: PortalCredentials, request: Request):
                         print(f"  -> [OCR] Portal background re-auth successful!", flush=True)
                         reauth_success = True
                         client = PortalClient(res["cookies"])
-                        att_html, marks, tt_html = await asyncio.gather(
+                        results = await asyncio.gather(
                             client.get_attendance_html(),
                             client.get_marks_data(),
-                            client.get_timetable_html()
+                            client.get_timetable_html(),
+                            return_exceptions=True
                         )
+                        att_html = results[0] if not isinstance(results[0], Exception) else None
+                        marks = results[1] if not isinstance(results[1], Exception) else []
+                        tt_html = results[2] if not isinstance(results[2], Exception) else None
                         await session.client.aclose()
                         break
                     elif res.get("reason") in ["invalid_credentials", "account_locked"]:
@@ -749,13 +768,14 @@ async def portal_refresh(creds: PortalCredentials, request: Request):
                     else:
                         print(f"  -> [OCR] Portal background re-auth attempt {ocr_attempts} failed. Reason: {res.get('reason')}", flush=True)
                         await session.client.aclose()
-                except (httpx.ConnectError, httpx.ConnectTimeout, httpx.NetworkError) as e:
-                    print(f"  -> [PORTAL] Connection error during re-auth ({e}). Aborting retries.", flush=True)
+                except (httpx.ConnectError, httpx.ConnectTimeout, httpx.NetworkError, httpx.RemoteProtocolError) as e:
+                    print(f"  -> [PORTAL] Connection drop during re-auth ({e}). Retrying attempt...", flush=True)
                     try:
                         await session.client.aclose()
                     except Exception:
                         pass
-                    break
+                    await asyncio.sleep(0.3)
+                    continue
                 except Exception as e:
                     print(f"  -> [OCR] Background Portal re-auth error: {e}", flush=True)
                     try:
