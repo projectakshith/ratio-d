@@ -9,6 +9,7 @@ if not hasattr(asyncio, "to_thread"):
         return await loop.run_in_executor(None, functools.partial(func, *args, **kwargs))
     asyncio.to_thread = _to_thread
 import os
+import sys
 import json
 import hmac
 import hashlib
@@ -56,6 +57,8 @@ TINYOCR_API_KEY = os.getenv("TINYOCR_API_KEY", "")
 MAX_OCR_ATTEMPTS = 4
 
 def print_banner(server_url: str, ocr_url: str):
+    if sys.stdout.isatty():
+        print("\033[H\033[2J", end="", flush=True)
     width = 38
     lines = [
         "ratio'd",
@@ -894,3 +897,6 @@ async def get_announcements():
         pass
 
     return _announcements_history
+
+if __name__ == "__main__":
+    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True, log_level="warning")

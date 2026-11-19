@@ -85,7 +85,7 @@ def setup_logging(log_level: int = logging.INFO):
     root.addHandler(stdout_handler)
     root.addHandler(file_handler)
 
-    for noisy in ("httpx", "httpcore", "watchfiles", "uvicorn.access"):
+    for noisy in ("httpx", "httpcore", "watchfiles", "uvicorn", "uvicorn.error", "uvicorn.access"):
         logging.getLogger(noisy).setLevel(logging.WARNING)
 
 def set_request_context(user_id: str, client_ip: str = "-", req_id: str = "-"):
