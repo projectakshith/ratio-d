@@ -108,6 +108,7 @@ async def _get_ocr_client() -> httpx.AsyncClient:
     return _ocr_client
 
 async def solve_captcha_ocr_bytes(image_bytes: bytes) -> tuple[bool, str, int]:
+    t0 = time.time()
     try:
         ocr = await _get_ocr_client()
         resp = await ocr.post(
@@ -115,10 +116,13 @@ async def solve_captcha_ocr_bytes(image_bytes: bytes) -> tuple[bool, str, int]:
             content=image_bytes,
             headers={"content-type": "image/png"},
         )
+        duration_ms = (time.time() - t0) * 1000
         if resp.status_code == 200:
             data = resp.json()
+            text = data.get("text", "")
             metrics.record_ocr(True)
-            return True, data.get("text", ""), 200
+            ocr_logger.info(f"predicted: '{text}' ({duration_ms:.0f}ms)")
+            return True, text, 200
         else:
             metrics.record_ocr(False)
             err_detail = ""
@@ -126,8 +130,19 @@ async def solve_captcha_ocr_bytes(image_bytes: bytes) -> tuple[bool, str, int]:
                 err_detail = resp.json().get("error", resp.text)
             except Exception:
                 err_detail = resp.text
+            ocr_logger.error(f"TinyOCR HTTP {resp.status_code} ({duration_ms:.0f}ms): {err_detail}")
             return False, f"TinyOCR error ({resp.status_code}): {err_detail}", resp.status_code
+    except httpx.ConnectError:
+        duration_ms = (time.time() - t0) * 1000
+        ocr_logger.error(f"TinyOCR connection refused at {TINYOCR_URL} ({duration_ms:.0f}ms) - is TinyOCR running?")
+        return False, f"TinyOCR connection refused at {TINYOCR_URL}", 503
+    except httpx.TimeoutException:
+        duration_ms = (time.time() - t0) * 1000
+        ocr_logger.error(f"TinyOCR timeout ({duration_ms:.0f}ms) at {TINYOCR_URL}")
+        return False, "TinyOCR request timed out", 504
     except Exception as e:
+        duration_ms = (time.time() - t0) * 1000
+        ocr_logger.error(f"TinyOCR failed ({duration_ms:.0f}ms): {str(e)}")
         return False, f"TinyOCR request failed: {str(e)}", 503
 
 async def solve_captcha_ocr(image_url: str) -> str | None:
@@ -521,6 +536,7 @@ async def portal_captcha(request: Request):
         raise HTTPException(status_code=503, detail="Portal unavailable right now.")
     sid = secrets.token_hex(8)
     _portal_captcha_sessions[sid] = session
+    portal_logger.info(f"Generated captcha session ({sid[:8]})")
     if len(_portal_captcha_sessions) > 50:
         keys_to_remove = list(_portal_captcha_sessions.keys())[:15]
         for k in keys_to_remove:
@@ -542,6 +558,7 @@ async def portal_captcha(request: Request):
 @limiter.limit("5/minute")
 async def portal_login(creds: PortalCredentials, request: Request):
     if creds.cookies:
+        portal_logger.info("Logging in with cached session cookies...")
         client = PortalClient(creds.cookies)
         results = await asyncio.gather(
             client.get_attendance_html(),
@@ -556,10 +573,12 @@ async def portal_login(creds: PortalCredentials, request: Request):
         prof_html = results[3] if not isinstance(results[3], Exception) else None
 
         if att_html is None:
+            portal_logger.info("Session expired (cookies invalid)")
             raise HTTPException(status_code=401, detail={"type": "SESSION_EXPIRED"})
         courses, monthly = await asyncio.to_thread(PortalAttendanceService.parse, att_html)
         schedule, course_map = PortalTimetableService.parse(tt_html) if tt_html else ({}, {})
         profile = PortalProfileService.parse(prof_html) if prof_html else None
+        portal_logger.info(f"Session valid: extracted {len(courses)} courses, {len(marks)} marks")
         res = {
             "success": True,
             "isPortal": True,
@@ -592,16 +611,17 @@ async def portal_login(creds: PortalCredentials, request: Request):
     login_res = None
 
     if not captcha_val:
+        portal_logger.info(f"Starting auto-captcha login for '{netid}'...")
         while ocr_attempts < 4:
             ocr_attempts += 1
             try:
                 if not hasattr(session, "captcha_bytes") or not session.captcha_bytes:
                     await session.load_captcha()
+                portal_logger.info(f"Attempt {ocr_attempts}/4: captcha image loaded")
                 ok, solved, _ = await solve_captcha_ocr_bytes(session.captcha_bytes)
                 if not ok or not solved:
-                    ocr_logger.warning("OCR failed to predict captcha")
                     break
-                ocr_logger.info(f"predicted: '{solved}'")
+                portal_logger.info(f"Attempt {ocr_attempts}/4: submitting credentials with '{solved}'...")
                 res = await session.login(netid, password, solved, telemetry=creds.telemetry)
                 if res.get("ok"):
                     portal_logger.info(f"Login successful ('{solved}')")
@@ -736,6 +756,7 @@ async def _execute_portal_refresh(creds: PortalCredentials):
     client = PortalClient(creds.cookies)
     att_html, marks, tt_html = None, [], None
     if creds.cookies:
+        portal_logger.info("Validating cached session cookies...")
         results = await asyncio.gather(
             client.get_attendance_html(),
             client.get_marks_data(),
@@ -745,9 +766,11 @@ async def _execute_portal_refresh(creds: PortalCredentials):
         att_html = results[0] if not isinstance(results[0], Exception) else None
         marks = results[1] if not isinstance(results[1], Exception) else []
         tt_html = results[2] if not isinstance(results[2], Exception) else None
+        if att_html is not None:
+            portal_logger.info("Session verified: cookies are valid")
     if att_html is None:
         if creds.username and creds.password:
-            portal_logger.info("Session expired, re-authenticating...")
+            portal_logger.info("Session expired, initiating automatic re-login...")
             netid = (creds.username or "").strip().split("@")[0]
             password = creds.password or ""
             ocr_attempts = 0
@@ -758,11 +781,12 @@ async def _execute_portal_refresh(creds: PortalCredentials):
                 session = PortalSession()
                 try:
                     await session.load_captcha()
+                    portal_logger.info(f"Re-auth attempt {ocr_attempts}/4: captcha image loaded")
                     ok, solved, _ = await solve_captcha_ocr_bytes(session.captcha_bytes)
                     if not ok or not solved:
                         await session.client.aclose()
                         break
-                    ocr_logger.info(f"predicted: '{solved}'")
+                    portal_logger.info(f"Submitting credentials with captcha '{solved}'...")
                     res = await session.login(netid, password, solved)
                     if res.get("ok"):
                         portal_logger.info(f"Re-auth successful ('{solved}')")
@@ -808,6 +832,7 @@ async def _execute_portal_refresh(creds: PortalCredentials):
         raise HTTPException(status_code=401, detail={"type": "SESSION_EXPIRED"})
     courses, monthly = await asyncio.to_thread(PortalAttendanceService.parse, att_html)
     schedule, course_map = PortalTimetableService.parse(tt_html) if tt_html else ({}, {})
+    portal_logger.info(f"Parsed {len(courses)} courses, {len(marks)} marks, {len(schedule)} timetable days")
     if courses and marks:
         mark_codes = {m.get("courseCode", "").strip().lower() for m in marks}
         for c in courses:
